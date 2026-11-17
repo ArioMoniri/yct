@@ -219,3 +219,13 @@ def test_verify_and_safe_extract(qc, tmp_path):
         tf.addfile(info)
     with pytest.raises(SystemExit, match="unsafe"):
         qc.safe_extract(bad, tmp_path / "dest")
+
+
+def test_missing_route_defaults_to_keyword_search(qc, monkeypatch):
+    """D-049: with explicit opt-in ROUTE_DEFAULT, empty routes are filled instead of aborting."""
+    mod = qc
+    monkeypatch.setenv("ROUTE_DEFAULT", "keyword_search")
+    manifest = [{"video_id": f"v{i}", "in_primary": "True", "era_block": "E3"} for i in range(8)]
+    sealed = {f"v{i}": {"discovery_method": ("" if i < 6 else "directory_sweep")} for i in range(8)}
+    codes, col = mod.blocks_for(manifest, sealed, salt="x")
+    assert col == "discovery_method" and set(codes) == {f"v{i}" for i in range(8)}

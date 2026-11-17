@@ -48,6 +48,7 @@ import io
 import json
 import math
 import random
+import os
 import secrets
 import sys
 import tarfile
@@ -260,10 +261,15 @@ def blocks_for(manifest: list, sealed: dict, salt: str | None = None):
     ids = primary_ids(manifest)
     era = {r["video_id"]: r.get("era_block") or "UNKNOWN" for r in manifest}
     col = route_column(sealed, ids)
-    missing = [i for i in ids if not sealed.get(i, {}).get(col)]
-    if missing:
+    missing = [i for i in ids if not (sealed.get(i, {}).get(col) or "").strip()]
+    default = os.environ.get("ROUTE_DEFAULT", "").strip()
+    if missing and not default:
         raise SystemExit(f"route missing for {len(missing)} in_primary ids: {missing}")
-    rows = [(i, era[i], sealed[i][col].strip().upper()) for i in ids]
+    if missing:
+        # D-049: opt-in only. Round-1 Curator left the route empty; its report states every round-1 row was
+        # keyword_search except two directory_sweep rows (which carry the field).
+        print(f"  route empty for {len(missing)} in_primary ids -> {default.upper()} (ROUTE_DEFAULT, D-049)")
+    rows = [(i, era[i], ((sealed.get(i, {}).get(col) or "").strip() or default).upper()) for i in ids]
     codes = block_codes(rows, salt if salt is not None else secrets.token_hex(16))
     return codes, col
 
