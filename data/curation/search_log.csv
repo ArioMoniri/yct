@@ -118,3 +118,16 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-17T14:07:39Z,webfetch,veed.io/learn/rejected-from-yc,0,0
 2026-11-17T14:07:39Z,webfetch,liorn.substack.com/p/rejected-from-ycombinator,0,0
 2026-11-17T14:07:39Z,webfetch,close.com/blueprint/my-seven-attempts-to-get-into-y-combinator,0,0
+2026-11-17T14:23:29Z,websearch,Kathryn Cross Y Combinator W22 solo female founder company,19,0
+2026-11-17T14:23:29Z,websearch,Rohit Mittal Y Combinator 2016 Indian founders startup,20,0
+2026-11-17T14:24:25Z,youtube_search(yt-dlp),My YC application included rejected,20,2
+2026-11-17T14:24:27Z,youtube_search(yt-dlp),YC application video (accepted),50,1
+2026-11-17T14:24:29Z,youtube_search(yt-dlp),YC founder video (rejected),50,0
+2026-11-17T14:24:32Z,youtube_search(yt-dlp),YC application video - rejected,50,1
+2026-11-17T14:24:35Z,youtube_search(yt-dlp),YC application video (didn't get in),50,12
+2026-11-17T14:24:38Z,youtube_search(yt-dlp),YC application video not accepted,50,11
+2026-11-17T14:24:40Z,youtube_search(yt-dlp),YC application video got interview,50,1
+2026-11-17T14:24:47Z,youtube_search(yt-dlp),rejected YC founder video W25,0,0
+2026-11-17T14:24:57Z,youtube_search(yt-dlp),rejected YC founder video S25,40,0
+2026-11-17T14:24:59Z,youtube_search(yt-dlp),rejected YC application W26,50,1
+2026-11-17T14:25:11Z,youtube_search(yt-dlp),rejected YC application S26,40,13

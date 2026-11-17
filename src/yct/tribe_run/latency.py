@@ -3,8 +3,11 @@
 ROIs (Destrieux a2009s on fsaverage5, both hemispheres; TRIBE layout = 10242 L then 10242 R):
   visual   = Pole_occipital + S_calcarine          (event: white flash at t=15 s)
   auditory = G_temp_sup-G_T_transv + S_temporal_transverse  (event: speech burst at t=25 s)
-Output time = segment start (s) of each kept TR; TRIBE's 5 s hemodynamic offset is already inside.
-Usage: python latency.py PRED.npy SEGMENTS.csv OUTDIR [flash_onset speech_onset]
+Output time = segment start (s, stimulus clock) of each kept TR; TRIBE's 5 s offset is applied in training (see below).
+Usage: python latency.py PRED.npy SEGMENTS.csv OUTDIR [CONTROL.npy]
+  CONTROL.npy: same-length black/silent/no-word clip; if given, time courses are impulse - control.
+Output-time semantics: the neuro extractor reads BOLD at stimulus time + neuro.offset (5 s) in
+training, so a prediction at segment time t estimates BOLD at real time t + 5 s.
 """
 from __future__ import annotations
 
@@ -31,10 +34,12 @@ def roi_masks() -> dict[str, np.ndarray]:
     return out
 
 
-def main(pred: str, seg: str, outdir: str, flash: float = 15.0, speech: float = 25.0) -> dict:
-    ROIS["visual"] = (ROIS["visual"][0], flash)
-    ROIS["auditory"] = (ROIS["auditory"][0], speech)
+def main(pred: str, seg: str, outdir: str, control: str | None = None) -> dict:
     p = np.load(pred)
+    if control:
+        c = np.load(control)
+        assert c.shape == p.shape, (c.shape, p.shape)
+        p = p - c
     t = np.loadtxt(seg, delimiter=",", skiprows=1, usecols=1)
     assert len(t) == p.shape[0]
     out = Path(outdir); out.mkdir(parents=True, exist_ok=True)
@@ -47,7 +52,7 @@ def main(pred: str, seg: str, outdir: str, flash: float = 15.0, speech: float = 
         win = (t >= onset) & (t <= onset + 15)
         base = (t >= onset - 6) & (t < onset)
         i = np.flatnonzero(win)[np.argmax(tc[win])]
-        res[roi] = {"n_vertices": int(mask.sum()), "onset_s": onset,
+        res[roi] = {"control_subtracted": bool(control), "n_vertices": int(mask.sum()), "onset_s": onset,
                     "peak_output_time_s": float(t[i]), "peak_rel_onset_s": float(t[i] - onset),
                     "peak_value": float(tc[i]), "baseline_mean": float(tc[base].mean()),
                     "peak_minus_baseline": float(tc[i] - tc[base].mean())}
@@ -57,4 +62,4 @@ def main(pred: str, seg: str, outdir: str, flash: float = 15.0, speech: float = 
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2], sys.argv[3], *map(float, sys.argv[4:6]))
+    main(*sys.argv[1:5])
