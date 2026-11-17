@@ -58,6 +58,29 @@ class Era(M):
     last_batch: Annotated[str, Field(pattern=r"^[SWF]\d{4}$")] | None = None
 
 
+class EraBlocks(M):
+    merge: Annotated[dict[str, Annotated[list[str], Field(min_length=1)]], Field(min_length=1)]
+    unknown: str
+    route_merge_min_videos: PosInt
+
+
+class DecisionDate(M):
+    month: Annotated[int, Field(ge=1, le=12)]
+    day: Annotated[int, Field(ge=1, le=31)]
+    year_offset: Annotated[int, Field(ge=-1, le=0)]
+
+
+class Manifest(M):
+    decision_date: dict[Literal["W", "X", "S", "F"], DecisionDate]
+
+    @field_validator("decision_date")
+    @classmethod
+    def _all_seasons(cls, v):
+        if set(v) != {"W", "X", "S", "F"}:
+            raise ValueError("decision_date needs exactly the seasons W, X, S, F")
+        return v
+
+
 class Budget(M):
     usd_file: str
     ssm_parameter: Annotated[str, Field(pattern=r"^/yct/owner/")]
@@ -462,6 +485,8 @@ class Config(M):
     window: Window
     era_strata: dict[str, Era]
     era_merge_min_videos: PosInt
+    era_blocks: EraBlocks
+    manifest: Manifest
     budget: Budget
     seeds: Seeds
     normalize: Normalize
@@ -476,6 +501,15 @@ class Config(M):
     guards: Guards
     owner: Owner
     frozen: list[Frozen]
+
+    @model_validator(mode="after")
+    def _era_blocks_partition_strata(self):
+        members = [s for ms in self.era_blocks.merge.values() for s in ms]
+        if sorted(members) != sorted(self.era_strata):
+            raise ValueError(f"era_blocks.merge {members} must list every era_strata key exactly once")
+        if self.era_blocks.unknown in self.era_blocks.merge:
+            raise ValueError("era_blocks.unknown must not also be a merged block name")
+        return self
 
 
 def validate_config(cfg: dict[str, Any]) -> Config:

@@ -29,6 +29,20 @@ era_strata:                    # from the YC batch calendar, not the data (v2.md
   E2: {first_batch: S2016, last_batch: W2020}
   E3: {first_batch: S2020}
 era_merge_min_videos: 6        # strata with < 6 videos merge toward E2
+era_blocks:                    # D-047 (Referee P1 D6, Biostat P1 #4): analysis era blocks = merged raw strata.
+  # Fixed label-free before any outcome is seen: in_primary E1 = 3, E2 = 7 rows (E1 dummy near-aliased), so
+  # E1 + E2 -> E12 ("pre-S2020") for Q(M0) era dummies and exchangeability blocks. The manifest keeps the raw
+  # era_stratum and adds era_block (src/yct/curate/manifest.py).
+  merge: {E12: [E1, E2], E3: [E3]}
+  unknown: UNKNOWN             # era_stratum UNKNOWN -> era_block UNKNOWN
+  route_merge_min_videos: 6    # owner-side block coding (scripts/owner_label_qc.sh): era blocks < 6 videos merge within route
+
+manifest:                      # data/manifest.csv derived columns (D-046/D-047/D-048; src/yct/curate/manifest.py)
+  decision_date:               # nominal YC decision (notification) date per batch season; label-free calendar rule
+    W: {month: 11, day: 15, year_offset: -1}   # Winter batch: mid-November of the previous year
+    X: {month: 3, day: 1, year_offset: 0}      # Spring batch (2025+): early March
+    S: {month: 5, day: 15, year_offset: 0}     # Summer batch: mid-May
+    F: {month: 8, day: 15, year_offset: 0}     # Fall batch (2024+): mid-August
 
 budget:
   usd_file: infra/BUDGET_USD   # legacy file; owner value now in SSM /yct/owner/budget_usd (D-030)

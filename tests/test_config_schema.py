@@ -108,3 +108,44 @@ def test_load_config_validates(tmp_path):
     with pytest.raises(ValidationError):
         load_config(p)
     assert load_config(p, validate=False)["tribe"]["tr_s"] == "fast"
+
+
+def test_era_blocks_merge_e1_e2():
+    """D-047: E1 + E2 -> E12; raw era_strata unchanged."""
+    assert RAW["era_blocks"]["merge"] == {"E12": ["E1", "E2"], "E3": ["E3"]}
+    assert set(RAW["era_strata"]) == {"E1", "E2", "E3"}
+
+
+@pytest.mark.parametrize("merge", [
+    {"E12": ["E1", "E2"]},                          # E3 missing
+    {"E12": ["E1", "E2"], "E3": ["E3", "E2"]},      # E2 twice
+    {"E12": ["E1", "E2"], "E3": ["E3", "E4"]},      # unknown stratum
+])
+def test_era_blocks_must_partition_era_strata(merge):
+    c = _cfg()
+    c["era_blocks"]["merge"] = merge
+    with pytest.raises(ValidationError, match="era_strata"):
+        validate_config(c)
+
+
+@pytest.mark.parametrize("path,bad", [
+    ("manifest.decision_date.W.month", 13),
+    ("manifest.decision_date.S.year_offset", 1),
+    ("era_blocks.route_merge_min_videos", 0),
+])
+def test_manifest_and_era_block_values_checked(path, bad):
+    c = _cfg()
+    *parents, leaf = path.split(".")
+    d = c
+    for p in parents:
+        d = d[p]
+    d[leaf] = bad
+    with pytest.raises(ValidationError):
+        validate_config(c)
+
+
+def test_manifest_decision_date_needs_all_seasons():
+    c = _cfg()
+    del c["manifest"]["decision_date"]["X"]
+    with pytest.raises(ValidationError, match="seasons"):
+        validate_config(c)
