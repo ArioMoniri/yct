@@ -35,3 +35,6 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-17T13:58:59Z,youtube_search(yt-dlp),YC application video 2016,20,4
 2026-11-17T13:59:01Z,youtube_search(yt-dlp),YC application video 2015,50,34
 2026-11-17T13:59:03Z,youtube_search(yt-dlp),Y Combinator application video 2014,50,45
+2026-11-17T13:59:06Z,youtube_search(yt-dlp),Y Combinator application video 2013,50,25
+2026-11-17T13:59:08Z,youtube_search(yt-dlp),Y Combinator application video 2012,50,41
+2026-11-17T13:59:11Z,youtube_search(yt-dlp),YC interview application video startup,50,14
