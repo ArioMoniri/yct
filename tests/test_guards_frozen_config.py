@@ -33,7 +33,8 @@ def test_frozen_key_unchanged_passes(repo):
     sha = repo.commit("cfg", {"config.yaml": CFG})
     repo.commit("freeze", {"config.yaml": _freeze(CFG, [("window.start_tr", sha)])})
     base = repo.head()
-    repo.commit("tune other", {"config.yaml": _freeze(CFG, [("window.start_tr", sha)]).replace("len_tr: 40", "len_tr: 41")})
+    tuned = _freeze(CFG, [("window.start_tr", sha)]).replace("len_tr: 40", "len_tr: 41")
+    repo.commit("tune other", {"config.yaml": tuned})
     res = repo.run_script(S, "--base", base)
     assert res.returncode == 0, res.stdout + res.stderr
 

@@ -7,7 +7,7 @@ OWNER = "arn:aws:iam::123456789012:user/owner"
 AGENT = "arn:aws:sts::123456789012:assumed-role/yct-pod/i-0abc"
 
 
-class ParameterNotFound(Exception):
+class ParameterNotFound(Exception):  # noqa: N818 - mirrors the boto3 name
     pass
 
 
@@ -122,3 +122,12 @@ def test_value_mismatch_with_history_raises():
     c.get_parameter = racy
     with pytest.raises(oa.OwnerActionError):
         oa.budget_usd(client=c)
+
+
+def test_owner_arn_pinned_by_env(monkeypatch):
+    c = _ssm(budget_usd=[("100", OWNER)])
+    monkeypatch.setenv("YCT_OWNER_ARN", "arn:aws:iam::1:user/someone-else")
+    with pytest.raises(oa.OwnerActionError, match="pinned"):
+        oa.budget_usd(client=c)
+    monkeypatch.setenv("YCT_OWNER_ARN", OWNER)
+    assert oa.budget_usd(client=c) == 100.0

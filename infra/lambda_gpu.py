@@ -33,7 +33,21 @@ API = "https://cloud.lambda.ai/api/v1"
 LEDGER = Path(__file__).resolve().parent / "gpu_ledger.jsonl"
 PREFIX = "yct-"
 # Budget is a human-only setting committed in infra/BUDGET_USD (env vars cannot raise it).
-BUDGET_USD = float((Path(__file__).resolve().parent / "BUDGET_USD").read_text().strip())
+def _owner_budget() -> float:
+    """Owner-only budget (D-030): SSM /yct/owner/budget_usd, verified as last written by the owner
+    (yct.owner_actions). The lower of SSM and infra/BUDGET_USD applies; if SSM cannot be verified,
+    the file value is used and a warning printed, so an agent can never raise the cap."""
+    file_val = float((Path(__file__).resolve().parent / "BUDGET_USD").read_text().strip())
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+        from yct.owner_actions import budget_usd
+        return min(file_val, budget_usd())
+    except Exception as exc:  # noqa: BLE001 - any failure falls back to the lower, file-based cap
+        print(f"WARNING owner budget unverified ({type(exc).__name__}); using file cap", file=sys.stderr)
+        return file_val
+
+
+BUDGET_USD = _owner_budget()
 BUDGET_MAX_HOURS = 4.0
 ALERT_FRACTION = 0.8
 

@@ -17,3 +17,11 @@ pythonpath = ["src", "."]
 
 [tool.ruff]
 line-length = 110
+# analysis/power/: archived power-analysis scripts cited as evidence in reviews; kept byte-identical.
+extend-exclude = ["analysis/power"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "N", "UP"]
+
+[tool.ruff.lint.per-file-ignores]
+"infra/lambda_gpu.py" = ["E501", "E702"]

@@ -1,0 +1,43 @@
+# YCT pipeline configuration (v2.2 defaults already decided in docs/prompts/v2.md).
+# Every tunable lives here (v2.md §3). Freezing: add an entry to `frozen:` at the phase gate;
+# scripts/check_frozen_config.py then forbids any change to that key (or subtree) and forbids
+# removing/re-pointing the entry.
+#   frozen:
+#     - key: window.start_tr   # dotted path
+#       frozen_at: <gate commit sha>
+schema_version: 1
+
+tribe:
+  tr_s: 1.0                    # TR in seconds (tribe_requirements.md)
+  n_vertices: 20484            # fsaverage5, both hemispheres
+
+stimulus:
+  t1_trim_s: 58.0              # T1: first 58.0 s fed to TRIBE (v2.md §1)
+  t1_max_probe_s: 58.5         # ffprobe duration of the trimmed clip must be <= this
+  fps: 30                      # CFR (v2.md P2)
+  min_source_fps: 16           # V-JEPA2 samples 16 frames/s
+  min_short_side_px: 292       # V-JEPA2 short-edge resize; no letterbox/pillarbox padding
+  center_crop_px: 256
+
+window:                        # W, set in P4 from label-free mean time course; frozen there
+  default_start_tr: 5          # max(5, 4 + L + 1) once P0 latency L is measured
+  default_len_tr: 40
+  min_tail_s: 2                # exclude from T1 if trimmed duration < W_end + 2 s
+
+era_strata:                    # from the YC batch calendar, not the data (v2.md §1)
+  E1: {last_batch: W2016}
+  E2: {first_batch: S2016, last_batch: W2020}
+  E3: {first_batch: S2020}
+era_merge_min_videos: 6        # strata with < 6 videos merge toward E2
+
+budget:
+  usd_file: infra/BUDGET_USD   # legacy file; owner value now in SSM /yct/owner/budget_usd (D-030)
+  ssm_parameter: /yct/owner/budget_usd
+  default_usd: 50
+  alert_fraction: 0.8
+  max_hours_per_instance: 4
+
+seeds:
+  company_pick_salt: "yct-v2.1"  # random.Random(sha256(company_id + salt)).choice(sorted(video_ids))
+
+frozen: []

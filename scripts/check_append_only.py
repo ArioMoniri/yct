@@ -31,7 +31,7 @@ def violations(old_ref: str, new_ref: str) -> list[str]:
             out.append(f"{path}: deleted (append-only log)")
         elif not new.startswith(old):
             old_lines, new_lines = old.splitlines(), new.splitlines()
-            n = next((i for i, (a, b) in enumerate(zip(old_lines, new_lines)) if a != b),
+            n = next((i for i, (a, b) in enumerate(zip(old_lines, new_lines, strict=False)) if a != b),
                      min(len(old_lines), len(new_lines)))
             out.append(f"{path}:{n + 1}: existing line modified or deleted (append-only log)")
     return out

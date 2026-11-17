@@ -46,3 +46,21 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-17T13:59:41Z,youtube_search(yt-dlp),YC founder video 1 minute,50,28
 2026-11-17T13:59:44Z,youtube_search(yt-dlp),yc app video,50,7
 2026-11-17T13:59:47Z,youtube_search(yt-dlp),YC application video startup school,50,7
+2026-11-17T13:59:53Z,youtube_search(yt-dlp),YC application video W17,50,26
+2026-11-17T14:00:02Z,youtube_search(yt-dlp),ycombinator application video rejected,0,0
+2026-11-17T14:00:11Z,youtube_search(yt-dlp),YC application video that got us in,20,2
+2026-11-17T14:00:18Z,youtube_search(yt-dlp),Y Combinator founder video submission,0,0
+2026-11-17T14:00:46Z,youtube_search(yt-dlp),YC application video rejected,50,3
+2026-11-17T14:00:54Z,youtube_search(yt-dlp),YC founder video rejected,40,4
+2026-11-17T14:01:01Z,youtube_search(yt-dlp),YC application rejected video,20,0
+2026-11-17T14:01:08Z,youtube_search(yt-dlp),rejected from Y Combinator application video,40,3
+2026-11-17T14:01:15Z,youtube_search(yt-dlp),YC application video accepted,0,0
+2026-11-17T14:01:23Z,youtube_search(yt-dlp),YC founder video accepted,0,0
+2026-11-17T14:01:31Z,youtube_search(yt-dlp),YC application video got in,0,0
+2026-11-17T14:01:42Z,youtube_search(yt-dlp),YC application (rejected),40,15
+2026-11-17T14:01:50Z,youtube_search(yt-dlp),YC application video didn't get in,0,0
+2026-11-17T14:01:53Z,youtube_search(yt-dlp),YC founder video,50,5
+2026-11-17T14:02:04Z,youtube_search(yt-dlp),YC application video no interview,20,0
+2026-11-17T14:02:06Z,youtube_search(yt-dlp),YC application video interview rejected,50,6
+2026-11-17T14:02:15Z,youtube_search(yt-dlp),failed YC application video,20,2
+2026-11-17T14:02:18Z,youtube_search(yt-dlp),Y Combinator rejected us application video,50,6

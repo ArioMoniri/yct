@@ -11,7 +11,10 @@ def test_clean_repo_passes(repo):
     assert res.returncode == 0, res.stdout + res.stderr
 
 
-@pytest.mark.parametrize("header", ["video_id,outcome", "video_id,Outcome ", "video_id\toutcome", '"outcome",x'])
+HEADERS = ["video_id,outcome", "video_id,Outcome ", "video_id\toutcome", '"outcome",x']
+
+
+@pytest.mark.parametrize("header", HEADERS)
 def test_manifest_outcome_column_fails(repo, header):
     sep = "\t" if "\t" in header else ","
     repo.commit("leak", {"data/manifest.csv": f"{header}\nv1{sep}1\n"})

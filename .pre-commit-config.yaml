@@ -1,0 +1,38 @@
+# Install: pip install pre-commit && pre-commit install --hook-type pre-commit --hook-type commit-msg --hook-type pre-push
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+  - repo: local
+    hooks:
+      - id: append-only-logs
+        name: append-only logs (HEAD vs index)
+        entry: python scripts/check_append_only.py --staged
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: blinding
+        name: blinding (no outcome column; no UNBLIND_TOKEN before lock)
+        entry: python scripts/check_blinding.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: test-weakening
+        name: test weakening (HEAD vs index; message may carry [QA-approved test change])
+        entry: python scripts/check_test_weakening.py --staged
+        language: system
+        stages: [commit-msg]
+        always_run: true
+      # Range checks against the upstream branch before pushing.
+      - id: range-guards
+        name: prereg / frozen config / human-only / append-only / test-weakening vs upstream
+        entry: make guards
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

@@ -1,0 +1,5 @@
+# gitleaks configuration: the upstream default rule set, nothing disabled (v2.md §3 Secrets).
+title = "yct gitleaks config"
+
+[extend]
+useDefault = true
