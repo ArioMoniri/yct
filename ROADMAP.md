@@ -96,7 +96,8 @@ This roadmap is the spec in `docs/prompts/v2.md`. The status values are TODO, WI
 ## P3 — Stimulus features (M0) and generic encoder features (M0b)
 **Tasks**
 - Audio features: RMS, speech fraction, speech rate, pitch, music.
-- Visual features: cuts, optical flow, luminance, contrast, faces, text.
+- M0 assembly rules (v2.4 G-D032; `src/yct/features/m0.py`): W-averaging after W is frozen; no `text_frac`; label-free imputation; speech rate and speech fraction always in K_Q; finite + rank(Q) ≤ ⌊N/3⌋ asserts; exclude no-audio / < 20 words in W (logged).
+- Visual features: cuts, optical flow, luminance, contrast, faces, text. Face regressor and face fraction inside the V-JEPA2 crop (v2.4 G-D032).
 - Crop coverage, caption flag, era.
 - Per-TR M0b backbone embeddings (W-averaging happens only after W is frozen in P4).
 
@@ -166,12 +167,12 @@ Validate the pipeline as in v2.md §5 P5b. All of these must hold:
 ## P7 / P8 — Statistics and prediction
 **After unblinding:** run H4 (primary), then H1, H2, H3 and H4b (Holm-corrected family), then the exploratory analyses.
 
-## T3 and localisation (v2.3)
-- **P2:** produce photometrically normalised T3 copies.
+## T3 and localisation (v2.3; rules v2.4 G-D032)
+- **P2:** produce photometrically normalised T3 copies (statistics on the V-JEPA2 crop; gain capped at `max_gain`; flagged clips kept and reported).
 - **P4:** run TRIBE on T3, which doubles the inference count.
 - **P5:** compute T3 features.
-- **P7/P8:** H1 and H4 sensitivity analyses on T3.
-- **P9:** atlas peak-label tables (Schaefer/Yeo/HCP-MMP/Destrieux) and four-view maps for group means and the difference map.
+- **P7/P8:** H1 and H4 sensitivity analyses on T3, reusing T1 M0/Q/W/exclusions/blocks/seeds; outside Holm, no α; "survives" = same sign and p < .05, else "photometrically fragile"; T3 never turns a T1 null into a claim (v2.4 G-D032).
+- **P9:** atlas peak-label tables (Schaefer/Yeo/best-overlap HCP-MMP/Destrieux) and four-view maps for group means and the difference map: T1 spatially standardised W-averaged maps only, fixed caption, claim-language lint, company-cluster BCa CIs + stability, BH-FDR q on the difference table, stippled unreliable vertices (v2.4 G-D032).
 - Known TRIBE issues: docs/tribe_known_issues.md, reviewed at the P0 gate.
 
 ## P9 / P10 — Interpretation and report
@@ -183,6 +184,7 @@ Validate the pipeline as in v2.md §5 P5b. All of these must hold:
 
 ## Revisions log (R-n)
 - **R-1 (2026-11-17):** v1 to v2 after the council review. See `reviews/prompt_v1/` and DECISIONS D-001 to D-012.
+- **R-6 (2026-11-17):** v2.4 after gate G-D032 (ticket FIX-D032-2; DECISIONS D-034): union medial wall (Schaefer ∪ HCP `???` ∪ Destrieux), crop-aware face regressor, M0 assembly rules (W-averaging, label-free imputation, no `text_frac`, speech rate + speech fraction forced into K_Q, rank ≤ ⌊N/3⌋, no-audio/<20-words exclusion), T3 crop statistics + `max_gain` cap + T3 analysis rules, localisation firewall (caption, claim lint, company-cluster BCa, stability, BH-FDR q, stippled unreliable vertices, best-overlap HCP). ENH-003 (subcortical) deferred.
 - **R-5 (2026-11-17):** v2.3: T3 photometric sensitivity track and atlas localisation outputs (owner request; D-032).
 - **R-4 (2026-11-17):** v2.1 → v2.2 after round-3 Biostat + Neuro reviews (reviews/prompt_v2/round3_*.md); DECISIONS D-023–D-028.
 - **R-3 (2026-11-17):** v2 to v2.1 after the round-2 Watchdog and Referee reviews (`reviews/prompt_v2/`). See DECISIONS D-013 to D-022.
