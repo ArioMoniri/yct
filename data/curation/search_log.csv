@@ -38,3 +38,11 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-17T13:59:06Z,youtube_search(yt-dlp),Y Combinator application video 2013,50,25
 2026-11-17T13:59:08Z,youtube_search(yt-dlp),Y Combinator application video 2012,50,41
 2026-11-17T13:59:11Z,youtube_search(yt-dlp),YC interview application video startup,50,14
+2026-11-17T13:59:17Z,youtube_search(yt-dlp),ycombinator application video rejected,0,0
+2026-11-17T13:59:19Z,youtube_search(yt-dlp),our rejected Y Combinator video,50,13
+2026-11-17T13:59:28Z,youtube_search(yt-dlp),YC application video that got us in,0,0
+2026-11-17T13:59:31Z,youtube_search(yt-dlp),YC application video that got accepted,50,3
+2026-11-17T13:59:39Z,youtube_search(yt-dlp),Y Combinator founder video submission,0,0
+2026-11-17T13:59:41Z,youtube_search(yt-dlp),YC founder video 1 minute,50,28
+2026-11-17T13:59:44Z,youtube_search(yt-dlp),yc app video,50,7
+2026-11-17T13:59:47Z,youtube_search(yt-dlp),YC application video startup school,50,7
