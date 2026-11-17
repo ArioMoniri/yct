@@ -23,3 +23,15 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-17T13:57:40Z,youtube_search(yt-dlp),YC application video S26,20,15
 2026-11-17T13:57:47Z,youtube_search(yt-dlp),YC application video X26,40,40
 2026-11-17T13:57:49Z,youtube_search(yt-dlp),YC application video F26,50,31
+2026-11-17T13:57:56Z,youtube_search(yt-dlp),YC application video W23,50,39
+2026-11-17T13:57:58Z,youtube_search(yt-dlp),YC application video S20,50,49
+2026-11-17T13:58:10Z,youtube_search(yt-dlp),YC application video W20,40,16
+2026-11-17T13:58:13Z,youtube_search(yt-dlp),YC application video S19,50,48
+2026-11-17T13:58:23Z,youtube_search(yt-dlp),YC application video W19,40,27
+2026-11-17T13:58:25Z,youtube_search(yt-dlp),YC application video S18,50,47
+2026-11-17T13:58:34Z,youtube_search(yt-dlp),YC application video W18,40,16
+2026-11-17T13:58:42Z,youtube_search(yt-dlp),YC application video S17,40,37
+2026-11-17T13:58:48Z,youtube_search(yt-dlp),YC application video W17,0,0
+2026-11-17T13:58:59Z,youtube_search(yt-dlp),YC application video 2016,20,4
+2026-11-17T13:59:01Z,youtube_search(yt-dlp),YC application video 2015,50,34
+2026-11-17T13:59:03Z,youtube_search(yt-dlp),Y Combinator application video 2014,50,45

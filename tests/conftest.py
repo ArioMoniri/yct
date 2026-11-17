@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -47,13 +46,11 @@ class Repo:
     def rm(self, rel: str) -> None:
         self.git("rm", "-q", rel)
 
-    def commit(self, msg: str, files: dict[str, str] | None = None, sign_key: Path | None = None) -> str:
+    def commit(self, msg: str, files: dict[str, str] | None = None) -> str:
         for rel, content in (files or {}).items():
             self.write(rel, content)
         self.git("add", "-A")
         args = ["commit", "-q", "--allow-empty", "-m", msg]
-        if sign_key is not None:
-            args = ["-c", "gpg.format=ssh", "-c", f"user.signingkey={sign_key}", *args, "-S"]
         self.git(*args)
         return self.head()
 
@@ -78,26 +75,3 @@ def repo(tmp_path) -> Repo:
     r.git("init", "-q", "-b", "main")
     r.commit("root", {"README.md": "fixture\n"})
     return r
-
-
-def _keygen(tmp_path: Path, name: str) -> Path:
-    if shutil.which("ssh-keygen") is None:
-        pytest.skip("ssh-keygen not available")
-    key = tmp_path / "keys" / name
-    key.parent.mkdir(exist_ok=True)
-    subprocess.run(["ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-C", name, "-f", str(key)], check=True)
-    return key
-
-
-@pytest.fixture
-def owner_key(tmp_path) -> Path:
-    return _keygen(tmp_path, "owner")
-
-
-@pytest.fixture
-def agent_key(tmp_path) -> Path:
-    return _keygen(tmp_path, "agent")
-
-
-def allowed_signers_line(key: Path, principal: str = "yct-owner") -> str:
-    return f"{principal} {key.with_suffix('.pub').read_text().strip()}\n"
