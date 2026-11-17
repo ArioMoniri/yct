@@ -36,3 +36,8 @@ Append-only log. Format: date | phase | id | summary | evidence.
 - D-026 T1 clip = first 58.0 s (ffprobe ≤ 58.5 s) with a one-Audio/one-Video-chunk test; W = [max(5, 4+L+1), +40) TRs; T1 exclusion = trimmed duration < W_end + 2 s; ≥2 s latency-shift clause removed (Neuro M1, M2; supersedes D-018's 60 s / 47 s).
 - D-027 Limbic is the omitted reference (exact linear combination), not dropped for SNR; H1 still tests all 7 (compositional); H2 parcels = HCP-MMP STSv, STSdp, PGi, 45, 44, TE1a, TP excluded (Neuro M3, Biostat minor).
 - D-028 P4b controls: (a) partial Pearson r with crop-restricted, L-shifted, impulse-convolved regressors, Fisher-z t across videos, low-SD exclusion with reference-clip fallback (HAC dropped); STG → AUD = A4 ∪ A5; (c) uses mean speech envelope; new (d) face/place localiser replication (Neuro M4, M5).
+
+## 2026-11-17 | Owner actions (chat, interim until signed-commit CI exists)
+- H-001 Owner set GPU budget cap to USD 200 → infra/BUDGET_USD (lambda_gpu.py now reads the file, not env).
+- H-002 Owner signed DATA_DECISION.md by chat message; media download in P1 is now permitted.
+- H-003 Owner fixed IAM/SSM + NAT path; pod i-02dc0aef7260534ee Online in SSM. Note: release its Elastic IP when the pod is deleted.

@@ -12,7 +12,7 @@ Guards (watchdog rules W-COST):
   * API key only from env LAMBDA_API_KEY; never printed or logged.
   * Every launched instance is recorded in outputs/infra/gpu_ledger.jsonl with a deadline.
   * --max-hours is mandatory; HARD cap 4 h (not overridable from env).
-  * Cumulative spend cap BUDGET_USD (default 50; raising it is a human-only action, see v2 §2)
+  * Cumulative spend cap BUDGET_USD (read from infra/BUDGET_USD; changing it is a human-only action, see v2 §2)
     blocks new launches; a warning is emitted at >=80% of the cap.
   * The ledger is tracked in git (infra/gpu_ledger.jsonl) so spend survives fresh checkouts.
   * `reap` terminates yct-* instances past deadline; `watch` runs reap every 60 s.
@@ -32,7 +32,8 @@ from pathlib import Path
 API = "https://cloud.lambda.ai/api/v1"
 LEDGER = Path(__file__).resolve().parent / "gpu_ledger.jsonl"
 PREFIX = "yct-"
-BUDGET_USD = float(os.environ.get("BUDGET_USD", "50"))
+# Budget is a human-only setting committed in infra/BUDGET_USD (env vars cannot raise it).
+BUDGET_USD = float((Path(__file__).resolve().parent / "BUDGET_USD").read_text().strip())
 BUDGET_MAX_HOURS = 4.0
 ALERT_FRACTION = 0.8
 

@@ -41,3 +41,10 @@ def test_spent_counts_open_instances(lg):
     import time
     lg._append({"event": "launch", "id": "a", "usd_per_hour": 3600.0, "t": time.time() - 2, "deadline": 0})
     assert lg.spent_usd() >= 2.0
+
+
+def test_budget_from_file_not_env(monkeypatch):
+    import importlib
+    monkeypatch.setenv("BUDGET_USD", "999999")
+    mod = importlib.reload(importlib.import_module("infra.lambda_gpu"))
+    assert mod.BUDGET_USD == 200.0
