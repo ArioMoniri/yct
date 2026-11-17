@@ -133,3 +133,14 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-17T14:25:11Z,youtube_search(yt-dlp),rejected YC application S26,40,13
 2026-11-17T14:25:20Z,youtube_search(yt-dlp),rejected YC application F26,0,0
 2026-11-17T14:25:21Z,youtube_search(yt-dlp),rejected YC application X25,8,3
+2026-11-17T14:25:30Z,youtube_search(yt-dlp),YC application video accepted W25,20,0
+2026-11-17T14:25:40Z,youtube_search(yt-dlp),YC application video accepted S25,0,0
+2026-11-17T14:25:42Z,youtube_search(yt-dlp),YC application video accepted F25,50,0
+2026-11-17T14:25:45Z,youtube_search(yt-dlp),YC application video accepted W26,50,7
+2026-11-17T14:25:54Z,youtube_search(yt-dlp),YC application video accepted X26,0,0
+2026-11-17T14:26:03Z,youtube_search(yt-dlp),YC application video accepted S23,20,1
+2026-11-17T14:26:06Z,youtube_search(yt-dlp),YC application video accepted W23,50,4
+2026-11-17T14:26:08Z,youtube_search(yt-dlp),YC application video accepted S22,50,15
+2026-11-17T14:26:11Z,youtube_search(yt-dlp),YC application video accepted W21,50,7
+2026-11-17T14:26:13Z,youtube_search(yt-dlp),YC application video accepted S21,50,22
+2026-11-17T14:26:16Z,youtube_search(yt-dlp),YC application video accepted 2019,50,32
