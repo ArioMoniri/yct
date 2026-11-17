@@ -3,3 +3,11 @@ title = "yct gitleaks config"
 
 [extend]
 useDefault = true
+
+# BUG-020: feature-cache content hashes ("cache_key": "<hex sha256>") in outputs/runs/*.json trip
+# generic-api-key. Allowlist ONLY that exact line shape (lowercase hex, 16-64 chars) — any non-hex value
+# in a cache_key field, or any other key name, is still reported.
+[allowlist]
+description = "feature-cache sha256 content hashes (BUG-020)"
+regexTarget = "line"
+regexes = ['''"cache_key": "[0-9a-f]{16,64}",?\s*$''']

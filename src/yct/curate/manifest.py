@@ -33,7 +33,9 @@ WAVE1_COLUMNS = [
     "video_id", "url", "platform", "upload_date", "claimed_batch", "era_stratum", "company_id", "duration_s",
     "language", "is_original_application_video", "in_primary",
 ]
-DERIVED_COLUMNS = ["era_block", "wave", "collected_after_lock", "platform_nonYT", "upload_lag_days"]
+DERIVED_COLUMNS = [
+    "era_block", "wave", "collected_after_lock", "platform_nonYT", "upload_lag_days", "qc_pass",
+]
 COLUMNS = WAVE1_COLUMNS + DERIVED_COLUMNS
 UNKNOWN = "UNKNOWN"
 SEALED_URL_PREFIX = "sealed:"
@@ -97,6 +99,8 @@ def add_derived_columns(df: pd.DataFrame, cfg: Mapping[str, Any], wave: int = 1,
     out["collected_after_lock"] = str(bool(collected_after_lock))
     out["platform_nonYT"] = [str(p.strip().lower() != "youtube") for p in out["platform"]]
     out["upload_lag_days"] = ""
+    # D-050: owner label QC not yet run for new rows -> not in the analysis set until it passes.
+    out["qc_pass"] = df["qc_pass"].astype(str) if "qc_pass" in df.columns else "False"
     return out[COLUMNS]
 
 
@@ -110,6 +114,11 @@ def write_manifest(df: pd.DataFrame, path) -> None:
     df.to_csv(path, index=False, lineterminator="\n")
 
 
+def analysis_set(df: pd.DataFrame) -> pd.DataFrame:
+    """Wave-1 primary analysis set (D-050): conf-A per Curator AND owner label-QC pass."""
+    return df[(df["in_primary"] == "True") & (df["qc_pass"] == "True")]
+
+
 def validate(df: pd.DataFrame, cfg: Mapping[str, Any]) -> list[str]:
     """Schema problems (empty list = valid)."""
     errs: list[str] = []
@@ -121,7 +130,7 @@ def validate(df: pd.DataFrame, cfg: Mapping[str, Any]) -> list[str]:
             errs.append(f"duplicate {col}: {dup[:5]}")
     if not df["video_id"].str.fullmatch(r"yct_\d{4}").all():
         errs.append("video_id must match yct_NNNN")
-    for col in ("in_primary", "collected_after_lock", "platform_nonYT"):
+    for col in ("in_primary", "collected_after_lock", "platform_nonYT", "qc_pass"):
         bad = df.loc[~df[col].isin(_BOOL), "video_id"].tolist()
         if bad:
             errs.append(f"{col} not True/False: {bad[:5]}")

@@ -143,3 +143,11 @@ def test_validate_catches_problems():
 def test_era_block_rejects_unmapped_stratum():
     with pytest.raises(ValueError):
         mf.era_block("E9", CFG)
+
+
+def test_qc_pass_analysis_set(df):
+    """D-050: owner label QC removes exactly the 5 disagreeing / non-A re-derived ids."""
+    qc_fail = {"yct_0401", "yct_0640", "yct_0641", "yct_0642", "yct_0643"}
+    assert set(df.loc[(df["in_primary"] == "True") & (df["qc_pass"] == "False"), "video_id"]) == qc_fail
+    assert (df.loc[df["qc_pass"] == "True", "in_primary"] == "True").all()
+    assert len(mf.analysis_set(df)) == 53
