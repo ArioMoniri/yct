@@ -61,6 +61,17 @@ normalize:                     # P2 (v2.md §5 P2; tribe_requirements §2.3-2.4)
   quality_floor: {short_side_px: 480, crf: 28, subdir: q480}   # 480p round-trip copy
   aspect: {portrait_max_ratio: 0.8}  # width/height <= this -> 9:16 stratum
   ffmpeg_loglevel: error
+  photometric:                 # T3 sensitivity copy (owner request); the primary T1 pipeline is unchanged
+    enabled: true
+    subdir: t3
+    analysis_fps: 5            # frames sampled to estimate per-video statistics
+    luma_weights: [0.2126, 0.7152, 0.0722]   # BT.709 Y from gamma-encoded RGB in [0,1]
+    gray_world: true           # per-video channel gains so R,G,B means are equal
+    target_mean_y: 0.45        # ONE global gain/offset per video (within-video dynamics preserved)
+    target_rms_contrast: 0.20  # mean over frames of the spatial SD of Y
+    max_clip_frac: 0.01        # fraction of clipped RGB samples above this -> flag
+    crf: 18
+    temporal_smoothing: {enabled: false, size_frames: 5}   # ffmpeg deflicker (per-frame luminance smoothing)
 
 vad:                           # energy VAD shared by speech-gated loudness (P2) and confounds (P3); not speech-specific
   sample_rate: 16000
