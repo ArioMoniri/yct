@@ -4,7 +4,10 @@
 Per commit in --base..HEAD (or HEAD vs index with --staged), per test file, flags:
   * more assertion lines removed than added (assert, self.assert*, np.testing.assert*, pytest.raises);
   * more `def test_` functions removed than added (incl. deleting a test file);
-  * newly added skip/xfail markers;
+  * newly added skip/xfail sites, counted with tokenize over the WHOLE file before and after the change
+    (scripts/skip_tokens.py: string literals ignored, but f-string expressions, code after a string on the
+    same line, exec/eval/compile string arguments, importorskip, skip.Exception, add_marker("skip"),
+    getattr(pytest, "skip"), `from pytest import skip`, unittest skips are code) (BUG-010 recall fix);
   * loosened numeric thresholds: a line rewritten with only numbers changed where a tolerance
     (rel=, abs=, atol=, rtol=, tol=, eps=, delta=) grew, `places=` shrank, a bound after < / <= grew
     or a bound after > / >= shrank.
@@ -13,6 +16,9 @@ History allowlist (FIX-D032-1): config.yaml `guards.test_weakening_allowlist` en
 {commit: <full sha>, path: <test file>, kind: skip|assertion|testdef|threshold, ticket: BUG-/ENH-nnn}
 excuse exactly that finding, reported as ALLOWLISTED; the ticket must exist in BUGS.md/ENHANCEMENTS.md.
 There are no wildcards: every other finding, including new ones in the same commit/file, still fails.
+An allowlist entry whose commit is in the checked range but matches no finding is itself a FAIL (dead
+entries hide nothing today but could excuse a future rewrite); changes to the allowlist are policed by
+check_guard_config.py.
 Exit 1 on any unapproved finding.
 """
 from __future__ import annotations
@@ -24,6 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import guardlib as g  # noqa: E402
+import skip_tokens  # noqa: E402
 
 APPROVAL = "[QA-approved test change]"
 TEST_DIR = "tests/"
@@ -31,15 +38,6 @@ ASSERT_RE = re.compile(
     r"(^\s*assert\b|\bself\.assert\w*\(|\bnp\.testing\.assert|\bassert_\w+\(|pytest\.raises\()"
 )
 TESTDEF_RE = re.compile(r"^\s*(async\s+)?def\s+test_")
-SKIP_RE = re.compile(r"pytest\.mark\.(skip|skipif|xfail)\b|pytest\.(skip|xfail)\(|unittest\.skip")
-# String literals are removed before skip detection so that test fixtures which *contain* skip
-# code as data (e.g. guard self-tests) are not counted; real calls like pytest.skip("why") still match.
-STRING_RE = re.compile(r"""(?:[rbuRBU]{0,2})("([^"\\]|\\.)*"|'([^'\\]|\\.)*')""")
-
-
-def _code_only(line: str) -> str:
-    return STRING_RE.sub('""', line)
-
 
 NUM_RE = re.compile(r"(?<![\w.])-?\d+(?:\.\d*)?(?:[eE][-+]?\d+)?(?![\w.])")
 LOOSER_IF_BIGGER_KW = {"rel", "abs", "atol", "rtol", "tol", "tolerance", "eps", "delta", "rel_tol", "abs_tol"}
@@ -84,7 +82,9 @@ def parse_diff(diff: str) -> dict[str, tuple[list[str], list[str]]]:
     return files
 
 
-def analyse(diff: str) -> list[str]:
+def analyse(diff: str, files: dict[str, tuple[str | None, str | None]] | None = None) -> list[str]:
+    """Findings for a -U0 diff. `files` maps path -> (old content, new content); when given, skip sites are
+    counted over the whole files (exact tokenization), else over the diff fragments (best effort)."""
     findings = []
     for path, (rem, add) in parse_diff(diff).items():
         n_ra = sum(bool(ASSERT_RE.search(x)) for x in rem)
@@ -95,8 +95,12 @@ def analyse(diff: str) -> list[str]:
         n_at = sum(bool(TESTDEF_RE.search(x)) for x in add)
         if n_rt > n_at:
             findings.append(f"{path}: {n_rt - n_at} test function(s) deleted")
-        n_rs = sum(bool(SKIP_RE.search(_code_only(x))) for x in rem)
-        n_as = sum(bool(SKIP_RE.search(_code_only(x))) for x in add)
+        if files is not None and path in files and path.endswith(".py"):
+            old, new = files[path]
+            n_rs, n_as = skip_tokens.count_file(old), skip_tokens.count_file(new)
+        else:
+            n_rs = skip_tokens.count_snippet("\n".join(rem)) if rem else 0
+            n_as = skip_tokens.count_snippet("\n".join(add)) if add else 0
         if n_as > n_rs:
             findings.append(f"{path}: {n_as - n_rs} skip/xfail marker(s) added")
         pool = defaultdict(list)
@@ -146,6 +150,12 @@ def tests_diff(old: str, new: str | None) -> str:
     return g.git(*args, "--", TEST_DIR)
 
 
+def file_pairs(diff: str, old: str, new: str | None) -> dict[str, tuple[str | None, str | None]]:
+    """(old, new) content of every file in the diff; new=None means the index (":")."""
+    return {p: (None if old == g.EMPTY_TREE else g.show(old, p), g.show(new or ":", p))
+            for p in parse_diff(diff)}
+
+
 def main() -> int:
     ap = g.base_parser(__doc__, staged=True)
     ap.add_argument("msg_file", nargs="?", help="commit message file (commit-msg hook / --staged)")
@@ -155,22 +165,35 @@ def main() -> int:
     if a.staged:
         old = "HEAD" if g.ref_exists("HEAD") else g.EMPTY_TREE
         msg = Path(a.msg_file).read_text() if a.msg_file else ""
-        reports.append(("staged", analyse(tests_diff(old, None)), APPROVAL in msg))
+        d = tests_diff(old, None)
+        reports.append(("staged", analyse(d, file_pairs(d, old, None)), APPROVAL in msg))
     else:
         entries = allowlist()
-        for c in g.commits_in_range(g.resolve_base(a.base)):
+        used: set[int] = set()
+        commits = g.commits_in_range(g.resolve_base(a.base))
+        for c in commits:
             ps = g.parents(c)
             if len(ps) > 1:
                 continue  # merge: branch commits are checked individually
             findings = []
-            for f in analyse(tests_diff(ps[0] if ps else g.EMPTY_TREE, c)):
+            parent = ps[0] if ps else g.EMPTY_TREE
+            d = tests_diff(parent, c)
+            for f in analyse(d, file_pairs(d, parent, c)):
                 t = allowlisted(c, f, entries)
                 if t:
                     allowed.append((c[:12], f, t))
+                    used.update(i for i, e in enumerate(entries) if e["commit"] == c
+                                and f.startswith(f"{e['path']}: ") and KINDS[e["kind"]] in f)
                 else:
                     findings.append(f)
             if findings:
                 reports.append((c[:12], findings, APPROVAL in g.commit_message(c)))
+        in_range = set(commits)
+        dead = [f"unused allowlist entry {e['commit'][:12]} {e['path']} {e['kind']} ({e['ticket']}): "
+                "matches no finding; remove it" for i, e in enumerate(entries)
+                if i not in used and e["commit"] in in_range]
+        if dead:
+            reports.append(("allowlist", dead, False))
     for who, f, t in allowed:
         print(f"ALLOWLISTED ({t}) {who}: {f}")
     failed = False

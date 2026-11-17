@@ -20,7 +20,8 @@ def test_writes_all_provenance_files_and_propagates_exit_code(tmp_path):
     res = _run(tmp_path, sys.executable, "-c", code)
     assert res.returncode == 3
     d = tmp_path / "r1"
-    for f in ("cmd", "git_sha", "config_sha", "exit_code", "stdout.log", "metrics.json"):
+    for f in ("cmd", "git_sha", "config_sha", "exit_code", "stdout.log", "metrics.json", "report.md",
+              "pip_freeze.txt"):
         assert (d / f).is_file(), f
     assert (d / "exit_code").read_text().strip() == "3"
     head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout
@@ -46,3 +47,18 @@ def test_makefile_test_target_uses_provenance():
     mk = (ROOT / "Makefile").read_text()
     body = mk.split("\ntest:", 1)[1].split("\n\n", 1)[0]
     assert "run_with_provenance.py" in body and "pytest" in body
+
+
+def test_records_lock_platform_and_child_metrics(tmp_path):
+    code = ("import json, os, pathlib; d = pathlib.Path(os.environ['YCT_RUN_DIR']); "
+            "(d / 'child_metrics.json').write_text(json.dumps({'gpu': 'A100', 'exact': True})); "
+            "(d / 'report.md').write_text('# child report')")
+    assert _run(tmp_path, sys.executable, "-c", code, run_id="r2").returncode == 0
+    d = tmp_path / "r2"
+    m = json.loads((d / "metrics.json").read_text())
+    assert m["result"] == {"gpu": "A100", "exact": True}
+    lock = hashlib.sha256((ROOT / "requirements.lock").read_bytes()).hexdigest()
+    assert m["requirements_lock_sha256"] == lock
+    assert m["platform"] and len(m["pip_freeze_sha256"]) == 64
+    assert hashlib.sha256((d / "pip_freeze.txt").read_bytes()).hexdigest() == m["pip_freeze_sha256"]
+    assert (d / "report.md").read_text() == "# child report"

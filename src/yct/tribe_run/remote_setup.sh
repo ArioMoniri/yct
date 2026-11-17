@@ -37,6 +37,9 @@ from huggingface_hub import snapshot_download
 snapshot_download("facebook/tribev2", revision=sys.argv[1], local_dir=sys.argv[2],
                   allow_patterns=["config.yaml", "best.ckpt", "LICENSE", "README.md"])
 PY
+# BUG-003: backbones at pinned revisions, refs/main -> pinned sha (runs are HF_HUB_OFFLINE=1 + no network).
+# Requires the repo's src/ at $W/src (yct.tribe_run.offline holds the pins).
+PYTHONPATH="$W/src" python -m yct.tribe_run.offline
 got=$(sha256sum weights/best.ckpt | cut -d' ' -f1)
 [ "$got" = "$CKPT_SHA" ] || { echo "CKPT SHA MISMATCH $got"; exit 3; }
 echo "SETUP_OK ckpt_sha256=$got"

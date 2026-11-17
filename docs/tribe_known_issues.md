@@ -31,7 +31,7 @@ The GitHub Discussions tab is not enabled (404). Of 14 HF discussions, only #2 a
 | 9 | **V-JEPA patch tokens are mean-pooled.** The authors "expect [this] to deteriorate encoding performance in low-level visual areas" (retinotopic cortex). | Paper §5.2 | By design | MAJOR (risk that the P4b(a) V1–V3 motion control fails, triggering a STOP) |
 | 10 | **HCP medial-wall pseudo-ROI.** The annot contains `???`: 868 left-hemisphere and 874 right-hemisphere fs5 vertices (checked on the local `?h.HCPMMP1.annot`). `get_hcp_labels` strips 2 characters and keeps the label as `"?"`, so `summarize_by_roi` and `get_topk_rois` can rank the medial wall as a region. | `utils.py` l.213-247, 309-318 | Vertex counts verified; the `"?"` name assumes MNE's naming | MAJOR (P9 tables) |
 | 11 | `get_topk_rois(hemi="both")` raises IndexError, because `np.array(dict_keys)` is 0-d. | PR #30; `utils.py` l.316-318 | Open | MINOR |
-| 12 | **A subcortical checkpoint exists:** `facebook/tribev2-subcortical` (sha `214a5d9`, 2026-05-13, cc-by-nc-4.0). The maintainer closed #23 on 2026-05-21. Issue #79 and `tribe_requirements.md` §3 are out of date. Per-subject heads are still unreleased (#62, HF #10). | HF API; #23 | Released | MINOR |
+| 12 | **A subcortical checkpoint exists:** `facebook/tribev2-subcortical` (sha `214a5d9`, 2026-05-13, cc-by-nc-4.0). The maintainer closed #23 on 2026-05-21. Issue #79 is out of date; `tribe_requirements.md` §3 was corrected in v2.4 G-D032 (D-034). Per-subject heads are still unreleased (#62, HF #10). Use is DEFERRED (ENH-003). | HF API; #23 | Released | MINOR |
 | 13 | **R_group needs the cohort-average target.** With it, LPP gives 0.2125, which reproduces the paper; per-subject targets give 0.053. The same issue reports: lag peak at 0 s; feature widths 1408/3072 (the paper says 1280/2048); an error at `pl_module.py:114` in average-subject eval; nilearn `filter=None`; missing checkpoint metadata; unreleased meshes. | #78 | Reporter-resolved; the side bugs are open | MINOR |
 | 14 | Preprocessing of the test datasets is undocumented (fMRIPrep options, detrending). No maintainer reply. | #15 | Open | MINOR |
 | 15 | The first 4 s of video clamp to frame 0. Combined with the 5 s offset, the early TRs are degenerate. | `video.py` l.290 | Verified | MINOR (supports W ≥ 5) |
@@ -64,16 +64,29 @@ Searched, nothing official: fp16 nondeterminism, hemisphere ordering, output sca
    - Apply identical silence trimming to every video.
 4. **P3 M0 (#8).**
    - Add words/s and speech fraction over W.
-   - Make both of them Q(M0) candidates.
+   - Both are always in Q(M0): linearly, squared, and their product (D-034, D-037; v2.5 C3).
    - Report the correlation between the H2 composite and words/s.
 5. **P0/P4b (#9).**
    - Dry-run P4b(a)–(c) on the reference clips before the lock.
    - If the V1–V3 control is weak, settle the matter through DECISIONS before P6. Never tune it afterwards.
 6. **P5/P9 (#10, #11).**
    - Drop `?` and `???`.
-   - Build the medial-wall mask as the union of the Schaefer medial wall and HCP `???`.
+   - Build the medial-wall mask as the union of the Schaefer medial wall, HCP `???` and Destrieux `Medial_wall` (993 LH + 987 RH vertices; D-034).
    - Write our own top-k code instead of using `get_topk_rois`.
-7. **P9 (#12).** The limitation becomes: "cortical model only; a subcortical checkpoint exists but is not used". The owner of `tribe_requirements.md` §3 should update that section.
+   - The union removes > 40% of 7 Schaefer parcels; peak tables disclose `n_vertices` and `mw_removed_frac` and flag them (`mw_shrunk`; config `localize.mw_shrunk_parcels`, v2.5 C3):
+
+     | Parcel | Vertices before → after |
+     |---|---|
+     | RH_Default_PFCdPFCm_6 | 37 → 14 |
+     | RH_Cont_Cing_1 | 52 → 23 |
+     | LH_Default_pCunPCC_4 | 38 → 17 |
+     | RH_Cont_Cing_2 | 35 → 16 |
+     | RH_Default_pCunPCC_2 | 22 → 11 |
+     | LH_Cont_Cing_1 | 43 → 22 |
+     | LH_Cont_Cing_2 | 44 → 23 |
+
+     HCP `L_H` (hippocampus) drops from 81 to 0 vertices, as expected.
+7. **P9 (#12).** The limitation becomes: "cortical model only; a subcortical checkpoint exists but is not used" (ENH-003 deferred). `tribe_requirements.md` §3 has been updated (v2.4 G-D032).
 8. **P4b reliability mask (#13, #14).** Correlate with the group mean (R_group), and use `predict()` rather than `TribeExperiment` test mode.
 
 ## Atlases on fsaverage5
@@ -83,13 +96,11 @@ Searched, nothing official: fp16 nondeterminism, hemisphere ordering, output sca
 | HCP-MMP1 (180 parcels per hemisphere) | `tribev2.utils.get_hcp_labels(mesh="fsaverage5", hemi=…)`, which uses mne `fetch_hcp_mmp_parcellation(accept=True)`. `combine=True` gives the coarse areas. | Short names (`STSva`, `45`). Full names: Glasser 2016 Supplementary Neuroanatomical Results Table 1 (third-party CSVs unverified). Drop `???`. |
 | Schaefer-400, 7 or 17 networks | CBIG `…/FreeSurfer5.3/fsaverage5/label/?h.Schaefer2018_400Parcels_7Networks_order.annot`, read with `nibabel.freesurfer.read_annot` | Names look like `7Networks_LH_Default_PFC_3`: the network is the 3rd field and the subregion the 4th |
 | Yeo-7/17 | Derive from the Schaefer names, or CBIG `Yeo2011_7Networks_N1000.split_components.annot` (fs5) | Vis, SomMot, DorsAttn, SalVentAttn, Limbic, Cont, Default |
-| Destrieux | `nilearn.datasets.fetch_atlas_surf_destrieux()` (native fs5; label 0 = `Medial_wall`) | Anatomical names; used only for labelling |
+| Destrieux | `nilearn.datasets.fetch_atlas_surf_destrieux()` (native fs5; label 0 `Unknown` is empty; the medial wall is `L/R Medial_wall`, folded into the union mask and never reported) | Anatomical names; used only for labelling |
 | Any fsaverage annot | Take the first 10,242 vertices per hemisphere; right-hemisphere indices are +10,242 | — |
 
-**Peak table.** nilearn's `get_clusters_table` is volumetric only, so we build the table ourselves:
-1. Take the map averaged over W, with the medial wall masked.
-2. Compute per-parcel means with `np.bincount`.
-3. Report the top k per hemisphere, giving for each the HCP name, the Schaefer network and the Destrieux label of the peak vertex (argmax within the parcel).
-4. Present the table as descriptive only; no reverse inference.
+**Peak table — SUPERSEDED** (v2.4 G-D032; v2.5 C3). The recipe below (top k per hemisphere, peak-vertex labels) is kept for the record only and must not be implemented. The binding specification is `docs/prompts/v2.md` §1 "Activation localisation outputs" (`yct.interpret.localize.peak_table`): top k overall on the T1 spatially standardised W-averaged map, best-overlap HCP-MMP area with overlap fraction, company-cluster BCa CIs, stability, BH-FDR q (difference map), unreliable and medial-wall-shrinkage columns, fixed caption.
+
+~~nilearn's `get_clusters_table` is volumetric only, so we build the table ourselves: (1) map averaged over W, medial wall masked; (2) per-parcel means with `np.bincount`; (3) top k per hemisphere with the HCP name, Schaefer network and Destrieux label of the peak vertex; (4) descriptive only.~~
 
 `neuromaps` support for fsaverage "10k" in spin tests is UNVERIFIED here.

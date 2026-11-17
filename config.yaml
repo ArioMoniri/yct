@@ -22,7 +22,7 @@ stimulus:
 window:                        # W, set in P4 from label-free mean time course; frozen there
   default_start_tr: 5          # max(5, 4 + L + 1) once P0 latency L is measured
   default_len_tr: 40
-  min_tail_s: 2                # exclude from T1 if trimmed duration < W_end + 2 s
+  min_tail_s: 5                # exclude from T1 if trimmed duration < W_end + 5 s (D-039; was 2)
 
 era_strata:                    # from the YC batch calendar, not the data (v2.md §1)
   E1: {last_batch: W2016}
@@ -167,10 +167,37 @@ m0:                            # H4 M0 assembly (v2.4 G-D032 Biostat D1, Referee
     - scene_cuts               # W-mean of per-TR cut counts = cuts / s
     - face_area_crop_frac      # no face -> 0
   never: [text_frac]           # on-screen text not implemented: dropped from M0, never imputed
-  binary: [voiced_any]         # added by the pitch imputation rule; never squared, never in K_Q
-  forced_kq: [speech_rate_wps, speech_frac]
-  k_q: 3                       # K_Q = forced + top (k_q - 2) by 1/VIF; Q has 1 + p + p_nonbin + C(k_q,2) (+ era) columns
+  binary: [voiced_any]         # added by the pitch imputation rule; linear only, never squared or in products
+  forced_speech: [speech_rate_wps, speech_frac]   # known issue #8: linear + both squares + product ALWAYS in Q
   min_words_in_w: 20           # label-free exclusion: no audio track or < 20 words in W (known issue #7)
+  # Q(M0) rule (D-037; v2.5 C3; yct.features.m0.q_m0). NO PCA. Q columns, in this order:
+  #   [1, z(forced_speech), z(other continuous M0), binary, era dummies]           (all linear M0 terms)
+  #   + speech_rate_wps^2, speech_frac^2, speech_rate_wps*speech_frac               (forced quadratics)
+  #   + optional quadratic terms in the fixed prereg order (squares of the other continuous features by
+  #     descending label-free variance of z^2, then all remaining pairwise products by descending
+  #     variance of z_a*z_b; ties by name), each kept only while it raises the numerical rank and
+  #     rank <= floor(N/3). Aliased columns are dropped and logged; they do not change the span.
+  # If the linear + forced block alone exceeds floor(N/3), merge_list steps apply IN ORDER (one at a time,
+  # only as many as needed) BEFORE any optional term; if the list is exhausted -> hard failure (DECISIONS
+  # entry before P6). z = (x - mean) / SD over the analysis set after exclusions, ddof = z_ddof.
+  q_rule: D-037
+  z_ddof: 0
+  rank_rcond: 1.0e-8           # numerical rank = #(singular values > rank_rcond * s_max)
+  max_cond: 1.0e+8             # cond(Q) of the kept columns above this -> hard failure
+  merge_list:                  # pre-registered, LABEL-FREE; composite = mean of the members' z-scores
+    - name: photometric_crop
+      members: [luminance_crop, contrast_crop]
+      why: "both are global photometric statistics of the same V-JEPA2 crop (mean and RMS of luma Y'); the T3
+        track tests photometry separately, so one composite loses least construct coverage"
+    - name: visual_change
+      members: [motion_energy_crop, scene_cuts]
+      why: "cuts are the extreme case of frame-to-frame change and drive motion-energy transients; both index
+        the rate of visual change in the crop"
+    - name: voice_acoustics
+      members: [rms_db, pitch_mean_hz]
+      why: "non-lexical acoustic descriptors of the voice track; rms_db is largely equalised by the P2 -23 LUFS
+        normalisation, so it carries little unique variance. pitch_sd_hz is not in M0, so the 'pitch mean +
+        sd -> prosody' merge does not apply. Speech rate / fraction and face area are never merged"
 
 localize:                      # v2.3 activation localisation outputs (D-032; descriptive); firewall v2.4 G-D032
   top_k: 20
@@ -179,7 +206,20 @@ localize:                      # v2.3 activation localisation outputs (D-032; de
   bootstrap_B: 10000           # company-cluster bootstrap, stratified by group; BCa with company jackknife
   unreliable_parcel_max_frac: 0.5   # parcels with a larger share of unreliable vertices are not ranked
   hcp_second_below: 0.5        # report the 2nd-best-overlap HCP area when the best overlap is below this
-  unreliable_pattern: ["#000000", "#ffd400"]   # stipple colours for unreliable vertices (outside RdBu_r; never grey)
+  # stipple colours for unreliable vertices: outside RdBu_r, never grey, both chromatic so neither reads as a
+  # (dark) sulcal medial-wall grey; Okabe-Ito-like yellow / bluish green (v2.5 C3, G-D032 c2 Neuro N1)
+  unreliable_pattern: ["#009e73", "#ffd400"]
+  stipple_cell_mm: 4.0         # checker cell on the inflated mesh (> one fsaverage5 face: survives rasterising)
+  dpi: 150                     # default savefig dpi; the raster test asserts the stipple is legible at it
+  mw_shrink_flag_frac: 0.4     # peak tables flag parcels losing more than this share to the union medial wall
+  mw_shrunk_parcels:           # Schaefer parcels losing > 40% of vertices to the union mask (raw -> post); tested
+    - 7Networks_RH_Default_PFCdPFCm_6   # 37 -> 14
+    - 7Networks_RH_Cont_Cing_1          # 52 -> 23
+    - 7Networks_LH_Default_pCunPCC_4    # 38 -> 17
+    - 7Networks_RH_Cont_Cing_2          # 35 -> 16
+    - 7Networks_RH_Default_pCunPCC_2    # 22 -> 11
+    - 7Networks_LH_Cont_Cing_1          # 43 -> 22
+    - 7Networks_LH_Cont_Cing_2          # 44 -> 23
   caption: >-
     Descriptive only; not inferential. TRIBE v2-predicted (average-subject) relative responses, T1,
     spatially standardised per TR (union medial wall), averaged over W. Atlas names are anatomical
@@ -198,10 +238,61 @@ localize:                      # v2.3 activation localisation outputs (D-032; de
     - '\bvaluation\b'
     - '\btheory of mind\b'
 
-guards:                        # history exceptions for scripts/check_*.py (FIX-D032-1); exact entries only
-  # D-030 adoption commit (owner actions via SSM). Strict ancestors (e.g. 6c16d89, infra/BUDGET_USD under
-  # the earlier signed-commit rule) are not checked by check_human_signed; this commit and later are.
-  human_signed_since: e4cdc4eedbbbe0c468eed87c10f7548641180147
+controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, D-039; ENH-002). LABEL-FREE.
+  # ROIs = unions of HCP-MMP1 areas (names without the L_/R_ prefix and _ROI suffix), bilateral, on the union-
+  # medial-wall-masked atlas (yct.features.atlas.load_all). Vertex counts (fs5, both hemis) are tested.
+  rois:
+    FFC: {areas: [FFC], hemis: [L, R], n_vertices: 104}           # face control (fusiform face complex)
+    PH: {areas: [PH], hemis: [L, R], n_vertices: 113}             # localiser (d): place > face
+    AUD: {areas: [A4, A5], hemis: [L, R], n_vertices: 223}
+    # AUD = A4 ∪ A5 only: speech-preferring auditory association cortex. Not A1/belt (respond to any sound,
+    # incl. the P0 flash-driven OOD response), not STS (overlaps the H2 composite -> circular).
+    V1_V3: {areas: [V1, V2, V3], hemis: [L, R], n_vertices: 1148}
+    MT_plus: {areas: [MT, MST, FST, V4t], hemis: [L, R], n_vertices: 168}
+    # MT+ = Glasser's MT+ complex; pre-lock FALLBACK for the motion control if V1-V3 fails the ENH-002 dry run
+    # (TRIBE known issue #9: mean-pooled V-JEPA tokens weaken retinotopic cortex). Chosen only by a DECISIONS
+    # entry before P4b lock, never after.
+  regressors:                  # computed inside the central 256x256 V-JEPA2 crop where visual; 2 Hz -> 1 Hz mean
+    face: {source: confounds, column: face_area_crop_frac, roi: FFC}
+    motion: {source: confounds, column: motion_energy_crop, roi: V1_V3}
+    luminance_change: {source: derived, from: luminance_crop, op: abs_first_difference, roi: V1_V3}
+    # D-039 (Referee P0 4a/b): luminance-change energy is partialled out of every within-video control,
+    # because AUD responded to the black->white flash more than to speech in P0.
+    speech_envelope: {source: derived, from: audio16k, op: hilbert_broadband_envelope_mean, roi: AUD}
+    # speech envelope is not a yct.confounds column yet: implemented with the P4b controls code (ticket ENH-002)
+  partial_out: [face, motion, luminance_change, speech_envelope]   # partial r controls for all other regressors
+  kernel:                      # NO canonical HRF and NO separate shift by L (the kernel already holds the timing)
+    type: measured_impulse_per_roi
+    window_tr: [-4, 8]         # control-subtracted course over output lags -4..+8 TR, peak-normalised
+    min_reference_clips: 5     # derived on CPU from the reference-clip .npy files in the exact ROIs above
+    shift_by_L: false
+  aud_selectivity_run: audio_only   # (b) speech AUD > FFC is evaluated on the audio-only ablation run
+  readout_lag_tr: [0, 3]       # (d) localiser readout = mean of output lags 0..3 TR after onset (inclusive)
+  maps: [spatially_standardised, raw]   # dry run evaluates both; the hypotheses use the standardised maps
+  dry_run:                     # ENH-002, before P4b lock; changes only via a DECISIONS entry before the lock
+    reference_clips_min: 5
+    talking_face_clip: true    # skipped in P0; required here (face + acoustic latency)
+    n_flashes: 5
+    n_speech_bursts: 5         # 4-6 s speech on a noise bed: audio-only, text-only, both
+  pass:
+    within_video: {mean_fisher_z_gt: 0.2, p_lt: 0.001}
+    selectivity: {p_lt: 0.01}
+    between_video: {r_gt: 0.3, perm_p_lt: 0.05}
+    min_videos: 15             # fewer -> evaluated on the >= 5 reference naturalistic clips
+    low_sd_percentile: 10      # regressor SD over W below this percentile of the reference clips -> excluded
+
+guards:                        # history exceptions for scripts/check_*.py; exact entries only. FROZEN by
+  # scripts/check_guard_config.py: any change needs '[QA-approved guard change: <TICKET>]' in the commit
+  # message, added entries must name strict-ancestor commits, human_signed_since can never be (re)introduced
+  # or moved later. FIX-C3-ENG replaced the blanket human_signed_since (15 unchecked commits) by the exact
+  # pairs below, so check_human_signed now checks the whole history.
+  human_only_exempt:           # each: full sha + protected path + ticket (BUGS.md)
+    - {commit: 6c16d89381b4533336ea83d1f4adc7127a7c2387, path: infra/BUDGET_USD, ticket: BUG-011,
+       note: "owner chat instruction H-001 committed by an agent before D-030 (budget now SSM /yct/owner/budget_usd)"}
+    - {commit: 6c16d89381b4533336ea83d1f4adc7127a7c2387, path: DATA_DECISION.md, ticket: BUG-011,
+       note: "owner chat sign-off H-002 committed by an agent before D-030 (now SSM /yct/owner/data_decision)"}
+    - {commit: 4c194c79f14adc75d86940525c112ec0a3a6041d, path: docs/owner_age.pub, ticket: BUG-011,
+       note: "copy of SSM /yct/owner/age_pub (owner-written v1); equality verified at runtime by owner_actions.verify_age_pub"}
   test_weakening_allowlist:    # each: full sha + exact test file + finding kind + ticket in BUGS.md
     - {commit: c35c53c533705c080718410cbad001f43ff83247, path: tests/_atlas.py, kind: skip, ticket: BUG-008,
        note: "load_or_skip skip; since FIX-D032-1 it fails unless YCT_OFFLINE=1 (never set in CI)"}
@@ -215,7 +306,11 @@ guards:                        # history exceptions for scripts/check_*.py (FIX-
        kind: assertion, ticket: BUG-009, note: "signed-prereg test removed with D-030 (SSM)"}
     - {commit: 8005ceb0224dc776f19d996a88ea4311b22affd3, path: tests/test_guards_prereg.py,
        kind: testdef, ticket: BUG-009, note: "signed-prereg test removed with D-030 (SSM)"}
-    - {commit: 8005ceb0224dc776f19d996a88ea4311b22affd3, path: tests/test_guards_test_weakening.py,
-       kind: skip, ticket: BUG-009, note: "skip-pattern string in a detector test fixture, not a real skip"}
+
+owner:                         # FROZEN (check_guard_config.py: arn_pin can never change once set)
+  # Owner identity pin (Watchdog P0 #6): value of SSM /yct/owner/owner_arn read and verified (history:
+  # every version written by itself) on 2026-11-17 by FIX-C3-ENG. owner_actions refuses any other owner.
+  # Env YCT_OWNER_ARN, if set, must ALSO match.
+  arn_pin: "arn:aws:iam::235229001983:root"
 
 frozen: []

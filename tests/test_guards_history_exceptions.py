@@ -98,3 +98,13 @@ def test_allowlist_covers_only_its_finding(repo, skip_commit):
     repo.commit("weaken", {"tests/test_a.py": "def test_a():\n    pass\n"})
     res = repo.run_script(TW)
     assert res.returncode == 1 and "assertion line(s) deleted" in res.stdout
+
+
+def test_unused_allowlist_entry_fails(repo, skip_commit):
+    """QA G-D032 c2 #4: a dead allowlist entry (matches no finding) must not be accepted silently."""
+    harmless = repo.commit("harmless", {"tests/test_b.py": "def test_b():\n    assert 2\n"})
+    repo.commit("cfg", {"config.yaml": _cfg(allow=[
+        {"commit": skip_commit, "path": "tests/_h.py", "kind": "skip", "ticket": "BUG-008"},
+        {"commit": harmless, "path": "tests/test_b.py", "kind": "skip", "ticket": "BUG-008"}])})
+    res = repo.run_script(TW)
+    assert res.returncode == 1 and "unused allowlist entry" in res.stdout and harmless[:12] in res.stdout

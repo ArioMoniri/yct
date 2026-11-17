@@ -20,9 +20,12 @@ Firewall (G-D032 Referee D5-D7, Biostat D2, Neuro D1-D4):
   each with its Yeo-7 network, the BEST-OVERLAP HCP-MMP1 area (the HCP label covering most of the
   parcel's vertices) with its overlap fraction (plus the second-best area when the fraction is
   < ``hcp_second_below``), and the modal Destrieux label. Parcels whose share of unreliable vertices
-  exceeds ``unreliable_parcel_max_frac`` are excluded from the ranking (count in attrs).
-* Surface maps: medial wall not coloured; unreliable vertices STIPPLED with two colours outside the
-  colormap (never a grey that reads as zero), with a legend entry.
+  exceeds ``unreliable_parcel_max_frac`` are excluded from the ranking (count in attrs). Every row
+  discloses ``n_vertices`` (post-mask) and ``mw_removed_frac`` (share lost to the union medial wall);
+  ``mw_shrunk`` flags > ``mw_shrink_flag_frac`` (G-D032 c2 Neuro N3).
+* Surface maps: medial wall masked (NaN, not a threshold: exact zeros keep the colormap centre);
+  unreliable vertices STIPPLED as a coarse two-colour checker outside the colormap (never a grey that
+  reads as zero), legible at the default ``localize.dpi`` (raster-tested), with a legend entry.
 """
 from __future__ import annotations
 
@@ -37,7 +40,7 @@ import numpy as np
 import pandas as pd
 
 from yct.config import load_config
-from yct.features.atlas import Atlas, AtlasSet, schaefer_hemi
+from yct.features.atlas import Atlas, AtlasSet, medial_wall_shrinkage, schaefer_hemi
 from yct.features.networks import parcel_means, spatial_standardize, window_average
 
 NV = 20484
@@ -46,7 +49,7 @@ _N = NormalDist()
 
 COLUMNS = ["sign", "rank", "parcel_id", "parcel", "hemi", "yeo7", "hcp_mmp", "hcp_overlap", "hcp_mmp_2nd",
            "hcp_overlap_2nd", "destrieux", "value", "ci_lo", "ci_hi", "stability_topk", "p_perm", "q_bh",
-           "unreliable_frac"]
+           "unreliable_frac", "n_vertices", "mw_removed_frac", "mw_shrunk"]
 
 
 class ClaimLanguageError(ValueError):
@@ -370,6 +373,8 @@ def peak_table(vmap: np.ndarray, atlases: AtlasSet, boot: ParcelBootstrap | None
     pos = [i for i in order[::-1] if eligible[i] and vals[i] > 0][:k]
     neg = [i for i in order if eligible[i] and vals[i] < 0][:k]
     second_below = float(lc["hcp_second_below"])
+    _, n_post, mw_frac = medial_wall_shrinkage(atlases)
+    shrink_flag = float(lc["mw_shrink_flag_frac"])
     rows = []
     for sign, idx in (("pos", pos), ("neg", neg)):
         stab = stab_pos if sign == "pos" else stab_neg
@@ -387,7 +392,8 @@ def peak_table(vmap: np.ndarray, atlases: AtlasSet, boot: ParcelBootstrap | None
                 "hcp_mmp_2nd": second[0], "hcp_overlap_2nd": second[1], "destrieux": des[0][0],
                 "value": float(vals[i]), "ci_lo": float(lo[i]), "ci_hi": float(hi[i]),
                 "stability_topk": float(stab[i]), "p_perm": float(pp[i]), "q_bh": float(q[i]),
-                "unreliable_frac": float(unrel_frac[i]),
+                "unreliable_frac": float(unrel_frac[i]), "n_vertices": int(n_post[pid]),
+                "mw_removed_frac": float(mw_frac[pid]), "mw_shrunk": bool(mw_frac[pid] > shrink_flag),
             })
     df = pd.DataFrame(rows, columns=COLUMNS)
     df.attrs.update({
@@ -399,6 +405,8 @@ def peak_table(vmap: np.ndarray, atlases: AtlasSet, boot: ParcelBootstrap | None
         "map": "T1, spatially standardised per TR (union medial wall), averaged over W",
         "hcp_label": "best-overlap HCP-MMP1 area (overlap fraction); 2nd-best when fraction < "
                      f"{second_below}",
+        "mw_removed_frac": "share of the parcel's raw vertices removed by the union medial wall; "
+                           f"mw_shrunk = share > {shrink_flag} (n_vertices = post-mask count)",
         "q_bh": "BH-FDR over all parcels of the per-parcel permutation p (exploratory family)"
                 if kind == "difference" else "n/a (group mean)",
     })
@@ -437,14 +445,26 @@ def _unreliable_faces(faces: np.ndarray, unreliable_h: np.ndarray) -> np.ndarray
 
 
 def stipple_colors(base: np.ndarray, faces: np.ndarray, unreliable_h: np.ndarray,
-                   pattern: list[str] | tuple[str, ...]) -> np.ndarray:
-    """Face colours with unreliable faces replaced by an alternating two-colour stipple."""
+                   pattern: list[str] | tuple[str, ...], coords: np.ndarray | None = None,
+                   cell_mm: float | None = None) -> np.ndarray:
+    """Face colours with unreliable faces replaced by a two-colour stipple outside the colormap.
+
+    With ``coords`` (mesh vertex coordinates) and ``cell_mm``, the two colours form a 3-D checker of
+    ``cell_mm`` cells on the face centroids, i.e. a pattern coarser than one fsaverage5 face, so it
+    survives rasterisation at the default dpi (G-D032 c2 Neuro N1: a per-face alternation aliases to
+    grey). Without coordinates, faces alternate by index (legacy; only for tiny synthetic meshes).
+    """
     from matplotlib.colors import to_rgba
 
     out = np.asarray(base, float).copy()
     sel = np.flatnonzero(_unreliable_faces(faces, unreliable_h))
     cols = np.array([to_rgba(c) for c in pattern])
-    out[sel] = cols[sel % len(cols)]
+    if coords is not None and cell_mm:
+        cen = np.asarray(coords, float)[faces[sel]].mean(axis=1)
+        idx = np.floor(cen / float(cell_mm)).astype(np.int64).sum(axis=1) % len(cols)
+    else:
+        idx = sel % len(cols)
+    out[sel] = cols[idx]
     return out
 
 
@@ -452,7 +472,13 @@ def render_four_views(vmap: np.ndarray, medial_wall: np.ndarray | None = None,
                       unreliable: np.ndarray | None = None, title: str | None = None,
                       vmax: float | None = None, cmap: str = "RdBu_r", views: list[str] | None = None,
                       cfg: dict[str, Any] | None = None):
-    """2 x 4 figure (LH, RH) x (lateral, medial, ventral, dorsal) on fsaverage5 inflated."""
+    """2 x 4 figure (LH, RH) x (lateral, medial, ventral, dorsal) on fsaverage5 inflated.
+
+    Hidden vertices (medial wall, non-finite) are MASKED (NaN -> transparent, background shows), never
+    thresholded: an exact 0 is drawn in the colormap centre and stays distinct from the medial wall
+    (G-D032 c2 Neuro N2). Unreliable vertices are stippled (:func:`stipple_colors`, checker of
+    ``localize.stipple_cell_mm``); face AND edge colours are set, so mesh edges do not wash it out.
+    """
     import matplotlib
 
     if matplotlib.get_backend().lower() not in ("agg", "pdf", "svg", "cairo"):
@@ -469,16 +495,16 @@ def render_four_views(vmap: np.ndarray, medial_wall: np.ndarray | None = None,
         raise ValueError(f"map must have shape ({NV},), got {vmap.shape}")
     views = list(views or lc["views"])
     pattern = list(lc["unreliable_pattern"])
+    cell = float(lc["stipple_cell_mm"])
     hidden = ~np.isfinite(vmap)
     if medial_wall is not None:
-        hidden |= medial_wall
+        hidden |= np.asarray(medial_wall, bool)
     unrel = np.zeros(NV, bool) if unreliable is None else np.asarray(unreliable, bool) & ~hidden
     shown = ~hidden & ~unrel
     if vmax is None:
         vmax = float(np.nanmax(np.abs(vmap[shown]))) if shown.any() else 1.0
         vmax = vmax or 1.0
-    thr = 1e-6 * vmax                                      # hidden vertices (0) stay uncoloured
-    stat = np.where(shown, vmap, 0.0)
+    stat = np.where(hidden, np.nan, np.where(unrel, 0.0, vmap))   # mask, not threshold (N2)
 
     fs = datasets.load_fsaverage("fsaverage5")
     sulc = datasets.load_fsaverage_data(mesh="fsaverage5", data_type="sulcal")
@@ -492,17 +518,21 @@ def render_four_views(vmap: np.ndarray, medial_wall: np.ndarray | None = None,
             ax = fig.add_subplot(2, len(views), row * len(views) + col + 1, projection="3d")
             plotting.plot_surf_stat_map(
                 mesh, stat[sl], bg_map=bg, hemi=hemi, view=view,
-                cmap=cmap, colorbar=(row == 1 and col == len(views) - 1), threshold=thr,
+                cmap=cmap, colorbar=(row == 1 and col == len(views) - 1), threshold=None,
                 vmin=-vmax, vmax=vmax, symmetric_cbar=True, axes=ax, figure=fig,
                 title=f"{'LH' if hemi == 'left' else 'RH'} {view}",
             )
             if unrel[sl].any():                            # stipple (not grey) the unreliable faces
                 coll = ax.collections[0]
                 base = np.asarray(getattr(coll, "_facecolor3d", coll.get_facecolor()))
-                coll.set_facecolor(stipple_colors(base, np.asarray(mesh.faces), unrel[sl], pattern))
+                col_ = stipple_colors(base, np.asarray(mesh.faces), unrel[sl], pattern,
+                                      coords=np.asarray(mesh.coordinates), cell_mm=cell)
+                coll.set_facecolor(col_)
+                coll.set_edgecolor(col_)
     if unrel.any():
         fig.legend(handles=[Patch(facecolor=pattern[1], edgecolor=pattern[0], hatch="..",
-                                  label="stippled: unreliable vertices (masked, not zero)")],
+                                  label=f"stippled ({' / '.join(pattern)}): unreliable vertices "
+                                        "(masked, not zero)")],
                    loc="upper right")
     if title:
         fig.suptitle(title)
@@ -513,10 +543,11 @@ def render_four_views(vmap: np.ndarray, medial_wall: np.ndarray | None = None,
 def plot_four_views(vmap: np.ndarray, out_png: str | Path, medial_wall: np.ndarray | None = None,
                     unreliable: np.ndarray | None = None, title: str | None = None,
                     vmax: float | None = None, cmap: str = "RdBu_r", views: list[str] | None = None,
-                    dpi: int = 110, cfg: dict[str, Any] | None = None) -> Path:
-    """Render :func:`render_four_views` (caption always on the figure) and save it."""
+                    dpi: int | None = None, cfg: dict[str, Any] | None = None) -> Path:
+    """Render :func:`render_four_views` (caption always on the figure) and save it at ``localize.dpi``."""
     import matplotlib.pyplot as plt
 
+    dpi = int(dpi if dpi is not None else _loc_cfg(cfg)["dpi"])
     fig = render_four_views(vmap, medial_wall, unreliable, title, vmax, cmap, views, cfg)
     out = Path(out_png)
     out.parent.mkdir(parents=True, exist_ok=True)

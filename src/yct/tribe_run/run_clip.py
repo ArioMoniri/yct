@@ -11,9 +11,15 @@ PATH, the ASR entry point is monkeypatched to raise, and every TRIBE call runs i
 yct.transcribe.asr_guard(), so any ASR attempt fails loudly. Copy this repo's src/ next to the
 script's package layout (src/yct/...) on the GPU box; remote_setup.sh pins the environment.
 
+Offline (BUG-003): HF_HUB_OFFLINE=1 / TRANSFORMERS_OFFLINE=1 are set before any HF import, the HF cache
+must resolve the three backbones to the pinned revisions (yct.tribe_run.offline.BACKBONE_REVISIONS;
+remote_setup.sh pre-populates it) and every extraction/prediction runs with non-loopback network
+blocked. The pinned revisions are part of the cache revisions.
+
 Usage: python run_clip.py --video clip.mp4 --feature-cache DIR --out OUT_PREFIX --weights WEIGHTS_DIR
        [--fresh-drift]
-Writes OUT_PREFIX.npy (T, 20484) float32, OUT_PREFIX.segments.csv, OUT_PREFIX.json.
+Writes OUT_PREFIX.npy (T, 20484) float32, OUT_PREFIX.segments.csv, OUT_PREFIX.events.csv (every TRIBE
+event with start/duration: chunk/context boundaries, BUG-002 word-time check), OUT_PREFIX.json.
 """
 from __future__ import annotations
 
@@ -43,7 +49,7 @@ def _version(pkg: str) -> str | None:
         return None
 
 
-def _revisions(weights: Path, tribev2_mod, torch) -> dict:
+def _revisions(weights: Path, tribev2_mod, torch, backbones: dict | None = None) -> dict:
     """Everything that determines the extracted features; a mismatch refuses to reuse the cache."""
     from yct.tribe_run.feature_cache import sha256_file
 
@@ -53,6 +59,7 @@ def _revisions(weights: Path, tribev2_mod, torch) -> dict:
     return {
         "tribe_commit": commit,
         "ckpt_sha256": sha256_file(weights / "best.ckpt"),
+        "backbones": backbones,
         "torch": torch.__version__, "cuda": torch.version.cuda, "gpu": torch.cuda.get_device_name(0),
         **{p: _version(p) for p in ("transformers", "exca", "neuralset", "neuraltrain", "numpy",
                                     "x-transformers", "moviepy")},
@@ -70,6 +77,10 @@ def main() -> None:
 
     _strip_uv_from_path()
     assert shutil.which("uvx") is None, "uvx still on PATH"
+    from yct.tribe_run.offline import check_hf_cache_pins, enforce_offline
+
+    offline_env = enforce_offline()  # before huggingface_hub / transformers are imported
+    backbones = check_hf_cache_pins()
 
     import numpy as np
     import torch
@@ -119,7 +130,8 @@ def main() -> None:
     torch.cuda.reset_peak_memory_stats()
     try:
         res = run_cached(src, FeatureStore(a.feature_cache), extract, predict,
-                         _revisions(weights, tribev2, torch), a.out, fresh_drift=a.fresh_drift)
+                         _revisions(weights, tribev2, torch, backbones), a.out, fresh_drift=a.fresh_drift,
+                         offline=True)
     finally:
         smi.terminate()
         smi.wait()
@@ -133,6 +145,13 @@ def main() -> None:
         f.write("tr_index,segment_start_s,segment_duration_s\n")
         for i, s in enumerate(segments):
             f.write(f"{i},{float(s.start):.3f},{float(s.duration):.3f}\n")
+    ev = df.copy()
+    keep = [c for c in ("type", "start", "duration", "stop", "text", "sequence_id") if c in ev.columns]
+    ev[keep].to_csv(a.out + ".events.csv", index=False)
+    chunks = {t: [[round(float(r.start), 3), round(float(r.duration), 3)]
+                  for r in ev[ev.type == t].itertuples()]
+              for t in ("Audio", "Video") if (ev.type == t).any()}
+    words = ev[ev.type == "Word"]
     dur = float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration",
                                          "-of", "csv=p=0", str(aux["video"])]).decode())
     n_words = int((df.type == "Word").sum())
@@ -144,6 +163,11 @@ def main() -> None:
         "first_segment_start_s": starts[0] if starts else None,
         "last_segment_start_s": starts[-1] if starts else None,
         "event_types": df.type.value_counts().to_dict(), "n_words": n_words,
+        "chunks": chunks, "n_segments": len(starts),
+        "word_start_min_s": float(words.start.min()) if len(words) else None,
+        "word_start_max_s": float(words.start.max()) if len(words) else None,
+        "words_after_duration": int((words.start > dur).sum()) if len(words) else 0,
+        "offline_env": offline_env, "backbone_revisions": backbones,
         **timing,
         "peak_vram_smi_mib": max(vram) if vram else None, "vram_samples": len(vram),
         "torch_max_allocated_mib": round(torch.cuda.max_memory_allocated() / 2**20),

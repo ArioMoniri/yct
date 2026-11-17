@@ -254,6 +254,7 @@ class AtlasSet:
     yeo7: Atlas
     hcp: Atlas
     destrieux: Atlas
+    schaefer_raw: Atlas | None = None    # pre-mask Schaefer (for medial-wall shrinkage disclosure)
 
     @property
     def medial_wall(self) -> np.ndarray:
@@ -267,7 +268,26 @@ def mask_atlas_set(raw: AtlasSet) -> AtlasSet:
     return AtlasSet(
         schaefer=apply_mask(raw.schaefer, mw), yeo7=apply_mask(raw.yeo7, mw), hcp=apply_mask(raw.hcp, mw),
         destrieux=apply_mask(raw.destrieux, mw, drop_names=_destrieux_medial_ids(raw.destrieux)),
+        schaefer_raw=raw.schaefer_raw if raw.schaefer_raw is not None else raw.schaefer,
     )
+
+
+def medial_wall_shrinkage(atlases: AtlasSet) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Per Schaefer parcel id 1..P: (raw vertex count, post-mask count, share removed by the union mask).
+
+    Index 0 of each array is the background. Without ``schaefer_raw`` the set is taken as unmasked
+    (raw = post on cortex). G-D032 c2 Neuro N3: 7 parcels lose 48-62% (config localize.mw_shrunk_parcels).
+    """
+    sch = atlases.schaefer
+    n = len(sch.names)
+    post = np.bincount(np.where(atlases.medial_wall, sch.background, sch.labels), minlength=n)
+    raw_at = atlases.schaefer_raw if atlases.schaefer_raw is not None else sch
+    if len(raw_at.names) != n:
+        raise ValueError("schaefer_raw and schaefer have different label tables")
+    raw = np.bincount(raw_at.labels, minlength=n)
+    frac = np.where(raw > 0, 1.0 - post / np.maximum(raw, 1), 0.0)
+    frac[sch.background] = 0.0
+    return raw, post, frac
 
 
 def load_all(cfg: dict[str, Any] | None = None) -> AtlasSet:

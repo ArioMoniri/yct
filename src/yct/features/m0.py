@@ -1,4 +1,4 @@
-"""M0 assembly for H4 (v2.md §1 H4; v2.4 G-D032 Biostat D1, Referee #7/#8; DECISIONS D-034).
+"""M0 assembly for H4 (v2.md §1 H4; v2.4 G-D032 Biostat D1; DECISIONS D-034, Q(M0) rule D-037).
 
 All steps are LABEL-FREE: no outcome, group or era-by-label information is read here.
 
@@ -17,12 +17,16 @@ All steps are LABEL-FREE: no outcome, group or era-by-label information is read 
        an error, not an imputation;
      * any other non-finite value -> hard failure.
    The result is asserted finite.
-4. :func:`select_kq` -- K_Q set: ``m0.forced_kq`` (speech rate and speech fraction, known issue
-   #8) are ALWAYS included; the remaining slots go to the non-binary features with the largest
-   variance-inflation-adjusted variance of the z-scored feature, i.e. 1 / VIF_j = 1 - R^2_j.
-5. :func:`build_q` -- Q(M0) = [1, z(M0), z(M0_nonbinary)^2, pairwise products among K_Q,
-   era dummies (linear only)]. Asserts every entry is finite and that the NUMERICAL rank (SVD,
-   numpy default tolerance) is <= floor(N / 3); aliased columns are logged.
+4. :func:`q_m0` -- Q(M0) under DECISIONS D-037 (v2.5 C3; replaces the D-034 1/VIF K_Q set and the
+   withdrawn D-036 PCA rule). NO PCA. Q always contains ALL linear M0 terms (z-scored continuous
+   features, the binary ``voiced_any``, era dummies) and the forced speech_rate^2, speech_frac^2,
+   speech_rate*speech_frac (TRIBE known issue #8); further quadratic terms follow in a fixed, label-free
+   prereg order (:func:`optional_term_order`) until the NUMERICAL rank (SVD, rcond ``m0.rank_rcond`` =
+   1e-8) reaches floor(N/3). If the linear + forced block alone exceeds floor(N/3), the pre-registered
+   label-free ``m0.merge_list`` is applied step by step. cond(Q) <= ``m0.max_cond`` is asserted;
+   aliased columns are dropped and logged. :func:`q_dimension_table` is the planned dimension table.
+5. :func:`residualize` -- R = M1 residualised by unpenalised OLS on Q(M0).
+The P5b "dropped term drives M1 and y" FPR simulation is :mod:`yct.features.h4_null_sim`.
 """
 from __future__ import annotations
 
@@ -182,116 +186,252 @@ def assemble_m0(per_tr: pd.DataFrame, start: int, length: int, has_audio: Mappin
     return M0Result(m0=m0, excluded=excluded, imputation=rep, binary=binary)
 
 
-# ----------------------------------------------------------------------------- 4-5. K_Q and Q(M0)
+# ----------------------------------------------------------------------------- 4-5. Q(M0), rule D-037
 
-def _z(x: np.ndarray) -> np.ndarray:
-    sd = x.std(axis=0)
+def zscore(x: np.ndarray, ddof: int = 0) -> np.ndarray:
+    """Column z-score over the analysis set (label-free); constant columns -> 0."""
+    x = np.asarray(x, dtype=float)
+    sd = x.std(axis=0, ddof=ddof)
     return (x - x.mean(axis=0)) / np.where(sd > 0, sd, 1.0)
 
 
-def vif_adjusted_variance(m0: pd.DataFrame, binary: list[str] | tuple[str, ...] = ()) -> pd.Series:
-    """1 / VIF_j = 1 - R^2_j of each z-scored non-binary feature on the others (label-free)."""
-    cols = [c for c in m0.columns if c not in binary]
-    z = _z(m0[cols].to_numpy(dtype=float))
-    out = {}
-    for j, c in enumerate(cols):
-        y = z[:, j]
-        if not np.any(y):
-            out[c] = 0.0
-            continue
-        others = np.column_stack([np.ones(len(y)), np.delete(z, j, axis=1)])
-        beta, *_ = np.linalg.lstsq(others, y, rcond=None)
-        res = y - others @ beta
-        out[c] = float(res @ res / (y @ y))
-    return pd.Series(out)
+def numerical_rank(q: np.ndarray, rcond: float = 1e-8) -> int:
+    """Numerical rank: number of singular values > rcond * s_max (not the column count)."""
+    q = np.asarray(q, dtype=float)
+    if q.size == 0:
+        return 0
+    s = np.linalg.svd(q, compute_uv=False)
+    return int((s > rcond * s[0]).sum()) if s[0] > 0 else 0
 
 
-def select_kq(m0: pd.DataFrame, k_q: int | None = None, forced: list[str] | None = None,
-              binary: list[str] | tuple[str, ...] = (), cfg: dict[str, Any] | None = None) -> list[str]:
-    """K_Q set: forced features first (always included), then the largest 1/VIF non-binary features."""
-    mc = _m0_cfg(cfg) if (k_q is None or forced is None) else {}
-    k_q = int(k_q if k_q is not None else mc["k_q"])
-    forced = list(forced if forced is not None else mc["forced_kq"])
-    for f in forced:
-        if f not in m0.columns:
-            raise KeyError(f"forced K_Q feature {f!r} is not in M0")
-        if f in binary:
-            raise ValueError(f"forced K_Q feature {f!r} is binary")
-    if k_q < len(forced):
-        raise ValueError(f"k_q = {k_q} < {len(forced)} forced features {forced}")
-    score = vif_adjusted_variance(m0, binary).drop(forced, errors="ignore")
-    rest = sorted(score.index, key=lambda c: (-score[c], c))
-    return forced + rest[: k_q - len(forced)]
+def condition_number(q: np.ndarray) -> float:
+    s = np.linalg.svd(np.asarray(q, dtype=float), compute_uv=False)
+    return float(s[0] / s[-1]) if s[-1] > 0 else float("inf")
+
+
+def merge_list(cfg: dict[str, Any] | None = None) -> list[dict[str, Any]]:
+    """The pre-registered, label-free merge list (config ``m0.merge_list``), validated."""
+    mc = _m0_cfg(cfg)
+    feats = m0_feature_list(cfg)
+    forced = set(mc["forced_speech"])
+    binary = set(mc.get("binary", []))
+    seen: set[str] = set()
+    out = []
+    for step in mc.get("merge_list", []):
+        mem = list(step["members"])
+        if len(mem) < 2:
+            raise ValueError(f"merge step {step['name']!r} needs >= 2 members")
+        bad = [m for m in mem if m not in feats]
+        if bad:
+            raise ValueError(f"merge step {step['name']!r}: {bad} not in m0.features")
+        if forced & set(mem) or binary & set(mem):
+            raise ValueError(f"merge step {step['name']!r} may not merge forced speech or binary features")
+        if seen & set(mem):
+            raise ValueError(f"merge step {step['name']!r} reuses {sorted(seen & set(mem))}")
+        if step["name"] in feats:
+            raise ValueError(f"merge composite name {step['name']!r} collides with an M0 feature")
+        seen |= set(mem)
+        out.append({"name": str(step["name"]), "members": mem, "why": str(step.get("why", ""))})
+    return out
+
+
+def apply_merges(m0: pd.DataFrame, steps: list[dict[str, Any]], ddof: int = 0) -> pd.DataFrame:
+    """Replace each step's members by their composite (mean of z-scores), at the first member's position."""
+    x = m0.astype(float).copy()
+    for st in steps:
+        mem = st["members"]
+        missing = [m for m in mem if m not in x.columns]
+        if missing:
+            raise KeyError(f"merge {st['name']!r}: {missing} not in M0")
+        comp = zscore(x[mem].to_numpy(), ddof).mean(axis=1)
+        pos = list(x.columns).index(mem[0])
+        x = x.drop(columns=mem)
+        x.insert(min(pos, x.shape[1]), st["name"], comp)
+    return x
+
+
+def _era_dummies(era: pd.Series | None, index: pd.Index) -> dict[str, np.ndarray]:
+    if era is None:
+        return {}
+    e = pd.Series(era).reindex(index)
+    if e.isna().any():
+        raise ValueError("era missing for some videos")
+    return {f"era={lev}": (e == lev).to_numpy(dtype=float) for lev in sorted(e.unique())[1:]}
+
+
+def _greedy(cols: dict[str, np.ndarray], names: list[str], rcond: float,
+            kept: list[str] | None = None,
+            limit: int | None = None) -> tuple[list[str], list[str], list[str]]:
+    """Add columns in order; drop aliased ones; stop once rank == limit. -> (kept, aliased, not_reached)."""
+    kept = list(kept or [])
+    rank = numerical_rank(np.column_stack([cols[k] for k in kept]), rcond) if kept else 0
+    aliased: list[str] = []
+    for i, nm in enumerate(names):
+        if limit is not None and rank >= limit:
+            return kept, aliased, names[i:]
+        r = numerical_rank(np.column_stack([*(cols[k] for k in kept), cols[nm]]), rcond)
+        if r > rank:
+            kept.append(nm)
+            rank = r
+        else:
+            aliased.append(nm)
+    return kept, aliased, []
+
+
+def optional_term_order(z: pd.DataFrame, forced: list[str], ddof: int = 0) -> list[str]:
+    """Fixed prereg order of the optional quadratic terms (label-free; no PCA).
+
+    Squares of the non-forced continuous features by descending variance of z^2, then every pairwise
+    product except the forced speech product by descending variance of z_a * z_b; ties by name.
+    """
+    cont = list(z.columns)
+    rest = [c for c in cont if c not in forced]
+    sq = sorted(rest, key=lambda c: (-round(float(np.var(z[c] ** 2, ddof=ddof)), 12), c))
+    fpair = tuple(sorted(forced))
+    pairs = [(a, b) for a, b in itertools.combinations(cont, 2) if tuple(sorted((a, b))) != fpair]
+    pr = sorted(pairs, key=lambda ab: (-round(float(np.var(z[ab[0]] * z[ab[1]], ddof=ddof)), 12), ab))
+    return [f"{c}^2" for c in sq] + [f"{a}*{b}" for a, b in pr]
 
 
 @dataclass
-class QResult:
-    q: np.ndarray
+class QPlan:
+    q: np.ndarray                 # (N, rank) kept columns, full numerical column rank
     columns: list[str]
     rank: int
     limit: int
-    aliased: list[str]
-    kq: list[str]
+    cond: float
+    aliased: list[str]            # dropped: in the span of earlier columns (logged)
+    merges: list[str]             # merge-list steps applied (in order)
+    linear: list[str]             # linear M0 terms after merges (continuous z + binary)
+    forced_quadratic: list[str]
+    optional: list[str]           # optional quadratic terms included
+    candidates: list[str]         # the full fixed-order optional list
+    excluded_terms: list[str]     # optional terms NOT in Q: "beyond M0" is beyond the span WITHOUT these
+    m0_used: pd.DataFrame = field(repr=False, default_factory=pd.DataFrame)
 
 
-def _aliased(q: np.ndarray, names: list[str]) -> list[str]:
-    kept: list[int] = []
-    aliased = []
-    r = 0
-    for j in range(q.shape[1]):
-        r_new = np.linalg.matrix_rank(q[:, [*kept, j]])
-        if r_new > r:
-            kept.append(j)
-            r = r_new
-        else:
-            aliased.append(names[j])
-    return aliased
+def q_m0(m0: pd.DataFrame, binary: list[str] | tuple[str, ...] | None = None, era: pd.Series | None = None,
+         cfg: dict[str, Any] | None = None) -> QPlan:
+    """Q(M0) for the H4 residualisation under DECISIONS D-037 (label-free, deterministic; NO PCA).
 
-
-def build_q(m0: pd.DataFrame, kq: list[str], binary: list[str] | tuple[str, ...] = (),
-            era: pd.Series | None = None, forced: list[str] | None = None,
-            cfg: dict[str, Any] | None = None) -> QResult:
-    """Q(M0) for the H4 residualisation. Raises unless finite and numerical rank <= floor(N/3)."""
-    forced = list(forced if forced is not None else _m0_cfg(cfg)["forced_kq"])
-    missing = [f for f in forced if f not in kq]
-    if missing:
-        raise ValueError(f"K_Q must include {missing} (speech rate / speech fraction, D-034)")
-    x = m0.astype(float)
-    if not np.isfinite(x.to_numpy()).all():
+    1. Linear block: 1, z(forced speech), z(other continuous M0), binary (raw), era dummies -- always.
+    2. Forced quadratics: speech_rate^2, speech_frac^2, speech_rate*speech_frac -- always.
+    3. If rank(1 + 2) > floor(N/3): apply ``m0.merge_list`` steps in order, one at a time, until it fits
+       (exhausted -> ValueError). Never PCA.
+    4. Optional quadratic terms in :func:`optional_term_order`, each kept only while it raises the
+       numerical rank (rcond ``m0.rank_rcond``) and rank <= floor(N/3).
+    Asserts finiteness, rank <= floor(N/3) and cond(Q) <= ``m0.max_cond``. Aliased columns are logged.
+    """
+    mc = _m0_cfg(cfg)
+    forced = list(mc["forced_speech"])
+    binary = list(binary if binary is not None else [b for b in mc.get("binary", []) if b in m0.columns])
+    rcond = float(mc["rank_rcond"])
+    max_cond = float(mc["max_cond"])
+    ddof = int(mc.get("z_ddof", 0))
+    x0 = m0.astype(float)
+    if not np.isfinite(x0.to_numpy()).all():
         raise ValueError("M0 has non-finite entries: run impute_m0 first")
-    n = len(x)
-    nonbin = [c for c in x.columns if c not in binary]
-    z = pd.DataFrame(_z(x[nonbin].to_numpy()), index=x.index, columns=nonbin)
-    cols: dict[str, np.ndarray] = {"1": np.ones(n)}
-    for c in x.columns:
-        cols[c] = z[c].to_numpy() if c in nonbin else x[c].to_numpy()
-    for c in nonbin:
-        cols[f"{c}^2"] = z[c].to_numpy() ** 2
-    for a, b in itertools.combinations(kq, 2):
-        if a in binary or b in binary:
-            raise ValueError(f"K_Q feature {a if a in binary else b!r} is binary")
-        cols[f"{a}*{b}"] = z[a].to_numpy() * z[b].to_numpy()
-    if era is not None:
-        e = pd.Series(era).reindex(x.index)
-        if e.isna().any():
-            raise ValueError("era missing for some videos")
-        for lev in sorted(e.unique())[1:]:
-            cols[f"era={lev}"] = (e == lev).to_numpy(dtype=float)
-    names = list(cols)
-    q = np.column_stack([cols[k] for k in names])
+    for f in forced:
+        if f not in x0.columns:
+            raise KeyError(f"forced speech feature {f!r} is not in M0 (D-034/D-037)")
+    n = len(x0)
+    limit = n // 3
+    era_cols = _era_dummies(era, x0.index)
+    steps = merge_list(cfg)
+
+    applied: list[str] = []
+    while True:
+        x = apply_merges(x0, [s for s in steps if s["name"] in applied], ddof)
+        cont = [c for c in x.columns if c not in binary]
+        z = pd.DataFrame(zscore(x[cont].to_numpy(), ddof), index=x.index, columns=cont)
+        cols: dict[str, np.ndarray] = {"1": np.ones(n)}
+        for c in forced:
+            cols[c] = z[c].to_numpy()
+        for c in cont:
+            if c not in forced:
+                cols[c] = z[c].to_numpy()
+        for b in binary:
+            cols[b] = x[b].to_numpy()
+        cols.update(era_cols)
+        sr, sf = forced
+        fq = {f"{sr}^2": z[sr].to_numpy() ** 2, f"{sf}^2": z[sf].to_numpy() ** 2,
+              f"{sr}*{sf}": z[sr].to_numpy() * z[sf].to_numpy()}
+        cols.update(fq)
+        req = list(cols)
+        kept, aliased, _ = _greedy(cols, req, rcond)
+        if len(kept) <= limit:
+            break
+        nxt = [s for s in steps if s["name"] not in applied]
+        if not nxt:
+            raise ValueError(
+                f"rank of the linear + forced block = {len(kept)} > floor(N/3) = {limit} (N = {n}) "
+                f"even after the full merge list {applied}; a DECISIONS entry is required before P6 (D-037)")
+        applied.append(nxt[0]["name"])
+        log.warning("Q(M0): rank %d > floor(N/3) = %d -> merge step %r (%s)", len(kept), limit,
+                    nxt[0]["name"], "+".join(nxt[0]["members"]))
+
+    cand = optional_term_order(z, forced, ddof)
+    for t in cand:
+        if "*" in t:
+            a, b = t.split("*")
+            cols[t] = z[a].to_numpy() * z[b].to_numpy()
+        else:
+            cols[t] = z[t.removesuffix("^2")].to_numpy() ** 2
+    kept, al2, not_reached = _greedy(cols, cand, rcond, kept=kept, limit=limit)
+    aliased += al2
+    optional = [t for t in cand if t in kept]
+    q = np.column_stack([cols[k] for k in kept])
     if not np.isfinite(q).all():
         raise ValueError("Q(M0) has non-finite entries")
-    rank = int(np.linalg.matrix_rank(q))
-    limit = n // 3
-    aliased = _aliased(q, names)
+    rank = numerical_rank(q, rcond)
+    if rank != q.shape[1] or rank > limit:
+        raise ValueError(f"Q(M0) rank {rank} with {q.shape[1]} kept columns, limit {limit}")
+    cond = condition_number(q)
+    if cond > max_cond:
+        raise ValueError(f"cond(Q) = {cond:.3g} > m0.max_cond = {max_cond:.3g}: near-collinear M0 (D-037)")
     if aliased:
-        log.warning("Q(M0): %d aliased column(s): %s", len(aliased), aliased)
-    if rank > limit:
-        raise ValueError(f"numerical rank(Q) = {rank} > floor(N/3) = {limit} (N = {n}); reduce the "
-                         f"M0 list or K_Q before P6 (v2.md §1 H4)")
-    return QResult(q=q, columns=names, rank=rank, limit=limit, aliased=aliased, kq=list(kq))
+        log.warning("Q(M0): %d aliased column(s) dropped (in the span of earlier columns): %s",
+                    len(aliased), aliased)
+    excluded = [t for t in cand if t not in optional]
+    log.info("Q(M0) D-037: N=%d limit=%d rank=%d merges=%s optional=%s excluded=%d", n, limit, rank, applied,
+             optional, len(excluded))
+    return QPlan(q=q, columns=kept, rank=rank, limit=limit, cond=cond, aliased=aliased, merges=applied,
+                 linear=[c for c in req if c in x.columns], forced_quadratic=list(fq), optional=optional,
+                 candidates=cand, excluded_terms=excluded, m0_used=x)
 
 
-def q_column_count(p: int, n_binary: int, k_q: int, n_era: int = 0) -> int:
-    """Number of Q columns for p M0 features (incl. binary), before any aliasing."""
-    return 1 + p + (p - n_binary) + math.comb(k_q, 2) + max(0, n_era - 1)
+def residualize(m1: np.ndarray, q: np.ndarray) -> np.ndarray:
+    """R = M1 - Q (Q^+ M1): unpenalised OLS residuals on Q(M0) (label-free, full analysis set)."""
+    m1 = np.asarray(m1, dtype=float)
+    beta, *_ = np.linalg.lstsq(q, m1, rcond=None)
+    return m1 - q @ beta
+
+
+def q_dimension_table(n_values: tuple[int, ...] = (40, 60, 80), n_era_levels: int = 3,
+                      voiced_varies: bool = True, cfg: dict[str, Any] | None = None) -> pd.DataFrame:
+    """Planned Q(M0) dimensions under D-037 for generic (non-aliased) data -- the prereg table.
+
+    Columns: N, limit = floor(N/3), required (1 + linear + era + 3 forced), merges, optional, rank.
+    """
+    mc = _m0_cfg(cfg)
+    p = len(m0_feature_list(cfg))
+    n_bin = len(mc.get("binary", [])) if voiced_varies else 0
+    n_merge_avail = sum(len(s["members"]) - 1 for s in merge_list(cfg))
+    req = 1 + p + n_bin + (n_era_levels - 1) + 3
+    rows = []
+    for n in n_values:
+        lim = n // 3
+        merges, red = 0, 0
+        for s in merge_list(cfg):
+            if req - red <= lim:
+                break
+            merges += 1
+            red += len(s["members"]) - 1
+        if req - red > lim:
+            raise ValueError(f"N = {n}: merge list (max -{n_merge_avail}) cannot fit floor(N/3) = {lim}")
+        cont = p - red
+        n_opt_avail = (cont - 2) + (math.comb(cont, 2) - 1)
+        opt = min(lim - (req - red), n_opt_avail)
+        rows.append({"N": n, "limit": lim, "required": req, "merges": merges, "optional": opt,
+                     "rank": req - red + opt})
+    return pd.DataFrame(rows)

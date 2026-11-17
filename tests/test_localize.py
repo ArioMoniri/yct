@@ -16,7 +16,7 @@ def _agg():
 
 COLS = ["sign", "rank", "parcel_id", "parcel", "hemi", "yeo7", "hcp_mmp", "hcp_overlap", "hcp_mmp_2nd",
         "hcp_overlap_2nd", "destrieux", "value", "ci_lo", "ci_hi", "stability_topk", "p_perm", "q_bh",
-        "unreliable_frac"]
+        "unreliable_frac", "n_vertices", "mw_removed_frac", "mw_shrunk"]
 
 
 def _planted(at, pid, neg_pid=None, seed=0, amp=3.0, noise=0.1):

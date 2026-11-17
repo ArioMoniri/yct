@@ -75,7 +75,8 @@ def test_first_run_extracts_once_and_records_hashes(clip, store, tmp_path):
     m = fc.run_cached(clip, store, ex, pr, REV, tmp_path / "out" / "r1")
     assert ex.calls == 1 and pr.calls == 1
     assert m["cache_reused"] is False and m["input_sha256"] == _sha(clip)
-    entry = store.entry_dir(_sha(clip))
+    assert m["transcript_sha256"] == _sha(clip.with_suffix(".tsv")) and m["cache_key"] == fc.cache_key(clip)
+    entry = store.entry_dir(fc.cache_key(clip))
     meta = json.loads((entry / fc.SIDECAR).read_text())
     assert meta["input_sha256"] == _sha(clip)
     assert meta["revisions"] == REV and meta["n_extractions"] == 1
@@ -116,6 +117,7 @@ def test_cache_is_keyed_by_content_not_name(clip, store, tmp_path):
     renamed = tmp_path / "other" / "zzz.mp4"
     renamed.parent.mkdir()
     renamed.write_bytes(clip.read_bytes())
+    renamed.with_suffix(".tsv").write_bytes(clip.with_suffix(".tsv").read_bytes())  # same transcript too
     m = fc.run_cached(renamed, store, ex, MockPredictor(), REV, tmp_path / "o2")
     assert ex.calls == 1 and m["cache_reused"] is True
     changed = tmp_path / "other" / "new.mp4"
@@ -127,7 +129,7 @@ def test_cache_is_keyed_by_content_not_name(clip, store, tmp_path):
 def test_tampered_tensor_fails_loudly(clip, store, tmp_path):
     ex = MockExtractor()
     fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1")
-    t = store.entry_dir(_sha(clip)) / "feat" / "audio.npy"
+    t = store.entry_dir(fc.cache_key(clip)) / "feat" / "audio.npy"
     arr = np.load(t)
     arr[0, 0] += 1.0
     np.save(t, arr)
@@ -139,7 +141,7 @@ def test_tampered_tensor_fails_loudly(clip, store, tmp_path):
 def test_extra_or_missing_cached_file_fails(clip, store, tmp_path):
     ex = MockExtractor()
     fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1")
-    feat = store.entry_dir(_sha(clip)) / "feat"
+    feat = store.entry_dir(fc.cache_key(clip)) / "feat"
     (feat / "stray.npy").write_bytes(b"x")
     with pytest.raises(fc.FeatureCacheError, match="stray"):
         fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o2")
@@ -200,7 +202,7 @@ def test_fresh_extraction_drift_is_reported_not_gated(clip, store, tmp_path):
     assert d["tensors"]["audio.npy"]["max_abs_diff"] > 0
     assert m2["pred_sha256"] == m1["pred_sha256"]  # drift never leaks into the reported predictions
     assert ex.calls == 2  # one cached extraction + one throw-away fresh one
-    meta = json.loads((store.entry_dir(_sha(clip)) / fc.SIDECAR).read_text())
+    meta = json.loads((store.entry_dir(fc.cache_key(clip)) / fc.SIDECAR).read_text())
     assert meta["n_extractions"] == 1  # the throw-away extraction is not stored
     assert json.loads((tmp_path / "o2.json").read_text())["fresh_extraction_drift"] == d
 
@@ -237,8 +239,120 @@ def test_input_copy_and_transcript_are_cached_and_hashed(clip, store, tmp_path):
         MockExtractor()(video, feat_dir)
 
     fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1")
-    entry = store.entry_dir(_sha(clip))
+    entry = store.entry_dir(fc.cache_key(clip))
     assert seen["video"].parent == entry / "input" and seen["video"].name == clip.name
     meta = json.loads((entry / fc.SIDECAR).read_text())
     assert meta["input_files"][clip.name] == _sha(clip)
     assert meta["input_files"]["abc.tsv"] == _sha(clip.with_suffix(".tsv"))
+
+
+# ------------------------------------------------ cache key includes the transcript (Biostat P0 P3)
+def test_cache_key_includes_transcript_sha(clip, store, tmp_path):
+    ex = MockExtractor()
+    k1 = fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1")["cache_key"]
+    clip.with_suffix(".tsv").write_text("text\tstart\tduration\tsequence_id\tsentence\nHi\t0.1\t0.2\t0\tHi\n")
+    m2 = fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o2")
+    assert ex.calls == 2 and m2["cache_reused"] is False and m2["cache_key"] != k1
+    assert m2["input_sha256"] == _sha(clip)  # same video, different transcript -> own entry
+
+
+def test_transcript_added_after_textless_extraction_is_not_reused(clip, store, tmp_path):
+    tsv = clip.with_suffix(".tsv")
+    text = tsv.read_text()
+    tsv.unlink()
+    ex = MockExtractor()
+    m1 = fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1")
+    assert m1["transcript_sha256"] is None
+    tsv.write_text(text)
+    m2 = fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o2")
+    assert ex.calls == 2 and m2["cache_reused"] is False and m2["cache_key"] != m1["cache_key"]
+
+
+def test_manifest_lists_every_entry_with_hashes(clip, store, tmp_path):
+    m = fc.run_cached(clip, store, MockExtractor(), MockPredictor(), REV, tmp_path / "o1")
+    man = store.manifest()
+    assert list(man) == [m["cache_key"]]
+    e = man[m["cache_key"]]
+    assert e["input_sha256"] == _sha(clip) and e["transcript_sha256"] == _sha(clip.with_suffix(".tsv"))
+    assert e["tensors"] == m["feature_sha256"]
+    assert e["sidecar_sha256"] == _sha(store.entry_dir(m["cache_key"]) / fc.SIDECAR)
+
+
+# ---------------------------------------------------------------- D-038 per-feature reliability gate
+def test_reliability_definition():
+    rng = np.random.default_rng(0)
+    a = rng.standard_normal(10000)
+    assert fc.reliability(a, a) == 1.0
+    b = a + 0.1 * rng.standard_normal(10000)  # sigma_e^2 / sigma_tot^2 ~ 0.01
+    assert 0.99 < fc.reliability(a, b) < 0.997
+    assert fc.reliability(a, rng.standard_normal(10000)) < 0.1
+
+
+def test_drift_reports_per_feature_reliability_and_gate(clip, store, tmp_path):
+    ex = MockExtractor(noise=1e-4)
+    m = fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1", fresh_drift=True)
+    fr = m["fresh_extraction_drift"]["feature_reliability"]
+    assert set(fr["arrays"]) == {"video/vjepa.npy", "audio.npy"}
+    assert set(fr["per_extractor"]) == {"video", "audio.npy"}
+    assert all(0.99 < v["reliability"] < 1.0 for v in fr["arrays"].values())
+    assert fr["reliability_gate"] == 0.99 and fr["reliability_gate_pass"] is True
+    assert fr["reliability_min"] == min(v["reliability"] for v in fr["arrays"].values())
+
+
+def test_drift_gate_fails_on_unreliable_extraction(clip, store, tmp_path):
+    ex = MockExtractor(noise=0.5)
+    m = fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1", fresh_drift=True)
+    fr = m["fresh_extraction_drift"]["feature_reliability"]
+    assert fr["reliability_min"] < 0.99 and fr["reliability_gate_pass"] is False
+
+
+def test_drift_gate_fails_when_a_feature_is_missing(clip, store, tmp_path):
+    calls = {"n": 0}
+
+    def ex(video, feat_dir):
+        calls["n"] += 1
+        MockExtractor(noise=0.0)(video, feat_dir)
+        if calls["n"] == 2:
+            (feat_dir / "audio.npy").unlink()
+
+    m = fc.run_cached(clip, store, ex, MockPredictor_tolerant(), REV, tmp_path / "o1", fresh_drift=True)
+    fr = m["fresh_extraction_drift"]["feature_reliability"]
+    assert fr["arrays"]["audio.npy"] == {"present_in_both": False}
+    assert fr["reliability_gate_pass"] is False
+
+
+class MockPredictor_tolerant(MockPredictor):  # noqa: N801
+    def __call__(self, video, feat_dir):
+        if not (Path(feat_dir) / "audio.npy").exists():
+            return np.zeros((10, 20), np.float32), {}
+        return super().__call__(video, feat_dir)
+
+
+# ---------------------------------------------------------------- BUG-003 offline extraction
+def test_offline_run_blocks_network_during_extraction(clip, store, tmp_path):
+    import socket
+
+    from yct.tribe_run.offline import NetworkBlockedError
+
+    def downloads(video, feat_dir):
+        socket.create_connection(("huggingface.co", 443), timeout=1)
+
+    with pytest.raises(NetworkBlockedError):
+        fc.run_cached(clip, store, downloads, MockPredictor(), REV, tmp_path / "o1", offline=True)
+
+
+def test_offline_run_blocks_network_during_prediction(clip, store, tmp_path):
+    import urllib.request
+
+    from yct.tribe_run.offline import NetworkBlockedError
+
+    def predict_fetching(video, feat_dir):
+        urllib.request.urlopen("https://huggingface.co/api/models", timeout=1)
+
+    with pytest.raises(NetworkBlockedError):
+        fc.run_cached(clip, store, MockExtractor(), predict_fetching, REV, tmp_path / "o1", offline=True)
+
+
+def test_offline_run_records_flag(clip, store, tmp_path):
+    m = fc.run_cached(clip, store, MockExtractor(), MockPredictor(), REV, tmp_path / "o1", offline=True)
+    assert m["offline"] is True

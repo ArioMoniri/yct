@@ -1,0 +1,1916 @@
+diff --git a/config.yaml b/config.yaml
+index 7273563..07af9e2 100644
+--- a/config.yaml
++++ b/config.yaml
+@@ -22,7 +22,7 @@ stimulus:
+ window:                        # W, set in P4 from label-free mean time course; frozen there
+   default_start_tr: 5          # max(5, 4 + L + 1) once P0 latency L is measured
+   default_len_tr: 40
+-  min_tail_s: 2                # exclude from T1 if trimmed duration < W_end + 2 s
++  min_tail_s: 5                # exclude from T1 if trimmed duration < W_end + 5 s (D-039; was 2)
+ 
+ era_strata:                    # from the YC batch calendar, not the data (v2.md §1)
+   E1: {last_batch: W2016}
+@@ -167,10 +167,37 @@ m0:                            # H4 M0 assembly (v2.4 G-D032 Biostat D1, Referee
+     - scene_cuts               # W-mean of per-TR cut counts = cuts / s
+     - face_area_crop_frac      # no face -> 0
+   never: [text_frac]           # on-screen text not implemented: dropped from M0, never imputed
+-  binary: [voiced_any]         # added by the pitch imputation rule; never squared, never in K_Q
+-  forced_kq: [speech_rate_wps, speech_frac]
+-  k_q: 3                       # K_Q = forced + top (k_q - 2) by 1/VIF; Q has 1 + p + p_nonbin + C(k_q,2) (+ era) columns
++  binary: [voiced_any]         # added by the pitch imputation rule; linear only, never squared or in products
++  forced_speech: [speech_rate_wps, speech_frac]   # known issue #8: linear + both squares + product ALWAYS in Q
+   min_words_in_w: 20           # label-free exclusion: no audio track or < 20 words in W (known issue #7)
++  # Q(M0) rule (D-037; v2.5 C3; yct.features.m0.q_m0). NO PCA. Q columns, in this order:
++  #   [1, z(forced_speech), z(other continuous M0), binary, era dummies]           (all linear M0 terms)
++  #   + speech_rate_wps^2, speech_frac^2, speech_rate_wps*speech_frac               (forced quadratics)
++  #   + optional quadratic terms in the fixed prereg order (squares of the other continuous features by
++  #     descending label-free variance of z^2, then all remaining pairwise products by descending
++  #     variance of z_a*z_b; ties by name), each kept only while it raises the numerical rank and
++  #     rank <= floor(N/3). Aliased columns are dropped and logged; they do not change the span.
++  # If the linear + forced block alone exceeds floor(N/3), merge_list steps apply IN ORDER (one at a time,
++  # only as many as needed) BEFORE any optional term; if the list is exhausted -> hard failure (DECISIONS
++  # entry before P6). z = (x - mean) / SD over the analysis set after exclusions, ddof = z_ddof.
++  q_rule: D-037
++  z_ddof: 0
++  rank_rcond: 1.0e-8           # numerical rank = #(singular values > rank_rcond * s_max)
++  max_cond: 1.0e+8             # cond(Q) of the kept columns above this -> hard failure
++  merge_list:                  # pre-registered, LABEL-FREE; composite = mean of the members' z-scores
++    - name: photometric_crop
++      members: [luminance_crop, contrast_crop]
++      why: "both are global photometric statistics of the same V-JEPA2 crop (mean and RMS of luma Y'); the T3
++        track tests photometry separately, so one composite loses least construct coverage"
++    - name: visual_change
++      members: [motion_energy_crop, scene_cuts]
++      why: "cuts are the extreme case of frame-to-frame change and drive motion-energy transients; both index
++        the rate of visual change in the crop"
++    - name: voice_acoustics
++      members: [rms_db, pitch_mean_hz]
++      why: "non-lexical acoustic descriptors of the voice track; rms_db is largely equalised by the P2 -23 LUFS
++        normalisation, so it carries little unique variance. pitch_sd_hz is not in M0, so the 'pitch mean +
++        sd -> prosody' merge does not apply. Speech rate / fraction and face area are never merged"
+ 
+ localize:                      # v2.3 activation localisation outputs (D-032; descriptive); firewall v2.4 G-D032
+   top_k: 20
+@@ -179,7 +206,20 @@ localize:                      # v2.3 activation localisation outputs (D-032; de
+   bootstrap_B: 10000           # company-cluster bootstrap, stratified by group; BCa with company jackknife
+   unreliable_parcel_max_frac: 0.5   # parcels with a larger share of unreliable vertices are not ranked
+   hcp_second_below: 0.5        # report the 2nd-best-overlap HCP area when the best overlap is below this
+-  unreliable_pattern: ["#000000", "#ffd400"]   # stipple colours for unreliable vertices (outside RdBu_r; never grey)
++  # stipple colours for unreliable vertices: outside RdBu_r, never grey, both chromatic so neither reads as a
++  # (dark) sulcal medial-wall grey; Okabe-Ito-like yellow / bluish green (v2.5 C3, G-D032 c2 Neuro N1)
++  unreliable_pattern: ["#009e73", "#ffd400"]
++  stipple_cell_mm: 4.0         # checker cell on the inflated mesh (> one fsaverage5 face: survives rasterising)
++  dpi: 150                     # default savefig dpi; the raster test asserts the stipple is legible at it
++  mw_shrink_flag_frac: 0.4     # peak tables flag parcels losing more than this share to the union medial wall
++  mw_shrunk_parcels:           # Schaefer parcels losing > 40% of vertices to the union mask (raw -> post); tested
++    - 7Networks_RH_Default_PFCdPFCm_6   # 37 -> 14
++    - 7Networks_RH_Cont_Cing_1          # 52 -> 23
++    - 7Networks_LH_Default_pCunPCC_4    # 38 -> 17
++    - 7Networks_RH_Cont_Cing_2          # 35 -> 16
++    - 7Networks_RH_Default_pCunPCC_2    # 22 -> 11
++    - 7Networks_LH_Cont_Cing_1          # 43 -> 22
++    - 7Networks_LH_Cont_Cing_2          # 44 -> 23
+   caption: >-
+     Descriptive only; not inferential. TRIBE v2-predicted (average-subject) relative responses, T1,
+     spatially standardised per TR (union medial wall), averaged over W. Atlas names are anatomical
+@@ -198,6 +238,49 @@ localize:                      # v2.3 activation localisation outputs (D-032; de
+     - '\bvaluation\b'
+     - '\btheory of mind\b'
+ 
++controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, D-039; ENH-002). LABEL-FREE.
++  # ROIs = unions of HCP-MMP1 areas (names without the L_/R_ prefix and _ROI suffix), bilateral, on the union-
++  # medial-wall-masked atlas (yct.features.atlas.load_all). Vertex counts (fs5, both hemis) are tested.
++  rois:
++    FFC: {areas: [FFC], hemis: [L, R], n_vertices: 104}           # face control (fusiform face complex)
++    PH: {areas: [PH], hemis: [L, R], n_vertices: 113}             # localiser (d): place > face
++    AUD: {areas: [A4, A5], hemis: [L, R], n_vertices: 223}
++    # AUD = A4 ∪ A5 only: speech-preferring auditory association cortex. Not A1/belt (respond to any sound,
++    # incl. the P0 flash-driven OOD response), not STS (overlaps the H2 composite -> circular).
++    V1_V3: {areas: [V1, V2, V3], hemis: [L, R], n_vertices: 1148}
++    MT_plus: {areas: [MT, MST, FST, V4t], hemis: [L, R], n_vertices: 168}
++    # MT+ = Glasser's MT+ complex; pre-lock FALLBACK for the motion control if V1-V3 fails the ENH-002 dry run
++    # (TRIBE known issue #9: mean-pooled V-JEPA tokens weaken retinotopic cortex). Chosen only by a DECISIONS
++    # entry before P4b lock, never after.
++  regressors:                  # computed inside the central 256x256 V-JEPA2 crop where visual; 2 Hz -> 1 Hz mean
++    face: {source: confounds, column: face_area_crop_frac, roi: FFC}
++    motion: {source: confounds, column: motion_energy_crop, roi: V1_V3}
++    luminance_change: {source: derived, from: luminance_crop, op: abs_first_difference, roi: V1_V3}
++    # D-039 (Referee P0 4a/b): luminance-change energy is partialled out of every within-video control,
++    # because AUD responded to the black->white flash more than to speech in P0.
++    speech_envelope: {source: derived, from: audio16k, op: hilbert_broadband_envelope_mean, roi: AUD}
++    # speech envelope is not a yct.confounds column yet: implemented with the P4b controls code (ticket ENH-002)
++  partial_out: [face, motion, luminance_change, speech_envelope]   # partial r controls for all other regressors
++  kernel:                      # NO canonical HRF and NO separate shift by L (the kernel already holds the timing)
++    type: measured_impulse_per_roi
++    window_tr: [-4, 8]         # control-subtracted course over output lags -4..+8 TR, peak-normalised
++    min_reference_clips: 5     # derived on CPU from the reference-clip .npy files in the exact ROIs above
++    shift_by_L: false
++  aud_selectivity_run: audio_only   # (b) speech AUD > FFC is evaluated on the audio-only ablation run
++  readout_lag_tr: [0, 3]       # (d) localiser readout = mean of output lags 0..3 TR after onset (inclusive)
++  maps: [spatially_standardised, raw]   # dry run evaluates both; the hypotheses use the standardised maps
++  dry_run:                     # ENH-002, before P4b lock; changes only via a DECISIONS entry before the lock
++    reference_clips_min: 5
++    talking_face_clip: true    # skipped in P0; required here (face + acoustic latency)
++    n_flashes: 5
++    n_speech_bursts: 5         # 4-6 s speech on a noise bed: audio-only, text-only, both
++  pass:
++    within_video: {mean_fisher_z_gt: 0.2, p_lt: 0.001}
++    selectivity: {p_lt: 0.01}
++    between_video: {r_gt: 0.3, perm_p_lt: 0.05}
++    min_videos: 15             # fewer -> evaluated on the >= 5 reference naturalistic clips
++    low_sd_percentile: 10      # regressor SD over W below this percentile of the reference clips -> excluded
++
+ guards:                        # history exceptions for scripts/check_*.py (FIX-D032-1); exact entries only
+   # D-030 adoption commit (owner actions via SSM). Strict ancestors (e.g. 6c16d89, infra/BUDGET_USD under
+   # the earlier signed-commit rule) are not checked by check_human_signed; this commit and later are.
+diff --git a/infra/lambda_gpu.py b/infra/lambda_gpu.py
+index 6cbae5b..0376f78 100644
+--- a/infra/lambda_gpu.py
++++ b/infra/lambda_gpu.py
+@@ -12,13 +12,20 @@ Guards (watchdog rules W-COST):
+   * API key only from env LAMBDA_API_KEY; never printed or logged.
+   * Every launched instance is recorded in outputs/infra/gpu_ledger.jsonl with a deadline.
+   * --max-hours is mandatory; HARD cap 4 h (not overridable from env).
+-  * Cumulative spend cap BUDGET_USD (read from infra/BUDGET_USD; changing it is a human-only action, see v2 §2)
+-    blocks new launches; a warning is emitted at >=80% of the cap.
++  * Cumulative spend cap = min(infra/BUDGET_USD, owner SSM /yct/owner/budget_usd verified via
++    yct.owner_actions). FAILS CLOSED (Watchdog P0 #5): if the owner budget cannot be verified, `launch`
++    refuses (SystemExit), it never falls back to the file. A warning is emitted at >=80% of the cap.
+   * The ledger is tracked in git (infra/gpu_ledger.jsonl) so spend survives fresh checkouts.
+-  * `reap` terminates yct-* instances past deadline OR whose last heartbeat (or launch, if none) is older
+-    than HEARTBEAT_TIMEOUT_S = 10 min; `watch` runs reap every 60 s and appends one
+-    {"event": "heartbeat", "id", "t"} ledger record per live yct-* instance each loop (v2.md §3), so a
+-    dead watcher is detected by the next `reap` (session start, every gate, after every job).
++  * Heartbeats come FROM THE GPU INSTANCE (Watchdog P0 #4): infra/gpu_heartbeat.sh runs on the box and
++    appends "<epoch> <gpu_util%> <mem_used_MiB>" to ~/yct_heartbeat.log every 30 s. `watch` polls that
++    file over ssh (from the pod: YCT_HB_VIA_POD=1 routes through infra/pod_exec.sh) and appends one
++    {"event": "heartbeat", "id", "t", "gpu_util", "mem_mib", "source": "instance"} ledger record per new
++    line. The watcher itself never writes heartbeats, so a hung box or dead loop stops them.
++  * `reap` terminates yct-* instances (a) past deadline, (b) whose last instance heartbeat (or launch, if
++    none) is older than HEARTBEAT_TIMEOUT_S = 10 min, or (c) idle: GPU util < IDLE_UTIL_PCT = 5 % for
++    IDLE_WINDOW_S = 15 min (v2.md §3), counted from the last busy heartbeat, or from launch +
++    IDLE_GRACE_S - IDLE_WINDOW_S if the GPU was never busy (setup/downloads get 30 min). `watch` runs it
++    every 60 s; `reap` also runs at session start, every gate and after every job.
+   * Non-yct instances are reported (never terminated) so orphans are visible.
+   * A10 is disallowed until the P0 smoke test records peak VRAM < 20 GB (A10_ALLOWED=1).
+ """
+@@ -35,25 +42,37 @@ from pathlib import Path
+ API = "https://cloud.lambda.ai/api/v1"
+ LEDGER = Path(__file__).resolve().parent / "gpu_ledger.jsonl"
+ PREFIX = "yct-"
+-# Budget is a human-only setting committed in infra/BUDGET_USD (env vars cannot raise it).
+-def _owner_budget() -> float:
+-    """Owner-only budget (D-030): SSM /yct/owner/budget_usd, verified as last written by the owner
+-    (yct.owner_actions). The lower of SSM and infra/BUDGET_USD applies; if SSM cannot be verified,
+-    the file value is used and a warning printed, so an agent can never raise the cap."""
+-    file_val = float((Path(__file__).resolve().parent / "BUDGET_USD").read_text().strip())
++# File ceiling (human-only, D-030); env vars cannot raise it. The effective cap also needs the owner's SSM value.
++BUDGET_USD = float((Path(__file__).resolve().parent / "BUDGET_USD").read_text().strip())
++
++
++class BudgetUnverified(SystemExit):
++    pass
++
++
++def _ssm_budget() -> float:
++    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
++    from yct.owner_actions import budget_usd
++    return budget_usd()
++
++
++def budget_cap() -> float:
++    """min(file ceiling, owner-verified SSM budget). Fails closed: any verification error -> SystemExit."""
+     try:
+-        sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+-        from yct.owner_actions import budget_usd
+-        return min(file_val, budget_usd())
+-    except Exception as exc:  # noqa: BLE001 - any failure falls back to the lower, file-based cap
+-        print(f"WARNING owner budget unverified ({type(exc).__name__}); using file cap", file=sys.stderr)
+-        return file_val
++        owner = float(_ssm_budget())
++    except Exception as exc:  # noqa: BLE001 - every failure means "unverified" -> refuse
++        raise BudgetUnverified(f"budget unverified ({type(exc).__name__}: {exc}); refusing to launch") from exc
++    return min(BUDGET_USD, owner)
+ 
+ 
+-BUDGET_USD = _owner_budget()
+ BUDGET_MAX_HOURS = 4.0
+ ALERT_FRACTION = 0.8
+ HEARTBEAT_TIMEOUT_S = 600.0  # v2.md §3: killed after 10 minutes of silence (hard rule, not env-tunable)
++IDLE_UTIL_PCT = 5.0          # v2.md §3: idle GPU (< 5 % util) ...
++IDLE_WINDOW_S = 900.0        # ... for 15 min is killed
++IDLE_GRACE_S = 1800.0        # a never-busy instance is idle-killed 30 min after launch (setup + downloads)
++HB_LOG = "~/yct_heartbeat.log"
++HB_SSH_KEY = "/root/.ssh/yct_lambda"
+ 
+ 
+ def _req(method: str, path: str, body: dict | None = None) -> dict:
+@@ -107,9 +126,10 @@ def launch(itype: str, name: str, max_hours: float, ssh_key: str | None, region:
+     if "a10" in itype and "a100" not in itype and os.environ.get("A10_ALLOWED") != "1":
+         raise SystemExit("A10 disallowed until P0 smoke test measures peak VRAM < 20 GB")
+     price = avail[itype]["usd_per_hour"]
+-    if spent_usd() + price * max_hours > BUDGET_USD:
+-        raise SystemExit(f"budget cap: spent {spent_usd():.2f} + {price*max_hours:.2f} > {BUDGET_USD}")
+-    if spent_usd() + price * max_hours >= ALERT_FRACTION * BUDGET_USD:
++    cap = min(BUDGET_USD, budget_cap())
++    if spent_usd() + price * max_hours > cap:
++        raise SystemExit(f"budget cap: spent {spent_usd():.2f} + {price*max_hours:.2f} > {cap}")
++    if spent_usd() + price * max_hours >= ALERT_FRACTION * cap:
+         print(f"WARNING budget >= {ALERT_FRACTION:.0%}: notify human", file=sys.stderr)
+     keys = [k["name"] for k in _req("GET", "/ssh-keys")["data"]]
+     ssh_key = ssh_key or os.environ.get("LAMBDA_SSH_KEY_NAME") or (keys[0] if keys else None)
+@@ -145,20 +165,70 @@ def _live(insts: list[dict]) -> list[dict]:
+     return [i for i in insts if i["status"] not in ("terminated", "terminating")]
+ 
+ 
+-def heartbeat(ids: list[str]) -> None:
+-    for iid in ids:
+-        _append({"event": "heartbeat", "id": iid, "t": time.time()})
++def parse_box_log(text: str) -> list[tuple[float, float, float | None]]:
++    """Lines "<epoch> <gpu_util%> [<mem_used_MiB>]" written by infra/gpu_heartbeat.sh; junk ignored."""
++    out = []
++    for line in text.splitlines():
++        parts = line.split()
++        try:
++            t, u = float(parts[0]), float(parts[1])
++            mem = float(parts[2]) if len(parts) > 2 else None
++        except (IndexError, ValueError):
++            continue
++        out.append((t, u, mem))
++    return out
++
++
++def fetch_box_heartbeat(inst: dict) -> list[tuple[float, float, float | None]]:
++    """Tail of the instance's heartbeat log via ssh (directly, or through the pod with YCT_HB_VIA_POD=1)."""
++    import subprocess
++
++    ip = inst.get("ip")
++    if not ip:
++        return []
++    ssh = (f"ssh -i {os.environ.get('YCT_HB_SSH_KEY', HB_SSH_KEY)} -o BatchMode=yes -o ConnectTimeout=15 "
++           f"-o StrictHostKeyChecking=accept-new ubuntu@{ip} 'tail -n 60 {HB_LOG}'")
++    if os.environ.get("YCT_HB_VIA_POD") == "1":
++        cmd = [str(Path(__file__).resolve().parent / "pod_exec.sh"), ssh, "120"]
++    else:
++        cmd = ["bash", "-c", ssh]
++    res = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
++    return parse_box_log(res.stdout)
++
++
++def poll_heartbeats(insts: list[dict], fetch=None) -> int:
++    """Append each new instance heartbeat line to the ledger; returns the number of new records."""
++    fetch = fetch or fetch_box_heartbeat
++    led = _ledger()
++    n = 0
++    for i in insts:
++        last = max((r["t"] for r in led if r["event"] == "heartbeat" and r["id"] == i["id"]
++                    and r.get("source") == "instance"), default=0.0)
++        try:
++            lines = fetch(i)
++        except Exception as exc:  # noqa: BLE001 - an unreachable box simply produces no heartbeat
++            print(f"WARNING heartbeat fetch failed for {i['id']}: {type(exc).__name__}", file=sys.stderr)
++            continue
++        now = time.time()
++        for t, u, mem in lines:
++            if last < t <= now + 60:  # never accept heartbeats from the future (clock skew > 1 min)
++                _append({"event": "heartbeat", "id": i["id"], "t": t, "gpu_util": u, "mem_mib": mem,
++                         "source": "instance"})
++                last, n = t, n + 1
++    return n
+ 
+ 
+-def watch(interval: int = 60) -> None:
++def watch(interval: int = 60, fetch=None) -> None:
++    """Poll instance heartbeats into the ledger, then reap; exits when no yct-* instance is alive."""
+     while True:
++        live = _live(list_ours())
++        if live:
++            poll_heartbeats(live, fetch)
+         killed = reap()
+         if killed:
+             print(json.dumps({"t": time.time(), "reaped": killed}), flush=True)
+-        live = _live(list_ours())
+-        if not live:
++        if not _live(list_ours()):
+             return
+-        heartbeat([i["id"] for i in live])
+         time.sleep(interval)
+ 
+ 
+@@ -170,6 +240,17 @@ def _last_seen(ledger: list[dict]) -> dict[str, float]:
+     return seen
+ 
+ 
++def _idle(led: list[dict], iid: str, now: float) -> bool:
++    """GPU util < IDLE_UTIL_PCT for IDLE_WINDOW_S (from the last busy heartbeat; launch + grace if none)."""
++    launch = next((r["t"] for r in led if r["event"] == "launch" and r["id"] == iid), None)
++    util = [r for r in led if r["event"] == "heartbeat" and r["id"] == iid and "gpu_util" in r]
++    if launch is None or not util:
++        return False  # no utilisation data: the heartbeat/deadline rules apply
++    busy = [r["t"] for r in util if r["gpu_util"] >= IDLE_UTIL_PCT]
++    last_busy = max(busy) if busy else launch + IDLE_GRACE_S - IDLE_WINDOW_S
++    return now - last_busy > IDLE_WINDOW_S
++
++
+ def reap() -> list[str]:
+     led = _ledger()
+     deadlines = {r["id"]: r["deadline"] for r in led if r["event"] == "launch"}
+@@ -181,6 +262,8 @@ def reap() -> list[str]:
+             reason = "deadline"
+         elif now - seen.get(i["id"], 0.0) > HEARTBEAT_TIMEOUT_S:
+             reason = "heartbeat"
++        elif _idle(led, i["id"], now):
++            reason = "idle_gpu"
+         else:
+             continue
+         terminate(i["id"], reason)
+diff --git a/pyproject.toml b/pyproject.toml
+index cb6a1f8..63c5c72 100644
+--- a/pyproject.toml
++++ b/pyproject.toml
+@@ -27,10 +27,12 @@ markers = [
+ [tool.ruff]
+ line-length = 110
+ # analysis/power/: archived power-analysis scripts cited as evidence in reviews; kept byte-identical.
+-extend-exclude = ["analysis/power"]
++# analysis/sims_c2/: Biostat cycle-2 simulation scripts (commit b834dff), archived evidence, kept byte-identical.
++extend-exclude = ["analysis/power", "analysis/sims_c2"]
+ 
+ [tool.ruff.lint]
+ select = ["E", "F", "W", "I", "B", "N", "UP"]
+ 
+ [tool.ruff.lint.per-file-ignores]
+ "infra/lambda_gpu.py" = ["E501", "E702"]
++"scripts/gpu_p0_rerun.py" = ["E501"]   # long remote shell command strings
+diff --git a/scripts/run_with_provenance.py b/scripts/run_with_provenance.py
+index 9a43c31..c0b2ae2 100644
+--- a/scripts/run_with_provenance.py
++++ b/scripts/run_with_provenance.py
+@@ -2,9 +2,13 @@
+ """Run a command and record its provenance in outputs/runs/<run_id>/ (v2.md §3: no result without a run dir).
+ 
+ Writes: cmd (JSON argv), git_sha (HEAD), config_sha (sha256 of config.yaml), exit_code, stdout.log
+-(stdout+stderr, also echoed to the console) and metrics.json (exit code, start/end, wall time, git dirty
+-state + sha256 of `git diff HEAD`, and pytest pass/fail/skip counts when the output has a pytest summary).
+-The command's exit code is propagated; an existing run dir is never overwritten (exit 2).
++(stdout+stderr, also echoed to the console), metrics.json (exit code, start/end, wall time, git dirty
++state + sha256 of `git diff HEAD` (a dirty tree also gets git_diff.patch + untracked_sha256.txt),
++requirements.lock sha256, platform, `pip freeze` sha256 (the list is
++saved as pip_freeze.txt), and pytest pass/fail/skip counts when the output has a pytest summary) and
++report.md. The child gets YCT_RUN_DIR=<run dir>; if it writes child_metrics.json there, that JSON is
++merged into metrics.json under "result", and a report.md it writes is kept (else a minimal one is
++generated). The command's exit code is propagated; an existing run dir is never overwritten (exit 2).
+ 
+ Usage: python scripts/run_with_provenance.py [--run-id ID] [--out-root outputs/runs] -- CMD ARGS...
+ """
+@@ -14,6 +18,8 @@ import argparse
+ import datetime as dt
+ import hashlib
+ import json
++import os
++import platform
+ import re
+ import subprocess
+ import sys
+@@ -59,6 +65,11 @@ def main(argv: list[str]) -> int:
+     diff = _git("diff", "HEAD")
+     untracked = _git("ls-files", "--others", "--exclude-standard").split()
+     cfg = ROOT / "config.yaml"
++    if diff.strip() or untracked:  # dirty tree: keep the exact uncommitted state next to the run
++        (d / "git_diff.patch").write_text(diff)
++        (d / "untracked_sha256.txt").write_text("".join(
++            f"{hashlib.sha256((ROOT / u).read_bytes()).hexdigest()}  {u}\n" for u in untracked
++            if (ROOT / u).is_file()))
+     (d / "cmd").write_text(json.dumps(cmd) + "\n")
+     (d / "git_sha").write_text(git_sha + "\n")
+     cfg_sha = hashlib.sha256(cfg.read_bytes()).hexdigest() if cfg.exists() else ""
+@@ -67,7 +78,7 @@ def main(argv: list[str]) -> int:
+     t0 = time.time()
+     with open(d / "stdout.log", "w") as log:
+         proc = subprocess.Popen(cmd, cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+-                                bufsize=1)
++                                bufsize=1, env={**os.environ, "YCT_RUN_DIR": str(d.resolve())})
+         assert proc.stdout is not None
+         for line in proc.stdout:
+             sys.stdout.write(line)
+@@ -75,6 +86,10 @@ def main(argv: list[str]) -> int:
+         rc = proc.wait()
+     wall = time.time() - t0
+     (d / "exit_code").write_text(f"{rc}\n")
++    lock = ROOT / "requirements.lock"
++    freeze = subprocess.run([sys.executable, "-m", "pip", "freeze"], capture_output=True, text=True).stdout
++    (d / "pip_freeze.txt").write_text(freeze)
++    child = d / "child_metrics.json"
+     metrics = {
+         "run_id": run_id,
+         "exit_code": rc,
+@@ -85,9 +100,20 @@ def main(argv: list[str]) -> int:
+         "git_diff_sha256": hashlib.sha256(diff.encode()).hexdigest(),
+         "untracked_files": untracked,
+         "python": sys.version.split()[0],
++        "platform": platform.platform(),
++        "requirements_lock_sha256": hashlib.sha256(lock.read_bytes()).hexdigest() if lock.exists() else None,
++        "pip_freeze_sha256": hashlib.sha256(freeze.encode()).hexdigest(),
+         "pytest": pytest_counts((d / "stdout.log").read_text()),
+     }
++    if child.exists():
++        metrics["result"] = json.loads(child.read_text())
+     (d / "metrics.json").write_text(json.dumps(metrics, indent=1) + "\n")
++    if not (d / "report.md").exists():
++        (d / "report.md").write_text(
++            f"# Run {run_id}\n\n- cmd: `{' '.join(cmd)}`\n"
++            f"- git_sha: `{git_sha}` (dirty: {metrics['git_dirty']})\n"
++            f"- config_sha: `{cfg_sha}`\n- exit_code: {rc}\n- wall_s: {metrics['wall_s']}\n"
++            f"- pytest: {metrics['pytest']}\n")
+     print(f"provenance: {d} (exit {rc})", file=sys.stderr)
+     return rc
+ 
+diff --git a/src/yct/features/atlas.py b/src/yct/features/atlas.py
+index 6cff11a..821a8f1 100644
+--- a/src/yct/features/atlas.py
++++ b/src/yct/features/atlas.py
+@@ -254,6 +254,7 @@ class AtlasSet:
+     yeo7: Atlas
+     hcp: Atlas
+     destrieux: Atlas
++    schaefer_raw: Atlas | None = None    # pre-mask Schaefer (for medial-wall shrinkage disclosure)
+ 
+     @property
+     def medial_wall(self) -> np.ndarray:
+@@ -267,9 +268,28 @@ def mask_atlas_set(raw: AtlasSet) -> AtlasSet:
+     return AtlasSet(
+         schaefer=apply_mask(raw.schaefer, mw), yeo7=apply_mask(raw.yeo7, mw), hcp=apply_mask(raw.hcp, mw),
+         destrieux=apply_mask(raw.destrieux, mw, drop_names=_destrieux_medial_ids(raw.destrieux)),
++        schaefer_raw=raw.schaefer_raw if raw.schaefer_raw is not None else raw.schaefer,
+     )
+ 
+ 
++def medial_wall_shrinkage(atlases: AtlasSet) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
++    """Per Schaefer parcel id 1..P: (raw vertex count, post-mask count, share removed by the union mask).
++
++    Index 0 of each array is the background. Without ``schaefer_raw`` the set is taken as unmasked
++    (raw = post on cortex). G-D032 c2 Neuro N3: 7 parcels lose 48-62% (config localize.mw_shrunk_parcels).
++    """
++    sch = atlases.schaefer
++    n = len(sch.names)
++    post = np.bincount(np.where(atlases.medial_wall, sch.background, sch.labels), minlength=n)
++    raw_at = atlases.schaefer_raw if atlases.schaefer_raw is not None else sch
++    if len(raw_at.names) != n:
++        raise ValueError("schaefer_raw and schaefer have different label tables")
++    raw = np.bincount(raw_at.labels, minlength=n)
++    frac = np.where(raw > 0, 1.0 - post / np.maximum(raw, 1), 0.0)
++    frac[sch.background] = 0.0
++    return raw, post, frac
++
++
+ def load_all(cfg: dict[str, Any] | None = None) -> AtlasSet:
+     """All four atlases with the union medial wall applied to each (the analysis atlas set)."""
+     s = load_schaefer400(cfg)
+diff --git a/src/yct/features/m0.py b/src/yct/features/m0.py
+index b3a8138..53313e2 100644
+--- a/src/yct/features/m0.py
++++ b/src/yct/features/m0.py
+@@ -1,4 +1,4 @@
+-"""M0 assembly for H4 (v2.md §1 H4; v2.4 G-D032 Biostat D1, Referee #7/#8; DECISIONS D-034).
++"""M0 assembly for H4 (v2.md §1 H4; v2.4 G-D032 Biostat D1; DECISIONS D-034, Q(M0) rule D-037).
+ 
+ All steps are LABEL-FREE: no outcome, group or era-by-label information is read here.
+ 
+@@ -17,12 +17,16 @@ All steps are LABEL-FREE: no outcome, group or era-by-label information is read
+        an error, not an imputation;
+      * any other non-finite value -> hard failure.
+    The result is asserted finite.
+-4. :func:`select_kq` -- K_Q set: ``m0.forced_kq`` (speech rate and speech fraction, known issue
+-   #8) are ALWAYS included; the remaining slots go to the non-binary features with the largest
+-   variance-inflation-adjusted variance of the z-scored feature, i.e. 1 / VIF_j = 1 - R^2_j.
+-5. :func:`build_q` -- Q(M0) = [1, z(M0), z(M0_nonbinary)^2, pairwise products among K_Q,
+-   era dummies (linear only)]. Asserts every entry is finite and that the NUMERICAL rank (SVD,
+-   numpy default tolerance) is <= floor(N / 3); aliased columns are logged.
++4. :func:`q_m0` -- Q(M0) under DECISIONS D-037 (v2.5 C3; replaces the D-034 1/VIF K_Q set and the
++   withdrawn D-036 PCA rule). NO PCA. Q always contains ALL linear M0 terms (z-scored continuous
++   features, the binary ``voiced_any``, era dummies) and the forced speech_rate^2, speech_frac^2,
++   speech_rate*speech_frac (TRIBE known issue #8); further quadratic terms follow in a fixed, label-free
++   prereg order (:func:`optional_term_order`) until the NUMERICAL rank (SVD, rcond ``m0.rank_rcond`` =
++   1e-8) reaches floor(N/3). If the linear + forced block alone exceeds floor(N/3), the pre-registered
++   label-free ``m0.merge_list`` is applied step by step. cond(Q) <= ``m0.max_cond`` is asserted;
++   aliased columns are dropped and logged. :func:`q_dimension_table` is the planned dimension table.
++5. :func:`residualize` -- R = M1 residualised by unpenalised OLS on Q(M0).
++The P5b "dropped term drives M1 and y" FPR simulation is :mod:`yct.features.h4_null_sim`.
+ """
+ from __future__ import annotations
+ 
+@@ -182,116 +186,251 @@ def assemble_m0(per_tr: pd.DataFrame, start: int, length: int, has_audio: Mappin
+     return M0Result(m0=m0, excluded=excluded, imputation=rep, binary=binary)
+ 
+ 
+-# ----------------------------------------------------------------------------- 4-5. K_Q and Q(M0)
++# ----------------------------------------------------------------------------- 4-5. Q(M0), rule D-037
+ 
+-def _z(x: np.ndarray) -> np.ndarray:
+-    sd = x.std(axis=0)
++def zscore(x: np.ndarray, ddof: int = 0) -> np.ndarray:
++    """Column z-score over the analysis set (label-free); constant columns -> 0."""
++    x = np.asarray(x, dtype=float)
++    sd = x.std(axis=0, ddof=ddof)
+     return (x - x.mean(axis=0)) / np.where(sd > 0, sd, 1.0)
+ 
+ 
+-def vif_adjusted_variance(m0: pd.DataFrame, binary: list[str] | tuple[str, ...] = ()) -> pd.Series:
+-    """1 / VIF_j = 1 - R^2_j of each z-scored non-binary feature on the others (label-free)."""
+-    cols = [c for c in m0.columns if c not in binary]
+-    z = _z(m0[cols].to_numpy(dtype=float))
+-    out = {}
+-    for j, c in enumerate(cols):
+-        y = z[:, j]
+-        if not np.any(y):
+-            out[c] = 0.0
+-            continue
+-        others = np.column_stack([np.ones(len(y)), np.delete(z, j, axis=1)])
+-        beta, *_ = np.linalg.lstsq(others, y, rcond=None)
+-        res = y - others @ beta
+-        out[c] = float(res @ res / (y @ y))
+-    return pd.Series(out)
+-
+-
+-def select_kq(m0: pd.DataFrame, k_q: int | None = None, forced: list[str] | None = None,
+-              binary: list[str] | tuple[str, ...] = (), cfg: dict[str, Any] | None = None) -> list[str]:
+-    """K_Q set: forced features first (always included), then the largest 1/VIF non-binary features."""
+-    mc = _m0_cfg(cfg) if (k_q is None or forced is None) else {}
+-    k_q = int(k_q if k_q is not None else mc["k_q"])
+-    forced = list(forced if forced is not None else mc["forced_kq"])
+-    for f in forced:
+-        if f not in m0.columns:
+-            raise KeyError(f"forced K_Q feature {f!r} is not in M0")
+-        if f in binary:
+-            raise ValueError(f"forced K_Q feature {f!r} is binary")
+-    if k_q < len(forced):
+-        raise ValueError(f"k_q = {k_q} < {len(forced)} forced features {forced}")
+-    score = vif_adjusted_variance(m0, binary).drop(forced, errors="ignore")
+-    rest = sorted(score.index, key=lambda c: (-score[c], c))
+-    return forced + rest[: k_q - len(forced)]
++def numerical_rank(q: np.ndarray, rcond: float = 1e-8) -> int:
++    """Numerical rank: number of singular values > rcond * s_max (not the column count)."""
++    q = np.asarray(q, dtype=float)
++    if q.size == 0:
++        return 0
++    s = np.linalg.svd(q, compute_uv=False)
++    return int((s > rcond * s[0]).sum()) if s[0] > 0 else 0
++
++
++def condition_number(q: np.ndarray) -> float:
++    s = np.linalg.svd(np.asarray(q, dtype=float), compute_uv=False)
++    return float(s[0] / s[-1]) if s[-1] > 0 else float("inf")
++
++
++def merge_list(cfg: dict[str, Any] | None = None) -> list[dict[str, Any]]:
++    """The pre-registered, label-free merge list (config ``m0.merge_list``), validated."""
++    mc = _m0_cfg(cfg)
++    feats = m0_feature_list(cfg)
++    forced = set(mc["forced_speech"])
++    binary = set(mc.get("binary", []))
++    seen: set[str] = set()
++    out = []
++    for step in mc.get("merge_list", []):
++        mem = list(step["members"])
++        if len(mem) < 2:
++            raise ValueError(f"merge step {step['name']!r} needs >= 2 members")
++        bad = [m for m in mem if m not in feats]
++        if bad:
++            raise ValueError(f"merge step {step['name']!r}: {bad} not in m0.features")
++        if forced & set(mem) or binary & set(mem):
++            raise ValueError(f"merge step {step['name']!r} may not merge forced speech or binary features")
++        if seen & set(mem):
++            raise ValueError(f"merge step {step['name']!r} reuses {sorted(seen & set(mem))}")
++        if step["name"] in feats:
++            raise ValueError(f"merge composite name {step['name']!r} collides with an M0 feature")
++        seen |= set(mem)
++        out.append({"name": str(step["name"]), "members": mem, "why": str(step.get("why", ""))})
++    return out
++
++
++def apply_merges(m0: pd.DataFrame, steps: list[dict[str, Any]], ddof: int = 0) -> pd.DataFrame:
++    """Replace each step's members by their composite (mean of z-scores), at the first member's position."""
++    x = m0.astype(float).copy()
++    for st in steps:
++        mem = st["members"]
++        missing = [m for m in mem if m not in x.columns]
++        if missing:
++            raise KeyError(f"merge {st['name']!r}: {missing} not in M0")
++        comp = zscore(x[mem].to_numpy(), ddof).mean(axis=1)
++        pos = list(x.columns).index(mem[0])
++        x = x.drop(columns=mem)
++        x.insert(min(pos, x.shape[1]), st["name"], comp)
++    return x
++
++
++def _era_dummies(era: pd.Series | None, index: pd.Index) -> dict[str, np.ndarray]:
++    if era is None:
++        return {}
++    e = pd.Series(era).reindex(index)
++    if e.isna().any():
++        raise ValueError("era missing for some videos")
++    return {f"era={lev}": (e == lev).to_numpy(dtype=float) for lev in sorted(e.unique())[1:]}
++
++
++def _greedy(cols: dict[str, np.ndarray], names: list[str], rcond: float,
++            kept: list[str] | None = None, limit: int | None = None) -> tuple[list[str], list[str], list[str]]:
++    """Add columns in order; drop aliased ones; stop once rank == limit. -> (kept, aliased, not_reached)."""
++    kept = list(kept or [])
++    rank = numerical_rank(np.column_stack([cols[k] for k in kept]), rcond) if kept else 0
++    aliased: list[str] = []
++    for i, nm in enumerate(names):
++        if limit is not None and rank >= limit:
++            return kept, aliased, names[i:]
++        r = numerical_rank(np.column_stack([*(cols[k] for k in kept), cols[nm]]), rcond)
++        if r > rank:
++            kept.append(nm)
++            rank = r
++        else:
++            aliased.append(nm)
++    return kept, aliased, []
++
++
++def optional_term_order(z: pd.DataFrame, forced: list[str], ddof: int = 0) -> list[str]:
++    """Fixed prereg order of the optional quadratic terms (label-free; no PCA).
++
++    Squares of the non-forced continuous features by descending variance of z^2, then every pairwise
++    product except the forced speech product by descending variance of z_a * z_b; ties by name.
++    """
++    cont = list(z.columns)
++    rest = [c for c in cont if c not in forced]
++    sq = sorted(rest, key=lambda c: (-round(float(np.var(z[c] ** 2, ddof=ddof)), 12), c))
++    fpair = tuple(sorted(forced))
++    pairs = [(a, b) for a, b in itertools.combinations(cont, 2) if tuple(sorted((a, b))) != fpair]
++    pr = sorted(pairs, key=lambda ab: (-round(float(np.var(z[ab[0]] * z[ab[1]], ddof=ddof)), 12), ab))
++    return [f"{c}^2" for c in sq] + [f"{a}*{b}" for a, b in pr]
+ 
+ 
+ @dataclass
+-class QResult:
+-    q: np.ndarray
++class QPlan:
++    q: np.ndarray                 # (N, rank) kept columns, full numerical column rank
+     columns: list[str]
+     rank: int
+     limit: int
+-    aliased: list[str]
+-    kq: list[str]
+-
+-
+-def _aliased(q: np.ndarray, names: list[str]) -> list[str]:
+-    kept: list[int] = []
+-    aliased = []
+-    r = 0
+-    for j in range(q.shape[1]):
+-        r_new = np.linalg.matrix_rank(q[:, [*kept, j]])
+-        if r_new > r:
+-            kept.append(j)
+-            r = r_new
+-        else:
+-            aliased.append(names[j])
+-    return aliased
+-
+-
+-def build_q(m0: pd.DataFrame, kq: list[str], binary: list[str] | tuple[str, ...] = (),
+-            era: pd.Series | None = None, forced: list[str] | None = None,
+-            cfg: dict[str, Any] | None = None) -> QResult:
+-    """Q(M0) for the H4 residualisation. Raises unless finite and numerical rank <= floor(N/3)."""
+-    forced = list(forced if forced is not None else _m0_cfg(cfg)["forced_kq"])
+-    missing = [f for f in forced if f not in kq]
+-    if missing:
+-        raise ValueError(f"K_Q must include {missing} (speech rate / speech fraction, D-034)")
+-    x = m0.astype(float)
+-    if not np.isfinite(x.to_numpy()).all():
++    cond: float
++    aliased: list[str]            # dropped: in the span of earlier columns (logged)
++    merges: list[str]             # merge-list steps applied (in order)
++    linear: list[str]             # linear M0 terms after merges (continuous z + binary)
++    forced_quadratic: list[str]
++    optional: list[str]           # optional quadratic terms included
++    candidates: list[str]         # the full fixed-order optional list
++    excluded_terms: list[str]     # optional terms NOT in Q: "beyond M0" is beyond the span WITHOUT these
++    m0_used: pd.DataFrame = field(repr=False, default_factory=pd.DataFrame)
++
++
++def q_m0(m0: pd.DataFrame, binary: list[str] | tuple[str, ...] | None = None, era: pd.Series | None = None,
++         cfg: dict[str, Any] | None = None) -> QPlan:
++    """Q(M0) for the H4 residualisation under DECISIONS D-037 (label-free, deterministic; NO PCA).
++
++    1. Linear block: 1, z(forced speech), z(other continuous M0), binary (raw), era dummies -- always.
++    2. Forced quadratics: speech_rate^2, speech_frac^2, speech_rate*speech_frac -- always.
++    3. If rank(1 + 2) > floor(N/3): apply ``m0.merge_list`` steps in order, one at a time, until it fits
++       (exhausted -> ValueError). Never PCA.
++    4. Optional quadratic terms in :func:`optional_term_order`, each kept only while it raises the
++       numerical rank (rcond ``m0.rank_rcond``) and rank <= floor(N/3).
++    Asserts finiteness, rank <= floor(N/3) and cond(Q) <= ``m0.max_cond``. Aliased columns are logged.
++    """
++    mc = _m0_cfg(cfg)
++    forced = list(mc["forced_speech"])
++    binary = list(binary if binary is not None else [b for b in mc.get("binary", []) if b in m0.columns])
++    rcond = float(mc["rank_rcond"])
++    max_cond = float(mc["max_cond"])
++    ddof = int(mc.get("z_ddof", 0))
++    x0 = m0.astype(float)
++    if not np.isfinite(x0.to_numpy()).all():
+         raise ValueError("M0 has non-finite entries: run impute_m0 first")
+-    n = len(x)
+-    nonbin = [c for c in x.columns if c not in binary]
+-    z = pd.DataFrame(_z(x[nonbin].to_numpy()), index=x.index, columns=nonbin)
+-    cols: dict[str, np.ndarray] = {"1": np.ones(n)}
+-    for c in x.columns:
+-        cols[c] = z[c].to_numpy() if c in nonbin else x[c].to_numpy()
+-    for c in nonbin:
+-        cols[f"{c}^2"] = z[c].to_numpy() ** 2
+-    for a, b in itertools.combinations(kq, 2):
+-        if a in binary or b in binary:
+-            raise ValueError(f"K_Q feature {a if a in binary else b!r} is binary")
+-        cols[f"{a}*{b}"] = z[a].to_numpy() * z[b].to_numpy()
+-    if era is not None:
+-        e = pd.Series(era).reindex(x.index)
+-        if e.isna().any():
+-            raise ValueError("era missing for some videos")
+-        for lev in sorted(e.unique())[1:]:
+-            cols[f"era={lev}"] = (e == lev).to_numpy(dtype=float)
+-    names = list(cols)
+-    q = np.column_stack([cols[k] for k in names])
++    for f in forced:
++        if f not in x0.columns:
++            raise KeyError(f"forced speech feature {f!r} is not in M0 (D-034/D-037)")
++    n = len(x0)
++    limit = n // 3
++    era_cols = _era_dummies(era, x0.index)
++    steps = merge_list(cfg)
++
++    applied: list[str] = []
++    while True:
++        x = apply_merges(x0, [s for s in steps if s["name"] in applied], ddof)
++        cont = [c for c in x.columns if c not in binary]
++        z = pd.DataFrame(zscore(x[cont].to_numpy(), ddof), index=x.index, columns=cont)
++        cols: dict[str, np.ndarray] = {"1": np.ones(n)}
++        for c in forced:
++            cols[c] = z[c].to_numpy()
++        for c in cont:
++            if c not in forced:
++                cols[c] = z[c].to_numpy()
++        for b in binary:
++            cols[b] = x[b].to_numpy()
++        cols.update(era_cols)
++        sr, sf = forced
++        fq = {f"{sr}^2": z[sr].to_numpy() ** 2, f"{sf}^2": z[sf].to_numpy() ** 2,
++              f"{sr}*{sf}": z[sr].to_numpy() * z[sf].to_numpy()}
++        cols.update(fq)
++        req = list(cols)
++        kept, aliased, _ = _greedy(cols, req, rcond)
++        if len(kept) <= limit:
++            break
++        nxt = [s for s in steps if s["name"] not in applied]
++        if not nxt:
++            raise ValueError(
++                f"rank of the linear + forced block = {len(kept)} > floor(N/3) = {limit} (N = {n}) even after "
++                f"the full merge list {applied}; a DECISIONS entry is required before P6 (D-037)")
++        applied.append(nxt[0]["name"])
++        log.warning("Q(M0): rank %d > floor(N/3) = %d -> merge step %r (%s)", len(kept), limit,
++                    nxt[0]["name"], "+".join(nxt[0]["members"]))
++
++    cand = optional_term_order(z, forced, ddof)
++    for t in cand:
++        if "*" in t:
++            a, b = t.split("*")
++            cols[t] = z[a].to_numpy() * z[b].to_numpy()
++        else:
++            cols[t] = z[t.removesuffix("^2")].to_numpy() ** 2
++    kept, al2, not_reached = _greedy(cols, cand, rcond, kept=kept, limit=limit)
++    aliased += al2
++    optional = [t for t in cand if t in kept]
++    q = np.column_stack([cols[k] for k in kept])
+     if not np.isfinite(q).all():
+         raise ValueError("Q(M0) has non-finite entries")
+-    rank = int(np.linalg.matrix_rank(q))
+-    limit = n // 3
+-    aliased = _aliased(q, names)
++    rank = numerical_rank(q, rcond)
++    if rank != q.shape[1] or rank > limit:
++        raise ValueError(f"Q(M0) rank {rank} with {q.shape[1]} kept columns, limit {limit}")
++    cond = condition_number(q)
++    if cond > max_cond:
++        raise ValueError(f"cond(Q) = {cond:.3g} > m0.max_cond = {max_cond:.3g}: near-collinear M0 (D-037)")
+     if aliased:
+-        log.warning("Q(M0): %d aliased column(s): %s", len(aliased), aliased)
+-    if rank > limit:
+-        raise ValueError(f"numerical rank(Q) = {rank} > floor(N/3) = {limit} (N = {n}); reduce the "
+-                         f"M0 list or K_Q before P6 (v2.md §1 H4)")
+-    return QResult(q=q, columns=names, rank=rank, limit=limit, aliased=aliased, kq=list(kq))
++        log.warning("Q(M0): %d aliased column(s) dropped (in the span of earlier columns): %s",
++                    len(aliased), aliased)
++    excluded = [t for t in cand if t not in optional]
++    log.info("Q(M0) D-037: N=%d limit=%d rank=%d merges=%s optional=%s excluded=%d", n, limit, rank, applied,
++             optional, len(excluded))
++    return QPlan(q=q, columns=kept, rank=rank, limit=limit, cond=cond, aliased=aliased, merges=applied,
++                 linear=[c for c in req if c in x.columns], forced_quadratic=list(fq), optional=optional,
++                 candidates=cand, excluded_terms=excluded, m0_used=x)
++
++
++def residualize(m1: np.ndarray, q: np.ndarray) -> np.ndarray:
++    """R = M1 - Q (Q^+ M1): unpenalised OLS residuals on Q(M0) (label-free, full analysis set)."""
++    m1 = np.asarray(m1, dtype=float)
++    beta, *_ = np.linalg.lstsq(q, m1, rcond=None)
++    return m1 - q @ beta
+ 
+ 
+-def q_column_count(p: int, n_binary: int, k_q: int, n_era: int = 0) -> int:
+-    """Number of Q columns for p M0 features (incl. binary), before any aliasing."""
+-    return 1 + p + (p - n_binary) + math.comb(k_q, 2) + max(0, n_era - 1)
++def q_dimension_table(n_values: tuple[int, ...] = (40, 60, 80), n_era_levels: int = 3, voiced_varies: bool = True,
++                      cfg: dict[str, Any] | None = None) -> pd.DataFrame:
++    """Planned Q(M0) dimensions under D-037 for generic (non-aliased) data -- the prereg table.
++
++    Columns: N, limit = floor(N/3), required (1 + linear + era + 3 forced), merges, optional, rank.
++    """
++    mc = _m0_cfg(cfg)
++    p = len(m0_feature_list(cfg))
++    n_bin = len(mc.get("binary", [])) if voiced_varies else 0
++    n_merge_avail = sum(len(s["members"]) - 1 for s in merge_list(cfg))
++    req = 1 + p + n_bin + (n_era_levels - 1) + 3
++    rows = []
++    for n in n_values:
++        lim = n // 3
++        merges, red = 0, 0
++        for s in merge_list(cfg):
++            if req - red <= lim:
++                break
++            merges += 1
++            red += len(s["members"]) - 1
++        if req - red > lim:
++            raise ValueError(f"N = {n}: merge list (max -{n_merge_avail}) cannot fit floor(N/3) = {lim}")
++        cont = p - red
++        n_opt_avail = (cont - 2) + (math.comb(cont, 2) - 1)
++        opt = min(lim - (req - red), n_opt_avail)
++        rows.append({"N": n, "limit": lim, "required": req, "merges": merges, "optional": opt,
++                     "rank": req - red + opt})
++    return pd.DataFrame(rows)
+diff --git a/src/yct/interpret/localize.py b/src/yct/interpret/localize.py
+index c143bfb..f4d13b2 100644
+--- a/src/yct/interpret/localize.py
++++ b/src/yct/interpret/localize.py
+@@ -20,9 +20,12 @@ Firewall (G-D032 Referee D5-D7, Biostat D2, Neuro D1-D4):
+   each with its Yeo-7 network, the BEST-OVERLAP HCP-MMP1 area (the HCP label covering most of the
+   parcel's vertices) with its overlap fraction (plus the second-best area when the fraction is
+   < ``hcp_second_below``), and the modal Destrieux label. Parcels whose share of unreliable vertices
+-  exceeds ``unreliable_parcel_max_frac`` are excluded from the ranking (count in attrs).
+-* Surface maps: medial wall not coloured; unreliable vertices STIPPLED with two colours outside the
+-  colormap (never a grey that reads as zero), with a legend entry.
++  exceeds ``unreliable_parcel_max_frac`` are excluded from the ranking (count in attrs). Every row
++  discloses ``n_vertices`` (post-mask) and ``mw_removed_frac`` (share lost to the union medial wall);
++  ``mw_shrunk`` flags > ``mw_shrink_flag_frac`` (G-D032 c2 Neuro N3).
++* Surface maps: medial wall masked (NaN, not a threshold: exact zeros keep the colormap centre);
++  unreliable vertices STIPPLED as a coarse two-colour checker outside the colormap (never a grey that
++  reads as zero), legible at the default ``localize.dpi`` (raster-tested), with a legend entry.
+ """
+ from __future__ import annotations
+ 
+@@ -37,7 +40,7 @@ import numpy as np
+ import pandas as pd
+ 
+ from yct.config import load_config
+-from yct.features.atlas import Atlas, AtlasSet, schaefer_hemi
++from yct.features.atlas import Atlas, AtlasSet, medial_wall_shrinkage, schaefer_hemi
+ from yct.features.networks import parcel_means, spatial_standardize, window_average
+ 
+ NV = 20484
+@@ -46,7 +49,7 @@ _N = NormalDist()
+ 
+ COLUMNS = ["sign", "rank", "parcel_id", "parcel", "hemi", "yeo7", "hcp_mmp", "hcp_overlap", "hcp_mmp_2nd",
+            "hcp_overlap_2nd", "destrieux", "value", "ci_lo", "ci_hi", "stability_topk", "p_perm", "q_bh",
+-           "unreliable_frac"]
++           "unreliable_frac", "n_vertices", "mw_removed_frac", "mw_shrunk"]
+ 
+ 
+ class ClaimLanguageError(ValueError):
+@@ -370,6 +373,8 @@ def peak_table(vmap: np.ndarray, atlases: AtlasSet, boot: ParcelBootstrap | None
+     pos = [i for i in order[::-1] if eligible[i] and vals[i] > 0][:k]
+     neg = [i for i in order if eligible[i] and vals[i] < 0][:k]
+     second_below = float(lc["hcp_second_below"])
++    _, n_post, mw_frac = medial_wall_shrinkage(atlases)
++    shrink_flag = float(lc["mw_shrink_flag_frac"])
+     rows = []
+     for sign, idx in (("pos", pos), ("neg", neg)):
+         stab = stab_pos if sign == "pos" else stab_neg
+@@ -387,7 +392,8 @@ def peak_table(vmap: np.ndarray, atlases: AtlasSet, boot: ParcelBootstrap | None
+                 "hcp_mmp_2nd": second[0], "hcp_overlap_2nd": second[1], "destrieux": des[0][0],
+                 "value": float(vals[i]), "ci_lo": float(lo[i]), "ci_hi": float(hi[i]),
+                 "stability_topk": float(stab[i]), "p_perm": float(pp[i]), "q_bh": float(q[i]),
+-                "unreliable_frac": float(unrel_frac[i]),
++                "unreliable_frac": float(unrel_frac[i]), "n_vertices": int(n_post[pid]),
++                "mw_removed_frac": float(mw_frac[pid]), "mw_shrunk": bool(mw_frac[pid] > shrink_flag),
+             })
+     df = pd.DataFrame(rows, columns=COLUMNS)
+     df.attrs.update({
+@@ -399,6 +405,8 @@ def peak_table(vmap: np.ndarray, atlases: AtlasSet, boot: ParcelBootstrap | None
+         "map": "T1, spatially standardised per TR (union medial wall), averaged over W",
+         "hcp_label": "best-overlap HCP-MMP1 area (overlap fraction); 2nd-best when fraction < "
+                      f"{second_below}",
++        "mw_removed_frac": "share of the parcel's raw vertices removed by the union medial wall; "
++                           f"mw_shrunk = share > {shrink_flag} (n_vertices = post-mask count)",
+         "q_bh": "BH-FDR over all parcels of the per-parcel permutation p (exploratory family)"
+                 if kind == "difference" else "n/a (group mean)",
+     })
+@@ -437,14 +445,26 @@ def _unreliable_faces(faces: np.ndarray, unreliable_h: np.ndarray) -> np.ndarray
+ 
+ 
+ def stipple_colors(base: np.ndarray, faces: np.ndarray, unreliable_h: np.ndarray,
+-                   pattern: list[str] | tuple[str, ...]) -> np.ndarray:
+-    """Face colours with unreliable faces replaced by an alternating two-colour stipple."""
++                   pattern: list[str] | tuple[str, ...], coords: np.ndarray | None = None,
++                   cell_mm: float | None = None) -> np.ndarray:
++    """Face colours with unreliable faces replaced by a two-colour stipple outside the colormap.
++
++    With ``coords`` (mesh vertex coordinates) and ``cell_mm``, the two colours form a 3-D checker of
++    ``cell_mm`` cells on the face centroids, i.e. a pattern coarser than one fsaverage5 face, so it
++    survives rasterisation at the default dpi (G-D032 c2 Neuro N1: a per-face alternation aliases to
++    grey). Without coordinates, faces alternate by index (legacy; only for tiny synthetic meshes).
++    """
+     from matplotlib.colors import to_rgba
+ 
+     out = np.asarray(base, float).copy()
+     sel = np.flatnonzero(_unreliable_faces(faces, unreliable_h))
+     cols = np.array([to_rgba(c) for c in pattern])
+-    out[sel] = cols[sel % len(cols)]
++    if coords is not None and cell_mm:
++        cen = np.asarray(coords, float)[faces[sel]].mean(axis=1)
++        idx = np.floor(cen / float(cell_mm)).astype(np.int64).sum(axis=1) % len(cols)
++    else:
++        idx = sel % len(cols)
++    out[sel] = cols[idx]
+     return out
+ 
+ 
+@@ -452,7 +472,13 @@ def render_four_views(vmap: np.ndarray, medial_wall: np.ndarray | None = None,
+                       unreliable: np.ndarray | None = None, title: str | None = None,
+                       vmax: float | None = None, cmap: str = "RdBu_r", views: list[str] | None = None,
+                       cfg: dict[str, Any] | None = None):
+-    """2 x 4 figure (LH, RH) x (lateral, medial, ventral, dorsal) on fsaverage5 inflated."""
++    """2 x 4 figure (LH, RH) x (lateral, medial, ventral, dorsal) on fsaverage5 inflated.
++
++    Hidden vertices (medial wall, non-finite) are MASKED (NaN -> transparent, background shows), never
++    thresholded: an exact 0 is drawn in the colormap centre and stays distinct from the medial wall
++    (G-D032 c2 Neuro N2). Unreliable vertices are stippled (:func:`stipple_colors`, checker of
++    ``localize.stipple_cell_mm``); face AND edge colours are set, so mesh edges do not wash it out.
++    """
+     import matplotlib
+ 
+     if matplotlib.get_backend().lower() not in ("agg", "pdf", "svg", "cairo"):
+@@ -469,16 +495,16 @@ def render_four_views(vmap: np.ndarray, medial_wall: np.ndarray | None = None,
+         raise ValueError(f"map must have shape ({NV},), got {vmap.shape}")
+     views = list(views or lc["views"])
+     pattern = list(lc["unreliable_pattern"])
++    cell = float(lc["stipple_cell_mm"])
+     hidden = ~np.isfinite(vmap)
+     if medial_wall is not None:
+-        hidden |= medial_wall
++        hidden |= np.asarray(medial_wall, bool)
+     unrel = np.zeros(NV, bool) if unreliable is None else np.asarray(unreliable, bool) & ~hidden
+     shown = ~hidden & ~unrel
+     if vmax is None:
+         vmax = float(np.nanmax(np.abs(vmap[shown]))) if shown.any() else 1.0
+         vmax = vmax or 1.0
+-    thr = 1e-6 * vmax                                      # hidden vertices (0) stay uncoloured
+-    stat = np.where(shown, vmap, 0.0)
++    stat = np.where(hidden, np.nan, np.where(unrel, 0.0, vmap))   # mask, not threshold (N2)
+ 
+     fs = datasets.load_fsaverage("fsaverage5")
+     sulc = datasets.load_fsaverage_data(mesh="fsaverage5", data_type="sulcal")
+@@ -492,17 +518,21 @@ def render_four_views(vmap: np.ndarray, medial_wall: np.ndarray | None = None,
+             ax = fig.add_subplot(2, len(views), row * len(views) + col + 1, projection="3d")
+             plotting.plot_surf_stat_map(
+                 mesh, stat[sl], bg_map=bg, hemi=hemi, view=view,
+-                cmap=cmap, colorbar=(row == 1 and col == len(views) - 1), threshold=thr,
++                cmap=cmap, colorbar=(row == 1 and col == len(views) - 1), threshold=None,
+                 vmin=-vmax, vmax=vmax, symmetric_cbar=True, axes=ax, figure=fig,
+                 title=f"{'LH' if hemi == 'left' else 'RH'} {view}",
+             )
+             if unrel[sl].any():                            # stipple (not grey) the unreliable faces
+                 coll = ax.collections[0]
+                 base = np.asarray(getattr(coll, "_facecolor3d", coll.get_facecolor()))
+-                coll.set_facecolor(stipple_colors(base, np.asarray(mesh.faces), unrel[sl], pattern))
++                col_ = stipple_colors(base, np.asarray(mesh.faces), unrel[sl], pattern,
++                                      coords=np.asarray(mesh.coordinates), cell_mm=cell)
++                coll.set_facecolor(col_)
++                coll.set_edgecolor(col_)
+     if unrel.any():
+         fig.legend(handles=[Patch(facecolor=pattern[1], edgecolor=pattern[0], hatch="..",
+-                                  label="stippled: unreliable vertices (masked, not zero)")],
++                                  label=f"stippled ({' / '.join(pattern)}): unreliable vertices "
++                                        "(masked, not zero)")],
+                    loc="upper right")
+     if title:
+         fig.suptitle(title)
+@@ -513,10 +543,11 @@ def render_four_views(vmap: np.ndarray, medial_wall: np.ndarray | None = None,
+ def plot_four_views(vmap: np.ndarray, out_png: str | Path, medial_wall: np.ndarray | None = None,
+                     unreliable: np.ndarray | None = None, title: str | None = None,
+                     vmax: float | None = None, cmap: str = "RdBu_r", views: list[str] | None = None,
+-                    dpi: int = 110, cfg: dict[str, Any] | None = None) -> Path:
+-    """Render :func:`render_four_views` (caption always on the figure) and save it."""
++                    dpi: int | None = None, cfg: dict[str, Any] | None = None) -> Path:
++    """Render :func:`render_four_views` (caption always on the figure) and save it at ``localize.dpi``."""
+     import matplotlib.pyplot as plt
+ 
++    dpi = int(dpi if dpi is not None else _loc_cfg(cfg)["dpi"])
+     fig = render_four_views(vmap, medial_wall, unreliable, title, vmax, cmap, views, cfg)
+     out = Path(out_png)
+     out.parent.mkdir(parents=True, exist_ok=True)
+diff --git a/src/yct/tribe_run/feature_cache.py b/src/yct/tribe_run/feature_cache.py
+index e104f5f..6af901b 100644
+--- a/src/yct/tribe_run/feature_cache.py
++++ b/src/yct/tribe_run/feature_cache.py
+@@ -4,13 +4,19 @@ P0 (run smoke_20261117T142354Z) showed that two fresh TRIBE runs differ (max 3.5
+ feature extractors (fp16 backbones) are nondeterministic, while re-predicting from cached features is
+ bit-identical. So:
+ 
+-* features are extracted EXACTLY ONCE per input sha256 into ``<root>/<sha256>/`` (``input/`` holds the
+-  clip copy + transcript, ``feat/`` the extractor's tensors), and a sidecar ``features.meta.json``
+-  records the sha256 (and shape/dtype for .npy) of every cached file plus the extractor revisions;
++* features are extracted EXACTLY ONCE per cache key = sha256(video sha256 + transcript sha256, or
++  "none" without a transcript) into ``<root>/<key>/`` (``input/`` holds the clip copy + transcript,
++  ``feat/`` the extractor's tensors), and a sidecar ``features.meta.json`` records the sha256 (and
++  shape/dtype for .npy) of every cached file plus the extractor revisions. A transcript added, removed
++  or changed therefore gets its own entry (Biostat P0 P3: never reuse text-less features);
+ * every prediction (reruns, ablations, controls) reads only the cache. The cache is re-hashed before
+   and after each prediction; any change, missing or new file raises ``FeatureCacheError`` (so a
+   predictor that silently re-extracts cannot go unnoticed);
+-* fresh-extraction drift (throw-away re-extraction vs the cache) is REPORTED as a metric, never gated.
++* fresh-extraction drift (throw-away re-extraction vs the cache) is measured per cached feature
++  tensor and per extractor; D-038 gates it on reliability >= RELIABILITY_GATE (0.99) per feature
++  (``reliability_gate_pass``), while the reported predictions never use the fresh extraction;
++* ``offline=True`` additionally blocks all non-loopback network access while extracting and predicting
++  (BUG-003, ``yct.tribe_run.offline.no_network``).
+ 
+ Extraction and prediction both run inside ``yct.transcribe.asr_guard()`` (no unpinned WhisperX).
+ The extractor/predictor are callables so the logic is tested on CPU with mocks
+@@ -21,6 +27,7 @@ The extractor/predictor are callables so the logic is tested on CPU with mocks
+ """
+ from __future__ import annotations
+ 
++import contextlib
+ import hashlib
+ import json
+ import os
+@@ -38,6 +45,7 @@ from yct.transcribe import asr_guard
+ SIDECAR = "features.meta.json"
+ MARKER = ".extracting"
+ SIDECAR_SUFFIXES = (".tsv",)  # files copied next to the clip (hand-made / pinned transcript)
++RELIABILITY_GATE = 0.99       # D-038: fresh re-extraction reliability per feature must be >= this
+ 
+ Extractor = Callable[[Path, Path], None]
+ Predictor = Callable[[Path, Path], tuple[np.ndarray, Any]]
+@@ -80,12 +88,46 @@ def _sidecars(video: Path) -> list[Path]:
+     return [video.with_suffix(s) for s in SIDECAR_SUFFIXES if video.with_suffix(s).exists()]
+ 
+ 
++def transcript_sha256(video: str | Path) -> str | None:
++    tsv = Path(video).with_suffix(".tsv")
++    return sha256_file(tsv) if tsv.exists() else None
++
++
++def cache_key(video: str | Path, video_sha256: str | None = None) -> str:
++    """sha256 over the video sha256 and the transcript sha256 ("none" if there is no <stem>.tsv)."""
++    vsha = video_sha256 or sha256_file(video)
++    tsha = transcript_sha256(video) or "none"
++    return hashlib.sha256(f"yct-feature-cache-v2\nvideo:{vsha}\ntranscript:{tsha}\n".encode()).hexdigest()
++
++
++def _net(offline: bool):
++    """no_network() when offline (BUG-003), else a no-op context."""
++    if not offline:
++        return contextlib.nullcontext()
++    from yct.tribe_run.offline import no_network
++
++    return no_network()
++
++
+ class FeatureStore:
+     def __init__(self, root: str | Path):
+         self.root = Path(root).expanduser()
+ 
+-    def entry_dir(self, input_sha256: str) -> Path:
+-        return self.root / input_sha256
++    def entry_dir(self, key: str) -> Path:
++        return self.root / key
++
++    def manifest(self) -> dict[str, Any]:
++        """{cache_key: {input_sha256, transcript_sha256, sidecar_sha256, tensors}} for every entry."""
++        out = {}
++        for side in sorted(self.root.glob(f"*/{SIDECAR}")):
++            meta = json.loads(side.read_text())
++            out[side.parent.name] = {
++                "input_sha256": meta["input_sha256"], "transcript_sha256": meta.get("transcript_sha256"),
++                "input_name": meta["input_name"], "sidecar_sha256": sha256_file(side),
++                "tensors": {k: v["sha256"] for k, v in meta["tensors"].items()},
++                "input_files": meta["input_files"], "revisions": meta["revisions"],
++            }
++        return out
+ 
+     def meta(self, input_sha256: str) -> dict[str, Any] | None:
+         e = self.entry_dir(input_sha256)
+@@ -108,11 +150,13 @@ class FeatureStore:
+             raise FeatureCacheError(f"{verb} ({e}): " + "; ".join(problems))
+         return meta
+ 
+-    def ensure(self, video: str | Path, extract: Extractor, revisions: dict[str, Any]
+-               ) -> tuple[str, dict[str, Any], bool]:
+-        """Return (input_sha256, meta, reused). Extracts only if no entry exists for the input sha256."""
++    def ensure(self, video: str | Path, extract: Extractor, revisions: dict[str, Any],
++               offline: bool = False) -> tuple[str, dict[str, Any], bool]:
++        """Return (cache_key, meta, reused). Extracts only if no entry exists for the cache key
++        (video sha256 + transcript sha256)."""
+         video = Path(video)
+-        sha = sha256_file(video)
++        vsha = sha256_file(video)
++        sha = cache_key(video, vsha)
+         meta = self.meta(sha)
+         if meta is not None:
+             if meta["revisions"] != revisions:
+@@ -121,8 +165,10 @@ class FeatureStore:
+                     f"{revisions}; never mix revisions (use a new cache root)")
+             for sc in _sidecars(video):
+                 cached = meta["input_files"].get(Path(meta["input_name"]).with_suffix(sc.suffix).name)
+-                if cached is not None and cached != sha256_file(sc):
++                if cached != sha256_file(sc):
+                     raise FeatureCacheError(f"{sc.name} differs from the transcript cached for {sha}")
++            if meta.get("input_sha256") != vsha:
++                raise FeatureCacheError(f"cache entry {sha} holds a different video")
+             return sha, self.verify(sha), True
+         e = self.entry_dir(sha)
+         (e / "input").mkdir(parents=True)
+@@ -133,12 +179,15 @@ class FeatureStore:
+             shutil.copy2(sc, clip.with_suffix(sc.suffix))
+         (e / "feat").mkdir()
+         with asr_guard():
+-            extract(clip, e / "feat")
++            with _net(offline):
++                extract(clip, e / "feat")
+         feat = _hash_tree(e / "feat")
+         if not feat:
+             raise FeatureCacheError(f"extractor wrote no features for {sha}")
+         meta = {
+-            "input_sha256": sha,
++            "input_sha256": vsha,
++            "transcript_sha256": transcript_sha256(video),
++            "cache_key": sha,
+             "input_name": video.name,
+             "revisions": revisions,
+             "n_extractions": 1,
+@@ -153,11 +202,13 @@ class FeatureStore:
+         return sha, meta, False
+ 
+ 
+-def predict_cached(store: FeatureStore, input_sha256: str, predict: Predictor) -> tuple[np.ndarray, Any]:
++def predict_cached(store: FeatureStore, input_sha256: str, predict: Predictor,
++                   offline: bool = False) -> tuple[np.ndarray, Any]:
+     meta = store.verify(input_sha256, "before prediction")
+     e = store.entry_dir(input_sha256)
+     with asr_guard():
+-        preds, aux = predict(e / "input" / meta["input_name"], e / "feat")
++        with _net(offline):
++            preds, aux = predict(e / "input" / meta["input_name"], e / "feat")
+     store.verify(input_sha256, "after prediction")
+     return np.asarray(preds), aux
+ 
+@@ -168,12 +219,101 @@ def _compare(a: np.ndarray, b: np.ndarray) -> dict[str, Any]:
+         return {"shape_match": False}
+     r = float(np.corrcoef(a64, b64)[0, 1]) if a64.size > 1 and a64.std() > 0 and b64.std() > 0 else None
+     return {"shape_match": True, "max_abs_diff": float(np.max(np.abs(a64 - b64))) if a64.size else 0.0,
+-            "pearson_r": r, "bit_identical": bool(np.array_equal(a, b))}
++            "pearson_r": r, "reliability": reliability(a64, b64), "bit_identical": bool(np.array_equal(a, b))}
++
++
++def reliability(a: np.ndarray, b: np.ndarray) -> float | None:
++    """Test-retest reliability of two extractions: 1 - var(a - b) / (var(a) + var(b)).
++
++    With b = a + e (independent extraction noise) this is sigma_true^2 / (sigma_true^2 + sigma_e^2)
++    (Biostat P0: 1 - r = sigma_e^2 / sigma_tot^2); 1.0 when identical, None when both are constant."""
++    a = np.asarray(a, np.float64).ravel()
++    b = np.asarray(b, np.float64).ravel()
++    den = a.var() + b.var()
++    if a.shape != b.shape or not a.size:
++        return None
++    if den == 0:
++        return 1.0 if np.array_equal(a, b) else None
++    return float(1.0 - np.var(a - b) / den)
++
++
++def _exca_arrays(feat_dir: Path) -> dict[str, np.ndarray]:
++    """Arrays stored by exca CacheDicts (folders holding *-info.jsonl), read from a scratch copy
++    (CacheDict may chmod/clean its folder; the cache itself is never opened for writing)."""
++    out: dict[str, np.ndarray] = {}
++    folders = sorted({p.parent for p in feat_dir.rglob("*-info.jsonl")})
++    if not folders:
++        return out
++    from exca.cachedict import CacheDict  # GPU box only
++
++    with tempfile.TemporaryDirectory(prefix="yct_feat_read_") as td:
++        for folder in folders:
++            rel = folder.relative_to(feat_dir).as_posix()
++            tmp = Path(td) / rel
++            shutil.copytree(folder, tmp)
++            cd = CacheDict(tmp, permissions=None)
++            for k in sorted(cd.keys()):
++                v = cd[k]
++                if hasattr(v, "detach"):
++                    v = v.detach().cpu().numpy()
++                if isinstance(v, dict):
++                    for kk, vv in v.items():
++                        vv = vv.detach().cpu().numpy() if hasattr(vv, "detach") else vv
++                        if isinstance(vv, np.ndarray):
++                            out[f"{rel}::{k}::{kk}"] = np.array(vv)
++                elif isinstance(v, np.ndarray):
++                    out[f"{rel}::{k}"] = np.array(v)
++    return out
++
++
++def load_feature_arrays(feat_dir: str | Path) -> dict[str, np.ndarray]:
++    """Every numeric feature array under feat_dir: .npy files plus exca CacheDict entries."""
++    feat_dir = Path(feat_dir)
++    out = {p.relative_to(feat_dir).as_posix(): np.load(p, allow_pickle=False)
++           for p in sorted(feat_dir.rglob("*.npy"))}
++    out.update(_exca_arrays(feat_dir))
++    return out
++
++
++def _extractor_of(name: str) -> str:
++    """Feature group of an array name: the exca folder, else the first path component."""
++    if "::" in name:
++        return name.split("::", 1)[0]
++    return name.split("/", 1)[0] if "/" in name else name
++
++
++def feature_reliability(cached_feat: Path, fresh_feat: Path) -> dict[str, Any]:
++    """Per-array and per-extractor reliability of a fresh extraction vs the cache (D-038 gate)."""
++    a, b = load_feature_arrays(cached_feat), load_feature_arrays(fresh_feat)
++    arrays: dict[str, Any] = {}
++    groups: dict[str, list[tuple[np.ndarray, np.ndarray]]] = {}
++    for name in sorted(set(a) | set(b)):
++        if name not in a or name not in b:
++            arrays[name] = {"present_in_both": False}
++            continue
++        arrays[name] = _compare(a[name], b[name])
++        if arrays[name].get("shape_match"):
++            groups.setdefault(_extractor_of(name), []).append((a[name], b[name]))
++    per_extractor = {}
++    for g, pairs in groups.items():
++        x = np.concatenate([np.asarray(p, np.float64).ravel() for p, _ in pairs])
++        y = np.concatenate([np.asarray(q, np.float64).ravel() for _, q in pairs])
++        per_extractor[g] = {"n_arrays": len(pairs), "reliability": reliability(x, y),
++                            "max_abs_diff": float(np.max(np.abs(x - y))) if x.size else 0.0,
++                            "bit_identical": bool(np.array_equal(x, y))}
++    rel = [v["reliability"] for v in arrays.values() if v.get("reliability") is not None]
++    complete = bool(arrays) and all(v.get("present_in_both", True) and v.get("shape_match", False)
++                                    for v in arrays.values())
++    rmin = min(rel) if rel else None
++    return {"n_arrays": len(arrays), "arrays": arrays, "per_extractor": per_extractor,
++            "reliability_min": rmin, "reliability_gate": RELIABILITY_GATE,
++            "reliability_gate_pass": bool(complete and rmin is not None and rmin >= RELIABILITY_GATE)}
+ 
+ 
+ def extraction_drift(store: FeatureStore, input_sha256: str, extract: Extractor, predict: Predictor,
+-                     cached_preds: np.ndarray) -> dict[str, Any]:
+-    """Throw-away fresh extraction (never stored) vs the cache. Reported only (``gated: False``)."""
++                     cached_preds: np.ndarray, offline: bool = False) -> dict[str, Any]:
++    """Throw-away fresh extraction (never stored) vs the cache. The reported predictions are never
++    affected (``gated: False`` for them); ``feature_reliability`` carries the D-038 per-feature gate."""
+     meta = store.verify(input_sha256)
+     e = store.entry_dir(input_sha256)
+     with tempfile.TemporaryDirectory(prefix="yct_drift_") as td:
+@@ -186,8 +326,9 @@ def extraction_drift(store: FeatureStore, input_sha256: str, extract: Extractor,
+         feat = Path(td) / "feat"
+         feat.mkdir()
+         with asr_guard():
+-            extract(clip, feat)
+-            fresh_preds, _ = predict(clip, feat)
++            with _net(offline):
++                extract(clip, feat)
++                fresh_preds, _ = predict(clip, feat)
+         tensors = {}
+         for rel in meta["tensors"]:
+             f = feat / rel
+@@ -197,27 +338,31 @@ def extraction_drift(store: FeatureStore, input_sha256: str, extract: Extractor,
+                 tensors[rel] = _compare(np.load(e / "feat" / rel), np.load(f))
+             else:
+                 tensors[rel] = {"bit_identical": sha256_file(f) == meta["tensors"][rel]["sha256"]}
++        feat_rel = feature_reliability(e / "feat", feat)
+     p = _compare(cached_preds, np.asarray(fresh_preds))
+     store.verify(input_sha256, "after prediction")
+     return {"gated": False, "pred_max_abs_diff": p.get("max_abs_diff"), "pred_pearson_r": p.get("pearson_r"),
+             "pred_bit_identical": p.get("bit_identical", False), "pred_shape_match": p["shape_match"],
+-            "tensors": tensors}
++            "pred_reliability": p.get("reliability"), "tensors": tensors, "feature_reliability": feat_rel}
+ 
+ 
+ def run_cached(video: str | Path, store: FeatureStore, extract: Extractor, predict: Predictor,
+                revisions: dict[str, Any], out_prefix: str | Path,
+-               fresh_drift: bool = False) -> dict[str, Any]:
++               fresh_drift: bool = False, offline: bool = False) -> dict[str, Any]:
+     """Extract-once + predict-from-cache. Writes <out_prefix>.npy and <out_prefix>.json (metrics).
+ 
+     Returns the metrics dict plus ``aux`` (the predictor's auxiliary output, not serialised)."""
+     out_prefix = Path(out_prefix)
+     out_prefix.parent.mkdir(parents=True, exist_ok=True)
+-    sha, meta, reused = store.ensure(video, extract, revisions)
+-    preds, aux = predict_cached(store, sha, predict)
++    sha, meta, reused = store.ensure(video, extract, revisions, offline=offline)
++    preds, aux = predict_cached(store, sha, predict, offline=offline)
+     npy = Path(f"{out_prefix}.npy")
+     np.save(npy, preds)
+     m: dict[str, Any] = {
+-        "input_sha256": sha,
++        "input_sha256": meta["input_sha256"],
++        "transcript_sha256": meta.get("transcript_sha256"),
++        "cache_key": sha,
++        "offline": offline,
+         "cache_entry": str(store.entry_dir(sha)),
+         "cache_reused": reused,
+         "revisions": meta["revisions"],
+@@ -227,6 +372,6 @@ def run_cached(video: str | Path, store: FeatureStore, extract: Extractor, predi
+         "pred_sha256": sha256_file(npy),
+     }
+     if fresh_drift:
+-        m["fresh_extraction_drift"] = extraction_drift(store, sha, extract, predict, preds)
++        m["fresh_extraction_drift"] = extraction_drift(store, sha, extract, predict, preds, offline=offline)
+     Path(f"{out_prefix}.json").write_text(json.dumps(m, indent=1, sort_keys=True))
+     return {**m, "aux": aux}
+diff --git a/src/yct/tribe_run/remote_setup.sh b/src/yct/tribe_run/remote_setup.sh
+index 0a48a34..fcd2826 100644
+--- a/src/yct/tribe_run/remote_setup.sh
++++ b/src/yct/tribe_run/remote_setup.sh
+@@ -37,6 +37,9 @@ from huggingface_hub import snapshot_download
+ snapshot_download("facebook/tribev2", revision=sys.argv[1], local_dir=sys.argv[2],
+                   allow_patterns=["config.yaml", "best.ckpt", "LICENSE", "README.md"])
+ PY
++# BUG-003: backbones at pinned revisions, refs/main -> pinned sha (runs are HF_HUB_OFFLINE=1 + no network).
++# Requires the repo's src/ at $W/src (yct.tribe_run.offline holds the pins).
++PYTHONPATH="$W/src" python -m yct.tribe_run.offline
+ got=$(sha256sum weights/best.ckpt | cut -d' ' -f1)
+ [ "$got" = "$CKPT_SHA" ] || { echo "CKPT SHA MISMATCH $got"; exit 3; }
+ echo "SETUP_OK ckpt_sha256=$got"
+diff --git a/src/yct/tribe_run/run_clip.py b/src/yct/tribe_run/run_clip.py
+index 5dd3f17..d8e8d85 100644
+--- a/src/yct/tribe_run/run_clip.py
++++ b/src/yct/tribe_run/run_clip.py
+@@ -11,9 +11,15 @@ PATH, the ASR entry point is monkeypatched to raise, and every TRIBE call runs i
+ yct.transcribe.asr_guard(), so any ASR attempt fails loudly. Copy this repo's src/ next to the
+ script's package layout (src/yct/...) on the GPU box; remote_setup.sh pins the environment.
+ 
++Offline (BUG-003): HF_HUB_OFFLINE=1 / TRANSFORMERS_OFFLINE=1 are set before any HF import, the HF cache
++must resolve the three backbones to the pinned revisions (yct.tribe_run.offline.BACKBONE_REVISIONS;
++remote_setup.sh pre-populates it) and every extraction/prediction runs with non-loopback network
++blocked. The pinned revisions are part of the cache revisions.
++
+ Usage: python run_clip.py --video clip.mp4 --feature-cache DIR --out OUT_PREFIX --weights WEIGHTS_DIR
+        [--fresh-drift]
+-Writes OUT_PREFIX.npy (T, 20484) float32, OUT_PREFIX.segments.csv, OUT_PREFIX.json.
++Writes OUT_PREFIX.npy (T, 20484) float32, OUT_PREFIX.segments.csv, OUT_PREFIX.events.csv (every TRIBE
++event with start/duration: chunk/context boundaries, BUG-002 word-time check), OUT_PREFIX.json.
+ """
+ from __future__ import annotations
+ 
+@@ -43,7 +49,7 @@ def _version(pkg: str) -> str | None:
+         return None
+ 
+ 
+-def _revisions(weights: Path, tribev2_mod, torch) -> dict:
++def _revisions(weights: Path, tribev2_mod, torch, backbones: dict | None = None) -> dict:
+     """Everything that determines the extracted features; a mismatch refuses to reuse the cache."""
+     from yct.tribe_run.feature_cache import sha256_file
+ 
+@@ -53,6 +59,7 @@ def _revisions(weights: Path, tribev2_mod, torch) -> dict:
+     return {
+         "tribe_commit": commit,
+         "ckpt_sha256": sha256_file(weights / "best.ckpt"),
++        "backbones": backbones,
+         "torch": torch.__version__, "cuda": torch.version.cuda, "gpu": torch.cuda.get_device_name(0),
+         **{p: _version(p) for p in ("transformers", "exca", "neuralset", "neuraltrain", "numpy",
+                                     "x-transformers", "moviepy")},
+@@ -70,6 +77,10 @@ def main() -> None:
+ 
+     _strip_uv_from_path()
+     assert shutil.which("uvx") is None, "uvx still on PATH"
++    from yct.tribe_run.offline import check_hf_cache_pins, enforce_offline
++
++    offline_env = enforce_offline()  # before huggingface_hub / transformers are imported
++    backbones = check_hf_cache_pins()
+ 
+     import numpy as np
+     import torch
+@@ -119,7 +130,8 @@ def main() -> None:
+     torch.cuda.reset_peak_memory_stats()
+     try:
+         res = run_cached(src, FeatureStore(a.feature_cache), extract, predict,
+-                         _revisions(weights, tribev2, torch), a.out, fresh_drift=a.fresh_drift)
++                         _revisions(weights, tribev2, torch, backbones), a.out, fresh_drift=a.fresh_drift,
++                         offline=True)
+     finally:
+         smi.terminate()
+         smi.wait()
+@@ -133,6 +145,13 @@ def main() -> None:
+         f.write("tr_index,segment_start_s,segment_duration_s\n")
+         for i, s in enumerate(segments):
+             f.write(f"{i},{float(s.start):.3f},{float(s.duration):.3f}\n")
++    ev = df.copy()
++    keep = [c for c in ("type", "start", "duration", "stop", "text", "sequence_id") if c in ev.columns]
++    ev[keep].to_csv(a.out + ".events.csv", index=False)
++    chunks = {t: [[round(float(r.start), 3), round(float(r.duration), 3)]
++                  for r in ev[ev.type == t].itertuples()]
++              for t in ("Audio", "Video") if (ev.type == t).any()}
++    words = ev[ev.type == "Word"]
+     dur = float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                                          "-of", "csv=p=0", str(aux["video"])]).decode())
+     n_words = int((df.type == "Word").sum())
+@@ -144,6 +163,11 @@ def main() -> None:
+         "first_segment_start_s": starts[0] if starts else None,
+         "last_segment_start_s": starts[-1] if starts else None,
+         "event_types": df.type.value_counts().to_dict(), "n_words": n_words,
++        "chunks": chunks, "n_segments": len(starts),
++        "word_start_min_s": float(words.start.min()) if len(words) else None,
++        "word_start_max_s": float(words.start.max()) if len(words) else None,
++        "words_after_duration": int((words.start > dur).sum()) if len(words) else 0,
++        "offline_env": offline_env, "backbone_revisions": backbones,
+         **timing,
+         "peak_vram_smi_mib": max(vram) if vram else None, "vram_samples": len(vram),
+         "torch_max_allocated_mib": round(torch.cuda.max_memory_allocated() / 2**20),
+diff --git a/tests/test_infra_guards.py b/tests/test_infra_guards.py
+index 26fec9d..42c5534 100644
+--- a/tests/test_infra_guards.py
++++ b/tests/test_infra_guards.py
+@@ -10,6 +10,7 @@ def lg(tmp_path, monkeypatch):
+     monkeypatch.setattr(mod, "LEDGER", tmp_path / "ledger.jsonl")
+     monkeypatch.setattr(mod, "types", lambda: {"gpu_1x_a10": {"usd_per_hour": 1.29, "regions": ["r"]},
+                                           "gpu_1x_a100": {"usd_per_hour": 1.99, "regions": ["r"]}})
++    monkeypatch.setattr(mod, "_ssm_budget", lambda: 200.0)  # owner-verified SSM value (stub; no AWS)
+     return mod
+ 
+ 
+@@ -129,44 +130,143 @@ def test_reap_still_kills_past_deadline_despite_heartbeat(lg, monkeypatch):
+     assert _events(lg, "terminate")[0]["reason"] == "deadline"
+ 
+ 
+-def test_watch_writes_heartbeat_each_loop(lg, monkeypatch):
++def _box(lines_by_id):
++    """Stub of the instance-side heartbeat log: fetch(inst) -> [(t, util, mem)]."""
++    return lambda inst: list(lines_by_id.get(inst["id"], []))
++
++
++def test_watch_writes_instance_heartbeat_each_loop(lg, monkeypatch):
+     import time
+ 
+     now = time.time()
+-    api = FakeLambda([{"id": "w", "name": "yct-w", "status": "active"},
++    api = FakeLambda([{"id": "w", "name": "yct-w", "status": "active", "ip": "1.2.3.4"},
+                       {"id": "x", "name": "not-ours", "status": "active"}])
+     monkeypatch.setattr(lg, "_req", api)
+     _launch_rec(lg, "w", now - 60)
++    box: dict[str, list] = {"w": []}
+     loops = {"n": 0}
+ 
+     def fake_sleep(_s):
+         loops["n"] += 1
++        box["w"].append((now + loops["n"], 87.0, 13000.0))  # the box writes a line
+         if loops["n"] == 3:
+             api.inst["w"]["status"] = "terminated"  # job finished; watch must then exit
+ 
++    box["w"].append((now - 0.5, 90.0, 12000.0))
+     monkeypatch.setattr(lg.time, "sleep", fake_sleep)
+-    lg.watch(interval=1)
++    lg.watch(interval=1, fetch=_box(box))
+     hb = _events(lg, "heartbeat")
+     assert len(hb) == 3 and {r["id"] for r in hb} == {"w"}
+-    assert all(set(r) == {"event", "id", "t"} for r in hb)
++    assert all(set(r) == {"event", "id", "t", "gpu_util", "mem_mib", "source"} for r in hb)
++    assert all(r["source"] == "instance" and r["gpu_util"] >= 87.0 for r in hb)
+     assert all(abs(r["t"] - time.time()) < 60 for r in hb)
+     assert api.terminated == []  # fresh heartbeats: nothing reaped
+ 
+ 
+ def test_watch_heartbeat_keeps_long_job_alive(lg, monkeypatch):
+-    """Simulated clock: a 30-min job under a running watch is never heartbeat-reaped."""
++    """Simulated clock: a 30-min busy job whose box writes heartbeats is never reaped."""
+     clock = {"t": 1_000_000.0}
+     monkeypatch.setattr(lg.time, "time", lambda: clock["t"])
+-    api = FakeLambda([{"id": "j", "name": "yct-j", "status": "active"}])
++    api = FakeLambda([{"id": "j", "name": "yct-j", "status": "active", "ip": "h"}])
+     monkeypatch.setattr(lg, "_req", api)
+     _launch_rec(lg, "j", clock["t"])
++    box = {"j": [(clock["t"], 95.0, 1.0)]}
+ 
+     def fake_sleep(s):
+         clock["t"] += s
++        box["j"].append((clock["t"], 95.0, 1.0))
+         if clock["t"] >= 1_000_000.0 + 30 * 60:
+             api.inst["j"]["status"] = "terminated"
+ 
+     monkeypatch.setattr(lg.time, "sleep", fake_sleep)
+-    lg.watch(interval=60)
++    lg.watch(interval=60, fetch=_box(box))
+     assert api.terminated == []
+     assert len(_events(lg, "heartbeat")) == 30
++
++
++def test_watcher_alone_never_heartbeats_hung_box_is_reaped(lg, monkeypatch):
++    """Watchdog P0 #4: a running watcher must not keep a silent (hung) box alive."""
++    clock = {"t": 2_000_000.0}
++    monkeypatch.setattr(lg.time, "time", lambda: clock["t"])
++    api = FakeLambda([{"id": "h", "name": "yct-h", "status": "active", "ip": "h"}])
++    monkeypatch.setattr(lg, "_req", api)
++    _launch_rec(lg, "h", clock["t"])
++    box = {"h": [(clock["t"], 99.0, 1.0)]}  # one line, then the box hangs
++
++    def fake_sleep(s):
++        clock["t"] += s
++
++    monkeypatch.setattr(lg.time, "sleep", fake_sleep)
++    lg.watch(interval=60, fetch=_box(box))
++    assert api.terminated == ["h"]
++    assert _events(lg, "terminate")[0]["reason"] == "heartbeat"
++    assert 600 < clock["t"] - 2_000_000.0 <= 720
++    assert len(_events(lg, "heartbeat")) == 1
++
++
++def test_idle_gpu_killed_after_15_min(lg, monkeypatch):
++    clock = {"t": 3_000_000.0}
++    monkeypatch.setattr(lg.time, "time", lambda: clock["t"])
++    api = FakeLambda([{"id": "i", "name": "yct-i", "status": "active", "ip": "h"}])
++    monkeypatch.setattr(lg, "_req", api)
++    _launch_rec(lg, "i", clock["t"] - 3600)
++    box = {"i": [(clock["t"] - 60, 80.0, 1.0)]}  # busy a minute ago, then util drops to 2 %
++
++    def fake_sleep(s):
++        clock["t"] += s
++        box["i"].append((clock["t"], 2.0, 1.0))
++
++    monkeypatch.setattr(lg.time, "sleep", fake_sleep)
++    lg.watch(interval=60, fetch=_box(box))
++    assert api.terminated == ["i"]
++    assert _events(lg, "terminate")[0]["reason"] == "idle_gpu"
++    assert 15 * 60 < clock["t"] - (3_000_000.0 - 60) <= 17 * 60
++
++
++def test_idle_rule_allows_setup_grace_then_kills_never_busy(lg, monkeypatch):
++    import time
++
++    now = time.time()
++    api = FakeLambda([{"id": "s", "name": "yct-s", "status": "active"},
++                      {"id": "n", "name": "yct-n", "status": "active"}])
++    monkeypatch.setattr(lg, "_req", api)
++    _launch_rec(lg, "s", now - 20 * 60)  # 20 min of setup at 0 %: within the 30-min grace
++    _launch_rec(lg, "n", now - 31 * 60)  # never busy for 31 min: idle-killed
++    for iid in ("s", "n"):
++        lg._append({"event": "heartbeat", "id": iid, "t": now - 10, "gpu_util": 0.0, "source": "instance"})
++    assert lg.reap() == ["n"]
++    assert _events(lg, "terminate")[0]["reason"] == "idle_gpu"
++
++
++def test_poll_ignores_duplicate_future_and_junk_lines(lg):
++    import time
++
++    now = time.time()
++    lines = lg.parse_box_log(f"{now - 30} 50 100\ngarbage\n{now - 20} 60\n{now + 3600} 99 1\n")
++    assert [(round(t), u) for t, u, _ in lines] == [(round(now - 30), 50.0), (round(now - 20), 60.0),
++                                                     (round(now + 3600), 99.0)]
++    inst = [{"id": "p", "ip": "h"}]
++    assert lg.poll_heartbeats(inst, fetch=lambda i: lines) == 2  # the future line is refused
++    assert lg.poll_heartbeats(inst, fetch=lambda i: lines) == 0  # already recorded
++    assert [r["gpu_util"] for r in _events(lg, "heartbeat")] == [50.0, 60.0]
++
++
++# ---------------------------------------------------------------- budget fails closed (Watchdog P0 #5)
++def test_budget_unverified_refuses_launch(lg, monkeypatch):
++    def boom():
++        raise RuntimeError("no SSM access")
++
++    monkeypatch.setattr(lg, "_ssm_budget", boom)
++    calls = []
++    monkeypatch.setattr(lg, "_req", lambda *a, **k: calls.append(a) or {"data": []})
++    with pytest.raises(SystemExit, match="unverified"):
++        lg.launch("gpu_1x_a100", "yct-x", 1, None, None)
++    assert not any(a[:2] == ("POST", "/instance-operations/launch") for a in calls)
++
++
++def test_budget_is_min_of_file_and_owner(lg, monkeypatch):
++    monkeypatch.setattr(lg, "_ssm_budget", lambda: 3.0)  # owner lowered the cap below the file
++    with pytest.raises(SystemExit, match="budget cap"):
++        lg.launch("gpu_1x_a100", "yct-x", 2, None, None)  # 2 h * 1.99 > 3
++    monkeypatch.setattr(lg, "_ssm_budget", lambda: 10_000.0)  # owner value can never exceed the file
++    assert lg.budget_cap() == lg.BUDGET_USD == 200.0
+diff --git a/tests/test_localize.py b/tests/test_localize.py
+index 6e3014b..6c5d8ac 100644
+--- a/tests/test_localize.py
++++ b/tests/test_localize.py
+@@ -16,7 +16,7 @@ def _agg():
+ 
+ COLS = ["sign", "rank", "parcel_id", "parcel", "hemi", "yeo7", "hcp_mmp", "hcp_overlap", "hcp_mmp_2nd",
+         "hcp_overlap_2nd", "destrieux", "value", "ci_lo", "ci_hi", "stability_topk", "p_perm", "q_bh",
+-        "unreliable_frac"]
++        "unreliable_frac", "n_vertices", "mw_removed_frac", "mw_shrunk"]
+ 
+ 
+ def _planted(at, pid, neg_pid=None, seed=0, amp=3.0, noise=0.1):
+diff --git a/tests/test_m0.py b/tests/test_m0.py
+index 8e92b9f..8dbf3f6 100644
+--- a/tests/test_m0.py
++++ b/tests/test_m0.py
+@@ -1,4 +1,4 @@
+-"""M0 assembly (v2.4 G-D032 Biostat D1; D-034): W-averaging, label-free exclusions/imputation, Q(M0)."""
++"""M0 assembly (v2.4 G-D032 Biostat D1; D-034): W-averaging, label-free exclusions/imputation, Q(M0) (D-037)."""
+ from __future__ import annotations
+ 
+ import logging
+@@ -12,6 +12,7 @@ from yct.confounds import FEATURES
+ from yct.features import m0 as m0m
+ 
+ START, LEN, T = 5, 40, 50
++FORCED_Q = ["speech_rate_wps^2", "speech_frac^2", "speech_rate_wps*speech_frac"]
+ 
+ 
+ def _video(vid, rng, *, silent=False, faceless=False, unvoiced=False, words_per_s=2.5):
+@@ -125,56 +126,53 @@ def test_unhandled_nan_fails_hard():
+ 
+ 
+ def test_kq_always_contains_speech_rate_and_fraction():
++    """D-037 (supersedes the D-034 K_Q set): speech rate + fraction and their squares/product always in Q."""
+     per_tr, has_audio = _dataset(n=100)
+     res = m0m.assemble_m0(per_tr, START, LEN, has_audio)
+-    # make speech features nearly collinear with others so 1/VIF would never pick them
++    # make speech features nearly collinear with others: they must still be kept (listed first)
+     m0 = res.m0.copy()
+     m0["speech_frac"] = m0["rms_db"] * 0.01 + 1e-6 * np.arange(len(m0))
+-    kq = m0m.select_kq(m0, binary=res.binary)
+-    assert kq[:2] == ["speech_rate_wps", "speech_frac"] and len(kq) == load_config()["m0"]["k_q"]
+-    assert m0m.VOICED not in kq
+-    with pytest.raises(ValueError, match="K_Q must include"):
+-        m0m.build_q(m0, ["rms_db", "luminance_crop", "contrast_crop"], binary=res.binary)
++    plan = m0m.q_m0(m0, binary=res.binary)
++    assert plan.columns[1:3] == ["speech_rate_wps", "speech_frac"] and set(FORCED_Q) <= set(plan.columns)
++    assert not any(m0m.VOICED in c for c in plan.columns if "^2" in c or "*" in c)
++    with pytest.raises(KeyError, match="forced speech"):
++        m0m.q_m0(m0.drop(columns="speech_frac"), binary=res.binary)
+ 
+ 
+ def test_build_q_rank_and_columns():
+     per_tr, has_audio = _dataset(n=100)
+     res = m0m.assemble_m0(per_tr, START, LEN, has_audio)
+-    kq = m0m.select_kq(res.m0, binary=res.binary)
+-    qr = m0m.build_q(res.m0, kq, binary=res.binary)
++    plan = m0m.q_m0(res.m0, binary=res.binary)
+     n = len(res.m0)
+-    p = res.m0.shape[1]
+-    assert qr.q.shape == (n, m0m.q_column_count(p, 1, len(kq)))
+-    assert np.isfinite(qr.q).all()
+-    assert qr.rank <= n // 3 and qr.limit == n // 3
+-    assert f"{m0m.VOICED}^2" not in qr.columns                 # binary not squared
+-    assert "speech_rate_wps*speech_frac" in qr.columns
+-    assert qr.aliased == []
++    assert plan.q.shape == (n, plan.rank)
++    assert np.isfinite(plan.q).all()
++    assert plan.rank <= n // 3 and plan.limit == n // 3
++    assert f"{m0m.VOICED}^2" not in plan.columns                 # binary not squared
++    assert "speech_rate_wps*speech_frac" in plan.columns
++    assert plan.aliased == []
+ 
+ 
+ def test_build_q_rank_assertion_and_aliasing(caplog):
+     per_tr, has_audio = _dataset(n=100)
+     res = m0m.assemble_m0(per_tr, START, LEN, has_audio)
+-    kq = m0m.select_kq(res.m0, binary=res.binary)
+-    small = res.m0.iloc[:60]                                     # floor(60/3) = 20 < 23 columns
++    small = res.m0.iloc[:30]                                     # floor(30/3) = 10 < 11 after all merges
+     with pytest.raises(ValueError, match="floor"):
+-        m0m.build_q(small, kq, binary=res.binary)
++        m0m.q_m0(small, binary=res.binary)
+     dup = res.m0.copy()
+     dup["luminance_crop"] = dup["contrast_crop"] * 2 + 1         # exact alias of another column
+     with caplog.at_level(logging.WARNING, logger="yct.features.m0"):
+-        qr = m0m.build_q(dup, kq, binary=res.binary)
+-    assert "contrast_crop" in qr.aliased and "aliased" in caplog.text   # the later duplicate
++        plan = m0m.q_m0(dup, binary=res.binary)
++    assert "contrast_crop" in plan.aliased and "aliased" in caplog.text   # the later duplicate
+     with pytest.raises(ValueError, match="non-finite"):
+         bad = res.m0.copy()
+         bad.iloc[0, 0] = np.nan
+-        m0m.build_q(bad, kq, binary=res.binary)
++        m0m.q_m0(bad, binary=res.binary)
+ 
+ 
+ def test_era_dummies_linear_only():
+     per_tr, has_audio = _dataset(n=100)
+     res = m0m.assemble_m0(per_tr, START, LEN, has_audio)
+-    kq = m0m.select_kq(res.m0, binary=res.binary)
+     era = pd.Series(np.array(["E1", "E2", "E3"])[np.arange(len(res.m0)) % 3], index=res.m0.index)
+-    qr = m0m.build_q(res.m0, kq, binary=res.binary, era=era)
+-    assert [c for c in qr.columns if c.startswith("era")] == ["era=E2", "era=E3"]
+-    assert not any("era" in c and ("^2" in c or "*" in c) for c in qr.columns)
++    plan = m0m.q_m0(res.m0, binary=res.binary, era=era)
++    assert [c for c in plan.columns if c.startswith("era")] == ["era=E2", "era=E3"]
++    assert not any("era" in c and ("^2" in c or "*" in c) for c in plan.columns)
+diff --git a/tests/test_run_with_provenance.py b/tests/test_run_with_provenance.py
+index e8574bd..730f82c 100644
+--- a/tests/test_run_with_provenance.py
++++ b/tests/test_run_with_provenance.py
+@@ -20,7 +20,8 @@ def test_writes_all_provenance_files_and_propagates_exit_code(tmp_path):
+     res = _run(tmp_path, sys.executable, "-c", code)
+     assert res.returncode == 3
+     d = tmp_path / "r1"
+-    for f in ("cmd", "git_sha", "config_sha", "exit_code", "stdout.log", "metrics.json"):
++    for f in ("cmd", "git_sha", "config_sha", "exit_code", "stdout.log", "metrics.json", "report.md",
++              "pip_freeze.txt"):
+         assert (d / f).is_file(), f
+     assert (d / "exit_code").read_text().strip() == "3"
+     head = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout
+@@ -46,3 +47,18 @@ def test_makefile_test_target_uses_provenance():
+     mk = (ROOT / "Makefile").read_text()
+     body = mk.split("\ntest:", 1)[1].split("\n\n", 1)[0]
+     assert "run_with_provenance.py" in body and "pytest" in body
++
++
++def test_records_lock_platform_and_child_metrics(tmp_path):
++    code = ("import json, os, pathlib; d = pathlib.Path(os.environ['YCT_RUN_DIR']); "
++            "(d / 'child_metrics.json').write_text(json.dumps({'gpu': 'A100', 'exact': True})); "
++            "(d / 'report.md').write_text('# child report')")
++    assert _run(tmp_path, sys.executable, "-c", code, run_id="r2").returncode == 0
++    d = tmp_path / "r2"
++    m = json.loads((d / "metrics.json").read_text())
++    assert m["result"] == {"gpu": "A100", "exact": True}
++    lock = hashlib.sha256((ROOT / "requirements.lock").read_bytes()).hexdigest()
++    assert m["requirements_lock_sha256"] == lock
++    assert m["platform"] and len(m["pip_freeze_sha256"]) == 64
++    assert hashlib.sha256((d / "pip_freeze.txt").read_bytes()).hexdigest() == m["pip_freeze_sha256"]
++    assert (d / "report.md").read_text() == "# child report"
+diff --git a/tests/test_tribe_feature_cache.py b/tests/test_tribe_feature_cache.py
+index 8dacf46..a41b2cd 100644
+--- a/tests/test_tribe_feature_cache.py
++++ b/tests/test_tribe_feature_cache.py
+@@ -75,7 +75,8 @@ def test_first_run_extracts_once_and_records_hashes(clip, store, tmp_path):
+     m = fc.run_cached(clip, store, ex, pr, REV, tmp_path / "out" / "r1")
+     assert ex.calls == 1 and pr.calls == 1
+     assert m["cache_reused"] is False and m["input_sha256"] == _sha(clip)
+-    entry = store.entry_dir(_sha(clip))
++    assert m["transcript_sha256"] == _sha(clip.with_suffix(".tsv")) and m["cache_key"] == fc.cache_key(clip)
++    entry = store.entry_dir(fc.cache_key(clip))
+     meta = json.loads((entry / fc.SIDECAR).read_text())
+     assert meta["input_sha256"] == _sha(clip)
+     assert meta["revisions"] == REV and meta["n_extractions"] == 1
+@@ -116,6 +117,7 @@ def test_cache_is_keyed_by_content_not_name(clip, store, tmp_path):
+     renamed = tmp_path / "other" / "zzz.mp4"
+     renamed.parent.mkdir()
+     renamed.write_bytes(clip.read_bytes())
++    renamed.with_suffix(".tsv").write_bytes(clip.with_suffix(".tsv").read_bytes())  # same transcript too
+     m = fc.run_cached(renamed, store, ex, MockPredictor(), REV, tmp_path / "o2")
+     assert ex.calls == 1 and m["cache_reused"] is True
+     changed = tmp_path / "other" / "new.mp4"
+@@ -127,7 +129,7 @@ def test_cache_is_keyed_by_content_not_name(clip, store, tmp_path):
+ def test_tampered_tensor_fails_loudly(clip, store, tmp_path):
+     ex = MockExtractor()
+     fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1")
+-    t = store.entry_dir(_sha(clip)) / "feat" / "audio.npy"
++    t = store.entry_dir(fc.cache_key(clip)) / "feat" / "audio.npy"
+     arr = np.load(t)
+     arr[0, 0] += 1.0
+     np.save(t, arr)
+@@ -139,7 +141,7 @@ def test_tampered_tensor_fails_loudly(clip, store, tmp_path):
+ def test_extra_or_missing_cached_file_fails(clip, store, tmp_path):
+     ex = MockExtractor()
+     fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1")
+-    feat = store.entry_dir(_sha(clip)) / "feat"
++    feat = store.entry_dir(fc.cache_key(clip)) / "feat"
+     (feat / "stray.npy").write_bytes(b"x")
+     with pytest.raises(fc.FeatureCacheError, match="stray"):
+         fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o2")
+@@ -200,7 +202,7 @@ def test_fresh_extraction_drift_is_reported_not_gated(clip, store, tmp_path):
+     assert d["tensors"]["audio.npy"]["max_abs_diff"] > 0
+     assert m2["pred_sha256"] == m1["pred_sha256"]  # drift never leaks into the reported predictions
+     assert ex.calls == 2  # one cached extraction + one throw-away fresh one
+-    meta = json.loads((store.entry_dir(_sha(clip)) / fc.SIDECAR).read_text())
++    meta = json.loads((store.entry_dir(fc.cache_key(clip)) / fc.SIDECAR).read_text())
+     assert meta["n_extractions"] == 1  # the throw-away extraction is not stored
+     assert json.loads((tmp_path / "o2.json").read_text())["fresh_extraction_drift"] == d
+ 
+@@ -237,8 +239,120 @@ def test_input_copy_and_transcript_are_cached_and_hashed(clip, store, tmp_path):
+         MockExtractor()(video, feat_dir)
+ 
+     fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1")
+-    entry = store.entry_dir(_sha(clip))
++    entry = store.entry_dir(fc.cache_key(clip))
+     assert seen["video"].parent == entry / "input" and seen["video"].name == clip.name
+     meta = json.loads((entry / fc.SIDECAR).read_text())
+     assert meta["input_files"][clip.name] == _sha(clip)
+     assert meta["input_files"]["abc.tsv"] == _sha(clip.with_suffix(".tsv"))
++
++
++# ------------------------------------------------ cache key includes the transcript (Biostat P0 P3)
++def test_cache_key_includes_transcript_sha(clip, store, tmp_path):
++    ex = MockExtractor()
++    k1 = fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1")["cache_key"]
++    clip.with_suffix(".tsv").write_text("text\tstart\tduration\tsequence_id\tsentence\nHi\t0.1\t0.2\t0\tHi\n")
++    m2 = fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o2")
++    assert ex.calls == 2 and m2["cache_reused"] is False and m2["cache_key"] != k1
++    assert m2["input_sha256"] == _sha(clip)  # same video, different transcript -> own entry
++
++
++def test_transcript_added_after_textless_extraction_is_not_reused(clip, store, tmp_path):
++    tsv = clip.with_suffix(".tsv")
++    text = tsv.read_text()
++    tsv.unlink()
++    ex = MockExtractor()
++    m1 = fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1")
++    assert m1["transcript_sha256"] is None
++    tsv.write_text(text)
++    m2 = fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o2")
++    assert ex.calls == 2 and m2["cache_reused"] is False and m2["cache_key"] != m1["cache_key"]
++
++
++def test_manifest_lists_every_entry_with_hashes(clip, store, tmp_path):
++    m = fc.run_cached(clip, store, MockExtractor(), MockPredictor(), REV, tmp_path / "o1")
++    man = store.manifest()
++    assert list(man) == [m["cache_key"]]
++    e = man[m["cache_key"]]
++    assert e["input_sha256"] == _sha(clip) and e["transcript_sha256"] == _sha(clip.with_suffix(".tsv"))
++    assert e["tensors"] == m["feature_sha256"]
++    assert e["sidecar_sha256"] == _sha(store.entry_dir(m["cache_key"]) / fc.SIDECAR)
++
++
++# ---------------------------------------------------------------- D-038 per-feature reliability gate
++def test_reliability_definition():
++    rng = np.random.default_rng(0)
++    a = rng.standard_normal(10000)
++    assert fc.reliability(a, a) == 1.0
++    b = a + 0.1 * rng.standard_normal(10000)  # sigma_e^2 / sigma_tot^2 ~ 0.01
++    assert 0.99 < fc.reliability(a, b) < 0.997
++    assert fc.reliability(a, rng.standard_normal(10000)) < 0.1
++
++
++def test_drift_reports_per_feature_reliability_and_gate(clip, store, tmp_path):
++    ex = MockExtractor(noise=1e-4)
++    m = fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1", fresh_drift=True)
++    fr = m["fresh_extraction_drift"]["feature_reliability"]
++    assert set(fr["arrays"]) == {"video/vjepa.npy", "audio.npy"}
++    assert set(fr["per_extractor"]) == {"video", "audio.npy"}
++    assert all(0.99 < v["reliability"] < 1.0 for v in fr["arrays"].values())
++    assert fr["reliability_gate"] == 0.99 and fr["reliability_gate_pass"] is True
++    assert fr["reliability_min"] == min(v["reliability"] for v in fr["arrays"].values())
++
++
++def test_drift_gate_fails_on_unreliable_extraction(clip, store, tmp_path):
++    ex = MockExtractor(noise=0.5)
++    m = fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1", fresh_drift=True)
++    fr = m["fresh_extraction_drift"]["feature_reliability"]
++    assert fr["reliability_min"] < 0.99 and fr["reliability_gate_pass"] is False
++
++
++def test_drift_gate_fails_when_a_feature_is_missing(clip, store, tmp_path):
++    calls = {"n": 0}
++
++    def ex(video, feat_dir):
++        calls["n"] += 1
++        MockExtractor(noise=0.0)(video, feat_dir)
++        if calls["n"] == 2:
++            (feat_dir / "audio.npy").unlink()
++
++    m = fc.run_cached(clip, store, ex, MockPredictor_tolerant(), REV, tmp_path / "o1", fresh_drift=True)
++    fr = m["fresh_extraction_drift"]["feature_reliability"]
++    assert fr["arrays"]["audio.npy"] == {"present_in_both": False}
++    assert fr["reliability_gate_pass"] is False
++
++
++class MockPredictor_tolerant(MockPredictor):  # noqa: N801
++    def __call__(self, video, feat_dir):
++        if not (Path(feat_dir) / "audio.npy").exists():
++            return np.zeros((10, 20), np.float32), {}
++        return super().__call__(video, feat_dir)
++
++
++# ---------------------------------------------------------------- BUG-003 offline extraction
++def test_offline_run_blocks_network_during_extraction(clip, store, tmp_path):
++    import socket
++
++    from yct.tribe_run.offline import NetworkBlockedError
++
++    def downloads(video, feat_dir):
++        socket.create_connection(("huggingface.co", 443), timeout=1)
++
++    with pytest.raises(NetworkBlockedError):
++        fc.run_cached(clip, store, downloads, MockPredictor(), REV, tmp_path / "o1", offline=True)
++
++
++def test_offline_run_blocks_network_during_prediction(clip, store, tmp_path):
++    import urllib.request
++
++    from yct.tribe_run.offline import NetworkBlockedError
++
++    def predict_fetching(video, feat_dir):
++        urllib.request.urlopen("https://huggingface.co/api/models", timeout=1)
++
++    with pytest.raises(NetworkBlockedError):
++        fc.run_cached(clip, store, MockExtractor(), predict_fetching, REV, tmp_path / "o1", offline=True)
++
++
++def test_offline_run_records_flag(clip, store, tmp_path):
++    m = fc.run_cached(clip, store, MockExtractor(), MockPredictor(), REV, tmp_path / "o1", offline=True)
++    assert m["offline"] is True

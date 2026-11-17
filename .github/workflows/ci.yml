@@ -38,7 +38,7 @@ jobs:
       - name: Fetch + verify atlases
         run: python scripts/fetch_atlases.py
       - name: Lint
-        run: ruff check .
+        run: python -m ruff check .
       - name: Tests (with provenance run dir)
         run: make test RUN_ID=ci_${{ github.run_id }}_${{ github.run_attempt }}
       - name: Upload test run dir

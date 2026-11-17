@@ -6,20 +6,27 @@ The owner writes these parameters; IAM gives agents/pods read-only access to /yc
     /yct/owner/budget_usd      GPU budget cap in USD (default 50 until set)
     /yct/owner/unblind_token   issued at P6 after unanimous GO; absent before
     /yct/owner/data_decision   the signed-off data decision text; absent before
+    /yct/owner/age_pub         the owner's age public key (blinding root); docs/owner_age.pub must equal it
 
 Defence in depth on top of IAM: every value read here is checked against get_parameter_history,
 and the version being returned must have LastModifiedUser == owner_arn. owner_arn itself must have
-been last written by that same ARN. Anything else raises OwnerActionError (callers must stop).
+been last written by that same ARN, and must equal the pinned owner ARN: config.yaml `owner.arn_pin`
+(recorded at the first verified run; frozen by scripts/check_guard_config.py) and, if set, env
+YCT_OWNER_ARN (both must match; no pin at all is an error). Anything else raises OwnerActionError
+(callers must stop).
 """
 from __future__ import annotations
 
 import math
 import os
+from pathlib import Path
 from typing import Any
 
 PREFIX = "/yct/owner/"
 DEFAULT_BUDGET_USD = 50.0
 DEFAULT_REGION = "eu-central-1"
+CONFIG_PATH = Path(__file__).resolve().parents[2] / "config.yaml"
+AGE_PUB_PATH = Path(__file__).resolve().parents[2] / "docs" / "owner_age.pub"
 
 
 class OwnerActionError(RuntimeError):
@@ -92,10 +99,26 @@ def owner_arn(client: Any = None) -> str:
         if h.get("Value") != p["Value"] or h.get("LastModifiedUser") != p["Value"]:
             raise OwnerActionError(f"{PREFIX}owner_arn history has version {h.get('Version')} "
                                    f"by {h.get('LastModifiedUser')!r}; owner identity changed")
-    pinned = os.environ.get("YCT_OWNER_ARN")
-    if pinned and pinned != p["Value"]:
-        raise OwnerActionError(f"{PREFIX}owner_arn does not match pinned YCT_OWNER_ARN")
+    pins = {"YCT_OWNER_ARN": os.environ.get("YCT_OWNER_ARN"), "config owner.arn_pin": _config_pin()}
+    if not any(pins.values()):
+        raise OwnerActionError("no owner ARN pin (config.yaml owner.arn_pin / YCT_OWNER_ARN); refusing "
+                               "trust-on-first-use")
+    for where, pinned in pins.items():
+        if pinned and pinned != p["Value"]:
+            raise OwnerActionError(f"{PREFIX}owner_arn does not match pinned {where}")
     return p["Value"]
+
+
+def _config_pin() -> str | None:
+    """owner.arn_pin from config.yaml (None if the file or key is absent)."""
+    try:
+        import yaml
+
+        cfg = yaml.safe_load(CONFIG_PATH.read_text()) or {}
+    except FileNotFoundError:
+        return None
+    v = (cfg.get("owner") or {}).get("arn_pin")
+    return str(v) if v else None
 
 
 def get_owner_param(name: str, client: Any = None) -> str | None:
@@ -130,3 +153,20 @@ def unblind_token(client: Any = None) -> str | None:
 
 def data_decision(client: Any = None) -> str | None:
     return get_owner_param("data_decision", client)
+
+
+def age_pub(client: Any = None) -> str | None:
+    return get_owner_param("age_pub", client)
+
+
+def verify_age_pub(path: str | Path = AGE_PUB_PATH, client: Any = None) -> str:
+    """The repo copy of the owner's age key must equal the owner-written SSM value (QA G-D032 c2 #2).
+
+    Call before encrypting anything to docs/owner_age.pub (e.g. sealed labels, D-029). Returns the key."""
+    want = age_pub(client)
+    if not want:
+        raise OwnerActionError(f"{PREFIX}age_pub is not set by the owner")
+    got = Path(path).read_text().strip()
+    if got != want.strip():
+        raise OwnerActionError(f"{path} does not match the owner's {PREFIX}age_pub; do not encrypt to it")
+    return got

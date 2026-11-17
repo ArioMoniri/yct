@@ -39,6 +39,13 @@ class StubSSM:
         return out
 
 
+@pytest.fixture(autouse=True)
+def _pin_stub_owner(monkeypatch):
+    """The repo config pins the real owner ARN; these stub-based tests pin the stub OWNER instead."""
+    monkeypatch.setattr(oa, "_config_pin", lambda: OWNER)
+    monkeypatch.delenv("YCT_OWNER_ARN", raising=False)
+
+
 def _ssm(**params):
     hist = {"/yct/owner/owner_arn": [(OWNER, OWNER)]}
     for k, v in params.items():
@@ -131,3 +138,54 @@ def test_owner_arn_pinned_by_env(monkeypatch):
         oa.budget_usd(client=c)
     monkeypatch.setenv("YCT_OWNER_ARN", OWNER)
     assert oa.budget_usd(client=c) == 100.0
+
+
+
+# ---------------------------------------------------------------- FIX-C3-ENG: owner ARN pin (Watchdog P0 #6)
+def test_config_pin_mismatch_raises(monkeypatch):
+    monkeypatch.setattr(oa, "_config_pin", lambda: "arn:aws:iam::1:root")
+    with pytest.raises(oa.OwnerActionError, match="pinned config"):
+        oa.budget_usd(client=_ssm(budget_usd=[("100", OWNER)]))
+
+
+def test_no_pin_at_all_refuses_trust_on_first_use(monkeypatch):
+    monkeypatch.setattr(oa, "_config_pin", lambda: None)
+    with pytest.raises(oa.OwnerActionError, match="no owner ARN pin"):
+        oa.budget_usd(client=_ssm(budget_usd=[("100", OWNER)]))
+
+
+def test_env_and_config_pins_must_both_match(monkeypatch):
+    monkeypatch.setenv("YCT_OWNER_ARN", OWNER)
+    monkeypatch.setattr(oa, "_config_pin", lambda: "arn:aws:iam::1:root")
+    with pytest.raises(oa.OwnerActionError):
+        oa.budget_usd(client=_ssm(budget_usd=[("100", OWNER)]))
+
+
+def test_repo_config_pins_an_owner_arn():
+    import yaml
+
+    cfg = yaml.safe_load(oa.CONFIG_PATH.read_text())
+    assert cfg["owner"]["arn_pin"] == "arn:aws:iam::235229001983:root"
+
+
+# ---------------------------------------------------------------- docs/owner_age.pub == SSM age_pub
+def test_age_pub_matches(tmp_path):
+    f = tmp_path / "owner_age.pub"
+    f.write_text("age1abc\n")
+    assert oa.verify_age_pub(f, client=_ssm(age_pub=[("age1abc", OWNER)])) == "age1abc"
+
+
+def test_age_pub_swapped_in_repo_raises(tmp_path):
+    f = tmp_path / "owner_age.pub"
+    f.write_text("age1attacker\n")
+    with pytest.raises(oa.OwnerActionError, match="does not match"):
+        oa.verify_age_pub(f, client=_ssm(age_pub=[("age1abc", OWNER)]))
+
+
+def test_age_pub_written_by_agent_or_absent_raises(tmp_path):
+    f = tmp_path / "owner_age.pub"
+    f.write_text("age1abc\n")
+    with pytest.raises(oa.OwnerActionError, match="age_pub"):
+        oa.verify_age_pub(f, client=_ssm(age_pub=[("age1abc", AGENT)]))
+    with pytest.raises(oa.OwnerActionError, match="not set"):
+        oa.verify_age_pub(f, client=_ssm())

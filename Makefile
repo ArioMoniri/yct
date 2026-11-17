@@ -7,7 +7,7 @@ PY ?= python
 BASE ?= EMPTY
 RUN_ID ?= $@_$(shell date -u +%Y%m%dT%H%M%SZ)
 
-GUARDS = check_append_only check_prereg check_frozen_config check_human_signed check_blinding check_test_weakening
+GUARDS = check_append_only check_prereg check_frozen_config check_human_signed check_blinding check_test_weakening check_guard_config
 
 .PHONY: test test-raw lint guards all curate normalize transcribe tribe features stats predict report
 
@@ -19,7 +19,7 @@ test-raw:
 	$(PY) -m pytest -q
 
 lint:
-	ruff check .
+	$(PY) -m ruff check .
 
 guards:
 	@$(PY) scripts/guard_range.py --base $(BASE)

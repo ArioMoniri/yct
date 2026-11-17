@@ -1,4 +1,4 @@
-"""M0 assembly (v2.4 G-D032 Biostat D1; D-034): W-averaging, label-free exclusions/imputation, Q(M0)."""
+"""M0 assembly (v2.4 G-D032 Biostat D1; D-034): W-averaging, label-free exclusions/imputation, Q(M0) D-037."""
 from __future__ import annotations
 
 import logging
@@ -12,6 +12,7 @@ from yct.confounds import FEATURES
 from yct.features import m0 as m0m
 
 START, LEN, T = 5, 40, 50
+FORCED_Q = ["speech_rate_wps^2", "speech_frac^2", "speech_rate_wps*speech_frac"]
 
 
 def _video(vid, rng, *, silent=False, faceless=False, unvoiced=False, words_per_s=2.5):
@@ -125,56 +126,53 @@ def test_unhandled_nan_fails_hard():
 
 
 def test_kq_always_contains_speech_rate_and_fraction():
+    """D-037 (supersedes the D-034 K_Q set): speech rate + fraction and their squares/product always in Q."""
     per_tr, has_audio = _dataset(n=100)
     res = m0m.assemble_m0(per_tr, START, LEN, has_audio)
-    # make speech features nearly collinear with others so 1/VIF would never pick them
+    # make speech features nearly collinear with others: they must still be kept (listed first)
     m0 = res.m0.copy()
     m0["speech_frac"] = m0["rms_db"] * 0.01 + 1e-6 * np.arange(len(m0))
-    kq = m0m.select_kq(m0, binary=res.binary)
-    assert kq[:2] == ["speech_rate_wps", "speech_frac"] and len(kq) == load_config()["m0"]["k_q"]
-    assert m0m.VOICED not in kq
-    with pytest.raises(ValueError, match="K_Q must include"):
-        m0m.build_q(m0, ["rms_db", "luminance_crop", "contrast_crop"], binary=res.binary)
+    plan = m0m.q_m0(m0, binary=res.binary)
+    assert plan.columns[1:3] == ["speech_rate_wps", "speech_frac"] and set(FORCED_Q) <= set(plan.columns)
+    assert not any(m0m.VOICED in c for c in plan.columns if "^2" in c or "*" in c)
+    with pytest.raises(KeyError, match="forced speech"):
+        m0m.q_m0(m0.drop(columns="speech_frac"), binary=res.binary)
 
 
 def test_build_q_rank_and_columns():
     per_tr, has_audio = _dataset(n=100)
     res = m0m.assemble_m0(per_tr, START, LEN, has_audio)
-    kq = m0m.select_kq(res.m0, binary=res.binary)
-    qr = m0m.build_q(res.m0, kq, binary=res.binary)
+    plan = m0m.q_m0(res.m0, binary=res.binary)
     n = len(res.m0)
-    p = res.m0.shape[1]
-    assert qr.q.shape == (n, m0m.q_column_count(p, 1, len(kq)))
-    assert np.isfinite(qr.q).all()
-    assert qr.rank <= n // 3 and qr.limit == n // 3
-    assert f"{m0m.VOICED}^2" not in qr.columns                 # binary not squared
-    assert "speech_rate_wps*speech_frac" in qr.columns
-    assert qr.aliased == []
+    assert plan.q.shape == (n, plan.rank)
+    assert np.isfinite(plan.q).all()
+    assert plan.rank <= n // 3 and plan.limit == n // 3
+    assert f"{m0m.VOICED}^2" not in plan.columns                 # binary not squared
+    assert "speech_rate_wps*speech_frac" in plan.columns
+    assert plan.aliased == []
 
 
 def test_build_q_rank_assertion_and_aliasing(caplog):
     per_tr, has_audio = _dataset(n=100)
     res = m0m.assemble_m0(per_tr, START, LEN, has_audio)
-    kq = m0m.select_kq(res.m0, binary=res.binary)
-    small = res.m0.iloc[:60]                                     # floor(60/3) = 20 < 23 columns
+    small = res.m0.iloc[:30]                                     # floor(30/3) = 10 < 11 after all merges
     with pytest.raises(ValueError, match="floor"):
-        m0m.build_q(small, kq, binary=res.binary)
+        m0m.q_m0(small, binary=res.binary)
     dup = res.m0.copy()
     dup["luminance_crop"] = dup["contrast_crop"] * 2 + 1         # exact alias of another column
     with caplog.at_level(logging.WARNING, logger="yct.features.m0"):
-        qr = m0m.build_q(dup, kq, binary=res.binary)
-    assert "contrast_crop" in qr.aliased and "aliased" in caplog.text   # the later duplicate
+        plan = m0m.q_m0(dup, binary=res.binary)
+    assert "contrast_crop" in plan.aliased and "aliased" in caplog.text   # the later duplicate
     with pytest.raises(ValueError, match="non-finite"):
         bad = res.m0.copy()
         bad.iloc[0, 0] = np.nan
-        m0m.build_q(bad, kq, binary=res.binary)
+        m0m.q_m0(bad, binary=res.binary)
 
 
 def test_era_dummies_linear_only():
     per_tr, has_audio = _dataset(n=100)
     res = m0m.assemble_m0(per_tr, START, LEN, has_audio)
-    kq = m0m.select_kq(res.m0, binary=res.binary)
     era = pd.Series(np.array(["E1", "E2", "E3"])[np.arange(len(res.m0)) % 3], index=res.m0.index)
-    qr = m0m.build_q(res.m0, kq, binary=res.binary, era=era)
-    assert [c for c in qr.columns if c.startswith("era")] == ["era=E2", "era=E3"]
-    assert not any("era" in c and ("^2" in c or "*" in c) for c in qr.columns)
+    plan = m0m.q_m0(res.m0, binary=res.binary, era=era)
+    assert [c for c in plan.columns if c.startswith("era")] == ["era=E2", "era=E3"]
+    assert not any("era" in c and ("^2" in c or "*" in c) for c in plan.columns)
