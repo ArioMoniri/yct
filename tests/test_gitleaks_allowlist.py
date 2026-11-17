@@ -30,3 +30,10 @@ def test_non_hex_or_other_keys_not_allowed():
     assert not _allowed('    "cache_key": "sk-ABCDEFGHIJKLMNOPQRSTUVWX",')
     assert not _allowed('    "api_key": "' + "a1" * 32 + '",')
     assert not _allowed('cache_key = "' + "a1" * 32 + '"  # other format')
+
+
+def test_secret_on_same_line_as_cache_key_not_allowed():
+    """QA BUG-020: a real token sharing a line with a hex cache_key must still be reported."""
+    hexv = "a1" * 32
+    assert not _allowed('token="ghp_' + "A" * 36 + '", "cache_key": "' + hexv + '",')
+    assert not _allowed('AKIA' + "A" * 16 + ' "cache_key": "' + hexv + '",')

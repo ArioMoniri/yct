@@ -38,6 +38,22 @@ ENTRY_LISTS = ("test_weakening_allowlist", "human_only_exempt")
 # Reviewed state at gate G-D032 cycle 2 (HEAD when FIX-C3-ENG started).
 GUARDS_BASELINE = "18b39c279222308b316d34ba42157c6c4c9c3cda"
 GUARDS_BASELINE_SHA256 = "07dd709dc043603bffef8e081a240ee6dc908503d49715f05d5d68ebc9251d0b"
+# BUG-019 (QA vote reviews/qa_votes/BUG-019-020.md): commit whose guard change was QA-approved after the fact
+# but whose own message lacks the tag (swept in by a concurrent commit). Lifts ONLY the missing-tag finding,
+# and only if the commit's parent is GUARDS_BASELINE and its guards/owner sections hash to the pinned value.
+APPROVED_UNTAGGED = {
+    "0e3ed3ee313c1c252f6bcdfc950957280f264494":
+        ("BUG-019", "9ec7413cb189f0038b38dc31afe66c5770512e4f8bf5249eb12186bd1f42dd22"),
+}
+
+
+def approved_untagged(c: str, new: dict) -> bool:
+    entry = APPROVED_UNTAGGED.get(c)
+    if not entry:
+        return False
+    ticket, pinned = entry
+    return (g.parents(c) == [GUARDS_BASELINE] and canonical_sha256(new) == pinned
+            and g.ticket_exists(ticket))
 
 
 def sections(ref: str) -> dict:
@@ -92,7 +108,9 @@ def check_commit(c: str, parent_secs: list[dict], new: dict, exempt: bool) -> li
     if exempt:  # reviewed history up to GUARDS_BASELINE (its state is pinned by GUARDS_BASELINE_SHA256)
         return bad
     m = TOKEN_RE.search(g.commit_message(c))
-    if not m:
+    if not m and approved_untagged(c, new):
+        pass
+    elif not m:
         bad.append(f"{c[:12]}: changes config `guards:`/`owner:` without "
                    "'[QA-approved guard change: <TICKET>]' in the commit message")
     elif not g.ticket_exists(m.group(1)):

@@ -10,4 +10,4 @@ useDefault = true
 [allowlist]
 description = "feature-cache sha256 content hashes (BUG-020)"
 regexTarget = "line"
-regexes = ['''"cache_key": "[0-9a-f]{16,64}",?\s*$''']
+regexes = ['''(?m)^[+ \t]*"cache_key": "[0-9a-f]{16,64}",?[ \t]*$''']
