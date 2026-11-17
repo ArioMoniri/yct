@@ -1,4 +1,5 @@
 """P3 tests: per-TR features aligned to the 1.0 s grid and within range (synthetic clips)."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -19,18 +20,43 @@ def stim(tmp_path_factory):
     d = tmp_path_factory.mktemp("conf")
     mp4, wav = d / "stim.mp4", d / "stim.wav"
     syn.ff(
-        "-f", "lavfi", "-i", "color=black:s=640x360:r=30:d=2",
-        "-f", "lavfi", "-i", "testsrc2=s=640x360:r=30:d=2",
-        "-f", "lavfi", "-i", "smptebars=s=640x360:r=30:d=2",
-        "-f", "lavfi", "-i", "anullsrc=r=48000:cl=mono:d=3",
-        "-f", "lavfi", "-i", "sine=f=220:r=48000:d=2",
-        "-f", "lavfi", "-i", "anullsrc=r=48000:cl=mono:d=1",
-        "-filter_complex", "[0][1][2]concat=n=3:v=1:a=0[v];[3][4][5]concat=n=3:v=0:a=1[a]",
-        "-map", "[v]", "-map", "[a]", *syn.enc(mp4),
+        "-f",
+        "lavfi",
+        "-i",
+        "color=black:s=640x360:r=30:d=2",
+        "-f",
+        "lavfi",
+        "-i",
+        "testsrc2=s=640x360:r=30:d=2",
+        "-f",
+        "lavfi",
+        "-i",
+        "smptebars=s=640x360:r=30:d=2",
+        "-f",
+        "lavfi",
+        "-i",
+        "anullsrc=r=48000:cl=mono:d=3",
+        "-f",
+        "lavfi",
+        "-i",
+        "sine=f=220:r=48000:d=2",
+        "-f",
+        "lavfi",
+        "-i",
+        "anullsrc=r=48000:cl=mono:d=1",
+        "-filter_complex",
+        "[0][1][2]concat=n=3:v=1:a=0[v];[3][4][5]concat=n=3:v=0:a=1[a]",
+        "-map",
+        "[v]",
+        "-map",
+        "[a]",
+        *syn.enc(mp4),
     )
     syn.ff("-i", str(mp4), "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", str(wav))
-    words = [{"text": w, "start": 3.1 + 0.3 * i, "duration": 0.2, "sequence_id": 0, "sentence": "one two three"}
-             for i, w in enumerate(["one", "two", "three"])]
+    words = [
+        {"text": w, "start": 3.1 + 0.3 * i, "duration": 0.2, "sequence_id": 0, "sentence": "one two three"}
+        for i, w in enumerate(["one", "two", "three"])
+    ]
     tsv = write_tribe_tsv(words, d / "stim.tsv")
     df, summary = extract_confounds(mp4, wav, tsv, video_id="vid0")
     return {"dir": d, "mp4": mp4, "wav": wav, "tsv": tsv, "df": df, "summary": summary}
@@ -77,8 +103,15 @@ def test_video_features_aligned(stim):
 
 def test_value_ranges(stim):
     df = stim["df"]
-    for col in ("speech_frac", "luminance", "contrast", "motion_energy", "motion_energy_crop",
-                "face_present_frac", "face_area_frac"):
+    for col in (
+        "speech_frac",
+        "luminance",
+        "contrast",
+        "motion_energy",
+        "motion_energy_crop",
+        "face_present_frac",
+        "face_area_frac",
+    ):
         v = df[col].dropna()
         assert ((v >= 0) & (v <= 1)).all(), col
     assert (df["rms_db"] <= 0).all() and (df["rms_db"] >= -120).all()
@@ -121,8 +154,21 @@ def test_text_detection_flag_not_implemented(stim):
 
 def test_cli_writes_parquet(stim, capsys):
     out = stim["dir"] / "confounds.parquet"
-    assert cli_main(["--mp4", str(stim["mp4"]), "--wav", str(stim["wav"]), "--tsv", str(stim["tsv"]),
-                     "--out", str(out)]) == 0
+    assert (
+        cli_main(
+            [
+                "--mp4",
+                str(stim["mp4"]),
+                "--wav",
+                str(stim["wav"]),
+                "--tsv",
+                str(stim["tsv"]),
+                "--out",
+                str(out),
+            ]
+        )
+        == 0
+    )
     back = pd.read_parquet(out)
     assert len(back) == 6 and "motion_energy" in back.columns
     assert '"n_tr": 6' in capsys.readouterr().out

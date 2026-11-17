@@ -1,4 +1,5 @@
 """CLI: python -m yct.normalize --in <file> --out <dir> [--config config.yaml] -> JSON record on stdout."""
+
 from __future__ import annotations
 
 import argparse

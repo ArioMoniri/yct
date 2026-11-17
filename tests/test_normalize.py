@@ -1,4 +1,5 @@
 """P2 normalisation tests (ROADMAP P2: test_normalize, test_no_padding) on synthetic ffmpeg clips."""
+
 from __future__ import annotations
 
 import json
@@ -45,8 +46,8 @@ def _probe(path):
 # ---------------------------------------------------------------- pure functions
 def test_target_dims_never_upscale_beyond_need():
     assert target_dims(1920, 1080, 292) == (1920, 1080, False)
-    assert target_dims(641, 361, 292) == (640, 360, False)       # even, no upscale
-    assert target_dims(288, 512, 292) == (292, 520, True)        # minimal upscale, native aspect
+    assert target_dims(641, 361, 292) == (640, 360, False)  # even, no upscale
+    assert target_dims(288, 512, 292) == (292, 520, True)  # minimal upscale, native aspect
     assert target_dims(320, 240, 292) == (390, 292, True)
     w, h, _ = target_dims(250, 251, 292)
     assert min(w, h) >= 292 and w % 2 == 0 and h % 2 == 0
@@ -102,10 +103,24 @@ def test_no_padding(padded, portrait):
         mp4 = rec["path"]
         _, v, _ = _probe(mp4)
         assert (int(v["width"]), int(v["height"])) == (w, h)
-        assert int(v["width"]) / int(v["height"]) == pytest.approx(rec["source"]["width"] / rec["source"]["height"],
-                                                                   rel=0.01)
-        err = subprocess.run(["ffmpeg", "-hide_banner", "-i", mp4, "-vf", "cropdetect=limit=24:round=2:reset=0",
-                              "-f", "null", "-"], capture_output=True, text=True).stderr
+        assert int(v["width"]) / int(v["height"]) == pytest.approx(
+            rec["source"]["width"] / rec["source"]["height"], rel=0.01
+        )
+        err = subprocess.run(
+            [
+                "ffmpeg",
+                "-hide_banner",
+                "-i",
+                mp4,
+                "-vf",
+                "cropdetect=limit=24:round=2:reset=0",
+                "-f",
+                "null",
+                "-",
+            ],
+            capture_output=True,
+            text=True,
+        ).stderr
         assert re.findall(r"crop=(\d+):(\d+):(\d+):(\d+)", err)[-1] == (str(w), str(h), "0", "0")
 
 
@@ -121,8 +136,23 @@ def test_vfr_source_becomes_cfr30(work, cfg):
     assert rec["source"]["vfr"] is True and "source_vfr" in rec["flags"]
     _, v, _ = _probe(rec["path"])
     assert v["r_frame_rate"] == "30/1" and v["avg_frame_rate"] == "30/1"
-    n = subprocess.run(["ffprobe", "-v", "error", "-count_frames", "-select_streams", "v:0", "-show_entries",
-                        "stream=nb_read_frames", "-of", "csv=p=0", rec["path"]], capture_output=True, text=True)
+    n = subprocess.run(
+        [
+            "ffprobe",
+            "-v",
+            "error",
+            "-count_frames",
+            "-select_streams",
+            "v:0",
+            "-show_entries",
+            "stream=nb_read_frames",
+            "-of",
+            "csv=p=0",
+            rec["path"],
+        ],
+        capture_output=True,
+        text=True,
+    )
     assert int(n.stdout.strip()) == pytest.approx(rec["out_duration_s"] * 30, abs=2)
 
 
@@ -158,7 +188,9 @@ def test_quality_floor_round_trip(work, cfg):
 def test_deterministic_names_and_t1_unchanged_by_photometric(work, cfg, padded):
     src = work / "padded.mp4"
     again = normalize_video(src, work / "out_again", cfg)
-    no_t3 = normalize_video(src, work / "out_no_t3", syn.fast_cfg(normalize={"photometric": {"enabled": False}}))
+    no_t3 = normalize_video(
+        src, work / "out_no_t3", syn.fast_cfg(normalize={"photometric": {"enabled": False}})
+    )
     assert again["video_id"] == padded["video_id"] == no_t3["video_id"]
     assert "t3" not in no_t3
 

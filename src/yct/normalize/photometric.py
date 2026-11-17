@@ -10,6 +10,7 @@ Per video, ONE global transform (never per frame, so within-video luminance dyna
   4. optional per-frame temporal luminance smoothing (ffmpeg deflicker), OFF by default.
 Statistics are computed on gamma-encoded RGB in [0, 1] decoded by ffmpeg at `analysis_fps`.
 """
+
 from __future__ import annotations
 
 import subprocess
@@ -27,8 +28,22 @@ def iter_rgb_frames(path: str | Path, fps: float):
     if v is None:
         raise MediaError(f"no video stream in {path}")
     w, h = int(v["width"]), int(v["height"])
-    cmd = ["ffmpeg", "-v", "error", "-nostdin", "-i", str(path), "-an", "-vf", f"fps={fps}",
-           "-pix_fmt", "rgb24", "-f", "rawvideo", "-"]
+    cmd = [
+        "ffmpeg",
+        "-v",
+        "error",
+        "-nostdin",
+        "-i",
+        str(path),
+        "-an",
+        "-vf",
+        f"fps={fps}",
+        "-pix_fmt",
+        "rgb24",
+        "-f",
+        "rawvideo",
+        "-",
+    ]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     size = w * h * 3
     try:
@@ -115,8 +130,26 @@ def photometric_normalize(mp4: str | Path, out_dir: str | Path, cfg: dict[str, A
     vf += f",format={n['video']['pix_fmt']}"
     with tempfile.TemporaryDirectory(dir=out_dir) as td:
         tmp = Path(td) / "t3.mp4"
-        run(["ffmpeg", "-y", "-v", n["ffmpeg_loglevel"], "-nostdin", "-i", str(mp4), "-vf", vf,
-             *_x264(n["video"], pcfg["crf"]), "-c:a", "copy", *_BITEXACT, "-movflags", "+faststart", str(tmp)])
+        run(
+            [
+                "ffmpeg",
+                "-y",
+                "-v",
+                n["ffmpeg_loglevel"],
+                "-nostdin",
+                "-i",
+                str(mp4),
+                "-vf",
+                vf,
+                *_x264(n["video"], pcfg["crf"]),
+                "-c:a",
+                "copy",
+                *_BITEXACT,
+                "-movflags",
+                "+faststart",
+                str(tmp),
+            ]
+        )
         dest, digest = _hash_move(tmp, out_dir / pcfg["subdir"], n["hash_len"])
     after = frame_stats(dest, pcfg)
     fy_in, fy_out = before["frame_mean_y"], after["frame_mean_y"]
@@ -126,8 +159,15 @@ def photometric_normalize(mp4: str | Path, out_dir: str | Path, cfg: dict[str, A
         return {k: s[k] for k in ("mean_y", "rms_contrast", "channel_means", "colour_cast")}
 
     return {
-        "t3_path": str(dest), "t3_sha256": digest,
-        "gains": [float(g) for g in tf["gains"]], "gain_a": tf["a"], "offset_b": tf["b"],
-        "clip_frac": clip, "before": cov(before), "after": cov(after),
-        "frame_luminance_corr": corr, "temporal_smoothing": bool(ts["enabled"]), "flags": flags,
+        "t3_path": str(dest),
+        "t3_sha256": digest,
+        "gains": [float(g) for g in tf["gains"]],
+        "gain_a": tf["a"],
+        "offset_b": tf["b"],
+        "clip_frac": clip,
+        "before": cov(before),
+        "after": cov(after),
+        "frame_luminance_corr": corr,
+        "temporal_smoothing": bool(ts["enabled"]),
+        "flags": flags,
     }

@@ -10,6 +10,7 @@ We write that file from our pinned WhisperX run, beside `<stem>.mp4`, before eve
                               4. `asr_guard()` makes any whisperx/uvx subprocess raise
                               5. assert content-hash filenames (<sha256[:16]>.mp4)
 """
+
 from __future__ import annotations
 
 import contextlib
@@ -48,13 +49,15 @@ def whisperx_segments_to_words(segments: list[dict[str, Any]]) -> list[dict[str,
         for w in seg.get("words", []):
             if w.get("start") is None or w.get("end") is None:
                 continue
-            rows.append({
-                "text": str(w["word"]).strip().replace('"', ""),
-                "start": float(w["start"]),
-                "duration": float(w["end"]) - float(w["start"]),
-                "sequence_id": i,
-                "sentence": sentence,
-            })
+            rows.append(
+                {
+                    "text": str(w["word"]).strip().replace('"', ""),
+                    "start": float(w["start"]),
+                    "duration": float(w["end"]) - float(w["start"]),
+                    "sequence_id": i,
+                    "sentence": sentence,
+                }
+            )
     return rows
 
 
@@ -67,7 +70,9 @@ def write_tribe_tsv(words: Iterable[dict[str, Any]], path: str | Path, cfg: dict
     return path
 
 
-def validate_tsv(path: str | Path, media_duration_s: float | None = None, cfg: dict | None = None) -> pd.DataFrame:
+def validate_tsv(
+    path: str | Path, media_duration_s: float | None = None, cfg: dict | None = None
+) -> pd.DataFrame:
     """Raise TsvFormatError unless `path` is a TRIBE-format word tsv."""
     tc = (cfg or load_config())["transcribe"]
     try:
@@ -98,7 +103,8 @@ def validate_tsv(path: str | Path, media_duration_s: float | None = None, cfg: d
         if end > media_duration_s + tc["end_tolerance_s"]:
             raise TsvFormatError(f"{path}: last word ends at {end:.3f}s > media {media_duration_s:.3f}s")
     unmatched = sum(
-        str(t).lower().strip(".,!?;:") not in str(s).lower() for t, s in zip(df["text"], df["sentence"], strict=True)
+        str(t).lower().strip(".,!?;:") not in str(s).lower()
+        for t, s in zip(df["text"], df["sentence"], strict=True)
     )
     if unmatched / len(df) > tc["max_unmatched_ratio"]:
         raise TsvFormatError(f"{path}: {unmatched}/{len(df)} words not found in their sentence")
@@ -108,9 +114,26 @@ def validate_tsv(path: str | Path, media_duration_s: float | None = None, cfg: d
 # ---------------------------------------------------------------- pinned WhisperX wrapper (runs on GPU)
 def whisperx_command(wav: str | Path, out_dir: str | Path, cfg: dict | None = None) -> list[str]:
     w = (cfg or load_config())["transcribe"]["whisperx"]
-    return [w["executable"], str(wav), "--model", w["model"], "--language", w["language"],
-            "--device", w["device"], "--compute_type", w["compute_type"], "--batch_size", str(w["batch_size"]),
-            "--align_model", w["align_model"], "--output_format", "json", "--output_dir", str(out_dir)]
+    return [
+        w["executable"],
+        str(wav),
+        "--model",
+        w["model"],
+        "--language",
+        w["language"],
+        "--device",
+        w["device"],
+        "--compute_type",
+        w["compute_type"],
+        "--batch_size",
+        str(w["batch_size"]),
+        "--align_model",
+        w["align_model"],
+        "--output_format",
+        "json",
+        "--output_dir",
+        str(out_dir),
+    ]
 
 
 def _installed_whisperx_version() -> str | None:
@@ -121,7 +144,9 @@ def _installed_whisperx_version() -> str | None:
 
 
 def transcribe_whisperx(
-    wav: str | Path, cfg: dict | None = None, runner: Callable[[list[str]], Any] | None = None,
+    wav: str | Path,
+    cfg: dict | None = None,
+    runner: Callable[[list[str]], Any] | None = None,
 ) -> dict[str, Any]:
     """Run pinned WhisperX on `wav`; return {'words', 'segments', 'model', 'version', 'command'}.
 
@@ -138,8 +163,13 @@ def transcribe_whisperx(
         run(cmd)
         out = Path(td) / f"{Path(wav).stem}.json"
         segments = json.loads(out.read_text())["segments"]
-    return {"words": whisperx_segments_to_words(segments), "segments": segments, "model": w["model"],
-            "version": version, "command": cmd}
+    return {
+        "words": whisperx_segments_to_words(segments),
+        "segments": segments,
+        "model": w["model"],
+        "version": version,
+        "command": cmd,
+    }
 
 
 # ---------------------------------------------------------------- transcript store + manifest
@@ -152,8 +182,12 @@ def read_manifest(path: str | Path) -> dict[str, str]:
 
 
 def store_transcript(
-    video_id: str, words: Iterable[dict[str, Any]], store_dir: str | Path, manifest: str | Path,
-    media_duration_s: float | None = None, cfg: dict | None = None,
+    video_id: str,
+    words: Iterable[dict[str, Any]],
+    store_dir: str | Path,
+    manifest: str | Path,
+    media_duration_s: float | None = None,
+    cfg: dict | None = None,
 ) -> str:
     """Write <store_dir>/<video_id>.tsv, validate it, and record its sha256 in the manifest csv."""
     cfg = cfg or load_config()
@@ -205,7 +239,10 @@ def asr_guard():
 
 
 def prepare_tribe_inputs(
-    tribe_dir: str | Path, store_dir: str | Path, manifest: str | Path, cache_dir: str | Path | None = None,
+    tribe_dir: str | Path,
+    store_dir: str | Path,
+    manifest: str | Path,
+    cache_dir: str | Path | None = None,
     cfg: dict | None = None,
 ) -> dict[str, Any]:
     """Run P2b steps 1-3 and 5 for every <stem>.mp4 in tribe_dir; returns an ordered step log.

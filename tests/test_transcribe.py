@@ -1,4 +1,5 @@
 """P2b tests: test_tsv_format, test_cache_purged, pinned-WhisperX wrapper (mocked), ASR guard."""
+
 from __future__ import annotations
 
 import json
@@ -26,18 +27,24 @@ from yct.transcribe import (
 )
 
 SEGMENTS = [
-    {"text": " Hi, we are Acme.", "words": [
-        {"word": "Hi,", "start": 0.50, "end": 0.80},
-        {"word": "we", "start": 0.90, "end": 1.00},
-        {"word": "are", "start": 1.05, "end": 1.20},
-        {"word": "Acme.", "start": 1.25, "end": 1.70},
-    ]},
-    {"text": " We build 3D tools.", "words": [
-        {"word": "We", "start": 2.00, "end": 2.10},
-        {"word": "build", "start": 2.15, "end": 2.40},
-        {"word": "3D"},                                   # unaligned -> dropped (TRIBE l.147-148)
-        {"word": "tools.", "start": 2.80, "end": 3.20},
-    ]},
+    {
+        "text": " Hi, we are Acme.",
+        "words": [
+            {"word": "Hi,", "start": 0.50, "end": 0.80},
+            {"word": "we", "start": 0.90, "end": 1.00},
+            {"word": "are", "start": 1.05, "end": 1.20},
+            {"word": "Acme.", "start": 1.25, "end": 1.70},
+        ],
+    },
+    {
+        "text": " We build 3D tools.",
+        "words": [
+            {"word": "We", "start": 2.00, "end": 2.10},
+            {"word": "build", "start": 2.15, "end": 2.40},
+            {"word": "3D"},  # unaligned -> dropped (TRIBE l.147-148)
+            {"word": "tools.", "start": 2.80, "end": 3.20},
+        ],
+    },
 ]
 
 
@@ -53,8 +60,13 @@ def words():
 
 def test_segments_to_words(words):
     assert len(words) == 7
-    assert words[0] == {"text": "Hi,", "start": 0.5, "duration": pytest.approx(0.3), "sequence_id": 0,
-                        "sentence": "Hi, we are Acme."}
+    assert words[0] == {
+        "text": "Hi,",
+        "start": 0.5,
+        "duration": pytest.approx(0.3),
+        "sequence_id": 0,
+        "sentence": "Hi, we are Acme.",
+    }
     assert {w["sequence_id"] for w in words} == {0, 1}
 
 

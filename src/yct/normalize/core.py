@@ -10,6 +10,7 @@ The gain that brings that speech-gated loudness to the target is applied by a tw
 mode (pure gain) whose integrated target is shifted by (I_full - I_speech); if the true-peak ceiling would
 be exceeded loudnorm falls back to its dynamic mode, which is recorded (`loudnorm_mode`).
 """
+
 from __future__ import annotations
 
 import json
@@ -95,7 +96,9 @@ def _null_run(path: str | Path, flt: str, kind: str) -> str:
 
 def detect_black(path: str | Path, ncfg: dict[str, Any]) -> list[tuple[float, float]]:
     b = ncfg["blackdetect"]
-    err = _null_run(path, f"blackdetect=d={b['min_duration_s']}:pix_th={b['pix_th']}:pic_th={b['pic_th']}", "v")
+    err = _null_run(
+        path, f"blackdetect=d={b['min_duration_s']}:pix_th={b['pix_th']}:pic_th={b['pic_th']}", "v"
+    )
     return [(float(s), float(e)) for s, e in _BLACK_RE.findall(err)]
 
 
@@ -136,11 +139,16 @@ def compute_trim(
     if end <= start:  # whole file dead: keep it all and let QC flag it
         start, end = 0.0, total
     return {
-        "lead_black_s": bl, "trail_black_start_s": bt,
-        "lead_silence_s": sl, "trail_silence_start_s": st,
-        "trim_start_s": round(start, 4), "trim_end_s": round(end, 4),
-        "trimmed_lead_s": round(start, 4), "trimmed_tail_s": round(total - end, 4),
-        "black_intervals": black, "silence_intervals": silence,
+        "lead_black_s": bl,
+        "trail_black_start_s": bt,
+        "lead_silence_s": sl,
+        "trail_silence_start_s": st,
+        "trim_start_s": round(start, 4),
+        "trim_end_s": round(end, 4),
+        "trimmed_lead_s": round(start, 4),
+        "trimmed_tail_s": round(total - end, 4),
+        "black_intervals": black,
+        "silence_intervals": silence,
     }
 
 
@@ -171,7 +179,11 @@ def crop_coverage(w: int, h: int, short_edge: int, crop: int) -> dict[str, float
 def aspect_info(w: int, h: int, ncfg: dict[str, Any]) -> dict[str, Any]:
     r = w / h
     label = "portrait" if r < 1 else ("square" if r == 1 else "landscape")
-    return {"aspect_ratio": r, "aspect_label": label, "stratum_9x16": r <= ncfg["aspect"]["portrait_max_ratio"]}
+    return {
+        "aspect_ratio": r,
+        "aspect_label": label,
+        "stratum_9x16": r <= ncfg["aspect"]["portrait_max_ratio"],
+    }
 
 
 # ---------------------------------------------------------------- audio checks
@@ -188,8 +200,11 @@ def mono_phase(path: str | Path, start: float, dur: float, cfg: dict[str, Any]) 
         drop = mp["drop_cap_db"]
     else:
         drop = min(20 * math.log10(ch_rms / mono_rms), mp["drop_cap_db"])
-    return {"mono_phase_drop_db": drop, "mono_phase_flag": drop > mp["max_drop_db"],
-            "channels_checked": int(x.shape[1])}
+    return {
+        "mono_phase_drop_db": drop,
+        "mono_phase_flag": drop > mp["max_drop_db"],
+        "channels_checked": int(x.shape[1]),
+    }
 
 
 def _loudnorm_json(stderr: str) -> dict[str, Any]:
@@ -205,13 +220,18 @@ def _select_expr(segs: list[tuple[float, float]]) -> str:
 
 
 def measure_loudness(
-    path: str | Path, lcfg: dict[str, Any], segs: list[tuple[float, float]] | None = None,
-    start: float | None = None, dur: float | None = None,
+    path: str | Path,
+    lcfg: dict[str, Any],
+    segs: list[tuple[float, float]] | None = None,
+    start: float | None = None,
+    dur: float | None = None,
 ) -> dict[str, Any]:
     """Pass-1 loudnorm measurement, optionally restricted to `segs` (times relative to `start`)."""
     pre = f"aselect={_select_expr(segs)},asetpts=N/SR/TB," if segs else ""
-    flt = f"{pre}loudnorm=I={lcfg['target_lufs']}:TP={lcfg['true_peak_dbtp']}:LRA={lcfg['target_lra']}" \
-          ":print_format=json"
+    flt = (
+        f"{pre}loudnorm=I={lcfg['target_lufs']}:TP={lcfg['true_peak_dbtp']}:LRA={lcfg['target_lra']}"
+        ":print_format=json"
+    )
     cmd = ["ffmpeg", "-hide_banner", "-nostats", "-nostdin"]
     if start is not None:
         cmd += ["-ss", f"{start:.6f}"]
@@ -223,8 +243,18 @@ def measure_loudness(
 
 # ---------------------------------------------------------------- encoding helpers
 def _x264(vcfg: dict[str, Any], crf: int | None = None) -> list[str]:
-    return ["-c:v", vcfg["codec"], "-crf", str(crf if crf is not None else vcfg["crf"]),
-            "-preset", vcfg["preset"], "-pix_fmt", vcfg["pix_fmt"], "-threads", str(vcfg["threads"])]
+    return [
+        "-c:v",
+        vcfg["codec"],
+        "-crf",
+        str(crf if crf is not None else vcfg["crf"]),
+        "-preset",
+        vcfg["preset"],
+        "-pix_fmt",
+        vcfg["pix_fmt"],
+        "-threads",
+        str(vcfg["threads"]),
+    ]
 
 
 def _aac(acfg: dict[str, Any]) -> list[str]:
@@ -247,17 +277,53 @@ def quality_floor_copy(mp4: Path, out_dir: Path, w: int, h: int, cfg: dict[str, 
     lw, lh = int(round(w * s / 2) * 2), int(round(h * s / 2) * 2)
     low = tmpd / "q_low.mp4"
     lvl = n["ffmpeg_loglevel"]
-    run(["ffmpeg", "-y", "-v", lvl, "-nostdin", "-i", str(mp4), "-vf", f"scale={lw}:{lh}:flags=bicubic,setsar=1",
-         *_x264(n["video"], q["crf"]), "-c:a", "copy", *_BITEXACT, str(low)])
+    run(
+        [
+            "ffmpeg",
+            "-y",
+            "-v",
+            lvl,
+            "-nostdin",
+            "-i",
+            str(mp4),
+            "-vf",
+            f"scale={lw}:{lh}:flags=bicubic,setsar=1",
+            *_x264(n["video"], q["crf"]),
+            "-c:a",
+            "copy",
+            *_BITEXACT,
+            str(low),
+        ]
+    )
     back = tmpd / "q_back.mp4"
-    run(["ffmpeg", "-y", "-v", lvl, "-nostdin", "-i", str(low), "-vf", f"scale={w}:{h}:flags=bicubic,setsar=1",
-         *_x264(n["video"]), "-c:a", "copy", *_BITEXACT, "-movflags", "+faststart", str(back)])
+    run(
+        [
+            "ffmpeg",
+            "-y",
+            "-v",
+            lvl,
+            "-nostdin",
+            "-i",
+            str(low),
+            "-vf",
+            f"scale={w}:{h}:flags=bicubic,setsar=1",
+            *_x264(n["video"]),
+            "-c:a",
+            "copy",
+            *_BITEXACT,
+            "-movflags",
+            "+faststart",
+            str(back),
+        ]
+    )
     dest, digest = _hash_move(back, out_dir / q["subdir"], n["hash_len"])
     return {"q480_path": str(dest), "q480_sha256": digest, "q480_low_dims": [lw, lh]}
 
 
 # ---------------------------------------------------------------- main entry
-def normalize_video(src: str | Path, out_dir: str | Path, cfg: dict[str, Any] | None = None) -> dict[str, Any]:
+def normalize_video(
+    src: str | Path, out_dir: str | Path, cfg: dict[str, Any] | None = None
+) -> dict[str, Any]:
     cfg = cfg or load_config()
     n, st, vad_cfg = cfg["normalize"], cfg["stimulus"], cfg["vad"]
     src, out_dir = Path(src), Path(out_dir)
@@ -305,8 +371,21 @@ def normalize_video(src: str | Path, out_dir: str | Path, cfg: dict[str, Any] | 
     with tempfile.TemporaryDirectory(dir=out_dir) as td:
         tmpd = Path(td)
         tmp_mp4 = tmpd / "t1.mp4"
-        cmd = ["ffmpeg", "-y", "-hide_banner", "-nostats", "-nostdin", "-v", "info",
-               "-ss", f"{t0:.6f}", "-t", f"{t1:.6f}", "-i", str(src)]
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-hide_banner",
+            "-nostats",
+            "-nostdin",
+            "-v",
+            "info",
+            "-ss",
+            f"{t0:.6f}",
+            "-t",
+            f"{t1:.6f}",
+            "-i",
+            str(src),
+        ]
         vf = f"fps={st['fps']},scale={tw}:{th}:flags=lanczos,setsar=1,format={n['video']['pix_fmt']}"
         if info["has_audio"]:
             rec.update(mono_phase(src, t0, t1, cfg))
@@ -321,27 +400,54 @@ def normalize_video(src: str | Path, out_dir: str | Path, cfg: dict[str, Any] | 
                 flags.append("no_speech_detected_ungated_loudness")
             sp = measure_loudness(src, lc, segs, start=t0, dur=t1) if gated else full
             i_full, i_sp = full["input_i"], sp["input_i"]
-            rec.update({"speech_s": speech_s, "loudness_in_full_lufs": i_full,
-                        "loudness_in_speech_lufs": i_sp, "true_peak_in_dbtp": full["input_tp"]})
+            rec.update(
+                {
+                    "speech_s": speech_s,
+                    "loudness_in_full_lufs": i_full,
+                    "loudness_in_speech_lufs": i_sp,
+                    "true_peak_in_dbtp": full["input_tp"],
+                }
+            )
             silent = not (math.isfinite(i_full) and math.isfinite(i_sp)) or i_full <= -70 or i_sp <= -70
             if silent:
                 flags.append("silent_audio_no_loudnorm")
                 af = f"aresample={n['audio']['sample_rate']}:async=1:first_pts=0"
             else:
                 tgt = lc["target_lufs"] + (i_full - i_sp)
-                af = (f"aresample=async=1:first_pts=0,loudnorm=I={tgt:.2f}:TP={lc['true_peak_dbtp']}"
-                      f":LRA={lc['target_lra']}:measured_I={i_full}:measured_TP={full['input_tp']}"
-                      f":measured_LRA={full['input_lra']}:measured_thresh={full['input_thresh']}"
-                      f":offset={full['target_offset']}:linear=true:print_format=json,"
-                      f"aresample={n['audio']['sample_rate']}")
+                af = (
+                    f"aresample=async=1:first_pts=0,loudnorm=I={tgt:.2f}:TP={lc['true_peak_dbtp']}"
+                    f":LRA={lc['target_lra']}:measured_I={i_full}:measured_TP={full['input_tp']}"
+                    f":measured_LRA={full['input_lra']}:measured_thresh={full['input_thresh']}"
+                    f":offset={full['target_offset']}:linear=true:print_format=json,"
+                    f"aresample={n['audio']['sample_rate']}"
+                )
             cmd += ["-map", "0:v:0", "-map", "0:a:0", "-vf", vf, "-af", af]
         else:
             segs = []
-            cmd += ["-f", "lavfi", "-t", f"{t1:.6f}",
-                    "-i", f"anullsrc=r={n['audio']['sample_rate']}:cl=mono",
-                    "-map", "0:v:0", "-map", "1:a:0", "-vf", vf]
-        cmd += [*_x264(n["video"]), *_aac(n["audio"]), "-t", f"{t1:.6f}", *_BITEXACT,
-                "-movflags", "+faststart", str(tmp_mp4)]
+            cmd += [
+                "-f",
+                "lavfi",
+                "-t",
+                f"{t1:.6f}",
+                "-i",
+                f"anullsrc=r={n['audio']['sample_rate']}:cl=mono",
+                "-map",
+                "0:v:0",
+                "-map",
+                "1:a:0",
+                "-vf",
+                vf,
+            ]
+        cmd += [
+            *_x264(n["video"]),
+            *_aac(n["audio"]),
+            "-t",
+            f"{t1:.6f}",
+            *_BITEXACT,
+            "-movflags",
+            "+faststart",
+            str(tmp_mp4),
+        ]
         res = run(cmd)
         if info["has_audio"] and "silent_audio_no_loudnorm" not in flags:
             rec["loudnorm_mode"] = str(_loudnorm_json(res.stderr).get("normalization_type"))
@@ -354,22 +460,35 @@ def normalize_video(src: str | Path, out_dir: str | Path, cfg: dict[str, Any] | 
         outp = ffprobe(mp4)
         ov, oa = stream(outp, "video"), stream(outp, "audio")
         dur = float(outp["format"]["duration"])
-        rec.update({
-            "out_duration_s": dur,
-            "out_fps_r": ratio(ov.get("r_frame_rate")), "out_fps_avg": ratio(ov.get("avg_frame_rate")),
-            "out_pix_fmt": ov.get("pix_fmt"), "out_vcodec": ov.get("codec_name"),
-            "out_acodec": oa.get("codec_name") if oa else None,
-            "out_audio_sample_rate": int(oa["sample_rate"]) if oa else None,
-            "out_av_offset_ms": ((fnum(oa.get("start_time")) or 0.0) - (fnum(ov.get("start_time")) or 0.0))
-            * 1000.0 if oa else None,
-        })
+        rec.update(
+            {
+                "out_duration_s": dur,
+                "out_fps_r": ratio(ov.get("r_frame_rate")),
+                "out_fps_avg": ratio(ov.get("avg_frame_rate")),
+                "out_pix_fmt": ov.get("pix_fmt"),
+                "out_vcodec": ov.get("codec_name"),
+                "out_acodec": oa.get("codec_name") if oa else None,
+                "out_audio_sample_rate": int(oa["sample_rate"]) if oa else None,
+                "out_av_offset_ms": (
+                    (fnum(oa.get("start_time")) or 0.0) - (fnum(ov.get("start_time")) or 0.0)
+                )
+                * 1000.0
+                if oa
+                else None,
+            }
+        )
         if dur > st["t1_max_probe_s"]:
             raise MediaError(f"T1 duration {dur:.3f}s > {st['t1_max_probe_s']}s for {mp4}")
         if info["has_audio"] and "silent_audio_no_loudnorm" not in flags:
             o_full = measure_loudness(mp4, lc)
             o_sp = measure_loudness(mp4, lc, segs) if gated else o_full
-            rec.update({"loudness_out_speech_lufs": o_sp["input_i"], "loudness_out_full_lufs": o_full["input_i"],
-                        "true_peak_out_dbtp": o_full["input_tp"]})
+            rec.update(
+                {
+                    "loudness_out_speech_lufs": o_sp["input_i"],
+                    "loudness_out_full_lufs": o_full["input_i"],
+                    "true_peak_out_dbtp": o_full["input_tp"],
+                }
+            )
             if abs(o_sp["input_i"] - lc["target_lufs"]) > lc["tolerance_lu"]:
                 flags.append("loudness_off_target")
             if o_full["input_tp"] > lc["true_peak_dbtp"] + lc["tp_tolerance_db"]:
@@ -379,9 +498,26 @@ def normalize_video(src: str | Path, out_dir: str | Path, cfg: dict[str, Any] | 
         sw = n["sidecar_wav"]
         wav = out_dir / sw["subdir"] / f"{vid}.wav"
         wav.parent.mkdir(parents=True, exist_ok=True)
-        run(["ffmpeg", "-y", "-v", n["ffmpeg_loglevel"], "-nostdin", "-i", str(mp4), "-vn",
-             "-ac", str(sw["channels"]), "-ar", str(sw["sample_rate"]), "-c:a", "pcm_s16le",
-             *_BITEXACT, str(wav)])
+        run(
+            [
+                "ffmpeg",
+                "-y",
+                "-v",
+                n["ffmpeg_loglevel"],
+                "-nostdin",
+                "-i",
+                str(mp4),
+                "-vn",
+                "-ac",
+                str(sw["channels"]),
+                "-ar",
+                str(sw["sample_rate"]),
+                "-c:a",
+                "pcm_s16le",
+                *_BITEXACT,
+                str(wav),
+            ]
+        )
         rec["wav_path"] = str(wav)
 
         rec.update(quality_floor_copy(mp4, out_dir, tw, th, cfg, tmpd))

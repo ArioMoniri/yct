@@ -1,4 +1,5 @@
 """CLI: python -m yct.confounds --mp4 X.mp4 --wav X.wav [--tsv X.tsv] --out confounds.parquet"""
+
 from __future__ import annotations
 
 import argparse

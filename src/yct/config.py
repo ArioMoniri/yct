@@ -1,4 +1,5 @@
 """Load config.yaml (every tunable lives there; v2.md §3)."""
+
 from __future__ import annotations
 
 import copy

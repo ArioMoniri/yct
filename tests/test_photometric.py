@@ -1,4 +1,5 @@
 """Photometric T3 copy (owner request): global gain/offset to target mean Y and RMS contrast."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -74,3 +75,11 @@ def test_global_transform_is_one_gain_offset(tmp_path, cfg):
     assert isinstance(rec["gain_a"], float) and isinstance(rec["offset_b"], float)
     assert len(rec["gains"]) == 3 and rec["temporal_smoothing"] is False
     assert rec["t3_path"].endswith(".mp4") and "/t3/" in rec["t3_path"]
+
+
+def test_temporal_smoothing_optional(tmp_path):
+    on = syn.fast_cfg(normalize={"photometric": {"temporal_smoothing": {"enabled": True}}})
+    src = syn.clip(tmp_path / "s.mp4", dur=2.0, vf=DYN)
+    rec = photometric_normalize(src, tmp_path / "out", on)
+    assert rec["temporal_smoothing"] is True and rec["t3_path"].endswith(".mp4")
+    assert syn.fast_cfg()["normalize"]["photometric"]["temporal_smoothing"]["enabled"] is False

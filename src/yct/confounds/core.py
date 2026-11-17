@@ -14,6 +14,7 @@ Choices (documented):
   * on-screen text: NOT implemented (needs a downloaded EAST/OCR model); column is NaN and the summary
     carries `text_detection: "not_implemented"`.
 """
+
 from __future__ import annotations
 
 import math
@@ -27,9 +28,21 @@ from yct.config import load_config
 from yct.media import decode_audio, duration, energy_vad, iter_gray_frames
 
 FEATURES = [
-    "rms_db", "speech_frac", "speech_rate_wps", "pitch_mean_hz", "pitch_sd_hz",
-    "luminance", "contrast", "motion_energy", "motion_energy_crop", "scene_cuts",
-    "face_present_frac", "face_count_mean", "face_area_frac", "face_area_outside_crop_frac", "text_frac",
+    "rms_db",
+    "speech_frac",
+    "speech_rate_wps",
+    "pitch_mean_hz",
+    "pitch_sd_hz",
+    "luminance",
+    "contrast",
+    "motion_energy",
+    "motion_energy_crop",
+    "scene_cuts",
+    "face_present_frac",
+    "face_count_mean",
+    "face_area_frac",
+    "face_area_outside_crop_frac",
+    "text_frac",
 ]
 
 
@@ -37,7 +50,9 @@ def tr_grid(dur: float, tr: float) -> pd.DataFrame:
     n = max(1, math.ceil(dur / tr - 1e-6))
     start = np.arange(n) * tr
     end = np.minimum(start + tr, dur)
-    return pd.DataFrame({"tr": np.arange(n), "tr_start_s": start, "tr_end_s": end, "tr_coverage": (end - start) / tr})
+    return pd.DataFrame(
+        {"tr": np.arange(n), "tr_start_s": start, "tr_end_s": end, "tr_coverage": (end - start) / tr}
+    )
 
 
 def _bin(t: np.ndarray, tr: float, n: int) -> np.ndarray:
@@ -93,7 +108,9 @@ def pitch_track(x: np.ndarray, sr: int, pc: dict[str, Any]) -> tuple[np.ndarray,
     return t, f0
 
 
-def audio_features(wav: str | Path, grid: pd.DataFrame, cfg: dict[str, Any], words: pd.DataFrame | None) -> dict:
+def audio_features(
+    wav: str | Path, grid: pd.DataFrame, cfg: dict[str, Any], words: pd.DataFrame | None
+) -> dict:
     c, vc, tr = cfg["confounds"], cfg["vad"], cfg["tribe"]["tr_s"]
     sr = vc["sample_rate"]
     x = decode_audio(wav, sr, 1)[:, 0]
@@ -107,6 +124,7 @@ def audio_features(wav: str | Path, grid: pd.DataFrame, cfg: dict[str, Any], wor
     speech = np.nan_to_num(_per_tr(tv, mask.astype(float), tr, n), nan=0.0)
     tp, f0 = pitch_track(x, sr, c["pitch"])
     if tp.size and mask.size:
+
         def vad_at(tt: np.ndarray) -> np.ndarray:
             k = np.round((tt - vc["frame_s"] / 2) / vc["hop_s"]).astype(int)
             return mask[np.clip(k, 0, mask.size - 1)]
@@ -121,9 +139,13 @@ def audio_features(wav: str | Path, grid: pd.DataFrame, cfg: dict[str, Any], wor
     else:
         rate = np.full(n, np.nan if words is None else 0.0)
     return {
-        "rms_db": rms_db, "speech_frac": speech, "speech_rate_wps": rate,
-        "pitch_mean_hz": _per_tr(tp, f0, tr, n), "pitch_sd_hz": _per_tr(tp, f0, tr, n, "std"),
-        "_f0": f0, "_speech_s": sum(e - s for s, e in segs),
+        "rms_db": rms_db,
+        "speech_frac": speech,
+        "speech_rate_wps": rate,
+        "pitch_mean_hz": _per_tr(tp, f0, tr, n),
+        "pitch_sd_hz": _per_tr(tp, f0, tr, n, "std"),
+        "_f0": f0,
+        "_speech_s": sum(e - s for s, e in segs),
     }
 
 
@@ -169,8 +191,9 @@ def video_features(mp4: str | Path, grid: pd.DataFrame, cfg: dict[str, Any]) -> 
         prev = f
         if i % face_every == 0:
             mins = int(round(fc["min_size_frac"] * min(h, w)))
-            boxes = det.detectMultiScale(g, scaleFactor=fc["scale_factor"], minNeighbors=fc["min_neighbors"],
-                                         minSize=(mins, mins))
+            boxes = det.detectMultiScale(
+                g, scaleFactor=fc["scale_factor"], minNeighbors=fc["min_neighbors"], minSize=(mins, mins)
+            )
             boxes = np.asarray(boxes).reshape(-1, 4)
             area = inside = 0.0
             for bx, by, bw, bh in boxes:
@@ -185,7 +208,8 @@ def video_features(mp4: str | Path, grid: pd.DataFrame, cfg: dict[str, Any]) -> 
             fout.append(1 - inside / area if area > 0 else np.nan)
     ts, ft = np.asarray(ts), np.asarray(ft)
     return {
-        "luminance": _per_tr(ts, np.asarray(lum), tr, n), "contrast": _per_tr(ts, np.asarray(con), tr, n),
+        "luminance": _per_tr(ts, np.asarray(lum), tr, n),
+        "contrast": _per_tr(ts, np.asarray(con), tr, n),
         "motion_energy": _per_tr(ts, np.asarray(mot), tr, n),
         "motion_energy_crop": _per_tr(ts, np.asarray(motc), tr, n),
         "face_present_frac": _per_tr(ft, np.asarray(fpres), tr, n),
@@ -199,19 +223,26 @@ def scene_cut_times(mp4: str | Path, cfg: dict[str, Any]) -> list[float]:
     from scenedetect import ContentDetector, detect
 
     sc = cfg["confounds"]["scene"]
-    scenes = detect(str(mp4), ContentDetector(threshold=sc["threshold"], min_scene_len=sc["min_scene_len_frames"]))
+    scenes = detect(
+        str(mp4), ContentDetector(threshold=sc["threshold"], min_scene_len=sc["min_scene_len_frames"])
+    )
     return [s[0].get_seconds() for s in scenes[1:]]
 
 
 # ---------------------------------------------------------------- entry
 def extract_confounds(
-    mp4: str | Path, wav: str | Path, tsv: str | Path | None = None, video_id: str | None = None,
+    mp4: str | Path,
+    wav: str | Path,
+    tsv: str | Path | None = None,
+    video_id: str | None = None,
     cfg: dict[str, Any] | None = None,
 ) -> tuple[pd.DataFrame, dict[str, Any]]:
     """Tidy per-TR frame (video_id, tr, tr_start_s, tr_end_s, tr_coverage, *FEATURES) + per-video summary."""
     cfg = cfg or load_config()
     if cfg["confounds"]["text_detection"]:
-        raise NotImplementedError("on-screen text detection is not implemented (needs a downloaded OCR model)")
+        raise NotImplementedError(
+            "on-screen text detection is not implemented (needs a downloaded OCR model)"
+        )
     tr = cfg["tribe"]["tr_s"]
     mp4 = Path(mp4)
     vid = video_id or mp4.stem
@@ -234,11 +265,17 @@ def extract_confounds(
             df[k] = a[k] if k in a else v[k]
     f0 = a["_f0"][np.isfinite(a["_f0"])]
     summary = {
-        "video_id": vid, "duration_s": dur, "n_tr": n,
-        "speech_s": a["_speech_s"], "speech_frac": float(df["speech_frac"].mean()),
+        "video_id": vid,
+        "duration_s": dur,
+        "n_tr": n,
+        "speech_s": a["_speech_s"],
+        "speech_frac": float(df["speech_frac"].mean()),
         "words_per_min": float(len(words) / dur * 60) if words is not None else None,
-        "pitch_mean_hz": float(f0.mean()) if f0.size else None, "pitch_sd_hz": float(f0.std()) if f0.size else None,
-        "n_scene_cuts": len(cuts), "cuts_per_min": len(cuts) / dur * 60, "scene_cut_times_s": cuts,
+        "pitch_mean_hz": float(f0.mean()) if f0.size else None,
+        "pitch_sd_hz": float(f0.std()) if f0.size else None,
+        "n_scene_cuts": len(cuts),
+        "cuts_per_min": len(cuts) / dur * 60,
+        "scene_cut_times_s": cuts,
         "text_detection": "not_implemented",
     }
     for k in FEATURES:

@@ -2,6 +2,7 @@
 
 All decoding goes through ffmpeg pipes, so no audio/video I/O library is needed beyond numpy.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -102,8 +103,20 @@ def iter_gray_frames(path: str | Path, fps: float, short_side: int):
     s = short_side / min(w, h)
     ow, oh = int(round(w * s / 2) * 2), int(round(h * s / 2) * 2)
     cmd = [
-        "ffmpeg", "-v", "error", "-nostdin", "-i", str(path), "-an",
-        "-vf", f"fps={fps},scale={ow}:{oh}:flags=area", "-pix_fmt", "gray", "-f", "rawvideo", "-",
+        "ffmpeg",
+        "-v",
+        "error",
+        "-nostdin",
+        "-i",
+        str(path),
+        "-an",
+        "-vf",
+        f"fps={fps},scale={ow}:{oh}:flags=area",
+        "-pix_fmt",
+        "gray",
+        "-f",
+        "rawvideo",
+        "-",
     ]
     proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
     size = ow * oh
