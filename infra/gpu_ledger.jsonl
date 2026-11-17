@@ -88,3 +88,6 @@
 {"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794933106.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
 {"event": "terminate", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794933131.1797159, "reason": "job_done"}
 {"event": "launch", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "name": "yct-p0rerun", "type": "gpu_1x_a100_sxm4", "usd_per_hour": 1.99, "t": 1794933439.2491672, "deadline": 1794940639.2491677}
+{"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794933705.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794933735.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794933765.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
