@@ -66,8 +66,8 @@ first use; pin them for P4 by pre-populating the HF cache at the revisions above
 | impulse | 40 s | 204.3 s | 2.1 s | 12,889 MiB |
 | control | 40 s | 199.5 s | 2.1 s | 13,411 MiB |
 
-Roughly 5 s of wall time per second of video, dominated by V-JEPA2-g encoding (~2.4 s per
-0.5 s bin… 80 bins for 40 s). Projection for T1 (58 s clips): ~5 min per clip on an A100.
+Roughly 5 s of wall time per second of video, dominated by V-JEPA2-g encoding
+(~2.4 s per 0.5 s bin; 80 bins for a 40 s clip). Projection for T1 (58 s clips): ~5 min per clip on an A100.
 Peak VRAM < 20 GB, so per v2.md §3 an A10 (24 GB) becomes allowed (`A10_ALLOWED=1` needs the human/orchestrator decision).
 
 ## Latency (§6)

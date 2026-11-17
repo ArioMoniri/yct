@@ -2,11 +2,12 @@
 # Generate P0 synthetic test clips + hand-made transcripts (<stem>.tsv, so TRIBE skips WhisperX).
 #   smoke/smoke.mp4     10 s testsrc2 640x360@30 + espeak English sentence (16 kHz mono)
 #   impulse/impulse.mp4 40 s black; full-white frames t in [15,16); 1 s speech burst at t=25; silence otherwise
+#   control/control.mp4 40 s black, digital silence, empty transcript (subtract from impulse for latency)
 # Word timings are approximate (uniform over the espeak utterance) — adequate for smoke/latency.
 # Usage: bash make_test_clips.sh OUTDIR
 set -euo pipefail
-O="${1:?outdir}"; mkdir -p "$O/smoke" "$O/impulse"; cd "$O"
-FF="ffmpeg -hide_banner -loglevel error -y"
+O="${1:?outdir}"; mkdir -p "$O/smoke" "$O/impulse" "$O/control"; cd "$O"
+FF="ffmpeg -nostdin -hide_banner -loglevel error -y"
 dur() { ffprobe -v error -show_entries format=duration -of csv=p=0 "$1"; }
 
 # --- (a) smoke clip ---
@@ -41,5 +42,9 @@ with open(out, "w") as f:
     for i, w in enumerate(words):
         f.write(f"{w}\t{t0 + i*step:.3f}\t{step*0.9:.3f}\t0\t{sent}\n")
 PY
+# --- (c) control clip ---
+$FF -f lavfi -i "color=c=black:size=640x360:rate=30:duration=40" -f lavfi -i "anullsrc=r=16000:cl=mono" \
+    -c:v libx264 -pix_fmt yuv420p -c:a aac -ar 16000 -ac 1 -t 40 control/control.mp4
+: > control/control.tsv
 rm -f smoke/speech_raw.wav smoke/audio16k.wav impulse/burst_raw.wav impulse/audio16k.wav
-for c in smoke/smoke.mp4 impulse/impulse.mp4; do echo "$c $(dur $c)s $(sha256sum $c | cut -c1-16)"; done
+for c in smoke/smoke.mp4 impulse/impulse.mp4 control/control.mp4; do echo "$c $(dur $c)s $(sha256sum $c | cut -c1-16)"; done

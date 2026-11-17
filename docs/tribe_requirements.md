@@ -27,7 +27,7 @@ Fact-find date: 2026-11-17. Every item is tagged:
 | Install command | `pip install -e .` for inference, or `pip install -e ".[plotting]"` (adds nilearn, nibabel, pyvista, …). Colab uses `uv pip install "tribev2[plotting] @ git+https://github.com/facebookresearch/tribev2.git"` | VERIFIED README l.38-53, `tribe_demo.ipynb` cell 2 |
 | Hidden system deps | (a) **`uv`/`uvx` must be on PATH**: transcription shells out to `uvx whisperx …` (`tribev2/eventstransforms.py` l.111-135), and `uvx` downloads the *latest* whisperx at run time unless it is pinned, so the run needs network access. (b) `ffmpeg` for moviepy. (c) `mne` arrives through neuralset and is used for HCP-MMP labels (`tribev2/utils.py` l.13, 214-244). | VERIFIED-CODE |
 | HF token | **Required.** The text extractor is `meta-llama/Llama-3.2-3B`, which is gated with manual approval (HF API `gated: "manual"`). The notebook says: "you will have to request access to the Llama-3.2 model using your HuggingFace account" (cell 7). The HF card says: "The text encoder requires access to the gated LLaMA 3.2-3B model … huggingface-cli login". The other backbones are not gated: `facebook/vjepa2-vitg-fpc64-256` (apache-2.0), `facebook/w2v-bert-2.0` (mit), `facebook/dinov2-large` (apache-2.0, configured but not used, see §3). | VERIFIED |
-| GPU memory | No official inference figure. The paper ran feature extraction on 128 × V100 32 GB and training on one V100 32 GB (paper §5.3 "Implementation"). The extractors load **one at a time** and each is freed after its features are cached (`main.py` l.59-79, 214-217). Llama-3B and V-JEPA2-g load in **float16** with `device_map="auto"` (neuralset `extractors/text.py` l.336, `extractors/video.py` l.383-385). w2v-BERT loads in fp32 (`audio.py` l.541). WhisperX large-v3 fp16 runs first, as a separate process. GitHub issue #28 reports an OOM on a 14.56 GiB Colab GPU (stage not given). **Estimate: 16 GB is marginal; provision ≥24 GB (L4/A10G/A100).** With `device_map="auto"` a small GPU can silently spill to CPU, which makes runs slower and less reproducible. | UNVERIFIED (estimate) |
+| GPU memory | No official inference figure. The paper ran feature extraction on 128 × V100 32 GB and training on one V100 32 GB (paper §5.3 "Implementation"). The extractors load **one at a time** and each is freed after its features are cached (`main.py` l.59-79, 214-217). Llama-3B and V-JEPA2-g load in **float16** with `device_map="auto"` (neuralset `extractors/text.py` l.336, `extractors/video.py` l.383-385). w2v-BERT loads in fp32 (`audio.py` l.541). WhisperX large-v3 fp16 runs first, as a separate process. GitHub issue #28 reports an OOM on a 14.56 GiB Colab GPU (stage not given). **Measured in P0: peak 13,411 MiB (nvidia-smi), torch max allocated 10,373 MiB on A100-40GB, for 10 s and 40 s clips.** A 24 GB GPU (A10) has headroom; 16 GB is plausible but untested. With `device_map="auto"` a small GPU can silently spill to CPU, which makes runs slower and less reproducible. | VERIFIED (run `smoke_20261117T142354Z`) |
 | CPU-only | WhisperX is called with `--compute_type float16` hard-coded, even when `device=cpu` (`eventstransforms.py` l.107-124). CTranslate2 generally rejects fp16 on CPU. **Expect a CPU-only run to fail at transcription unless the transcripts are supplied in advance (§2.4).** | UNVERIFIED |
 
 ## 2. Inference API and internal pipeline
@@ -79,13 +79,13 @@ Released checkpoint width: video 1408, text 3072. The paper text says 1280 and 2
 
 | Item | Fact | Status / source |
 |---|---|---|
-| TR | **1.0 s**. `TR = 1/neuro.frequency` and `neuro.frequency: 1.0`. Internally the model runs at 2 Hz and is average-pooled to 1 Hz (`model.py` l.104, l.174-175). | VERIFIED `main.py` l.145-147; config; notebook cell 5 "1 TR = 1 second" |
-| Shape | `(n_kept_TRs, 20484)` float32 | VERIFIED notebook output `(53, 20484)` |
+| TR | **1.0 s** (measured: T = duration/TR exactly, run `smoke_20261117T142354Z`). `TR = 1/neuro.frequency` and `neuro.frequency: 1.0`. Internally the model runs at 2 Hz and is average-pooled to 1 Hz (`model.py` l.104, l.174-175). | VERIFIED `main.py` l.145-147; config; notebook cell 5 "1 TR = 1 second" |
+| Shape | `(n_kept_TRs, 20484)` float32 | VERIFIED notebook output `(53, 20484)`; measured (10, 20484) for 10 s and (40, 20484) for 40 s clips, all finite (run `smoke_20261117T142354Z`) |
 | Mesh | **fsaverage5, 20,484 vertices = 10,242 left followed by 10,242 right** (left/right `vstack`) | VERIFIED paper §5.1; `utils_fmri.py` l.200-226 |
 | Medial wall | **Predicted, not masked.** The output includes medial-wall vertices. Schaefer-400 fs5 labels 870 left-hemisphere vertices as `Background+FreeSurfer_Defined_Medial_Wall` (checked locally). | VERIFIED (annot inspected) |
 | Subject | Average or "unseen" subject only. Per-subject heads are not released (GitHub issue #62); the subcortical checkpoint is not released (#79). | VERIFIED `demo_utils.py` l.218; issues |
 | Units | Training targets were **z-scored per session and detrended per vertex** (config `neuro.cleaning: standardize: zscore_sample, detrend: true`; paper §5.8 "Rescaling and detrending"). Predictions are therefore in relative z-units: there is no physical BOLD scale and no meaningful absolute baseline. | VERIFIED |
-| HRF / lag | **Built in.** "Predictions … are offset by 5 seconds in the past, in order to compensate for the hemodynamic lag" (README l.32). The config sets `neuro.offset: 5.0`. Paper §5.8: "to predict a window [0,T] of fMRI, TRIBE takes as input a window [−5, T−5] of stimuli". A third-party lag scan against real BOLD peaked at 0 s (GitHub issue #78). However, the paper's visual localiser (§5.9 "Contrast maps") reads the response at **t = 5 s** after a 1 s image flash. **The effective impulse response in output time must be measured (§6), not assumed.** | VERIFIED (statement); latency in practice UNVERIFIED |
+| HRF / lag | **Built in.** "Predictions … are offset by 5 seconds in the past, in order to compensate for the hemodynamic lag" (README l.32). The config sets `neuro.offset: 5.0`. Paper §5.8: "to predict a window [0,T] of fMRI, TRIBE takes as input a window [−5, T−5] of stimuli". A third-party lag scan against real BOLD peaked at 0 s (GitHub issue #78). However, the paper's visual localiser (§5.9 "Contrast maps") reads the response at **t = 5 s** after a 1 s image flash. **Measured in P0 (impulse − control): peak at lag 0 TR in output time for a 1 s flash (early visual) and a 1 s speech burst (auditory), i.e. BOLD at ≈ +5 s real time; responses spread up to ~4 s before onset (non-causal).** See "Measured in P0". | VERIFIED (run `smoke_20261117T142354Z`) |
 | Context window | `duration_trs: 100`, so clips are processed in independent 100 s windows. TRs past the end of the stimulus are dropped (`remove_empty_segments=True`, `demo_utils.py` l.366-378). Clips longer than 100 s are split into windows that share no context. Clips longer than 60 s are also chunked for audio/video features. **Expect onset and offset transients, and discontinuities at 60/100 s boundaries in T2.** | VERIFIED-CODE |
 
 ## 4. Accuracy and reliability maps
@@ -116,7 +116,7 @@ Released checkpoint width: video 1408, text 3072. The paper text says 1280 and 2
   - **unpinned WhisperX through `uvx`**, plus pyannote VAD;
   - unpinned `transformers`.
 
-  A third-party report finds encoding scores identical to within about 3e-4 across 7 configurations, and transformers 4.57 vs 5.16 give Δ < 1e-5 (GitHub issue #78). UNVERIFIED for our setup.
+  A third-party report finds encoding scores identical to within about 3e-4 across 7 configurations, and transformers 4.57 vs 5.16 give Δ < 1e-5 (GitHub issue #78). **Measured in P0 (run `smoke_20261117T142354Z`): two fresh-cache runs of the same 10 s clip differ by max abs 3.57e-3 (r = 0.999994; prediction SD 0.14) — fails a 1e-4 tolerance. Re-predicting from cached features is bit-identical (diff 0.0), so all run-to-run variation comes from GPU feature extraction (fp16 backbones).** VERIFIED.
 - **Features are disk-cached, so a "rerun" that hits the cache only tests the 1.1 B-parameter head.** A determinism test must clear the cache (or use a fresh `cache_folder`) and delete the `.wav`/`.tsv` sidecars. VERIFIED-CODE.
 
 ## 7. Licensing implications
@@ -145,3 +145,24 @@ The model reproduces the following in silico (paper §2.5–2.6, Figs 4–5; "un
 - Emotional vs physical pain → TPJ and MTG.
 
 Contrast methods: for images, the response at t = 5 s minus the other categories; for language, a nilearn `FirstLevelModel` GLM on the predictions. VERIFIED.
+
+## 10. Measured in P0 (run `smoke_20261117T142354Z`)
+
+Source: `outputs/runs/smoke_20261117T142354Z/smoke_report.md` and `metrics.json`; full artifacts on the pod at `/work/yct/runs/smoke_20261117T142354Z/`.
+
+| Item | Measured | Status |
+|---|---|---|
+| Hardware / stack | Lambda gpu_1x_a100_sxm4 (A100-SXM4-40GB, driver 570.148.08); Python 3.11.18; torch 2.6.0+cu124; exca 0.5.20; neuralset/neuraltrain 0.0.2; numpy 2.2.6; transformers 5.17.0 (unpinned upstream) | VERIFIED |
+| Weights | `snapshot_download(revision=f894e783…)`, `best.ckpt` sha256 matches §0; TRIBE loaded from the local snapshot dir | VERIFIED |
+| Backbone revisions actually used (HF `main` on 2026-11-17) | vjepa2-vitg-fpc64-256 `875c192b7b704b87d1e1d99345769632dd5f739a`; w2v-bert-2.0 `da985ba0987f70aaeb84a80f2851cfac8c697a7b`; Llama-3.2-3B `13afe5124825b4f3751f836b40dafda64c1ed062` | VERIFIED |
+| Offline inference | With these in the HF cache, `HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1` runs end to end (fresh feature cache) | VERIFIED |
+| Transcript injection | `<stem>.tsv` beside the video is used; with `uvx` removed from PATH and the ASR entry point patched to raise, ASR is never called | VERIFIED |
+| Peak VRAM | 13,411 MiB (nvidia-smi, 1 s sampling); torch max allocated 10,373 MiB | VERIFIED |
+| Runtime | ~59 s for a 10 s clip, ~200 s for a 40 s clip (≈5 s wall per s of video; V-JEPA2 dominates); model load 2 s; first run +26 s for backbone downloads | VERIFIED |
+| Shape / TR | (T, 20484) float32, T = duration / 1.0 s, finite | VERIFIED |
+| Latency | impulse − control, Destrieux ROIs: visual (Pole_occipital + S_calcarine) peak at output t = 15 s for flash at 15 s; auditory (G_temp_sup-G_T_transv + S_temporal_transverse) peak at t = 25 s for speech at 25 s → **L = 0 TR**. Visual response rises from t ≈ 11 s (pre-onset leakage via the temporal transformer). The auditory ROI responds to the flash too, and more strongly. The speech response is a single-TR spike, likely carried by the text features. | VERIFIED |
+| Output-time semantics | In training the neuro extractor reads BOLD at `start + 5 s` (neuralset `extractors/neuro.py` l.358), so prediction at output time t ≈ BOLD at t + 5 s | VERIFIED-CODE |
+| Determinism | fresh cache: max abs 3.6e-3 (fails 1e-4); cached features: 0.0 | VERIFIED |
+| Pitfall | Driving the box with `ssh … bash -s`: `ffmpeg` reads stdin and eats the script; always use `-nostdin` | VERIFIED |
+| Not measured | CPU-only behaviour; 16 GB GPUs; clips > 60 s (chunking) and > 100 s (windowing) | UNVERIFIED |
+
