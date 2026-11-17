@@ -38,10 +38,12 @@ def tv_to_unit(y):
 
 
 def rgb_decode(path, matrix, fps=5):
-    """Independent explicit-matrix decode (not the module's code path)."""
+    """Independent explicit-matrix decode (not the module's code path). Uses the ENH-005 swscale flags
+    (accurate_rnd + full_chroma_int) written out literally here, as the specified decoder does."""
     h, w = video_size(path)
     out = subprocess.run(["ffmpeg", "-v", "error", "-nostdin", "-i", str(path), "-an", "-vf",
-                          f"fps={fps},scale=in_color_matrix={matrix}:in_range=tv,format=rgb24",
+                          f"fps={fps},scale=flags=accurate_rnd+full_chroma_int:in_color_matrix={matrix}"
+                          ":in_range=tv,format=rgb24",
                           "-f", "rawvideo", "-"], capture_output=True, check=True).stdout
     return np.frombuffer(out, np.uint8).reshape(-1, h, w, 3).astype(float) / 255.0
 

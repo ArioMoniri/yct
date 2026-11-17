@@ -161,9 +161,10 @@ Source: `outputs/runs/smoke_20261117T142354Z/smoke_report.md` and `metrics.json`
 | Peak VRAM | 13,411 MiB (nvidia-smi, 1 s sampling); torch max allocated 10,373 MiB | VERIFIED |
 | Runtime | ~59 s for a 10 s clip, ~200 s for a 40 s clip (≈5 s wall per s of video; V-JEPA2 dominates); model load 2 s; first run +26 s for backbone downloads | VERIFIED |
 | Shape / TR | (T, 20484) float32, T = duration / 1.0 s, finite | VERIFIED |
-| Latency | impulse − control, Destrieux ROIs: visual (Pole_occipital + S_calcarine) peak at output t = 15 s for flash at 15 s; auditory (G_temp_sup-G_T_transv + S_temporal_transverse) peak at t = 25 s for speech at 25 s → **L = 0 TR**. Visual response rises from t ≈ 11 s (pre-onset leakage via the temporal transformer). The auditory ROI responds to the flash too, and more strongly. The speech response is a single-TR spike, likely carried by the text features. | VERIFIED |
+| Latency | impulse − control, Destrieux ROIs: visual (Pole_occipital + S_calcarine) peak at output t = 15 s for flash at 15 s; auditory (G_temp_sup-G_T_transv + S_temporal_transverse) peak at t = 25 s for speech at 25 s → **L = 0 TR**. Visual response rises from t ≈ 11–12 s, i.e. **3–4 TR backward leakage** before the event (via the bidirectional temporal context); stated as "response can begin up to 4 TR before the event; ±4 TR" (D-055, Referee P0 c2 B4; supersedes the "±2 TR plateau" wording of D-039). The auditory ROI responds to the flash too, and more strongly. The speech response is a single-TR spike, likely carried by the text features. | VERIFIED |
 | Output-time semantics | In training the neuro extractor reads BOLD at `start + 5 s` (neuralset `extractors/neuro.py` l.358), so prediction at output time t ≈ BOLD at t + 5 s | VERIFIED-CODE |
 | Determinism | fresh cache: max abs 3.6e-3 (fails 1e-4); cached features: 0.0 | VERIFIED |
 | Pitfall | Driving the box with `ssh … bash -s`: `ffmpeg` reads stdin and eats the script; always use `-nostdin` | VERIFIED |
-| Not measured | CPU-only behaviour; 16 GB GPUs; clips > 60 s (chunking) and > 100 s (windowing) | UNVERIFIED |
+| Not measured | CPU-only behaviour; 16 GB GPUs; clips > 100 s with the BUG-018 word fix (windowing) | UNVERIFIED |
+| Long clips (run `p0rerun_20261117T155528Z`) | 70 s: one chunk, correct; 110 s: chunked [0,60]+[60,50], every word duplicated with +120 s shift → (229, 20484) (BUG-018). Fix `yct.tribe_run.word_events` (absolute-time words, `run_clip --bug018-word-fix`; clips > 60 s refused without it) is CPU-tested only; GPU verification pending | BUG |
 

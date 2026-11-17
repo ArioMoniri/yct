@@ -16,8 +16,14 @@ must resolve the three backbones to the pinned revisions (yct.tribe_run.offline.
 remote_setup.sh pre-populates it) and every extraction/prediction runs with non-loopback network
 blocked. The pinned revisions are part of the cache revisions.
 
+BUG-018 (chunked clips > ~70 s get shifted + duplicated words upstream): clips longer than 60 s are
+REFUSED unless --bug018-word-fix is given, which monkeypatches ExtractWordsFromAudio with absolute-time,
+non-duplicated Word events (yct.tribe_run.word_events) and fails the run if the post-run word check
+(n_words == .tsv rows, none after the clip, no duplicates) or the T check fails. GPU verification of the
+fix is pending (BUGS.md BUG-018 status).
+
 Usage: python run_clip.py --video clip.mp4 --feature-cache DIR --out OUT_PREFIX --weights WEIGHTS_DIR
-       [--fresh-drift]
+       [--fresh-drift] [--bug018-word-fix]
 Writes OUT_PREFIX.npy (T, 20484) float32, OUT_PREFIX.segments.csv, OUT_PREFIX.events.csv (every TRIBE
 event with start/duration: chunk/context boundaries, BUG-002 word-time check), OUT_PREFIX.json.
 """
@@ -66,7 +72,28 @@ def _revisions(weights: Path, tribev2_mod, torch, backbones: dict | None = None)
     }
 
 
-def main() -> None:
+def ffprobe_duration(video: Path) -> float:
+    return float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration",
+                                          "-of", "csv=p=0", str(video)]).decode())
+
+
+def preflight(video: Path, bug018_fix: bool, probe=ffprobe_duration) -> float:
+    """BUG-018 hard guard before any GPU work: > 60 s needs --bug018-word-fix."""
+    from yct.tribe_run.word_events import guard_duration
+
+    dur = float(probe(video))
+    guard_duration(dur, bug018_fix)
+    return dur
+
+
+def apply_word_fix(et, enabled: bool) -> None:
+    if enabled:
+        from yct.tribe_run.word_events import install
+
+        install(et)
+
+
+def build_parser() -> argparse.ArgumentParser:
     ap = argparse.ArgumentParser()
     ap.add_argument("--video", required=True)
     ap.add_argument("--feature-cache", required=True, help="persistent content-addressed feature cache")
@@ -75,7 +102,14 @@ def main() -> None:
     ap.add_argument("--fresh-drift", action="store_true", help="also report fresh-extraction drift")
     ap.add_argument("--keep-fresh", action="store_true",
                     help="keep the throw-away fresh extraction in OUT.fresh_feat/ (D-038 gate audit)")
-    a = ap.parse_args()
+    ap.add_argument("--bug018-word-fix", action="store_true",
+                    help="absolute-time Word events (BUG-018); required for clips > 60 s")
+    return ap
+
+
+def main() -> None:
+    a = build_parser().parse_args()
+    preflight(Path(a.video), a.bug018_word_fix)
 
     _strip_uv_from_path()
     assert shutil.which("uvx") is None, "uvx still on PATH"
@@ -85,6 +119,7 @@ def main() -> None:
     backbones = {**check_hf_cache_pins(), **check_spacy_model()}
 
     import numpy as np
+    import pandas as pd
     import torch
     import tribev2
     import tribev2.eventstransforms as et
@@ -96,6 +131,7 @@ def main() -> None:
         raise RuntimeError("ASR attempted: transcript .tsv missing/not used")
 
     et.ExtractWordsFromAudio._get_transcript_from_audio = staticmethod(_no_asr)
+    apply_word_fix(et, a.bug018_word_fix)
 
     src = Path(a.video)
     if not src.with_suffix(".tsv").exists():
@@ -154,9 +190,12 @@ def main() -> None:
                   for r in ev[ev.type == t].itertuples()]
               for t in ("Audio", "Video") if (ev.type == t).any()}
     words = ev[ev.type == "Word"]
-    dur = float(subprocess.check_output(["ffprobe", "-v", "error", "-show_entries", "format=duration",
-                                         "-of", "csv=p=0", str(aux["video"])]).decode())
+    dur = ffprobe_duration(aux["video"])
     n_words = int((df.type == "Word").sum())
+    from yct.tribe_run.word_events import check_word_events, is_installed
+
+    n_tsv = len(pd.read_csv(src.with_suffix(".tsv"), sep="\t"))
+    word_check = {**check_word_events(df, n_tsv, dur), "bug018_fix": is_installed(et)}
     m = {
         **res,
         "clip": src.name, "duration_s": dur, "shape": list(preds.shape), "dtype": str(preds.dtype),
@@ -178,9 +217,12 @@ def main() -> None:
         "cuda": torch.version.cuda, "python": sys.version.split()[0],
         "pred_mean": float(preds.mean()), "pred_std": float(preds.std()),
         "uvx_on_path": shutil.which("uvx") is not None, "asr_called": False,
+        "bug018_word_check": word_check,
     }
     Path(a.out + ".json").write_text(json.dumps(m, indent=1, default=str))
     print(json.dumps(m, default=str))
+    if a.bug018_word_fix and not (word_check["ok"] and m["T_within_1"]):
+        raise SystemExit(f"BUG-018 word/T check FAILED: {word_check}, T_within_1={m['T_within_1']}")
 
 
 if __name__ == "__main__":

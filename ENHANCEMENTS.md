@@ -8,3 +8,5 @@ Append-only log. Format: date | phase | id | summary | evidence.
 - ENH-005 | P2 | (Neuro G-D032 A1) add swscale flags accurate_rnd+full_chroma_int to colour conversion (−2 code-value bias → +0.35 on BT.601 sources). Before P2 normalisation.
 - ENH-006 | P2 | (Neuro A2) detect HDR (PQ/HLG transfer) sources; force SDR download format or tone-map + flag as covariate. Before P2 normalisation.
 - ENH-007 | P9 | (Neuro) reliability mask = anatomical dropout proxy (OFC/TP); legend must say so; caveat omission of ventral anterior temporal (TF/TE2a/PeEc/EC) and vmPFC (10r/10v/25/s32) or extend mask pre-lock.
+- ENH-005 status | P2 | DONE (D-056a): accurate_rnd+full_chroma_int on all normalize colour conversions (config-driven); BT.601 chart → BT.709 mean bias ≈ 0.04 code values (< 1) | tests/test_normalize_color_accuracy.py
+- ENH-006 status | P2 | DONE (D-056b/c): HDR detection (color_transfer PQ/HLG) → hdr_source flag + covariate, zscale+tonemap to SDR BT.709 (fails loudly without the filters), SDR-first download selector | tests/test_normalize_hdr.py, tests/test_download_sdr_format.py

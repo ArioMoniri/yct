@@ -88,12 +88,29 @@ normalize:                     # P2 (v2.md §5 P2; tribe_requirements §2.3-2.4)
     primaries: bt709
     transfer: bt709
     range: tv
+    sws_flags: [accurate_rnd, full_chroma_int]   # ENH-005 (Neuro G-D032 A1): added to the kernel on EVERY
+    # P2 swscale colour conversion (T1 lanczos, q480 bicubic); removes the ~-1.5 code-value BT.601->709 bias
     untagged:                  # source matrix when the stream carries no (or an unsupported) colour tag:
       hd_min_long_px: 1280     # long side >= 1280 OR short side > 576 -> HD -> bt709; else SD -> smpte170m
       sd_max_short_px: 576     # (the usual decoder convention; flagged `source_color_untagged`)
       hd: bt709
       sd: smpte170m
       range: tv                # untagged range -> limited
+    hdr:                       # ENH-006 (Neuro G-D032 A2). HDR = ffprobe color_transfer in `transfers` (PQ / HLG).
+      # Flag `hdr_source` in the record (rec["hdr_source"], rec["color"], flags) and as a binary covariate
+      # (yct.normalize.core.normalisation_covariates; enters M0 per D-056 only if >= 1 analysis video is HDR,
+      # label-free; all-SDR -> constant, omitted). action tonemap: zscale
+      # linearise (npl) -> BT.709 primaries -> tonemap -> BT.709 transfer/matrix, tv range, BEFORE the swscale
+      # step; the local ffmpeg must have zscale + tonemap, else normalisation fails loudly. action fail: refuse.
+      # Downloads prefer SDR formats (scripts/owner_download_youtube.sh), so this is a fallback.
+      transfers: [smpte2084, arib-std-b67]
+      action: tonemap
+      tonemap: hable
+      desat: 0
+      npl: 100                 # nominal peak luminance (cd/m^2) for zscale linearisation
+      untagged_matrix: bt2020nc     # HDR stream without a matrix / primaries tag
+      untagged_primaries: bt2020
+      covariate: hdr_source
   photometric:                 # T3 sensitivity copy (owner request); the primary T1 pipeline is unchanged
     enabled: true
     subdir: t3
@@ -110,6 +127,7 @@ normalize:                     # P2 (v2.md §5 P2; tribe_requirements §2.3-2.4)
     temporal_smoothing: {enabled: false, size_frames: 5}   # ffmpeg deflicker (per-frame luminance smoothing)
     color_matrix: bt709        # decode AND encode with BT.709 matrix; outputs tagged bt709 (QA G-D032 c2 D6)
     color_range: tv            # limited range (16-235); outputs tagged tv
+    sws_flags: [accurate_rnd, full_chroma_int]   # ENH-005: T3 decode (stats, lut input) and encode
 
 vad:                           # energy VAD shared by speech-gated loudness (P2) and confounds (P3); not speech-specific
   sample_rate: 16000

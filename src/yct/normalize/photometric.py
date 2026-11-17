@@ -61,16 +61,25 @@ def vjepa_crop_region(h: int, w: int, short_px: int = 292, crop_px: int = 256) -
 
 COLOR_MATRIX = "bt709"
 COLOR_RANGE = "tv"
+# ENH-005 (Neuro G-D032 A1): accurate rounding + full chroma interpolation on every swscale colour
+# conversion (config `normalize.photometric.sws_flags`; this default mirrors config.yaml).
+SWS_FLAGS: tuple[str, ...] = ("accurate_rnd", "full_chroma_int")
 
 
-def decode_filter(matrix: str = COLOR_MATRIX, rng: str = COLOR_RANGE) -> str:
+def _sws(sws) -> str:
+    return "+".join(sws) if not isinstance(sws, str) else sws
+
+
+def decode_filter(matrix: str = COLOR_MATRIX, rng: str = COLOR_RANGE, sws=SWS_FLAGS) -> str:
     """YUV -> rgb24 with an explicit matrix/range (never ffmpeg's untagged BT.601 default)."""
-    return f"scale=in_color_matrix={matrix}:in_range={rng},format=rgb24"
+    fl = f"flags={_sws(sws)}:" if sws else ""
+    return f"scale={fl}in_color_matrix={matrix}:in_range={rng},format=rgb24"
 
 
-def encode_filter(pix_fmt: str, matrix: str = COLOR_MATRIX, rng: str = COLOR_RANGE) -> str:
+def encode_filter(pix_fmt: str, matrix: str = COLOR_MATRIX, rng: str = COLOR_RANGE, sws=SWS_FLAGS) -> str:
     """rgb24 -> YUV with an explicit matrix/range."""
-    return f"scale=out_color_matrix={matrix}:out_range={rng},format={pix_fmt}"
+    fl = f"flags={_sws(sws)}:" if sws else ""
+    return f"scale={fl}out_color_matrix={matrix}:out_range={rng},format={pix_fmt}"
 
 
 def color_tags(matrix: str = COLOR_MATRIX, rng: str = COLOR_RANGE) -> list[str]:
@@ -79,7 +88,7 @@ def color_tags(matrix: str = COLOR_MATRIX, rng: str = COLOR_RANGE) -> list[str]:
 
 
 def iter_rgb_frames(path: str | Path, fps: float, region: tuple[int, int, int, int] | None = None,
-                    matrix: str = COLOR_MATRIX, rng: str = COLOR_RANGE):
+                    matrix: str = COLOR_MATRIX, rng: str = COLOR_RANGE, sws=SWS_FLAGS):
     """(n_pixels, 3) RGB frames in [0, 1] decoded with an explicit BT.709 / tv matrix; ``region`` =
     (y0, y1, x0, x1) restricts to a source-pixel box."""
     h, w = video_size(path)
@@ -92,7 +101,7 @@ def iter_rgb_frames(path: str | Path, fps: float, region: tuple[int, int, int, i
         str(path),
         "-an",
         "-vf",
-        f"fps={fps},{decode_filter(matrix, rng)}",
+        f"fps={fps},{decode_filter(matrix, rng, sws)}",
         "-pix_fmt",
         "rgb24",
         "-f",
@@ -169,11 +178,11 @@ def clip_fraction(path: str | Path, tf: dict[str, Any], pcfg: dict[str, Any],
     return n_clip / n_tot if n_tot else 0.0
 
 
-def _colour(pcfg: dict[str, Any]) -> tuple[str, str]:
+def _colour(pcfg: dict[str, Any]) -> tuple[str, str, tuple[str, ...]]:
     m, r = pcfg.get("color_matrix", COLOR_MATRIX), pcfg.get("color_range", COLOR_RANGE)
     if (m, r) != (COLOR_MATRIX, COLOR_RANGE):
         raise ValueError("normalize.photometric colour must be bt709 / tv (FIX-C3-ENG: BT.709 everywhere)")
-    return m, r
+    return m, r, tuple(pcfg.get("sws_flags", SWS_FLAGS))
 
 
 def photometric_normalize(mp4: str | Path, out_dir: str | Path, cfg: dict[str, Any]) -> dict[str, Any]:
@@ -201,12 +210,12 @@ def photometric_normalize(mp4: str | Path, out_dir: str | Path, cfg: dict[str, A
         f"{k}='clip(val*{tf['a'] * g:.8f}+{255.0 * tf['b']:.6f},0,255)'"
         for k, g in zip("rgb", tf["gains"], strict=True)
     )
-    matrix, rng = _colour(pcfg)
-    vf = f"{decode_filter(matrix, rng)},lutrgb={lut}"
+    matrix, rng, sws = _colour(pcfg)
+    vf = f"{decode_filter(matrix, rng, sws)},lutrgb={lut}"
     ts = pcfg["temporal_smoothing"]
     if ts["enabled"]:
         vf += f",deflicker=size={ts['size_frames']}:mode=am"
-    vf += f",{encode_filter(n['video']['pix_fmt'], matrix, rng)}"
+    vf += f",{encode_filter(n['video']['pix_fmt'], matrix, rng, sws)}"
     with tempfile.TemporaryDirectory(dir=out_dir) as td:
         tmp = Path(td) / "t3.mp4"
         run(

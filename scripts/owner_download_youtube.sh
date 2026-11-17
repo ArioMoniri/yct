@@ -4,10 +4,18 @@
 # private encrypted S3 bucket the EC2 pod can read. No repo clone; no brew. Needs: aws, curl, python3.
 #   DEST           local folder (default below)
 #   BUCKET         S3 bucket (default yct-research-<account id>, eu-central-1, private, SSE-S3)
+#   FORMAT         yt-dlp format selector (default: SDR-first, see ENH-006 below; the previous selector
+#                  "b[ext=mp4][height>=360]/b[ext=mp4]/b" is the tail of the default chain, so behaviour is
+#                  unchanged wherever an SDR progressive mp4 exists, which is every progressive YouTube mp4)
 # Files are named <video_id>.<ext> only — no titles are printed or stored (blinding).
 set -euo pipefail
 DEST="${DEST:-/Volumes/X10 Pro/Macbook/yt}"
 REF="${REF:-claude/yc-videos-agent-system-dirk8p}"
+# ENH-006 (Neuro G-D032 A2): prefer SDR. [dynamic_range=?SDR] keeps SDR (or unknown-range) formats;
+# [vcodec!*=vp09.02] drops VP9 profile 2 (the YouTube HDR codec). Fallbacks: old selector. Any HDR file
+# that still arrives is detected (ffprobe color_transfer PQ/HLG) and tone-mapped + flagged in P2.
+SDR_FORMAT='b[ext=mp4][height>=360][dynamic_range=?SDR][vcodec!*=vp09.02]/b[ext=mp4][dynamic_range=?SDR][vcodec!*=vp09.02]'
+FORMAT="${FORMAT:-$SDR_FORMAT/b[ext=mp4][height>=360]/b[ext=mp4]/b}"
 export AWS_DEFAULT_REGION=eu-central-1
 for c in aws curl python3; do command -v "$c" >/dev/null || { echo "$c not found"; exit 1; }; done
 ACCT=$(aws sts get-caller-identity --query Account --output text)
@@ -37,15 +45,44 @@ while IFS=$'\t' read -r vid url; do
   if ls "$DEST/raw/$vid".* >/dev/null 2>&1; then ok=$((ok+1)); continue; fi
   # progressive mp4 (no ffmpeg needed); >=360p short side satisfies the >=292 px requirement
   if "$TMP/yt-dlp" -q --no-warnings --no-playlist --sleep-requests 2 --sleep-interval 5 --max-sleep-interval 15 \
-       -f "b[ext=mp4][height>=360]/b[ext=mp4]/b" -o "$DEST/raw/$vid.%(ext)s" "$url" 2> "$TMP/err.txt"; then
+       -f "$FORMAT" -o "$DEST/raw/$vid.%(ext)s" "$url" 2> "$TMP/err.txt"; then
     ok=$((ok+1)); printf "  %s ok (%d/%s)\n" "$vid" "$ok" "$N"
+  elif "$TMP/yt-dlp" -q --no-warnings --no-playlist --sleep-requests 2 --sleep-interval 5 \
+         -f "bv*[height<=720][ext=mp4]/bv*[height<=720]" -o "$DEST/raw/$vid.video.%(ext)s" "$url" 2>> "$TMP/err.txt" \
+       && "$TMP/yt-dlp" -q --no-warnings --no-playlist --sleep-requests 2 \
+         -f "ba[ext=m4a]/ba" -o "$DEST/raw/$vid.audio.%(ext)s" "$url" 2>> "$TMP/err.txt"; then
+    # no single-file format: separate streams; the pod merges them with ffmpeg (no ffmpeg needed here)
+    ok=$((ok+1)); printf "  %s ok, split streams (%d/%s)\n" "$vid" "$ok" "$N"
   else
-    fail=$((fail+1)); cls=$(grep -oiE "not a bot|429|private|unavailable|removed|copyright|age" "$TMP/err.txt" | head -1 || true)
+    { echo "== $vid"; sed -E 's/\[youtube\][^:]*: //' "$TMP/err.txt" | tail -3; } >> "$DEST/failed_detail.txt"
+    fail=$((fail+1)); cls=$(grep -oiE "not a bot|429|private|unavailable|removed|copyright|age|format" "$TMP/err.txt" | head -1 || true)
     printf "  %s FAILED (%s)\n" "$vid" "${cls:-other}"; echo -e "$vid\t${cls:-other}" >> "$DEST/failed.tsv"
     if echo "$cls" | grep -qiE "not a bot|429"; then echo "  rate-limited/bot-check: stopping (rerun later resumes)"; break; fi
   fi
 done < "$TMP/list.tsv"
-echo "  downloaded/present: $ok, failed: $fail"
+echo "  downloaded/present: $ok, failed: $fail  (failure details, local only: $DEST/failed_detail.txt)"
+
+echo "== 3b. sealed-URL rows (decrypted locally with your key; URL never printed) =="
+for f in sealed_p1c_urls.tar.age sealed_p1c_urls.tar.age.sha256; do
+  curl -fsSL "https://raw.githubusercontent.com/ArioMoniri/yct/$REF/data/sealed/$f" -o "$TMP/$f"
+done
+( cd "$TMP" && shasum -a 256 -c sealed_p1c_urls.tar.age.sha256 >/dev/null ) || { echo "  sealed checksum mismatch"; exit 1; }
+case "$(uname -m)" in arm64) A=darwin-arm64;; *) A=darwin-amd64;; esac
+curl -fsSL "https://github.com/FiloSottile/age/releases/download/v1.2.1/age-v1.2.1-$A.tar.gz" | tar xz -C "$TMP"
+aws ssm get-parameter --name /yct/owner/age_key --with-decryption --query Parameter.Value --output text > "$TMP/k"
+mkdir -p "$TMP/su"; "$TMP/age/age" -d -i "$TMP/k" "$TMP/sealed_p1c_urls.tar.age" | tar x -C "$TMP/su"; rm -f "$TMP/k"
+python3 - "$TMP/su" "$TMP/manifest.csv" > "$TMP/sealed.tsv" <<'PY'
+import csv, glob, sys
+prim = {r["video_id"] for r in csv.DictReader(open(sys.argv[2], newline="")) if r["in_primary"] == "True"}
+for p in glob.glob(sys.argv[1] + "/**/*.csv", recursive=True):
+    for r in csv.DictReader(open(p, newline="", encoding="utf-8")):
+        if r.get("video_id") in prim and r.get("url"):
+            print(f'{r["video_id"]}\t{r["url"]}')
+PY
+while IFS=$'\t' read -r vid url; do
+  if ls "$DEST/raw/$vid".* >/dev/null 2>&1; then echo "  $vid present"; continue; fi
+  if curl -fsSL --retry 3 "$url" -o "$DEST/raw/$vid.mp4"; then echo "  $vid ok (sealed url)"; else echo "  $vid FAILED (sealed url)"; fi
+done < "$TMP/sealed.tsv"
 
 echo "== 4. checksums =="
 ( cd "$DEST/raw" && shasum -a 256 yct_* > ../SHA256SUMS ) && echo "  $(wc -l < "$DEST/SHA256SUMS" | tr -d ' ') files hashed"

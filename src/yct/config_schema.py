@@ -180,6 +180,7 @@ class Photometric(M):
     temporal_smoothing: TemporalSmoothing
     color_matrix: Literal["bt709"]
     color_range: Literal["tv"]
+    sws_flags: list[Literal["accurate_rnd", "full_chroma_int", "bitexact", "full_chroma_inp"]]
 
     @field_validator("luma_weights")
     @classmethod
@@ -203,12 +204,25 @@ class UntaggedColor(M):
     range: Literal["tv"]
 
 
+class Hdr(M):                       # ENH-006
+    transfers: Annotated[list[str], Field(min_length=1)]
+    action: Literal["tonemap", "fail"]
+    tonemap: Literal["hable", "mobius", "reinhard", "clip", "linear", "gamma"]
+    desat: NonNeg
+    npl: Pos
+    untagged_matrix: str
+    untagged_primaries: str
+    covariate: Literal["hdr_source"]
+
+
 class Color(M):
     matrix: Literal["bt709"]        # BT.709 everywhere (G-D032 c3 Neuro G1/N4, D-053)
     primaries: Literal["bt709"]
     transfer: Literal["bt709"]
     range: Literal["tv"]
+    sws_flags: list[Literal["accurate_rnd", "full_chroma_int", "bitexact", "full_chroma_inp"]]   # ENH-005
     untagged: UntaggedColor
+    hdr: Hdr
 
 
 class Normalize(M):

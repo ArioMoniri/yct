@@ -28,7 +28,9 @@ markers = [
 line-length = 110
 # analysis/power/: archived power-analysis scripts cited as evidence in reviews; kept byte-identical.
 # analysis/sims_c2/: Biostat cycle-2 simulation scripts (commit b834dff), archived evidence, kept byte-identical.
-extend-exclude = ["analysis/power", "analysis/sims_c2"]
+# analysis/neuro_checks/: Neuro G-D032 condition-verification scripts (commit cfeac3d), archived evidence,
+# lint-exempt (committed lint-red, so `ruff check .` failed at cfeac3d); only -nostdin added (test_ffmpeg_nostdin).
+extend-exclude = ["analysis/power", "analysis/sims_c2", "analysis/neuro_checks"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "N", "UP"]

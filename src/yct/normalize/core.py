@@ -29,6 +29,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import pandas as pd
 
 from yct.config import load_config
 from yct.media import (
@@ -138,9 +139,17 @@ def source_color(v: dict[str, Any], ccfg: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def color_scale_opts(in_matrix: str, in_range: str, ccfg: dict[str, Any]) -> str:
-    """swscale options converting in_matrix/in_range -> the configured output matrix/range."""
-    return (f"in_color_matrix={in_matrix}:in_range={in_range}"
+def sws_flags(kernel: str | None, ccfg: dict[str, Any]) -> str:
+    """swscale ``flags`` value: the scaling kernel plus ``normalize.color.sws_flags`` (ENH-005, Neuro
+    G-D032 A1: accurate_rnd + full_chroma_int remove the ~-1.5 code-value BT.601 -> BT.709 bias)."""
+    return "+".join([*([kernel] if kernel else []), *ccfg.get("sws_flags", [])])
+
+
+def color_scale_opts(in_matrix: str, in_range: str, ccfg: dict[str, Any],
+                     kernel: str | None = "bicubic") -> str:
+    """swscale options converting in_matrix/in_range -> the configured output matrix/range (incl. flags)."""
+    fl = sws_flags(kernel, ccfg)
+    return ((f"flags={fl}:" if fl else "") + f"in_color_matrix={in_matrix}:in_range={in_range}"
             f":out_color_matrix={ccfg['matrix']}:out_range={ccfg['range']}")
 
 
@@ -148,6 +157,60 @@ def color_tags(ccfg: dict[str, Any]) -> list[str]:
     """Output bitstream/container colour tags (bt709 matrix/primaries/transfer, tv range)."""
     return ["-colorspace", ccfg["matrix"], "-color_primaries", ccfg["primaries"],
             "-color_trc", ccfg["transfer"], "-color_range", ccfg["range"]]
+
+
+# ---------------------------------------------------------------- HDR (ENH-006)
+_ZS_RANGE = {"tv": "limited", "mpeg": "limited", "pc": "full", "jpeg": "full"}
+
+
+def hdr_info(v: dict[str, Any], hcfg: dict[str, Any]) -> dict[str, Any]:
+    """HDR iff the stream's ffprobe ``color_transfer`` is one of ``normalize.color.hdr.transfers``."""
+    trc = str(v.get("color_transfer") or "unknown")
+    return {"hdr_source": trc in set(hcfg["transfers"]), "hdr_transfer": trc}
+
+
+def ffmpeg_filters() -> frozenset[str]:
+    """Names of the filters the local ffmpeg provides (``ffmpeg -filters``)."""
+    out = run(["ffmpeg", "-hide_banner", "-nostdin", "-filters"]).stdout
+    names = set()
+    for line in out.splitlines():
+        parts = line.split()
+        if len(parts) >= 3 and "->" in parts[2]:
+            names.add(parts[1])
+    return frozenset(names)
+
+
+def tonemap_filter(v: dict[str, Any], hcfg: dict[str, Any]) -> str:
+    """zscale + tonemap chain: HDR (PQ/HLG, BT.2020) -> SDR BT.709 transfer/matrix/primaries, tv range,
+    yuv420p. The source transfer/matrix/primaries/range are passed explicitly from the ffprobe tags."""
+    trc = str(v.get("color_transfer"))
+    m = str(v.get("color_space") or "")
+    m = m if m and m not in _NO_TAG else hcfg["untagged_matrix"]
+    p = str(v.get("color_primaries") or "")
+    p = p if p and p not in _NO_TAG else hcfg["untagged_primaries"]
+    r = _ZS_RANGE.get(str(v.get("color_range") or ""), "limited")
+    return (f"zscale=tin={trc}:min={m}:pin={p}:rin={r}:t=linear:npl={hcfg['npl']},format=gbrpf32le,"
+            f"zscale=p=bt709,tonemap=tonemap={hcfg['tonemap']}:desat={hcfg['desat']},"
+            f"zscale=t=bt709:m=bt709:p=bt709:r=tv,format=yuv420p")
+
+
+def hdr_prefilter(v: dict[str, Any], hcfg: dict[str, Any], src: str | Path) -> str:
+    """Filter prefix for an HDR source (fails loudly if it cannot be tone-mapped)."""
+    trc = v.get("color_transfer")
+    if hcfg["action"] == "fail":
+        raise MediaError(f"HDR source ({trc}) refused by normalize.color.hdr.action=fail: {src}")
+    missing = sorted({"zscale", "tonemap"} - ffmpeg_filters())
+    if missing:
+        raise MediaError(
+            f"HDR source ({trc}) needs ffmpeg filters zscale + tonemap to tone-map to SDR BT.709, but the "
+            f"local ffmpeg lacks {missing} (build with libzimg); refusing to relabel HDR as SDR: {src}")
+    return tonemap_filter(v, hcfg) + ","
+
+
+def normalisation_covariates(records: list[dict[str, Any]]) -> pd.DataFrame:
+    """Binary covariates from normalisation records (index = video_id): ``hdr_source`` (ENH-006)."""
+    return pd.DataFrame({"hdr_source": [float(bool(r.get("hdr_source"))) for r in records]},
+                        index=pd.Index([r["video_id"] for r in records], name="video_id"))
 
 
 # ---------------------------------------------------------------- detection
@@ -352,7 +415,7 @@ def quality_floor_copy(mp4: Path, out_dir: Path, w: int, h: int, cfg: dict[str, 
             "-i",
             str(mp4),
             "-vf",
-            f"scale={lw}:{lh}:flags=bicubic:{keep},setsar=1",
+            f"scale={lw}:{lh}:{keep},setsar=1",
             *_x264(n["video"], q["crf"]),
             *color_tags(cc),
             "-c:a",
@@ -372,7 +435,7 @@ def quality_floor_copy(mp4: Path, out_dir: Path, w: int, h: int, cfg: dict[str, 
             "-i",
             str(low),
             "-vf",
-            f"scale={w}:{h}:flags=bicubic:{keep},setsar=1",
+            f"scale={w}:{h}:{keep},setsar=1",
             *_x264(n["video"]),
             *color_tags(cc),
             "-c:a",
@@ -400,7 +463,14 @@ def normalize_video(
     total = info["duration_s"]
     rec: dict[str, Any] = {"source_path": str(src), "source_sha256": sha256_file(src), "source": info}
     col = source_color(info["color_stream"], n["color"])
+    hdr = hdr_info(info["color_stream"], n["color"]["hdr"])
+    pre = hdr_prefilter(info["color_stream"], n["color"]["hdr"], src) if hdr["hdr_source"] else ""
+    if hdr["hdr_source"]:            # after tone-mapping the frames are BT.709 / tv
+        col.update(in_matrix="bt709", in_range="tv")
+        flags.append("hdr_source")
+    col.update(hdr, hdr_tonemapped=bool(pre))
     rec["color"] = col
+    rec["hdr_source"] = hdr["hdr_source"]
     if col["rule"] != "tagged":
         flags.append("source_color_untagged")
 
@@ -457,8 +527,8 @@ def normalize_video(
             "-i",
             str(src),
         ]
-        vf = (f"fps={st['fps']},scale={tw}:{th}:flags=lanczos:"
-              f"{color_scale_opts(col['in_matrix'], col['in_range'], n['color'])},"
+        vf = (f"fps={st['fps']},{pre}scale={tw}:{th}:"
+              f"{color_scale_opts(col['in_matrix'], col['in_range'], n['color'], 'lanczos')},"
               f"setsar=1,format={n['video']['pix_fmt']}")
         if info["has_audio"]:
             rec.update(mono_phase(src, t0, t1, cfg))

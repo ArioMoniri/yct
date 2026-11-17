@@ -42,7 +42,7 @@ def make(path, w, h, m, rng, tag):
 def decode_raw(path):
     p = json.loads(subprocess.run(["ffprobe","-v","error","-select_streams","v:0","-show_entries","stream=width,height,color_space,color_range,color_primaries,color_transfer","-of","json",str(path)],capture_output=True,text=True).stdout)["streams"][0]
     w,h = p["width"],p["height"]
-    b = subprocess.run(["ffmpeg","-v","error","-i",str(path),"-frames:v","3","-f","rawvideo","-pix_fmt","yuv420p","-"],capture_output=True).stdout
+    b = subprocess.run(["ffmpeg","-v","error","-nostdin","-i",str(path),"-frames:v","3","-f","rawvideo","-pix_fmt","yuv420p","-"],capture_output=True).stdout
     fs = w*h*3//2; f = np.frombuffer(b[fs:2*fs],np.uint8).astype(float)
     Y = f[:w*h].reshape(h,w); U = f[w*h:w*h+w*h//4].reshape(h//2,w//2); V = f[w*h+w*h//4:].reshape(h//2,w//2)
     return p, Y, U.repeat(2,0).repeat(2,1), V.repeat(2,0).repeat(2,1)
