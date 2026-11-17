@@ -33,7 +33,7 @@ def test_schaefer_hemisphere_order(schaefer):
 
 
 def test_medial_wall(schaefer):
-    mw = atl.medial_wall_mask(schaefer)
+    mw = atl.schaefer_medial_wall(schaefer)
     assert mw.dtype == bool and mw.shape == (NV,)
     assert mw[:NH].sum() == 870                  # tribe_requirements §3 (checked locally there)
     assert 500 < mw[NH:].sum() < 1500
@@ -45,7 +45,7 @@ def test_yeo7_derivation(schaefer):
     nets = load_config()["atlases"]["yeo7"]["networks"]
     assert yeo.labels.shape == (NV,)
     assert yeo.names == (atl.MEDIAL_WALL, *nets)
-    assert ((yeo.labels == 0) == atl.medial_wall_mask(schaefer)).all()
+    assert ((yeo.labels == 0) == atl.schaefer_medial_wall(schaefer)).all()
     for pid in (1, 57, 200, 201, 333, 400):
         net = schaefer.names[pid].split("_")[2]
         assert (yeo.labels[schaefer.labels == pid] == nets.index(net) + 1).all()

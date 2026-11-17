@@ -1,5 +1,11 @@
-"""Helpers for atlas-dependent tests: load real atlases or skip cleanly when offline."""
+"""Helpers for atlas-dependent tests: load real atlases; FAIL if unavailable (BUG-008).
+
+Skipping is allowed only when the environment explicitly sets YCT_OFFLINE=1 (never in CI; CI caches
+and pre-fetches ~/.cache/yct/atlases, see .github/workflows/ci.yml and scripts/fetch_atlases.py).
+"""
 from __future__ import annotations
+
+import os
 
 import numpy as np
 import pytest
@@ -14,7 +20,9 @@ def load_or_skip(loader):
     try:
         return loader()
     except AtlasUnavailableError as e:  # offline or optional `neuro` deps missing
-        pytest.skip(f"atlas unavailable: {e}")
+        if os.environ.get("YCT_OFFLINE") == "1":
+            pytest.skip(f"atlas unavailable and YCT_OFFLINE=1: {e}")
+        pytest.fail(f"atlas unavailable: {e} (set YCT_OFFLINE=1 to skip explicitly; never in CI)")
 
 
 def synthetic_atlases(seed: int = 0) -> AtlasSet:

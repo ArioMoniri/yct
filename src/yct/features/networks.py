@@ -3,7 +3,8 @@
 Pipeline per video, for a prediction ``pred`` of shape (T, 20484):
 
 1. :func:`spatial_standardize`: at each TR, centre and scale across non-medial-wall vertices
-   (medial wall -> NaN). Never z-score per vertex over time (that zeroes every mean [B1]).
+   (medial wall -> NaN; the medial wall is the union mask of ``atlas.load_all``, D-034; ddof from
+   ``features.standardize_ddof``, independent of ``features.spatial_sd_ddof``). Never z-score per vertex over time (that zeroes every mean [B1]).
 2. :func:`window_average` over W = [start, start + length) TRs.
 3. :func:`yeo7_means`: network means. The size-weighted sum of the 7 means is 0 (rank 6), so
    M1 keeps the 6 non-limbic networks; Limbic is the omitted reference.
@@ -38,9 +39,17 @@ def _check(pred: np.ndarray, mask: np.ndarray) -> np.ndarray:
 
 
 def spatial_standardize(pred: np.ndarray, medial_wall: np.ndarray, ddof: int = 0) -> np.ndarray:
-    """Per-TR z-score across cortex (non-medial vertices); medial wall set to NaN."""
+    """Per-TR z-score across cortex (non-medial vertices); medial wall set to NaN.
+
+    Raises on any non-finite cortical value: one NaN vertex would otherwise silently turn the
+    whole TR into NaN (G-D032 Biostat D4).
+    """
     x = _check(pred, medial_wall)
     ctx = x[:, ~medial_wall]
+    if not np.isfinite(ctx).all():
+        bad = np.argwhere(~np.isfinite(ctx))
+        raise ValueError(f"non-finite prediction on {len(bad)} cortical (TR, vertex) entries, "
+                         f"first at TR {int(bad[0, 0])}")
     mu = ctx.mean(axis=1, keepdims=True)
     sd = ctx.std(axis=1, ddof=ddof, keepdims=True)
     if (sd <= 0).any():
@@ -99,12 +108,12 @@ def m1_features(pred: np.ndarray, yeo7: Atlas, medial_wall: np.ndarray, start: i
                 cfg: dict[str, Any] | None = None) -> pd.Series:
     """M1 (k = 7): the 6 non-limbic Yeo means of the standardised, W-averaged map + spatial SD."""
     fc = _feat_cfg(cfg)
-    ddof = int(fc.get("spatial_sd_ddof", 0))
-    avg = window_average(spatial_standardize(pred, medial_wall, ddof=ddof), start, length)
+    avg = window_average(spatial_standardize(pred, medial_wall, ddof=int(fc["standardize_ddof"])),
+                         start, length)
     means = yeo7_means(avg, yeo7)
     nets = list(fc["m1_networks"])
     if fc["m1_reference"] in nets or set(nets) | {fc["m1_reference"]} != set(means.index):
         raise ValueError("features.m1_networks + m1_reference must partition the Yeo-7 networks")
     out = means[nets].copy()
-    out["spatial_sd"] = spatial_sd(pred, medial_wall, start, length, ddof=ddof)
+    out["spatial_sd"] = spatial_sd(pred, medial_wall, start, length, ddof=int(fc["spatial_sd_ddof"]))
     return out

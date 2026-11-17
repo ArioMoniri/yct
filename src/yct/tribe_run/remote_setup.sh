@@ -26,7 +26,9 @@ git -C tribev2 checkout -q "$TRIBE_COMMIT"
 [ -d venv ] || "$UV" venv -q -p 3.11 venv
 # shellcheck disable=SC1091
 source venv/bin/activate
-"$UV" pip install -q -e ./tribev2 "torch>=2.5.1,<2.7" "exca==0.5.20" nilearn pandas
+# transformers is unpinned upstream; pin the version measured in P0 smoke run smoke_20261117T142354Z.
+"$UV" pip install -q -e ./tribev2 "torch>=2.5.1,<2.7" "exca==0.5.20" "transformers==5.17.0" nilearn pandas
+python -c 'import transformers as t; assert t.__version__ == "5.17.0", t.__version__'
 "$UV" pip freeze > "$W/pip_freeze.txt"
 
 python - "$HF_REV" "$W/weights" <<'PY'

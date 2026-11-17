@@ -172,3 +172,15 @@ def test_cli_writes_parquet(stim, capsys):
     back = pd.read_parquet(out)
     assert len(back) == 6 and "motion_energy" in back.columns
     assert '"n_tr": 6' in capsys.readouterr().out
+
+
+def test_summary_speech_rate_and_fraction_per_video(stim):
+    s = stim["summary"]
+    assert s["has_audio_track"] is True
+    assert s["n_words"] == 3
+    assert s["speech_rate_wps"] == pytest.approx(3 / 6.0, rel=0.02)
+    assert 0 < s["speech_frac"] < 1
+    df = stim["df"]
+    for col in ("face_present_crop", "face_area_crop_frac", "luminance_crop", "contrast_crop"):
+        v = df[col].dropna()
+        assert len(v) and ((v >= 0) & (v <= 1)).all(), col

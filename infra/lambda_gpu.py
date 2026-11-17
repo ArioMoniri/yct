@@ -15,7 +15,10 @@ Guards (watchdog rules W-COST):
   * Cumulative spend cap BUDGET_USD (read from infra/BUDGET_USD; changing it is a human-only action, see v2 §2)
     blocks new launches; a warning is emitted at >=80% of the cap.
   * The ledger is tracked in git (infra/gpu_ledger.jsonl) so spend survives fresh checkouts.
-  * `reap` terminates yct-* instances past deadline; `watch` runs reap every 60 s.
+  * `reap` terminates yct-* instances past deadline OR whose last heartbeat (or launch, if none) is older
+    than HEARTBEAT_TIMEOUT_S = 10 min; `watch` runs reap every 60 s and appends one
+    {"event": "heartbeat", "id", "t"} ledger record per live yct-* instance each loop (v2.md §3), so a
+    dead watcher is detected by the next `reap` (session start, every gate, after every job).
   * Non-yct instances are reported (never terminated) so orphans are visible.
   * A10 is disallowed until the P0 smoke test records peak VRAM < 20 GB (A10_ALLOWED=1).
 """
@@ -50,6 +53,7 @@ def _owner_budget() -> float:
 BUDGET_USD = _owner_budget()
 BUDGET_MAX_HOURS = 4.0
 ALERT_FRACTION = 0.8
+HEARTBEAT_TIMEOUT_S = 600.0  # v2.md §3: killed after 10 minutes of silence (hard rule, not env-tunable)
 
 
 def _req(method: str, path: str, body: dict | None = None) -> dict:
@@ -118,12 +122,12 @@ def launch(itype: str, name: str, max_hours: float, ssh_key: str | None, region:
     return rec
 
 
-def terminate(iid: str) -> None:
+def terminate(iid: str, reason: str = "manual") -> None:
     inst = _req("GET", f"/instances/{iid}")["data"]
     if not inst.get("name", "").startswith(PREFIX):
         raise SystemExit("refusing to terminate a non-project instance")
     _req("POST", "/instance-operations/terminate", {"instance_ids": [iid]})
-    _append({"event": "terminate", "id": iid, "t": time.time()})
+    _append({"event": "terminate", "id": iid, "t": time.time(), "reason": reason})
 
 
 def list_ours() -> list[dict]:
@@ -137,25 +141,50 @@ def foreign() -> list[dict]:
             for i in _req("GET", "/instances")["data"] if not i.get("name", "").startswith(PREFIX)]
 
 
+def _live(insts: list[dict]) -> list[dict]:
+    return [i for i in insts if i["status"] not in ("terminated", "terminating")]
+
+
+def heartbeat(ids: list[str]) -> None:
+    for iid in ids:
+        _append({"event": "heartbeat", "id": iid, "t": time.time()})
+
+
 def watch(interval: int = 60) -> None:
     while True:
         killed = reap()
         if killed:
             print(json.dumps({"t": time.time(), "reaped": killed}), flush=True)
-        if not [i for i in list_ours() if i["status"] not in ("terminated", "terminating")]:
+        live = _live(list_ours())
+        if not live:
             return
+        heartbeat([i["id"] for i in live])
         time.sleep(interval)
 
 
+def _last_seen(ledger: list[dict]) -> dict[str, float]:
+    seen: dict[str, float] = {}
+    for r in ledger:
+        if r["event"] in ("launch", "heartbeat"):
+            seen[r["id"]] = max(seen.get(r["id"], 0.0), r["t"])
+    return seen
+
+
 def reap() -> list[str]:
-    deadlines = {r["id"]: r["deadline"] for r in _ledger() if r["event"] == "launch"}
+    led = _ledger()
+    deadlines = {r["id"]: r["deadline"] for r in led if r["event"] == "launch"}
+    seen = _last_seen(led)
     killed = []
-    for i in list_ours():
-        if i["status"] in ("terminated", "terminating"):
+    for i in _live(list_ours()):
+        now = time.time()
+        if now > deadlines.get(i["id"], 0):  # unknown instance => past deadline
+            reason = "deadline"
+        elif now - seen.get(i["id"], 0.0) > HEARTBEAT_TIMEOUT_S:
+            reason = "heartbeat"
+        else:
             continue
-        if time.time() > deadlines.get(i["id"], 0):  # unknown instance => past deadline
-            terminate(i["id"])
-            killed.append(i["id"])
+        terminate(i["id"], reason)
+        killed.append(i["id"])
     return killed
 
 

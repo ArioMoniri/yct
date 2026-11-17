@@ -67,9 +67,10 @@ def test_global_amplitude_and_parcel_means():
 
 @pytest.mark.atlas
 def test_m1_real_yeo_rank():
-    s = load_or_skip(atl.load_schaefer400)
-    yeo = atl.yeo7_from_schaefer(s)
-    mw = atl.medial_wall_mask(s)
+    at = load_or_skip(atl.load_all)
+    yeo = at.yeo7
+    mw = atl.medial_wall_mask(at)
+    assert ((yeo.labels == 0) == mw).all()
     feats = []
     for seed in range(12):
         pred = _pred(seed, t=50, yeo=yeo) + np.random.default_rng(100 + seed).normal(
@@ -87,3 +88,37 @@ def test_m1_real_yeo_rank():
     assert np.linalg.matrix_rank(f, tol=1e-6 * np.abs(f).max()) == 6       # 7-network set: rank 6
     m1_mat = f[:, [0, 1, 2, 3, 5, 6]]
     assert np.linalg.matrix_rank(m1_mat, tol=1e-6 * np.abs(f).max()) == 6  # 6 kept: full rank
+
+
+def test_spatial_standardize_raises_on_nan():
+    at = synthetic_atlases()
+    pred = _pred(t=5)
+    pred[2, np.flatnonzero(~at.medial_wall)[10]] = np.nan
+    with pytest.raises(ValueError, match="non-finite"):
+        net.spatial_standardize(pred, at.medial_wall)
+    pred = _pred(t=5)
+    pred[:, np.flatnonzero(at.medial_wall)[0]] = np.nan          # NaN on the medial wall is fine
+    assert np.isfinite(net.spatial_standardize(pred, at.medial_wall)[:, ~at.medial_wall]).all()
+    pred = _pred(t=5)
+    pred[1, np.flatnonzero(~at.medial_wall)[3]] = np.inf
+    with pytest.raises(ValueError):
+        net.spatial_standardize(pred, at.medial_wall)
+
+
+def test_ddof_settings_are_independent():
+    from yct.config import load_config, with_overrides
+
+    at = synthetic_atlases()
+    pred = _pred(t=50, yeo=at.yeo7)
+    base = load_config()
+    assert "standardize_ddof" in base["features"] and "spatial_sd_ddof" in base["features"]
+    m00 = net.m1_features(pred, at.yeo7, at.medial_wall, 5, 40, cfg=base)
+    sd1 = with_overrides(base, {"features": {"spatial_sd_ddof": 1}})
+    m01 = net.m1_features(pred, at.yeo7, at.medial_wall, 5, 40, cfg=sd1)
+    # changing the spatial-SD ddof changes only the 7th feature
+    np.testing.assert_array_equal(m00.iloc[:6].to_numpy(), m01.iloc[:6].to_numpy())
+    assert m01["spatial_sd"] > m00["spatial_sd"]
+    st1 = with_overrides(base, {"features": {"standardize_ddof": 1}})
+    m10 = net.m1_features(pred, at.yeo7, at.medial_wall, 5, 40, cfg=st1)
+    assert m10["spatial_sd"] == m00["spatial_sd"]
+    assert not np.array_equal(m10.iloc[:6].to_numpy(), m00.iloc[:6].to_numpy())

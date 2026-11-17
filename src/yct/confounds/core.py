@@ -9,7 +9,15 @@ Choices (documented):
   * motion energy: mean absolute luma difference between consecutive sampled frames (0..1), full frame
     and inside the V-JEPA2 central crop (short edge -> 292, centre 256x256).
   * faces: OpenCV Haar frontal-face cascade (ships with opencv-python-headless; mediapipe needs model
-    downloads). Frontal faces only; profile faces are missed.
+    downloads). Frontal faces only; profile faces are missed. Detection runs on the 292-short-edge frame;
+    the crop-aware columns (v2.4 G-D032 N-D5) use only what V-JEPA2 sees, the central 256x256 crop:
+      - `face_area_crop_frac` = summed box area inside the crop / crop area (capped at 1). This is the
+        P4b FFC regressor (`confounds.ffc_regressor`) and the M0 face-area feature;
+      - `face_present_crop` = 1 if any box has >= `face.crop_min_inside_frac` of its area inside the crop.
+    The full-frame columns (`face_present_frac`, `face_area_frac`) are kept for QC only.
+  * luminance / contrast: full frame and inside the crop (`luminance_crop`, `contrast_crop`).
+  * per-video summary carries `has_audio_track`, `n_words`, `speech_rate_wps` (words / s over the clip) and
+    `speech_frac`; the W-level values used by M0 are computed in yct.features.m0.
   * scene cuts: PySceneDetect ContentDetector.
   * on-screen text: NOT implemented (needs a downloaded EAST/OCR model); column is NaN and the summary
     carries `text_detection: "not_implemented"`.
@@ -25,7 +33,7 @@ import numpy as np
 import pandas as pd
 
 from yct.config import load_config
-from yct.media import decode_audio, duration, energy_vad, iter_gray_frames
+from yct.media import decode_audio, duration, energy_vad, ffprobe, iter_gray_frames, stream
 
 FEATURES = [
     "rms_db",
@@ -35,6 +43,8 @@ FEATURES = [
     "pitch_sd_hz",
     "luminance",
     "contrast",
+    "luminance_crop",
+    "contrast_crop",
     "motion_energy",
     "motion_energy_crop",
     "scene_cuts",
@@ -42,6 +52,8 @@ FEATURES = [
     "face_count_mean",
     "face_area_frac",
     "face_area_outside_crop_frac",
+    "face_present_crop",
+    "face_area_crop_frac",
     "text_frac",
 ]
 
@@ -171,8 +183,9 @@ def video_features(mp4: str | Path, grid: pd.DataFrame, cfg: dict[str, Any]) -> 
     face_every = max(1, int(round(fps / c["face_fps"])))
     fc = c["face"]
     det = _face_detector(fc)
-    ts, lum, con, mot, motc = [], [], [], [], []
-    ft, fpres, fcount, farea, fout = [], [], [], [], []
+    ts, lum, con, lumc, conc, mot, motc = [], [], [], [], [], [], []
+    ft, fpres, fcount, farea, fout, fpc, fac = [], [], [], [], [], [], []
+    min_inside = float(fc["crop_min_inside_frac"])
     prev = None
     for i, (t, g) in enumerate(iter_gray_frames(mp4, fps, short)):
         h, w = g.shape
@@ -181,6 +194,9 @@ def video_features(mp4: str | Path, grid: pd.DataFrame, cfg: dict[str, Any]) -> 
         ts.append(t)
         lum.append(f.mean())
         con.append(f.std())
+        fcrop = f[y0:y1, x0:x1]
+        lumc.append(fcrop.mean())
+        conc.append(fcrop.std())
         if prev is None:
             mot.append(np.nan)
             motc.append(np.nan)
@@ -196,12 +212,16 @@ def video_features(mp4: str | Path, grid: pd.DataFrame, cfg: dict[str, Any]) -> 
             )
             boxes = np.asarray(boxes).reshape(-1, 4)
             area = inside = 0.0
+            present_crop = False
             for bx, by, bw, bh in boxes:
                 area += bw * bh
                 iw = max(0, min(bx + bw, x1) - max(bx, x0))
                 ih = max(0, min(by + bh, y1) - max(by, y0))
                 inside += iw * ih
+                present_crop |= bw * bh > 0 and iw * ih >= min_inside * bw * bh
             ft.append(t)
+            fpc.append(float(present_crop))
+            fac.append(min(1.0, inside / ((y1 - y0) * (x1 - x0))))
             fpres.append(float(len(boxes) > 0))
             fcount.append(float(len(boxes)))
             farea.append(min(1.0, area / (h * w)))
@@ -210,12 +230,16 @@ def video_features(mp4: str | Path, grid: pd.DataFrame, cfg: dict[str, Any]) -> 
     return {
         "luminance": _per_tr(ts, np.asarray(lum), tr, n),
         "contrast": _per_tr(ts, np.asarray(con), tr, n),
+        "luminance_crop": _per_tr(ts, np.asarray(lumc), tr, n),
+        "contrast_crop": _per_tr(ts, np.asarray(conc), tr, n),
         "motion_energy": _per_tr(ts, np.asarray(mot), tr, n),
         "motion_energy_crop": _per_tr(ts, np.asarray(motc), tr, n),
         "face_present_frac": _per_tr(ft, np.asarray(fpres), tr, n),
         "face_count_mean": _per_tr(ft, np.asarray(fcount), tr, n),
         "face_area_frac": _per_tr(ft, np.asarray(farea), tr, n),
         "face_area_outside_crop_frac": _per_tr(ft, np.asarray(fout), tr, n),
+        "face_present_crop": _per_tr(ft, np.asarray(fpc), tr, n),
+        "face_area_crop_frac": _per_tr(ft, np.asarray(fac), tr, n),
     }
 
 
@@ -264,10 +288,14 @@ def extract_confounds(
         else:
             df[k] = a[k] if k in a else v[k]
     f0 = a["_f0"][np.isfinite(a["_f0"])]
+    n_words = int(len(words)) if words is not None else None
     summary = {
         "video_id": vid,
         "duration_s": dur,
         "n_tr": n,
+        "has_audio_track": stream(ffprobe(mp4), "audio") is not None,
+        "n_words": n_words,
+        "speech_rate_wps": float(n_words / dur) if n_words is not None and dur > 0 else None,
         "speech_s": a["_speech_s"],
         "speech_frac": float(df["speech_frac"].mean()),
         "words_per_min": float(len(words) / dur * 60) if words is not None else None,

@@ -110,6 +110,7 @@ def test_no_padding(padded, portrait):
             [
                 "ffmpeg",
                 "-hide_banner",
+                "-nostdin",
                 "-i",
                 mp4,
                 "-vf",
@@ -186,13 +187,31 @@ def test_quality_floor_round_trip(work, cfg):
 
 
 def test_deterministic_names_and_t1_unchanged_by_photometric(work, cfg, padded):
+    from yct.normalize.photometric import photometric_normalize
+
     src = work / "padded.mp4"
-    again = normalize_video(src, work / "out_again", cfg)
+    assert cfg["normalize"]["photometric"]["enabled"] is True
     no_t3 = normalize_video(
         src, work / "out_no_t3", syn.fast_cfg(normalize={"photometric": {"enabled": False}})
     )
-    assert again["video_id"] == padded["video_id"] == no_t3["video_id"]
     assert "t3" not in no_t3
+    # QA G-D032 D5: hash the T1 output FILE BYTES before and after running T3 on that same T1 file.
+    t1 = Path(no_t3["path"])
+    t1_before = sha256_file(t1)
+    assert t1_before == no_t3["sha256"] and len(t1_before) == 64
+    t3 = photometric_normalize(t1, t1.parent, cfg)
+    assert sha256_file(t1) == t1_before
+    t3_path = Path(t3["t3_path"])
+    assert t3_path.exists() and t3_path.resolve() != t1.resolve()
+    assert t3_path.parent.resolve() != t1.parent.resolve()  # TRIBE never sees T3 beside T1
+    assert sha256_file(t3_path) == t3["t3_sha256"] != t1_before
+    # same input with T3 enabled: T1 bytes on disk identical (full sha256) and T3 really ran
+    again = normalize_video(src, work / "out_again", cfg)
+    assert "t3" in again
+    assert sha256_file(again["path"]) == again["sha256"] == t1_before
+    assert sha256_file(padded["path"]) == padded["sha256"] == t1_before
+    assert Path(again["t3"]["t3_path"]).parent.resolve() != Path(again["path"]).parent.resolve()
+    assert again["video_id"] == padded["video_id"] == no_t3["video_id"]
 
 
 def test_sidecar_wav_matches_mp4_audio(padded):

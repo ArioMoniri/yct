@@ -6,7 +6,8 @@ requires-python = ">=3.10"
 dependencies = ["pyyaml", "pandas", "numpy", "pydantic>=2"]
 
 [project.optional-dependencies]
-dev = ["pytest", "ruff"]
+# ruff pinned exactly; CI installs the same version via requirements.lock (BUG-007).
+dev = ["pytest==9.2.0", "ruff==0.17.5"]
 # P2/P3 preprocessing (also needs system ffmpeg/ffprobe >= 6). opencv 4.x: 5.x dropped CascadeClassifier;
 # scenedetect 0.6.x: 0.7 hard-depends on non-headless opencv-python. pyarrow: confounds.parquet.
 pre = ["opencv-python-headless==4.11.0.86", "scenedetect==0.6.7", "pyarrow==26.0.1"]
@@ -20,7 +21,7 @@ where = ["src"]
 testpaths = ["tests"]
 pythonpath = ["src", "."]
 markers = [
-    "atlas: needs real atlas files (downloaded once to ~/.cache/yct/atlases; skips cleanly offline)",
+    "atlas: needs real atlas files (downloaded once to ~/.cache/yct/atlases); missing atlases FAIL unless YCT_OFFLINE=1 (BUG-008)",
 ]
 
 [tool.ruff]

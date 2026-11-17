@@ -212,7 +212,7 @@ def asr_guard():
     banned = ("whisperx", "uvx")
 
     def check(args: Any) -> None:
-        argv = [args] if isinstance(args, (str, bytes, Path)) else list(args)
+        argv = [args] if isinstance(args, str | bytes | Path) else list(args)
         text = " ".join(str(a) for a in argv).lower()
         if any(b in text for b in banned):
             raise UnpinnedASRError(f"unpinned ASR call blocked: {text[:200]}")

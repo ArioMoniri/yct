@@ -3,7 +3,8 @@
 ROIs (Destrieux a2009s on fsaverage5, both hemispheres; TRIBE layout = 10242 L then 10242 R):
   visual   = Pole_occipital + S_calcarine          (event: white flash at t=15 s)
   auditory = G_temp_sup-G_T_transv + S_temporal_transverse  (event: speech burst at t=25 s)
-Output time = segment start (s, stimulus clock) of each kept TR; TRIBE's 5 s offset is applied in training (see below).
+Output time = segment start (s, stimulus clock) of each kept TR; TRIBE's 5 s offset is applied in
+training (see below).
 Usage: python latency.py PRED.npy SEGMENTS.csv OUTDIR [CONTROL.npy]
   CONTROL.npy: same-length black/silent/no-word clip; if given, time courses are impulse - control.
 Output-time semantics: the neuro extractor reads BOLD at stimulus time + neuro.offset (5 s) in
@@ -42,7 +43,8 @@ def main(pred: str, seg: str, outdir: str, control: str | None = None) -> dict:
         p = p - c
     t = np.loadtxt(seg, delimiter=",", skiprows=1, usecols=1)
     assert len(t) == p.shape[0]
-    out = Path(outdir); out.mkdir(parents=True, exist_ok=True)
+    out = Path(outdir)
+    out.mkdir(parents=True, exist_ok=True)
     res = {}
     for roi, mask in roi_masks().items():
         onset = ROIS[roi][1]

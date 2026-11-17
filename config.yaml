@@ -104,7 +104,9 @@ confounds:                     # P3 per-TR M0 features (v2.md §5 P3)
   video_fps: 10                # luminance / contrast / motion sampling rate
   face_fps: 2                  # face detector sampling rate
   analysis_short_side_px: 292  # frames are analysed at the V-JEPA2 resize (short edge 292)
-  face: {detector: haarcascade_frontalface_default.xml, scale_factor: 1.1, min_neighbors: 5, min_size_frac: 0.08}
+  face: {detector: haarcascade_frontalface_default.xml, scale_factor: 1.1, min_neighbors: 5, min_size_frac: 0.08,
+         crop_min_inside_frac: 0.5}   # face_present_crop: >= this share of the box inside the 256x256 crop
+  ffc_regressor: face_area_crop_frac   # P4b(a) FFC regressor, computed inside the V-JEPA2 crop (v2.4 G-D032 N-D5)
   scene: {detector: content, threshold: 27.0, min_scene_len_frames: 15}
   text_detection: false        # on-screen text: not implemented (needs a downloaded EAST/OCR model)
 
@@ -146,7 +148,26 @@ atlases:                       # P5 (v2.md §5 P5; tribe_requirements §8). Cons
 features:                      # P5 M1 features (v2.md §1)
   m1_networks: [Vis, SomMot, DorsAttn, SalVentAttn, Cont, Default]   # Limbic = omitted reference (rank 6)
   m1_reference: Limbic
-  spatial_sd_ddof: 0
+  standardize_ddof: 0          # per-TR spatial z-score (step 1); separate from step 4 (v2.4 G-D032 B-D6)
+  spatial_sd_ddof: 0           # 7th M1 feature: spatial SD of the raw map
+  medial_wall: union           # Schaefer label 0 | HCP-MMP1 ??? | Destrieux Medial_wall (D-034); one mask everywhere
+
+m0:                            # H4 M0 assembly (v2.4 G-D032 Biostat D1, Referee #7/#8; D-034). LABEL-FREE; freeze in prereg
+  features:                    # W-averaged per-TR confounds (yct.confounds); visual features inside the V-JEPA2 crop
+    - rms_db
+    - speech_frac              # forced into K_Q (known issue #8)
+    - speech_rate_wps          # forced into K_Q (known issue #8)
+    - pitch_mean_hz            # no voiced frame in W -> dataset median + voiced_any = 0
+    - luminance_crop
+    - contrast_crop
+    - motion_energy_crop
+    - scene_cuts               # W-mean of per-TR cut counts = cuts / s
+    - face_area_crop_frac      # no face -> 0
+  never: [text_frac]           # on-screen text not implemented: dropped from M0, never imputed
+  binary: [voiced_any]         # added by the pitch imputation rule; never squared, never in K_Q
+  forced_kq: [speech_rate_wps, speech_frac]
+  k_q: 3                       # K_Q = forced + top (k_q - 2) by 1/VIF; Q has 1 + p + p_nonbin + C(k_q,2) (+ era) columns
+  min_words_in_w: 20           # label-free exclusion: no audio track or < 20 words in W (known issue #7)
 
 localize:                      # v2.3 activation localisation outputs (D-032; descriptive)
   top_k: 20

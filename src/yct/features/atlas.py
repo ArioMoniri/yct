@@ -9,7 +9,17 @@ table indexed by label id.
 * Yeo-7: derived from the Schaefer names (``7Networks_LH_Vis_1`` -> ``Vis``); 0 = medial wall.
 * HCP-MMP1: fsaverage (163,842 vertices/hemi) annot; fsaverage5 is its first 10,242 vertices per
   hemisphere, so no resampling is needed (tribe_requirements §8). 0 = ``???`` (unlabelled).
-* Destrieux (a2009s): native fsaverage5 annot as fetched by nilearn. Labelling only.
+* Destrieux (a2009s): native fsaverage5 annot as fetched by nilearn. Labelling only. Its
+  background (id 0 ``Unknown``) is empty; the medial wall is the real-looking labels
+  ``L/R Medial_wall`` (ids 42/117 raw), which the analysis set folds into the background.
+
+**Medial wall (v2.4 G-D032, D-034).** The analysis mask is the UNION of the Schaefer medial wall
+(label 0), HCP-MMP1 ``???`` (label 0) and Destrieux ``Medial_wall``: 993 LH + 987 RH = 1,980
+fsaverage5 vertices. :func:`load_all` applies this one mask to every atlas in the
+:class:`AtlasSet` (each atlas's background == the union), so M1 spatial standardisation, network
+and parcel means, peak tables and surface maps all use the same vertices. The single-atlas
+loaders return the raw annots (``schaefer_medial_wall`` is the raw Schaefer label 0, for loader
+tests only); analysis code must use :func:`load_all` / :func:`medial_wall_mask`.
 
 Files are cached under ``atlases.cache_dir`` (env ``YCT_ATLAS_DIR`` overrides) and their sha256
 is checked against ``config.yaml`` on every load. A missing file that cannot be downloaded raises
@@ -198,10 +208,44 @@ def load_destrieux(cfg: dict[str, Any] | None = None) -> Atlas:
     return _combine("destrieux", lh, rh, prefixes=("L ", "R "))
 
 
-def medial_wall_mask(schaefer: Atlas | None = None) -> np.ndarray:
-    """Boolean (20484,) mask, True on the medial wall (Schaefer label 0)."""
-    s = schaefer if schaefer is not None else load_schaefer400()
-    return s.labels == s.background
+DESTRIEUX_MEDIAL = "Medial_wall"
+
+
+def schaefer_medial_wall(schaefer: Atlas) -> np.ndarray:
+    """RAW Schaefer label-0 mask (870 LH / 873 RH). Not the analysis mask: see medial_wall_mask."""
+    return schaefer.labels == schaefer.background
+
+
+def _destrieux_medial_ids(des: Atlas) -> list[int]:
+    return [i for i, n in enumerate(des.names) if i != des.background and n.endswith(DESTRIEUX_MEDIAL)]
+
+
+def union_medial_wall(schaefer: Atlas, hcp: Atlas, destrieux: Atlas) -> np.ndarray:
+    """Schaefer label 0 | HCP-MMP1 ``???`` | Destrieux background or ``Medial_wall`` (D-034)."""
+    for a in (schaefer, hcp, destrieux):
+        if a.labels.shape != schaefer.labels.shape:
+            raise ValueError("atlases must share the fsaverage5 vertex order")
+    return ((schaefer.labels == schaefer.background) | (hcp.labels == hcp.background)
+            | (destrieux.labels == destrieux.background)
+            | np.isin(destrieux.labels, _destrieux_medial_ids(destrieux)))
+
+
+def apply_mask(atlas: Atlas, mask: np.ndarray, drop_names: list[int] | tuple[int, ...] = ()) -> Atlas:
+    """Set ``mask`` vertices to background; optionally delete label ids (renumbered, order kept)."""
+    lab = np.where(mask, atlas.background, atlas.labels)
+    drop = set(int(i) for i in drop_names)
+    if drop:
+        if atlas.background in drop:
+            raise ValueError("cannot drop the background label")
+        lab = np.where(np.isin(lab, list(drop)), atlas.background, lab)
+        keep = [i for i in range(len(atlas.names)) if i not in drop]
+        lut = np.zeros(len(atlas.names), dtype=np.int64)
+        lut[keep] = np.arange(len(keep))
+        lab = lut[lab]
+        names = tuple(atlas.names[i] for i in keep)
+    else:
+        names = atlas.names
+    return Atlas(name=atlas.name, labels=lab, names=names, background=atlas.background)
 
 
 @dataclass(frozen=True)
@@ -213,10 +257,33 @@ class AtlasSet:
 
     @property
     def medial_wall(self) -> np.ndarray:
-        return medial_wall_mask(self.schaefer)
+        """The ONE analysis medial-wall mask (union, D-034)."""
+        return union_medial_wall(self.schaefer, self.hcp, self.destrieux)
+
+
+def mask_atlas_set(raw: AtlasSet) -> AtlasSet:
+    """Apply the union medial wall to every atlas; fold Destrieux ``Medial_wall`` into background."""
+    mw = raw.medial_wall
+    return AtlasSet(
+        schaefer=apply_mask(raw.schaefer, mw), yeo7=apply_mask(raw.yeo7, mw), hcp=apply_mask(raw.hcp, mw),
+        destrieux=apply_mask(raw.destrieux, mw, drop_names=_destrieux_medial_ids(raw.destrieux)),
+    )
 
 
 def load_all(cfg: dict[str, Any] | None = None) -> AtlasSet:
+    """All four atlases with the union medial wall applied to each (the analysis atlas set)."""
     s = load_schaefer400(cfg)
-    return AtlasSet(schaefer=s, yeo7=yeo7_from_schaefer(s, _cfg(cfg)["yeo7"]["networks"]),
-                    hcp=load_hcp_mmp1(cfg), destrieux=load_destrieux(cfg))
+    raw = AtlasSet(schaefer=s, yeo7=yeo7_from_schaefer(s, _cfg(cfg)["yeo7"]["networks"]),
+                   hcp=load_hcp_mmp1(cfg), destrieux=load_destrieux(cfg))
+    return mask_atlas_set(raw)
+
+
+def medial_wall_mask(atlases: AtlasSet | None = None) -> np.ndarray:
+    """Boolean (20484,) analysis mask, True on the union medial wall (D-034).
+
+    Passing a single :class:`Atlas` is an error (that was the Schaefer-only mask, G-D032 #10).
+    """
+    if isinstance(atlases, Atlas):
+        raise TypeError("medial_wall_mask needs an AtlasSet (union mask); use schaefer_medial_wall "
+                        "for the raw Schaefer label 0")
+    return (atlases if atlases is not None else load_all()).medial_wall
