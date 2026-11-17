@@ -94,7 +94,7 @@ def test_moving_a_skip_is_not_an_addition():
 
 def test_real_git_commit_with_fstring_skip_fails(repo):
     base = repo.commit("t", {"tests/test_a.py": "def test_a():\n    assert 1\n"})
-    repo.commit("evade", {"tests/test_a.py": 'import pytest\n\n\ndef test_a():\n    x = f"{pytest.skip(\'e\')}"\n'
-                                             "    assert 1\n"})
+    body = 'import pytest\n\n\ndef test_a():\n    x = f"{pytest.skip(\'e\')}"\n    assert 1\n'
+    repo.commit("evade", {"tests/test_a.py": body})
     res = repo.run_script("check_test_weakening.py", "--base", base)
     assert res.returncode == 1 and "skip/xfail" in res.stdout

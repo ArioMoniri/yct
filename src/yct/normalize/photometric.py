@@ -11,6 +11,12 @@ Per video, ONE global transform (never per frame, so within-video luminance dyna
 Statistics are computed on gamma-encoded RGB in [0, 1] decoded by ffmpeg at `analysis_fps`; "luminance"
 here means gamma-encoded luma Y' (not linear-light luminance).
 
+Colour (FIX-C3-ENG, QA G-D032 c2 D6): BT.709 everywhere. YUV -> RGB decoding (statistics, and the input of
+the T3 lut) uses an explicit BT.709 matrix + limited ("tv") range (`normalize.photometric.color_matrix` /
+`color_range`), never ffmpeg's untagged default (BT.601), so the luma weights, the decoder and the encoder
+agree. The T3 output is encoded RGB -> YUV with the BT.709 matrix and tagged bt709 (matrix, primaries,
+transfer) / tv range, so any downstream decoder (TRIBE/V-JEPA2) reads it with the same matrix.
+
 v2.4 G-D032 (N-D6, Referee D3, Biostat D5):
   * statistics are estimated on the V-JEPA2 view only (`stats_region: vjepa_crop`): the source region that
     maps to the central `center_crop_px`^2 crop after resizing the short edge to `min_short_side_px`
@@ -53,8 +59,29 @@ def vjepa_crop_region(h: int, w: int, short_px: int = 292, crop_px: int = 256) -
     return y0, y0 + ch, x0, x0 + cw
 
 
-def iter_rgb_frames(path: str | Path, fps: float, region: tuple[int, int, int, int] | None = None):
-    """(n_pixels, 3) RGB frames in [0, 1]; ``region`` = (y0, y1, x0, x1) restricts to a source-pixel box."""
+COLOR_MATRIX = "bt709"
+COLOR_RANGE = "tv"
+
+
+def decode_filter(matrix: str = COLOR_MATRIX, rng: str = COLOR_RANGE) -> str:
+    """YUV -> rgb24 with an explicit matrix/range (never ffmpeg's untagged BT.601 default)."""
+    return f"scale=in_color_matrix={matrix}:in_range={rng},format=rgb24"
+
+
+def encode_filter(pix_fmt: str, matrix: str = COLOR_MATRIX, rng: str = COLOR_RANGE) -> str:
+    """rgb24 -> YUV with an explicit matrix/range."""
+    return f"scale=out_color_matrix={matrix}:out_range={rng},format={pix_fmt}"
+
+
+def color_tags(matrix: str = COLOR_MATRIX, rng: str = COLOR_RANGE) -> list[str]:
+    """Container/bitstream colour tags for the output."""
+    return ["-colorspace", matrix, "-color_primaries", matrix, "-color_trc", matrix, "-color_range", rng]
+
+
+def iter_rgb_frames(path: str | Path, fps: float, region: tuple[int, int, int, int] | None = None,
+                    matrix: str = COLOR_MATRIX, rng: str = COLOR_RANGE):
+    """(n_pixels, 3) RGB frames in [0, 1] decoded with an explicit BT.709 / tv matrix; ``region`` =
+    (y0, y1, x0, x1) restricts to a source-pixel box."""
     h, w = video_size(path)
     cmd = [
         "ffmpeg",
@@ -65,7 +92,7 @@ def iter_rgb_frames(path: str | Path, fps: float, region: tuple[int, int, int, i
         str(path),
         "-an",
         "-vf",
-        f"fps={fps}",
+        f"fps={fps},{decode_filter(matrix, rng)}",
         "-pix_fmt",
         "rgb24",
         "-f",
@@ -94,7 +121,7 @@ def frame_stats(path: str | Path, pcfg: dict[str, Any],
     """Per-frame channel means and 3x3 channel covariances -> video-level photometric covariates."""
     wts = np.asarray(pcfg["luma_weights"], float)
     means, covs = [], []
-    for px in iter_rgb_frames(path, pcfg["analysis_fps"], region):
+    for px in iter_rgb_frames(path, pcfg["analysis_fps"], region, *_colour(pcfg)):
         means.append(px.mean(axis=0))
         covs.append(np.cov(px, rowvar=False, bias=True))
     if not means:
@@ -135,11 +162,18 @@ def clip_fraction(path: str | Path, tf: dict[str, Any], pcfg: dict[str, Any],
                   region: tuple[int, int, int, int] | None = None) -> float:
     scale = tf["a"] * np.asarray(tf["gains"])
     n_clip = n_tot = 0
-    for px in iter_rgb_frames(path, pcfg["analysis_fps"], region):
+    for px in iter_rgb_frames(path, pcfg["analysis_fps"], region, *_colour(pcfg)):
         y = px * scale + tf["b"]
         n_clip += int(np.count_nonzero((y < 0) | (y > 1)))
         n_tot += y.size
     return n_clip / n_tot if n_tot else 0.0
+
+
+def _colour(pcfg: dict[str, Any]) -> tuple[str, str]:
+    m, r = pcfg.get("color_matrix", COLOR_MATRIX), pcfg.get("color_range", COLOR_RANGE)
+    if (m, r) != (COLOR_MATRIX, COLOR_RANGE):
+        raise ValueError("normalize.photometric colour must be bt709 / tv (FIX-C3-ENG: BT.709 everywhere)")
+    return m, r
 
 
 def photometric_normalize(mp4: str | Path, out_dir: str | Path, cfg: dict[str, Any]) -> dict[str, Any]:
@@ -167,11 +201,12 @@ def photometric_normalize(mp4: str | Path, out_dir: str | Path, cfg: dict[str, A
         f"{k}='clip(val*{tf['a'] * g:.8f}+{255.0 * tf['b']:.6f},0,255)'"
         for k, g in zip("rgb", tf["gains"], strict=True)
     )
-    vf = f"format=rgb24,lutrgb={lut}"
+    matrix, rng = _colour(pcfg)
+    vf = f"{decode_filter(matrix, rng)},lutrgb={lut}"
     ts = pcfg["temporal_smoothing"]
     if ts["enabled"]:
         vf += f",deflicker=size={ts['size_frames']}:mode=am"
-    vf += f",format={n['video']['pix_fmt']}"
+    vf += f",{encode_filter(n['video']['pix_fmt'], matrix, rng)}"
     with tempfile.TemporaryDirectory(dir=out_dir) as td:
         tmp = Path(td) / "t3.mp4"
         run(
@@ -186,6 +221,7 @@ def photometric_normalize(mp4: str | Path, out_dir: str | Path, cfg: dict[str, A
                 "-vf",
                 vf,
                 *_x264(n["video"], pcfg["crf"]),
+                *color_tags(matrix, rng),
                 "-c:a",
                 "copy",
                 *_BITEXACT,
@@ -223,6 +259,8 @@ def photometric_normalize(mp4: str | Path, out_dir: str | Path, cfg: dict[str, A
         "after_full": cov(after_full),
         "frame_luminance_corr": corr,
         "temporal_smoothing": bool(ts["enabled"]),
+        "color_matrix": matrix,
+        "color_range": rng,
         "flags": flags,
         "kept_in_t3": True,                      # flagged clips are never excluded (v2.4 G-D032)
     }

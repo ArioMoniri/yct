@@ -1,6 +1,5 @@
 data/raw/
 data/normalized/
-data/sealed/
 outputs/preds/
 outputs/logs/
 
@@ -13,3 +12,7 @@ __pycache__/
 .env
 data/curation/search_log.csv
 *.egg-info/
+!data/sealed/
+data/sealed/*
+!data/sealed/*.age
+!data/sealed/*.age.sha256

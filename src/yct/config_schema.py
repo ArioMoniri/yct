@@ -1,0 +1,483 @@
+"""Schema for config.yaml (QA P0 #1, FIX-C3-ENG): every section is a pydantic model with extra="forbid"
+and strict types, so a mistyped key, a wrong type or a missing key fails at load time instead of being
+silently replaced by a `.get()` default. `yct.config.load_config(validate=True)` (the default) uses it.
+
+Strict mode: no str -> number coercion; an int is accepted where a float is expected.
+Adding/renaming a config key therefore needs a matching change here (and tests/test_config_schema.py).
+"""
+from __future__ import annotations
+
+import re
+from typing import Annotated, Any, Literal
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+Sha256 = Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")]
+Sha1 = Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
+Pos = Annotated[float, Field(gt=0)]
+NonNeg = Annotated[float, Field(ge=0)]
+PosInt = Annotated[int, Field(gt=0)]
+Frac = Annotated[float, Field(ge=0, le=1)]
+
+
+class M(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True, populate_by_name=True)
+
+
+# ---------------------------------------------------------------- core
+class Tribe(M):
+    tr_s: Pos
+    n_vertices: Literal[20484]
+
+
+class Stimulus(M):
+    t1_trim_s: Pos
+    t1_max_probe_s: Pos
+    fps: PosInt
+    min_source_fps: PosInt
+    min_short_side_px: PosInt
+    center_crop_px: PosInt
+
+    @model_validator(mode="after")
+    def _probe(self):
+        if self.t1_max_probe_s < self.t1_trim_s:
+            raise ValueError("t1_max_probe_s must be >= t1_trim_s")
+        if self.center_crop_px > self.min_short_side_px:
+            raise ValueError("center_crop_px must be <= min_short_side_px")
+        return self
+
+
+class Window(M):
+    default_start_tr: PosInt
+    default_len_tr: PosInt
+    min_tail_s: NonNeg
+
+
+class Era(M):
+    first_batch: Annotated[str, Field(pattern=r"^[SWF]\d{4}$")] | None = None
+    last_batch: Annotated[str, Field(pattern=r"^[SWF]\d{4}$")] | None = None
+
+
+class Budget(M):
+    usd_file: str
+    ssm_parameter: Annotated[str, Field(pattern=r"^/yct/owner/")]
+    default_usd: Pos
+    alert_fraction: Frac
+    max_hours_per_instance: Annotated[float, Field(gt=0, le=4)]
+
+
+class Seeds(M):
+    company_pick_salt: str
+
+
+# ---------------------------------------------------------------- normalize (P2)
+class BlackDetect(M):
+    min_duration_s: Pos
+    pix_th: Frac
+    pic_th: Frac
+
+
+class SilenceDetect(M):
+    noise_db: float
+    min_duration_s: Pos
+
+
+class Video(M):
+    codec: str
+    crf: Annotated[int, Field(ge=0, le=51)]
+    preset: str
+    pix_fmt: str
+    threads: PosInt
+
+
+class Audio(M):
+    codec: str
+    sample_rate: PosInt
+    bitrate: Annotated[str, Field(pattern=r"^\d+k$")]
+
+
+class SidecarWav(M):
+    sample_rate: PosInt
+    channels: PosInt
+    subdir: str
+
+
+class Loudness(M):
+    target_lufs: float
+    true_peak_dbtp: float
+    target_lra: Pos
+    tolerance_lu: Pos
+    tp_tolerance_db: NonNeg
+    min_speech_s: NonNeg
+
+
+class MonoPhase(M):
+    max_drop_db: Pos
+    drop_cap_db: Pos
+
+
+class AvSync(M):
+    max_offset_ms: Pos
+
+
+class QualityFloor(M):
+    short_side_px: PosInt
+    crf: Annotated[int, Field(ge=0, le=51)]
+    subdir: str
+
+
+class Aspect(M):
+    portrait_max_ratio: Pos
+
+
+class TemporalSmoothing(M):
+    enabled: bool
+    size_frames: Annotated[int, Field(ge=2)]
+
+
+class Photometric(M):
+    enabled: bool
+    subdir: str
+    analysis_fps: Pos
+    luma_weights: Annotated[list[float], Field(min_length=3, max_length=3)]
+    gray_world: bool
+    target_mean_y: Frac
+    target_rms_contrast: Frac
+    stats_region: Literal["vjepa_crop", "full_frame"]
+    max_gain: Pos
+    min_gain: Pos
+    max_clip_frac: Frac
+    crf: Annotated[int, Field(ge=0, le=51)]
+    temporal_smoothing: TemporalSmoothing
+    color_matrix: Literal["bt709"]
+    color_range: Literal["tv"]
+
+    @field_validator("luma_weights")
+    @classmethod
+    def _bt709(cls, v):
+        if abs(sum(v) - 1.0) > 1e-6:
+            raise ValueError("luma_weights must sum to 1")
+        return v
+
+    @model_validator(mode="after")
+    def _gains(self):
+        if not self.min_gain < 1.0 < self.max_gain:
+            raise ValueError("need min_gain < 1 < max_gain")
+        return self
+
+
+class Normalize(M):
+    hash_len: Annotated[int, Field(ge=8, le=64)]
+    edge_tolerance_s: NonNeg
+    trim_mode: Literal["both", "either"]
+    blackdetect: BlackDetect
+    silencedetect: SilenceDetect
+    video: Video
+    audio: Audio
+    sidecar_wav: SidecarWav
+    loudness: Loudness
+    mono_phase: MonoPhase
+    av_sync: AvSync
+    quality_floor: QualityFloor
+    aspect: Aspect
+    ffmpeg_loglevel: Literal["quiet", "panic", "fatal", "error", "warning", "info"]
+    photometric: Photometric
+
+
+class Vad(M):
+    sample_rate: PosInt
+    frame_s: Pos
+    hop_s: Pos
+    abs_floor_dbfs: float
+    rel_db: Pos
+    ref_percentile: Annotated[float, Field(gt=0, le=100)]
+    min_gap_s: NonNeg
+    min_seg_s: NonNeg
+
+
+# ---------------------------------------------------------------- transcribe / confounds
+class WhisperX(M):
+    executable: str
+    version: str | None
+    model: str
+    language: str
+    device: str
+    compute_type: str
+    batch_size: PosInt
+    align_model: str
+
+
+class Transcribe(M):
+    whisperx: WhisperX
+    tsv_columns: list[str]
+    max_unmatched_ratio: Frac
+    end_tolerance_s: NonNeg
+    manifest_columns: list[str]
+
+
+class Pitch(M):
+    frame_s: Pos
+    hop_s: Pos
+    fmin_hz: Pos
+    fmax_hz: Pos
+    voicing_threshold: Frac
+    octave_ratio: Frac
+
+
+class Face(M):
+    detector: str
+    scale_factor: Annotated[float, Field(gt=1)]
+    min_neighbors: PosInt
+    min_size_frac: Frac
+    crop_min_inside_frac: Frac
+
+
+class Scene(M):
+    detector: str
+    threshold: Pos
+    min_scene_len_frames: PosInt
+
+
+class Confounds(M):
+    rms_floor_db: float
+    pitch: Pitch
+    video_fps: Pos
+    face_fps: Pos
+    analysis_short_side_px: PosInt
+    face: Face
+    ffc_regressor: str
+    scene: Scene
+    text_detection: bool
+
+
+# ---------------------------------------------------------------- atlases / features
+class AnnotFile(M):
+    file: str
+    sha256: Sha256
+    url: str | None = None
+    md5: Annotated[str, Field(pattern=r"^[0-9a-f]{32}$")] | None = None
+
+    @field_validator("url")
+    @classmethod
+    def _pinned(cls, v):
+        # BUG/Watchdog G-D032 c2 #3: no moving branch refs; GitHub raw URLs must name a full commit sha.
+        if v is None:
+            return v
+        if re.search(r"/(master|main|HEAD)/", v):
+            raise ValueError(f"atlas URL must be pinned, not a branch: {v}")
+        if "githubusercontent.com" in v and not re.search(r"/[0-9a-f]{40}/", v):
+            raise ValueError(f"GitHub atlas URL must contain a full commit sha: {v}")
+        return v
+
+
+class Parcellation(M):
+    source: str
+    mesh: Literal["fsaverage", "fsaverage5"]
+    lh: AnnotFile
+    rh: AnnotFile
+
+
+class Yeo7(M):
+    networks: Annotated[list[str], Field(min_length=7, max_length=7)]
+
+
+class Atlases(M):
+    cache_dir: str
+    n_vertices_per_hemi: Literal[10242]
+    schaefer400_7: Parcellation
+    yeo7: Yeo7
+    hcp_mmp1: Parcellation
+    destrieux: Parcellation
+
+
+class Features(M):
+    m1_networks: list[str]
+    m1_reference: str
+    standardize_ddof: Literal[0, 1]
+    spatial_sd_ddof: Literal[0, 1]
+    medial_wall: Literal["union"]
+
+
+class MergeStep(M):
+    name: str
+    members: Annotated[list[str], Field(min_length=2)]
+    why: str
+
+
+class M0(M):
+    features: Annotated[list[str], Field(min_length=1)]
+    never: list[str]
+    binary: list[str]
+    forced_speech: Annotated[list[str], Field(min_length=2, max_length=2)]
+    min_words_in_w: PosInt
+    q_rule: str
+    z_ddof: Literal[0, 1]
+    rank_rcond: Pos
+    max_cond: Pos
+    merge_list: list[MergeStep]
+
+    @model_validator(mode="after")
+    def _consistent(self):
+        if set(self.never) & set(self.features):
+            raise ValueError("m0.never features must not be in m0.features")
+        if not set(self.forced_speech) <= set(self.features):
+            raise ValueError("m0.forced_speech must be m0.features")
+        for step in self.merge_list:
+            if set(step.members) & set(self.forced_speech):
+                raise ValueError("forced speech features are never merged")
+        return self
+
+
+class Localize(M):
+    top_k: PosInt
+    ci_level: Annotated[float, Field(gt=0, lt=1)]
+    views: list[Literal["lateral", "medial", "ventral", "dorsal", "anterior", "posterior"]]
+    bootstrap_B: Annotated[int, Field(ge=1000)]  # noqa: N815 - config key
+    unreliable_parcel_max_frac: Frac
+    hcp_second_below: Frac
+    unreliable_pattern: Annotated[list[Annotated[str, Field(pattern=r"^#[0-9a-fA-F]{6}$")]],
+                                  Field(min_length=2, max_length=2)]
+    stipple_cell_mm: Pos
+    dpi: PosInt
+    mw_shrink_flag_frac: Frac
+    mw_shrunk_parcels: list[str]
+    caption: str
+    banned_patterns: list[str]
+
+    @field_validator("banned_patterns")
+    @classmethod
+    def _regex(cls, v):
+        for p in v:
+            re.compile(p)
+        return v
+
+
+# ---------------------------------------------------------------- P4b controls
+class Roi(M):
+    areas: Annotated[list[str], Field(min_length=1)]
+    hemis: list[Literal["L", "R"]]
+    n_vertices: PosInt
+
+
+class Regressor(M):
+    source: Literal["confounds", "derived"]
+    roi: str
+    column: str | None = None
+    from_: str | None = Field(default=None, alias="from")
+    op: str | None = None
+
+
+class Kernel(M):
+    type: str
+    window_tr: Annotated[list[int], Field(min_length=2, max_length=2)]
+    min_reference_clips: PosInt
+    shift_by_L: bool  # noqa: N815 - config key
+
+
+class DryRun(M):
+    reference_clips_min: PosInt
+    talking_face_clip: bool
+    n_flashes: PosInt
+    n_speech_bursts: PosInt
+
+
+class WithinVideo(M):
+    mean_fisher_z_gt: float
+    p_lt: Frac
+
+
+class Selectivity(M):
+    p_lt: Frac
+
+
+class BetweenVideo(M):
+    r_gt: float
+    perm_p_lt: Frac
+
+
+class Pass(M):
+    within_video: WithinVideo
+    selectivity: Selectivity
+    between_video: BetweenVideo
+    min_videos: PosInt
+    low_sd_percentile: Annotated[float, Field(ge=0, le=100)]
+
+
+class Controls(M):
+    rois: dict[str, Roi]
+    regressors: dict[str, Regressor]
+    partial_out: list[str]
+    kernel: Kernel
+    aud_selectivity_run: str
+    readout_lag_tr: Annotated[list[int], Field(min_length=2, max_length=2)]
+    maps: list[Literal["spatially_standardised", "raw"]]
+    dry_run: DryRun
+    pass_: Pass = Field(alias="pass")
+
+    @model_validator(mode="after")
+    def _refs(self):
+        for name, r in self.regressors.items():
+            if r.roi not in self.rois:
+                raise ValueError(f"controls.regressors.{name}.roi {r.roi!r} is not a defined ROI")
+        if not set(self.partial_out) <= set(self.regressors):
+            raise ValueError("controls.partial_out names an undefined regressor")
+        return self
+
+
+# ---------------------------------------------------------------- guards / owner / frozen
+class AllowEntry(M):
+    commit: Sha1
+    path: str
+    kind: Literal["skip", "assertion", "testdef", "threshold"]
+    ticket: Annotated[str, Field(pattern=r"^(BUG|ENH)-\d{3,}$")]
+    note: str | None = None
+
+
+class ExemptEntry(M):
+    commit: Sha1
+    path: Literal["UNBLIND_TOKEN", "infra/BUDGET_USD", "docs/owner_age.pub", "DATA_DECISION.md"]
+    ticket: Annotated[str, Field(pattern=r"^(BUG|ENH)-\d{3,}$")]
+    note: str | None = None
+
+
+class Guards(M):
+    human_only_exempt: list[ExemptEntry]
+    test_weakening_allowlist: list[AllowEntry]
+    human_signed_since: Sha1 | None = None
+
+
+class Owner(M):
+    arn_pin: Annotated[str, Field(pattern=r"^arn:aws:(iam|sts)::\d{12}:\S+$")]
+
+
+class Frozen(M):
+    key: str
+    frozen_at: Sha1
+
+
+class Config(M):
+    schema_version: Literal[1]
+    tribe: Tribe
+    stimulus: Stimulus
+    window: Window
+    era_strata: dict[str, Era]
+    era_merge_min_videos: PosInt
+    budget: Budget
+    seeds: Seeds
+    normalize: Normalize
+    vad: Vad
+    transcribe: Transcribe
+    confounds: Confounds
+    atlases: Atlases
+    features: Features
+    m0: M0
+    localize: Localize
+    controls: Controls
+    guards: Guards
+    owner: Owner
+    frozen: list[Frozen]
+
+
+def validate_config(cfg: dict[str, Any]) -> Config:
+    """Raise pydantic.ValidationError unless cfg matches the schema exactly."""
+    return Config.model_validate(cfg)

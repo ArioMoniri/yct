@@ -1,0 +1,8 @@
+[15:44:03] launched aad6c5a267494717b9caad6a529f0a46
+[15:47:38] box 150.136.38.82 reachable
+[15:48:50]   setup: running (8 s) ''
+[15:49:43]   setup: running (61 s) '0f09269c1f39\n{"clip": "/home/ubuntu/yct/clips/long70/long70.mp4", "duration_s": 70.0, "n_words": 172, "n_sentences": 15, "last_word_start_s": 67.98356627499484}'
+[15:50:36] setup OK
+[15:51:00]   smoke: running (8 s) ''
+[15:51:53] step smoke rc=1
+[15:53:41] terminated; alive=[]; spent this run $0.3162

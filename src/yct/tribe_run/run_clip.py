@@ -77,10 +77,10 @@ def main() -> None:
 
     _strip_uv_from_path()
     assert shutil.which("uvx") is None, "uvx still on PATH"
-    from yct.tribe_run.offline import check_hf_cache_pins, enforce_offline
+    from yct.tribe_run.offline import check_hf_cache_pins, check_spacy_model, enforce_offline
 
     offline_env = enforce_offline()  # before huggingface_hub / transformers are imported
-    backbones = check_hf_cache_pins()
+    backbones = {**check_hf_cache_pins(), **check_spacy_model()}
 
     import numpy as np
     import torch

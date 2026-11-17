@@ -6,10 +6,10 @@ Generated 2026-11-17 by the Data Curator agent (blind to study hypotheses). This
 
 | confidence | E1 | E2 | E3 | UNKNOWN | total |
 |---|---|---|---|---|---|
-| A | 1 | 3 | 32 | 0 | 36 |
-| B | 0 | 1 | 20 | 10 | 31 |
+| A | 2 | 3 | 34 | 0 | 39 |
+| B | 0 | 1 | 20 | 11 | 32 |
 | C | 23 | 90 | 441 | 2 | 556 |
-| total | 24 | 94 | 493 | 12 | 623 |
+| total | 25 | 94 | 495 | 13 | 627 |
 
 Era strata are assigned from the batch claimed in the video title/description: E1 <= W2016, E2 S2016-W2020, E3 >= S2020. `UNKNOWN` = no batch stated by the uploader.
 
@@ -17,45 +17,51 @@ Confidence definitions (per curation protocol): A = founder statement and/or YC 
 
 ## Duration distribution (seconds)
 
-n=623; min 35, Q1 60, median 66, Q3 80, max 180.
+n=627; min 35, Q1 60, median 66, Q3 80, max 180.
 
 | bin | n |
 |---|---|
 | 0-44 | 5 |
-| 45-59 | 140 |
-| 60-74 | 285 |
+| 45-59 | 141 |
+| 60-74 | 287 |
 | 75-89 | 97 |
 | 90-119 | 81 |
-| 120-180 | 15 |
+| 120-180 | 16 |
 
 ## Other manifest fields
 
-- upload_date known for 103/623 rows; language verified from YouTube metadata for 101/623 rows.
-- Platform: {'youtube': 623}.
-- Distinct company_id values: 600 (some companies appear in several application cycles; each cycle is its own row).
+- upload_date known for 111/627 rows; language verified from YouTube metadata for 109/627 rows.
+- Platform: {'youtube': 627}.
+- discovery_method: {'keyword_search': 625, 'directory_sweep': 2} (directory_sweep = found only via per-company YouTube search over the YC directory; rows first found by keyword search keep keyword_search even if later cross-checked against the directory).
+- Distinct company_id values: 604 (some companies appear in several application cycles; each cycle is its own row).
 
 ## Search coverage
 
-- Queries logged: 192 (youtube_search(yt-dlp): 165, websearch: 19, webfetch: 8).
-- Unique YouTube candidates returned by searches: 2140; title pre-filter (mentions YC/Y Combinator, <=300 s) kept the set that was reviewed; 623 retained, 991 excluded with reasons in `data/curation/exclusions.csv`.
+- Queries logged: 660 (youtube_search(yt-dlp): 178, websearch: 22, webfetch: 9, youtube_search(yt-dlp) directory_sweep: 451).
+- Unique YouTube candidates returned by searches: 2278; title pre-filter (mentions YC/Y Combinator, <=300 s) kept the set that was reviewed; 627 retained, 1025 excluded with reasons in `data/curation/exclusions.csv`.
 - Batch sweep: YouTube searches were run for batch codes W2012-F2026 (W/S/F/X and the P26 code used by some Spring 2026 uploaders), plus year-based and phrase-based queries. YC batch naming verified against the YC directory: Winter, Spring (X; uploaders also write P26), Summer, Fall.
 - YC directory cross-check used the public yc-oss mirror of ycombinator.com/companies (6,398 companies incl. former names) and individual ycombinator.com/companies/<slug> pages for batch and founder names.
+
+- Directory sweep (owner instruction): one YouTube query "<company name> YC application video" (top 8 results) per YC company in batches S2015-F2024 (4,202 companies in the directory mirror; W2015 was not included). Completed for 451 companies (~11%) before YouTube rate-limiting (HTTP 403 / bot checks) blocked further queries; companies after the first ~360 were processed in random order, so the swept subset after that point is a random sample. Hits required the company (or former) name and an application/founder-video keyword in the title, then a manual identity check (batch and founder names).
+- No Vimeo/X/LinkedIn per-company sweep was possible (no usable search endpoint); founder-name queries were not run because the directory mirror lacks founder names and per-company page fetches for all companies were out of budget.
 
 ### Exclusion reasons
 
 | reason | n |
 |---|---|
-| no claimed batch and no outcome evidence | 383 |
+| no claimed batch and no outcome evidence | 386 |
 | not identified as an application video from title | 193 |
 | company not identifiable; outcome not checkable | 82 |
 | promo/launch video | 73 |
-| duration >3 min | 58 |
-| product demo/promo | 33 |
+| duration >3 min | 60 |
+| product demo/promo | 35 |
 | YC Fellowship (different program) | 31 |
+| tutorial/commentary about YC videos | 17 |
 | demo day | 16 |
-| tutorial/commentary about YC videos | 13 |
 | batch decisions not final (W27) | 12 |
 | duplicate/re-upload (same company and batch) | 10 |
+| ambiguous: no batch stated and founder not matched | 10 |
+| ambiguous name match with YC company (short name, founder not matched) | 8 |
 | posted by Y Combinator channel (YC-made/YC-posted, not founder-posted) | 7 |
 | non-application YC program content | 7 |
 | interview/talk/podcast | 6 |
@@ -83,6 +89,7 @@ n=623; min 35, Q1 60, median 66, Q3 80, max 180.
 | non-English (metadata language=de) | 1 |
 | not identified as the application video (product tagline title) | 1 |
 | not identified as the application video (intro addressed to a YC partner) | 1 |
+| ambiguous identity: name and batch match a YC company but uploader is not a listed founder | 1 |
 | partial video (part 2 of multi-part upload) | 1 |
 | vlog about the outcome, not the application video | 1 |
 | cannot verify it is an application video (no title/description detail) | 1 |
@@ -97,7 +104,11 @@ n=623; min 35, Q1 60, median 66, Q3 80, max 180.
 | tutorial/advice video | 1 |
 | vlog | 1 |
 | third-party upload (Startup Grind), not founder-posted | 1 |
-| performance/parody of a rejection, not application video | 1 |
+| parody performance, not application video | 1 |
+| commentary video about feedback, not application video | 1 |
+| commentary video, not application video | 1 |
+| commentary/promo video | 1 |
+| event coverage | 1 |
 
 ## Sources that failed or yielded nothing
 
@@ -119,4 +130,4 @@ n=623; min 35, Q1 60, median 66, Q3 80, max 180.
 
 ## Shortfall statement
 
-Total retained: 623 rows (36 confidence-A). The target of >=40 confidence-A per label was not reached; see the orchestrator hand-off for per-label stop-rule counts (kept out of this file to preserve blinding). Main limits: scarcity of explicit public outcome statements and YouTube metadata rate-limiting.
+Total retained: 627 rows (39 confidence-A). The target of >=40 confidence-A per label was not reached; see the orchestrator hand-off for per-label stop-rule counts (kept out of this file to preserve blinding). Main limits: scarcity of explicit public outcome statements and YouTube metadata rate-limiting.

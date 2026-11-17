@@ -1,0 +1,15 @@
+[15:31:41] launched d583c1837e7d4ac2a5ecb8d5418b30f2
+[15:38:40] box 158.101.124.84 reachable
+[15:39:49]   setup: running (7 s) ''
+[15:40:42]   setup: running (60 s) 'impulse/impulse.mp4 40.000000s 29940cf2c80cdbc7\ncontrol/control.mp4 40.000000s 574d0f09269c1f39'
+[15:41:35] setup OK
+[15:41:58]   smoke: running (7 s) ''
+[15:42:52] step smoke rc=1
+[15:43:24] ERROR RuntimeError: pod command failed (1): ssh -i /root/.ssh/yct_lambda -o BatchMode=yes -o ConnectTimeout=20 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/root/.ssh/known_hosts_yct -o ServerAliveInterval=30 ubuntu@158.101.124.84 
+
+
+--- stderr ---
+sha256sum: 'res/*.npy': No such file or directory
+failed to run commands: exit status 1
+
+[15:43:31] terminated; alive=[]; spent this run $0.3894

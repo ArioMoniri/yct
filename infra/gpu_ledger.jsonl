@@ -1,3 +1,30 @@
 {"event": "launch", "id": "06e21786a5a34d8abae33e50a4b0e39b", "name": "yct-smoke", "type": "gpu_1x_a100_sxm4", "usd_per_hour": 1.99, "t": 1794924323.8128638, "deadline": 1794931523.8128643}
 {"event": "terminate", "id": "06e21786a5a34d8abae33e50a4b0e39b", "t": 1794925717.2848794}
 {"event": "launch", "id": "d583c1837e7d4ac2a5ecb8d5418b30f2", "name": "yct-p0rerun", "type": "gpu_1x_a100_sxm4", "usd_per_hour": 1.99, "t": 1794929501.4461746, "deadline": 1794936701.4461753}
+{"event": "heartbeat", "id": "d583c1837e7d4ac2a5ecb8d5418b30f2", "t": 1794929952.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "d583c1837e7d4ac2a5ecb8d5418b30f2", "t": 1794929982.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "d583c1837e7d4ac2a5ecb8d5418b30f2", "t": 1794930012.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "d583c1837e7d4ac2a5ecb8d5418b30f2", "t": 1794930042.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "d583c1837e7d4ac2a5ecb8d5418b30f2", "t": 1794930072.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "d583c1837e7d4ac2a5ecb8d5418b30f2", "t": 1794930102.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "d583c1837e7d4ac2a5ecb8d5418b30f2", "t": 1794930132.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "d583c1837e7d4ac2a5ecb8d5418b30f2", "t": 1794930162.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "terminate", "id": "d583c1837e7d4ac2a5ecb8d5418b30f2", "t": 1794930205.8114965, "reason": "job_done"}
+{"event": "launch", "id": "aad6c5a267494717b9caad6a529f0a46", "name": "yct-p0rerun", "type": "gpu_1x_a100_sxm4", "usd_per_hour": 1.99, "t": 1794930243.8323689, "deadline": 1794937443.832369}
+{"event": "heartbeat", "id": "aad6c5a267494717b9caad6a529f0a46", "t": 1794930493.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "aad6c5a267494717b9caad6a529f0a46", "t": 1794930523.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "aad6c5a267494717b9caad6a529f0a46", "t": 1794930553.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "aad6c5a267494717b9caad6a529f0a46", "t": 1794930583.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "aad6c5a267494717b9caad6a529f0a46", "t": 1794930613.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "aad6c5a267494717b9caad6a529f0a46", "t": 1794930643.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "aad6c5a267494717b9caad6a529f0a46", "t": 1794930673.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "aad6c5a267494717b9caad6a529f0a46", "t": 1794930703.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "aad6c5a267494717b9caad6a529f0a46", "t": 1794930733.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "aad6c5a267494717b9caad6a529f0a46", "t": 1794930763.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "terminate", "id": "aad6c5a267494717b9caad6a529f0a46", "t": 1794930815.7639275, "reason": "job_done"}
+{"event": "launch", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "name": "yct-p0rerun", "type": "gpu_1x_a100_sxm4", "usd_per_hour": 1.99, "t": 1794930954.0464864, "deadline": 1794938154.0464864}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931243.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931273.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931303.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931334.0, "gpu_util": 0.0, "mem_mib": 1.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931364.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}

@@ -1,0 +1,41 @@
+{
+ "run_id": "p0rerun_20261117T153136Z",
+ "exit_code": 1,
+ "started_utc": "2026-11-17T15:31:36.891036+00:00",
+ "wall_s": 714.796,
+ "git_sha": "18b39c279222308b316d34ba42157c6c4c9c3cda",
+ "git_dirty": true,
+ "git_diff_sha256": "b86464887905913a794b7fc26c796d3fcbdb1b15ca29b46dbd48a54f287c6a32",
+ "untracked_files": [
+  "infra/gpu_heartbeat.sh",
+  "scripts/gpu_p0_rerun.py",
+  "src/yct/features/h4_null_sim.py",
+  "src/yct/tribe_run/make_long_clip.py",
+  "src/yct/tribe_run/offline.py",
+  "tests/test_controls_config.py",
+  "tests/test_localize_render_c3.py",
+  "tests/test_m0_q_rule.py"
+ ],
+ "python": "3.13.18",
+ "platform": "Linux-6.18.44-fc-v553-x86_64-with-glibc2.39",
+ "requirements_lock_sha256": "6218090691bb277f8b97620aaaa5b3e89a687ea136a0d4f2c7fa2773591ff0e2",
+ "pip_freeze_sha256": "465e262943c0d2c79dd4efb345e23d173baecfacc547b631a7447f3af7ad57ee",
+ "pytest": null,
+ "result": {
+  "run_id": "p0rerun_20261117T153136Z",
+  "instance_type": "gpu_1x_a100_sxm4",
+  "usd_per_hour": 1.99,
+  "steps": {
+   "setup": 0,
+   "smoke": 1
+  },
+  "instance_id": "d583c1837e7d4ac2a5ecb8d5418b30f2",
+  "errors": {
+   "smoke": "/home/ubuntu/yct/venv/lib/python3.11/site-packages/neuralset/extractors/base.py:707: UserWarning: LabelEncoder: event_types has not been set, are you sure you want to apply this extractor to all events?\n  warnings.warn(\n2026-11-17 15:42:03 - WARNING - neuralset.extractors.base:798 - Missing events will be encoded using the default all-zero value (for example, 0 or a zero vector/tensor), which may be indistinguishable from a valid class if that class is also mapped to zeros. Set treat_missing_as_separate_class=True to avoid this.\nTraceback (most recent call last):\n  File \"/home/ubuntu/yct/src/yct/tribe_run/run_clip.py\", line 185, in <module>\n    main()\n  File \"/home/ubuntu/yct/src/yct/tribe_run/run_clip.py\", line 91, in main\n    from yct.tribe_run.feature_cache import FeatureStore, run_cached\n  File \"/home/ubuntu/yct/src/yct/tribe_run/feature_cache.py\", line 43, in <module>\n    from yct.transcribe import asr_guard\n  File \"/home/ubuntu/yct/src/yct/transcribe/__init__.py\", line 3, in <module>\n    from yct.transcribe.core import (\n  File \"/home/ubuntu/yct/src/yct/transcribe/core.py\", line 31, in <module>\n    from yct.config import load_config\nModuleNotFoundError: No module named 'yct.config'\n\n"
+  },
+  "error": "RuntimeError: pod command failed (1): ssh -i /root/.ssh/yct_lambda -o BatchMode=yes -o ConnectTimeout=20 -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/root/.ssh/known_hosts_yct -o ServerAliveInterval=30 ubuntu@158.101.124.84 \n\n\n--- stderr ---\nsha256sum: 'res/*.npy': No such file or directory\nfailed to run commands: exit status 1\n",
+  "alive_after": [],
+  "usd_spent_this_run": 0.3894,
+  "instance_heartbeats": 8
+ }
+}

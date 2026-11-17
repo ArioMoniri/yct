@@ -23,6 +23,10 @@ BACKBONE_REVISIONS = {
     "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
 }
 TRIBE_WEIGHTS_REVISION = "f894e783020944dcd96e5568550afe2aa9743f9f"
+# neuralset text transform loads spaCy en_core_web_lg and would spacy.cli.download() it at run time if absent;
+# remote_setup.sh installs this exact wheel (sha256-checked) instead.
+SPACY_MODEL = {"name": "en_core_web_lg", "version": "3.8.0",
+               "wheel_sha256": "293e9547a655b25499198ab15a525b05b9407a75f10255e405e8c3854329ab63"}
 OFFLINE_ENV = {"HF_HUB_OFFLINE": "1", "TRANSFORMERS_OFFLINE": "1", "HF_DATASETS_OFFLINE": "1"}
 
 
@@ -59,6 +63,19 @@ def resolved_revisions(hf_home: str | Path | None = None) -> dict[str, str | Non
         ref = _hub_dir(hf_home) / ("models--" + repo.replace("/", "--")) / "refs" / "main"
         out[repo] = ref.read_text().strip() if ref.exists() else None
     return out
+
+
+def check_spacy_model() -> dict[str, str]:
+    """The pinned spaCy model must be installed (else neuralset downloads it at run time)."""
+    import importlib.metadata as md
+
+    try:
+        ver = md.version(SPACY_MODEL["name"])
+    except md.PackageNotFoundError as exc:
+        raise PinError(f"spaCy model {SPACY_MODEL['name']} not installed (remote_setup.sh)") from exc
+    if ver != SPACY_MODEL["version"]:
+        raise PinError(f"spaCy model {SPACY_MODEL['name']} {ver} != pinned {SPACY_MODEL['version']}")
+    return {SPACY_MODEL["name"]: ver}
 
 
 def check_hf_cache_pins(hf_home: str | Path | None = None) -> dict[str, str]:

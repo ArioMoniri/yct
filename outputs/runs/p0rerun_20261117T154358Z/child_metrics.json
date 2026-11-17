@@ -1,0 +1,29 @@
+{
+ "run_id": "p0rerun_20261117T154358Z",
+ "instance_type": "gpu_1x_a100_sxm4",
+ "usd_per_hour": 1.99,
+ "steps": {
+  "setup": 0,
+  "smoke": 1
+ },
+ "instance_id": "aad6c5a267494717b9caad6a529f0a46",
+ "errors": {
+  "smoke": "    events = transform(events)\n             ^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/neuralset/events/transforms/base.py\", line 158, in __call__\n    return self._run(events)\n           ^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/neuralset/events/transforms/base.py\", line 151, in _validated_run\n    result = original(self, *args, **kw)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/neuralset/events/transforms/text.py\", line 64, in _run\n    doc = parse_text(text, language)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/neuralset/events/transforms/utils.py\", line 103, in parse_text\n    nlp = _ns_utils.get_spacy_model(language=language)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/neuralset/utils.py\", line 393, in get_spacy_model\n    return _get_model(model)\n           ^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/neuralset/utils.py\", line 403, in _get_model\n    spacy.cli.download(model)  # type: ignore\n    ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/spacy/cli/download.py\", line 96, in download\n    compatibility = get_compatibility()\n                    ^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/spacy/cli/download.py\", line 141, in get_compatibility\n    r = requests.get(about.__compatibility__)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/requests/api.py\", line 87, in get\n    return request(\"get\", url, params=params, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/requests/api.py\", line 71, in request\n    return session.request(method=method, url=url, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/requests/sessions.py\", line 651, in request\n    resp = self.send(prep, **send_kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/requests/sessions.py\", line 784, in send\n    r = adapter.send(request, **kwargs)\n        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/requests/adapters.py\", line 696, in send\n    resp = conn.urlopen(\n           ^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/urllib3/connectionpool.py\", line 793, in urlopen\n    response = self._make_request(\n               ^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/urllib3/connectionpool.py\", line 470, in _make_request\n    self._validate_conn(conn)\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/urllib3/connectionpool.py\", line 1125, in _validate_conn\n    conn.connect()\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/urllib3/connection.py\", line 827, in connect\n    self.sock = sock = self._new_conn()\n                       ^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/urllib3/connection.py\", line 239, in _new_conn\n    sock = connection.create_connection(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/venv/lib/python3.11/site-packages/urllib3/util/connection.py\", line 60, in create_connection\n    for res in socket.getaddrinfo(host, port, family, socket.SOCK_STREAM):\n               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/home/ubuntu/yct/src/yct/tribe_run/offline.py\", line 109, in getaddrinfo\n    raise NetworkBlockedError(f\"DNS lookup of {host!r} blocked (offline run)\")\nyct.tribe_run.offline.NetworkBlockedError: DNS lookup of 'raw.githubusercontent.com' blocked (offline run)\n\n"
+ },
+ "p0_smoke_artifacts_sha256": [
+  "f96d34a9708572206b829998d28959725e2bba4d265b13301ac976ebda88a5e4  control.npy",
+  "1ae8e67c829da6895041edf7443504a501d0ae2603b5ce603eff1991e423a710  impulse.npy",
+  "fd3dfcbe2b184f30ede3d7400698a744df4e387064d67928580878c3824862f4  smoke1.npy",
+  "99d6079b351ea8114d23f4129c41c6312bc8a1b3586885a17cf082a9b291356e  smoke2.npy",
+  "24536f13693e8c780a94dc18eea4de01f3bf266694dba3a87ebafd9f8b482a04  smoke3_offline.npy",
+  "574d0f09269c1f397e21e271c30c21d4865f5061fa1f7df12a9a8a2774b30678  clips/control/control.mp4",
+  "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  clips/control/control.tsv",
+  "29940cf2c80cdbc7d446cf38aeeeaa16e462b05017ef23fa58bb6e261deb4ffd  clips/impulse/impulse.mp4",
+  "40025be9f14be206919e869032cde332ad8536cd9c48ad95d7f355ef534c8996  clips/impulse/impulse.tsv",
+  "e9ecef6c7a04e8288773a6e617762cdee0a565b08cf9f3d5f5f44a80465aecff  clips/smoke/smoke.mp4",
+  "13c11060e41881d3600f6febfb680471a04bc54ef292700336424f06abb89414  clips/smoke/smoke.tsv"
+ ],
+ "alive_after": [],
+ "usd_spent_this_run": 0.3162,
+ "instance_heartbeats": 10
+}

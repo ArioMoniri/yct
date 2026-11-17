@@ -75,6 +75,8 @@ normalize:                     # P2 (v2.md §5 P2; tribe_requirements §2.3-2.4)
     max_clip_frac: 0.01        # fraction of clipped RGB samples (in the crop) above this -> flag; clip is KEPT
     crf: 18
     temporal_smoothing: {enabled: false, size_frames: 5}   # ffmpeg deflicker (per-frame luminance smoothing)
+    color_matrix: bt709        # decode AND encode with BT.709 matrix; outputs tagged bt709 (QA G-D032 c2 D6)
+    color_range: tv            # limited range (16-235); outputs tagged tv
 
 vad:                           # energy VAD shared by speech-gated loudness (P2) and confounds (P3); not speech-specific
   sample_rate: 16000
@@ -117,14 +119,14 @@ atlases:                       # P5 (v2.md §5 P5; tribe_requirements §8). Cons
   cache_dir: ~/.cache/yct/atlases   # override with env YCT_ATLAS_DIR; files are sha256-checked on every load
   n_vertices_per_hemi: 10242   # fsaverage5 = first 10,242 vertices of each fsaverage hemisphere; order LH then RH
   schaefer400_7:               # primary parcellation; label 0 = Background+FreeSurfer_Defined_Medial_Wall
-    source: "CBIG GitHub (ThomasYeoLab/CBIG master), Schaefer2018_LocalGlobal FreeSurfer5.3 fsaverage5 .annot"
+    source: "CBIG GitHub ThomasYeoLab/CBIG pinned commit 634f676630929a71297852d01dd92a287103e861 (= master on 2026-11-17; sha256 of both files verified identical to the former master URLs), Schaefer2018_LocalGlobal FreeSurfer5.3 fsaverage5 .annot"
     mesh: fsaverage5
     lh:
-      url: https://raw.githubusercontent.com/ThomasYeoLab/CBIG/master/stable_projects/brain_parcellation/Schaefer2018_LocalGlobal/Parcellations/FreeSurfer5.3/fsaverage5/label/lh.Schaefer2018_400Parcels_7Networks_order.annot
+      url: https://raw.githubusercontent.com/ThomasYeoLab/CBIG/634f676630929a71297852d01dd92a287103e861/stable_projects/brain_parcellation/Schaefer2018_LocalGlobal/Parcellations/FreeSurfer5.3/fsaverage5/label/lh.Schaefer2018_400Parcels_7Networks_order.annot
       file: lh.Schaefer2018_400Parcels_7Networks_order.annot
       sha256: 48dcdc0c63df9feddb34eb631ef3571dfbd73360709a3aa799e05e1bc7d9e2b5
     rh:
-      url: https://raw.githubusercontent.com/ThomasYeoLab/CBIG/master/stable_projects/brain_parcellation/Schaefer2018_LocalGlobal/Parcellations/FreeSurfer5.3/fsaverage5/label/rh.Schaefer2018_400Parcels_7Networks_order.annot
+      url: https://raw.githubusercontent.com/ThomasYeoLab/CBIG/634f676630929a71297852d01dd92a287103e861/stable_projects/brain_parcellation/Schaefer2018_LocalGlobal/Parcellations/FreeSurfer5.3/fsaverage5/label/rh.Schaefer2018_400Parcels_7Networks_order.annot
       file: rh.Schaefer2018_400Parcels_7Networks_order.annot
       sha256: 1c24e9c5e2e35df05ddb8b82c60ea4ebbbbe48986bc11aa24a58ede47742f5aa
   yeo7:                        # derived from Schaefer names (7Networks_LH_<Net>_<i>); label 0 = medial wall

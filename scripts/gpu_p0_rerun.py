@@ -38,7 +38,8 @@ ITYPE = "gpu_1x_a100_sxm4"  # same class as the P0 smoke (ENH-004 not decided: n
 KEY = "/root/.ssh/yct_lambda"
 SSHO = (f"-i {KEY} -o BatchMode=yes -o ConnectTimeout=20 -o StrictHostKeyChecking=accept-new "
         "-o UserKnownHostsFile=/root/.ssh/known_hosts_yct -o ServerAliveInterval=30")
-SHIP = ["src/yct/__init__.py", "src/yct/tribe_run", "src/yct/transcribe", "infra/gpu_heartbeat.sh"]
+SHIP = ["src/yct/__init__.py", "src/yct/config.py", "src/yct/media.py", "src/yct/config_schema.py", "config.yaml", "src/yct/tribe_run",
+        "src/yct/transcribe", "infra/gpu_heartbeat.sh"]
 B = "/home/ubuntu/yct"
 
 
@@ -117,6 +118,11 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--max-hours", type=float, default=2.0)
     ap.add_argument("--usd-limit", type=float, default=15.0)
+    ap.add_argument("--attach", help="reuse this live yct-* instance (after a --keep-on-fail run)")
+    ap.add_argument("--skip-setup", action="store_true")
+    ap.add_argument("--keep-on-fail", action="store_true",
+                    help="on a failed step leave the instance up for debugging (watch/idle-kill keep running)")
+    ap.add_argument("--spent-before", type=float, default=None, help="ledger spend before the first attempt")
     a = ap.parse_args()
     from infra import lambda_gpu as lg
 
@@ -127,14 +133,22 @@ def main() -> int:
     price = lg.types()[ITYPE]["usd_per_hour"]
     if price * a.max_hours > a.usd_limit:
         raise SystemExit(f"{price}*{a.max_hours} h exceeds the task limit ${a.usd_limit}")
-    if lg._live(lg.list_ours()):
+    live = lg._live(lg.list_ours())
+    if a.attach:
+        if [i["id"] for i in live] != [a.attach]:
+            raise SystemExit(f"--attach {a.attach}: live yct instances are {live}")
+    elif live:
         raise SystemExit("a yct-* instance is already alive; one instance at a time")
-    spent0 = lg.spent_usd()
-    result: dict = {"run_id": run_id, "instance_type": ITYPE, "usd_per_hour": price, "steps": {}}
-    rec = lg.launch(ITYPE, "yct-p0rerun", a.max_hours, "yct-pod", None)
-    iid = result["instance_id"] = rec["id"]
-    log(f"launched {iid}")
+    spent0 = a.spent_before if a.spent_before is not None else lg.spent_usd()
+    result: dict = {"run_id": run_id, "instance_type": ITYPE, "usd_per_hour": price, "steps": {},
+                    "attached": bool(a.attach)}
+    if a.attach:
+        iid = result["instance_id"] = a.attach
+    else:
+        iid = result["instance_id"] = lg.launch(ITYPE, "yct-p0rerun", a.max_hours, "yct-pod", None)["id"]
+    log(f"instance {iid} ({'attached' if a.attach else 'launched'})")
     watcher = None
+    keep = False
     try:
         ip = None
         for _ in range(60):
@@ -152,7 +166,7 @@ def main() -> int:
             time.sleep(20)
         log(f"box {ip} reachable")
         ship_code(box, pod_dir)
-        box.run(f"nohup bash {B}/infra/gpu_heartbeat.sh >/dev/null 2>&1 </dev/null & sleep 2; tail -1 ~/yct_heartbeat.log")
+        box.run(f"pgrep -f gpu_heartbeat.sh >/dev/null || (nohup bash {B}/infra/gpu_heartbeat.sh >/dev/null 2>&1 </dev/null &); sleep 2; tail -1 ~/yct_heartbeat.log")
         watcher = subprocess.Popen([sys.executable, str(ROOT / "infra" / "lambda_gpu.py"), "watch"],
                                    env={**os.environ, "YCT_HB_VIA_POD": "1"},
                                    stdout=open(run_dir / "watch.log", "w"), stderr=subprocess.STDOUT)
@@ -161,17 +175,18 @@ def main() -> int:
             "--query Parameter.Value --output text | "
             f"{box.ssh} 'mkdir -p ~/.cache/huggingface && umask 077 && cat > ~/.cache/huggingface/token "
             "&& wc -c < ~/.cache/huggingface/token'", 300)
-        box.start("setup", f"cp {B}/src/yct/tribe_run/remote_setup.sh {B}/; bash {B}/remote_setup.sh {B}\n"
+        if not a.skip_setup:
+          box.start("setup", f"cp {B}/src/yct/tribe_run/remote_setup.sh {B}/; bash {B}/remote_setup.sh {B}\n"
                            f"cd {B}; bash src/yct/tribe_run/make_test_clips.sh {B}/clips\n"
                            f"source venv/bin/activate\n"
                            f"python src/yct/tribe_run/make_long_clip.py {B}/clips/long70/long70.mp4 70\n"
                            f"python src/yct/tribe_run/make_long_clip.py {B}/clips/long110/long110.mp4 110\n"
                            f"nvidia-smi > {B}/nvidia_smi.txt\n")
-        rc = box.wait("setup", 2400)
-        result["steps"]["setup"] = rc
-        if rc != 0:
-            raise RuntimeError("setup failed:\n" + box.cat("~/steps/setup.log")[-3000:])
-        log("setup OK")
+          rc = box.wait("setup", 2400)
+          result["steps"]["setup"] = rc
+          if rc != 0:
+              raise RuntimeError("setup failed:\n" + box.cat("~/steps/setup.log")[-3000:])
+          log("setup OK")
         steps = {
             "smoke": RUN + "run smoke_a --video clips/smoke/smoke.mp4\nrun smoke_b --video clips/smoke/smoke.mp4\n"
                            "run smoke_c --video clips/smoke/smoke.mp4 --fresh-drift\n",
@@ -187,9 +202,10 @@ def main() -> int:
                 result.setdefault("errors", {})[name] = box.run(
                     f"tail -n 60 {B}/res/*.log 2>/dev/null || true; tail -n 30 ~/steps/{name}.log")[-6000:]
                 if name == "smoke":
+                    keep = a.keep_on_fail
                     break
         # Persist off the ephemeral box: pod run dir + content-addressed cache root.
-        box.run(f"cd {B}; sha256sum res/*.npy clips/*/*.mp4 clips/*/*.tsv > res/SHA256SUMS; "
+        box.run(f"shopt -s nullglob; cd {B}; mkdir -p res fc; sha256sum res/*.npy clips/*/*.mp4 clips/*/*.tsv > res/SHA256SUMS; "
                 f"find fc -type f -exec sha256sum {{}} + | sort -k2 > res/FC_SHA256SUMS; du -sh fc res")
         pod(f"mkdir -p {pod_dir} /work/yct/cache && {box.ssh} 'tar cf - -C {B} res fc clips pip_freeze.txt "
             f"nvidia_smi.txt' | tar xf - -C {pod_dir} && cp -rn {pod_dir}/fc/. /work/yct/cache/ && "
@@ -214,13 +230,17 @@ def main() -> int:
         result["error"] = f"{type(exc).__name__}: {exc}"[-4000:]
         log(f"ERROR {result['error'][:500]}")
     finally:
-        try:
-            lg.terminate(iid, "job_done")
-        except Exception as exc:  # noqa: BLE001
-            log(f"terminate failed: {exc}; reaping")
-        if watcher is not None:
-            time.sleep(5)
-            watcher.terminate()
+        if keep:
+            log(f"--keep-on-fail: instance {iid} left up for debugging (watcher pid "
+                f"{watcher.pid if watcher else None} keeps polling; idle-kill after 15 min, deadline applies)")
+        else:
+            try:
+                lg.terminate(iid, "job_done")
+            except Exception as exc:  # noqa: BLE001
+                log(f"terminate failed: {exc}; reaping")
+            if watcher is not None:
+                time.sleep(5)
+                watcher.terminate()
         lg.reap()
         live = lg._live(lg.list_ours())
         result["alive_after"] = live
@@ -228,6 +248,7 @@ def main() -> int:
         result["instance_heartbeats"] = sum(1 for r in lg._ledger()
                                             if r["event"] == "heartbeat" and r["id"] == iid)
         log(f"terminated; alive={live}; spent this run ${result['usd_spent_this_run']}")
+    result["kept_alive_for_debug"] = keep
     (run_dir / "child_metrics.json").write_text(json.dumps(result, indent=1, default=str))
     return 1 if result.get("error") or any(result["steps"].get(k) for k in result["steps"]) else 0
 

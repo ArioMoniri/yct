@@ -11,9 +11,16 @@ import yaml
 CONFIG_PATH = Path(__file__).resolve().parents[2] / "config.yaml"
 
 
-def load_config(path: str | Path | None = None) -> dict[str, Any]:
+def load_config(path: str | Path | None = None, validate: bool = True) -> dict[str, Any]:
+    """Parsed config.yaml. validate=True (default) checks it against yct.config_schema (unknown keys,
+    missing keys and wrong types raise pydantic.ValidationError)."""
     with open(path or CONFIG_PATH) as fh:
-        return yaml.safe_load(fh) or {}
+        cfg = yaml.safe_load(fh) or {}
+    if validate:
+        from yct.config_schema import validate_config
+
+        validate_config(cfg)
+    return cfg
 
 
 def with_overrides(cfg: dict[str, Any], overrides: dict[str, Any]) -> dict[str, Any]:
