@@ -32,6 +32,15 @@ ASSERT_RE = re.compile(
 )
 TESTDEF_RE = re.compile(r"^\s*(async\s+)?def\s+test_")
 SKIP_RE = re.compile(r"pytest\.mark\.(skip|skipif|xfail)\b|pytest\.(skip|xfail)\(|unittest\.skip")
+# String literals are removed before skip detection so that test fixtures which *contain* skip
+# code as data (e.g. guard self-tests) are not counted; real calls like pytest.skip("why") still match.
+STRING_RE = re.compile(r"""(?:[rbuRBU]{0,2})("([^"\\]|\\.)*"|'([^'\\]|\\.)*')""")
+
+
+def _code_only(line: str) -> str:
+    return STRING_RE.sub('""', line)
+
+
 NUM_RE = re.compile(r"(?<![\w.])-?\d+(?:\.\d*)?(?:[eE][-+]?\d+)?(?![\w.])")
 LOOSER_IF_BIGGER_KW = {"rel", "abs", "atol", "rtol", "tol", "tolerance", "eps", "delta", "rel_tol", "abs_tol"}
 LOOSER_IF_SMALLER_KW = {"places", "decimal"}
@@ -86,8 +95,8 @@ def analyse(diff: str) -> list[str]:
         n_at = sum(bool(TESTDEF_RE.search(x)) for x in add)
         if n_rt > n_at:
             findings.append(f"{path}: {n_rt - n_at} test function(s) deleted")
-        n_rs = sum(bool(SKIP_RE.search(x)) for x in rem)
-        n_as = sum(bool(SKIP_RE.search(x)) for x in add)
+        n_rs = sum(bool(SKIP_RE.search(_code_only(x))) for x in rem)
+        n_as = sum(bool(SKIP_RE.search(_code_only(x))) for x in add)
         if n_as > n_rs:
             findings.append(f"{path}: {n_as - n_rs} skip/xfail marker(s) added")
         pool = defaultdict(list)
