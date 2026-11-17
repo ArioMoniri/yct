@@ -94,8 +94,11 @@ def decode_audio(
     return np.frombuffer(raw, dtype="<f4").reshape(-1, channels).astype(np.float64)
 
 
-def iter_gray_frames(path: str | Path, fps: float, short_side: int):
-    """Yield (t_seconds, HxW uint8 luma frame) sampled at `fps`, resized so the short edge is `short_side`."""
+def iter_gray_frames(path: str | Path, fps: float, short_side: int, matrix: str = "bt709", rng: str = "tv"):
+    """Yield (t_seconds, HxW uint8 luma frame) sampled at `fps`, resized so the short edge is `short_side`.
+
+    The input is decoded with an explicit matrix/range (default BT.709 / tv = what every P2 output is tagged
+    and encoded with, config ``normalize.color``; D-053), never ffmpeg's tag-dependent default."""
     v = stream(ffprobe(path), "video")
     if v is None:
         raise MediaError(f"no video stream in {path}")
@@ -111,7 +114,7 @@ def iter_gray_frames(path: str | Path, fps: float, short_side: int):
         str(path),
         "-an",
         "-vf",
-        f"fps={fps},scale={ow}:{oh}:flags=area",
+        f"fps={fps},scale={ow}:{oh}:flags=area:in_color_matrix={matrix}:in_range={rng}",
         "-pix_fmt",
         "gray",
         "-f",

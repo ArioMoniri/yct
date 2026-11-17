@@ -9,6 +9,13 @@ the concatenation of energy-VAD-active segments (yct.media.energy_vad), not on a
 The gain that brings that speech-gated loudness to the target is applied by a two-pass loudnorm in linear
 mode (pure gain) whose integrated target is shifted by (I_full - I_speech); if the true-peak ceiling would
 be exceeded loudnorm falls back to its dynamic mode, which is recorded (`loudnorm_mode`).
+
+Colour (G-D032 c3 Neuro G1/N4, P1 c2 Neuro Q3; DECISIONS D-053): every P2 output (T1 mp4, q480 copy) is
+converted from the SOURCE matrix to BT.709 / limited range (swscale `in_color_matrix`/`out_color_matrix`,
+`in_range`/`out_range`) and tagged bt709 matrix/primaries/transfer + tv range (config `normalize.color`).
+The source matrix is the stream's `color_space` tag; an untagged (or unsupported) stream gets the
+resolution rule `normalize.color.untagged` (HD -> bt709, SD -> smpte170m) and the flag
+`source_color_untagged`. :func:`source_color` is logged per video as `rec["color"]` (src_color_space ...).
 """
 
 from __future__ import annotations
@@ -84,7 +91,63 @@ def probe_source(path: str | Path) -> dict[str, Any]:
         "audio_sample_rate": int(a["sample_rate"]) if a else None,
         "video_start_s": v_start,
         "audio_start_s": a_start,
+        "color_stream": {k: v.get(k) for k in ("width", "height", "color_space", "color_range",
+                                               "color_primaries", "color_transfer")},
     }
+
+
+# ---------------------------------------------------------------- colour (D-053)
+# ffprobe `color_space` tag -> swscale matrix name (scale filter in_color_matrix)
+_SWS_MATRIX = {"bt709": "bt709", "smpte170m": "smpte170m", "bt470bg": "bt470", "fcc": "fcc",
+               "smpte240m": "smpte240m", "bt2020nc": "bt2020", "bt2020c": "bt2020"}
+_SWS_RANGE = {"tv": "tv", "mpeg": "tv", "pc": "pc", "jpeg": "pc"}
+_NO_TAG = {"", "unknown", "reserved", "unspecified"}
+
+
+def source_color(v: dict[str, Any], ccfg: dict[str, Any]) -> dict[str, Any]:
+    """Source colour tags of a video stream (ffprobe dict) and the input matrix/range P2 converts FROM.
+
+    Tagged matrix -> that matrix (rule ``tagged``). Untagged or unsupported tag -> config rule
+    ``normalize.color.untagged`` on the coded size: long side >= ``hd_min_long_px`` or short side >
+    ``sd_max_short_px`` -> ``hd`` (bt709), else ``sd`` (smpte170m); rule ``untagged_hd|sd``, prefixed
+    ``unsupported_tag_`` when a tag was present but unknown. Untagged range -> ``untagged.range`` (tv).
+    """
+    tag = str(v.get("color_space") or "unknown")
+    rng_tag = str(v.get("color_range") or "unknown")
+    u = ccfg["untagged"]
+    if tag in _SWS_MATRIX:
+        in_m, rule = _SWS_MATRIX[tag], "tagged"
+    else:
+        w, h = int(v["width"]), int(v["height"])
+        hd = max(w, h) >= int(u["hd_min_long_px"]) or min(w, h) > int(u["sd_max_short_px"])
+        in_m = _SWS_MATRIX[u["hd"] if hd else u["sd"]]
+        rule = ("untagged_hd" if hd else "untagged_sd")
+        if tag not in _NO_TAG:
+            rule = f"unsupported_tag_{rule}"
+    in_r = _SWS_RANGE.get(rng_tag, u["range"])
+    return {
+        "src_color_space": tag,
+        "src_color_range": rng_tag,
+        "src_color_primaries": str(v.get("color_primaries") or "unknown"),
+        "src_color_transfer": str(v.get("color_transfer") or "unknown"),
+        "in_matrix": in_m,
+        "in_range": in_r,
+        "rule": rule,
+        "out_matrix": ccfg["matrix"],
+        "out_range": ccfg["range"],
+    }
+
+
+def color_scale_opts(in_matrix: str, in_range: str, ccfg: dict[str, Any]) -> str:
+    """swscale options converting in_matrix/in_range -> the configured output matrix/range."""
+    return (f"in_color_matrix={in_matrix}:in_range={in_range}"
+            f":out_color_matrix={ccfg['matrix']}:out_range={ccfg['range']}")
+
+
+def color_tags(ccfg: dict[str, Any]) -> list[str]:
+    """Output bitstream/container colour tags (bt709 matrix/primaries/transfer, tv range)."""
+    return ["-colorspace", ccfg["matrix"], "-color_primaries", ccfg["primaries"],
+            "-color_trc", ccfg["transfer"], "-color_range", ccfg["range"]]
 
 
 # ---------------------------------------------------------------- detection
@@ -277,6 +340,8 @@ def quality_floor_copy(mp4: Path, out_dir: Path, w: int, h: int, cfg: dict[str, 
     lw, lh = int(round(w * s / 2) * 2), int(round(h * s / 2) * 2)
     low = tmpd / "q_low.mp4"
     lvl = n["ffmpeg_loglevel"]
+    cc = n["color"]
+    keep = color_scale_opts(cc["matrix"], cc["range"], cc)    # T1 is already bt709/tv: keep it explicit
     run(
         [
             "ffmpeg",
@@ -287,8 +352,9 @@ def quality_floor_copy(mp4: Path, out_dir: Path, w: int, h: int, cfg: dict[str, 
             "-i",
             str(mp4),
             "-vf",
-            f"scale={lw}:{lh}:flags=bicubic,setsar=1",
+            f"scale={lw}:{lh}:flags=bicubic:{keep},setsar=1",
             *_x264(n["video"], q["crf"]),
+            *color_tags(cc),
             "-c:a",
             "copy",
             *_BITEXACT,
@@ -306,8 +372,9 @@ def quality_floor_copy(mp4: Path, out_dir: Path, w: int, h: int, cfg: dict[str, 
             "-i",
             str(low),
             "-vf",
-            f"scale={w}:{h}:flags=bicubic,setsar=1",
+            f"scale={w}:{h}:flags=bicubic:{keep},setsar=1",
             *_x264(n["video"]),
+            *color_tags(cc),
             "-c:a",
             "copy",
             *_BITEXACT,
@@ -332,6 +399,10 @@ def normalize_video(
     info = probe_source(src)
     total = info["duration_s"]
     rec: dict[str, Any] = {"source_path": str(src), "source_sha256": sha256_file(src), "source": info}
+    col = source_color(info["color_stream"], n["color"])
+    rec["color"] = col
+    if col["rule"] != "tagged":
+        flags.append("source_color_untagged")
 
     if (info["fps_avg"] or info["fps_r"] or 0) < st["min_source_fps"]:
         flags.append("source_fps_below_min")
@@ -386,7 +457,9 @@ def normalize_video(
             "-i",
             str(src),
         ]
-        vf = f"fps={st['fps']},scale={tw}:{th}:flags=lanczos,setsar=1,format={n['video']['pix_fmt']}"
+        vf = (f"fps={st['fps']},scale={tw}:{th}:flags=lanczos:"
+              f"{color_scale_opts(col['in_matrix'], col['in_range'], n['color'])},"
+              f"setsar=1,format={n['video']['pix_fmt']}")
         if info["has_audio"]:
             rec.update(mono_phase(src, t0, t1, cfg))
             if rec["mono_phase_flag"]:
@@ -440,6 +513,7 @@ def normalize_video(
             ]
         cmd += [
             *_x264(n["video"]),
+            *color_tags(n["color"]),
             *_aac(n["audio"]),
             "-t",
             f"{t1:.6f}",

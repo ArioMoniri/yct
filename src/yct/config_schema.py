@@ -189,6 +189,22 @@ class Photometric(M):
         return self
 
 
+class UntaggedColor(M):
+    hd_min_long_px: PosInt
+    sd_max_short_px: PosInt
+    hd: Literal["bt709"]
+    sd: Literal["smpte170m", "bt470bg"]
+    range: Literal["tv"]
+
+
+class Color(M):
+    matrix: Literal["bt709"]        # BT.709 everywhere (G-D032 c3 Neuro G1/N4, D-053)
+    primaries: Literal["bt709"]
+    transfer: Literal["bt709"]
+    range: Literal["tv"]
+    untagged: UntaggedColor
+
+
 class Normalize(M):
     hash_len: Annotated[int, Field(ge=8, le=64)]
     edge_tolerance_s: NonNeg
@@ -204,6 +220,7 @@ class Normalize(M):
     quality_floor: QualityFloor
     aspect: Aspect
     ffmpeg_loglevel: Literal["quiet", "panic", "fatal", "error", "warning", "info"]
+    color: Color
     photometric: Photometric
 
 
@@ -351,12 +368,23 @@ class M0(M):
         return self
 
 
+class ReliabilityMask(M):
+    source: str
+    rule: str
+    atlas: Literal["hcp_mmp1"]
+    areas: Annotated[list[str], Field(min_length=1)]
+    hemis: Annotated[list[Literal["L", "R"]], Field(min_length=1)]
+    n_vertices: PosInt
+    sha256: Sha256
+
+
 class Localize(M):
     top_k: PosInt
     ci_level: Annotated[float, Field(gt=0, lt=1)]
     views: list[Literal["lateral", "medial", "ventral", "dorsal", "anterior", "posterior"]]
     bootstrap_B: Annotated[int, Field(ge=1000)]  # noqa: N815 - config key
     unreliable_parcel_max_frac: Frac
+    reliability_mask: ReliabilityMask
     hcp_second_below: Frac
     unreliable_pattern: Annotated[list[Annotated[str, Field(pattern=r"^#[0-9a-fA-F]{6}$")]],
                                   Field(min_length=2, max_length=2)]

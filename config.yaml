@@ -75,6 +75,22 @@ normalize:                     # P2 (v2.md §5 P2; tribe_requirements §2.3-2.4)
   quality_floor: {short_side_px: 480, crf: 28, subdir: q480}   # 480p round-trip copy
   aspect: {portrait_max_ratio: 0.8}  # width/height <= this -> 9:16 stratum
   ffmpeg_loglevel: error
+  color:                       # P2/T1 colour matrix (G-D032 c3 Neuro G1/N4, P1 c2 Neuro Q3; D-053). Every P2 output
+    # (T1 mp4 and q480 copy) is converted source matrix -> BT.709 / limited range by swscale
+    # (scale=in_color_matrix=<src>:in_range=<src>:out_color_matrix=bt709:out_range=tv) and tagged
+    # -colorspace/-color_primaries/-color_trc bt709 -color_range tv, so TRIBE/V-JEPA2, the confounds and T3
+    # decode one matrix. Only the matrix and range are converted (no gamut/primaries or transfer mapping:
+    # BT.601 vs BT.709 primaries differ by < 1 JND on typical content); the source tags are logged per video.
+    matrix: bt709
+    primaries: bt709
+    transfer: bt709
+    range: tv
+    untagged:                  # source matrix when the stream carries no (or an unsupported) colour tag:
+      hd_min_long_px: 1280     # long side >= 1280 OR short side > 576 -> HD -> bt709; else SD -> smpte170m
+      sd_max_short_px: 576     # (the usual decoder convention; flagged `source_color_untagged`)
+      hd: bt709
+      sd: smpte170m
+      range: tv                # untagged range -> limited
   photometric:                 # T3 sensitivity copy (owner request); the primary T1 pipeline is unchanged
     enabled: true
     subdir: t3
@@ -221,6 +237,21 @@ localize:                      # v2.3 activation localisation outputs (D-032; de
   views: [lateral, medial, ventral, dorsal]
   bootstrap_B: 10000           # company-cluster bootstrap, stratified by group; BCa with company jackknife
   unreliable_parcel_max_frac: 0.5   # parcels with a larger share of unreliable vertices are not ranked
+  reliability_mask:            # the "unreliable vertex" set (G-D032 c3 Neuro G2; D-053). FIXED, label-free, before
+    # any localisation output; the default of yct.interpret.localize.peak_table / render_four_views /
+    # plot_four_views (reliability_mask()). No per-vertex TRIBE reliability map exists (tribe_requirements §4):
+    # option (a) (TRIBE on HCP 7T / NNDb with real fMRI) is not available pre-lock and option (b) (paper
+    # figure parcel scores) are figures, not data. TRIBE was trained on gradient-echo BOLD, whose targets
+    # suffer susceptibility signal dropout in ventral orbitofrontal and anterior/ventral temporal-pole cortex,
+    # so predictions there are not interpretable. The mask = these bilateral HCP-MMP1 areas on the union-
+    # medial-wall-masked atlas (TGd is already excluded from the H2 composite as dropout-prone, v2.md §1).
+    source: susceptibility_dropout_hcp_mmp1
+    rule: "union of the listed bilateral HCP-MMP1 areas (L_/R_<area>_ROI), minus the union medial wall"
+    atlas: hcp_mmp1             # atlas file pinned by sha256 in atlases.hcp_mmp1
+    areas: [OFC, pOFC, 11l, 13l, TGd, TGv]   # orbitofrontal (OFC, pOFC, 11l, 13l) + temporal pole (TGd, TGv)
+    hemis: [L, R]
+    n_vertices: 732             # 354 LH + 378 RH (fs5); tested
+    sha256: d54dcc19537354b9e0aa0731b5ffc88b867ec186483065b50b9fcf28911a6012   # of the sorted vertex ids, <i4
   hcp_second_below: 0.5        # report the 2nd-best-overlap HCP area when the best overlap is below this
   # stipple colours for unreliable vertices: outside RdBu_r, never grey, both chromatic so neither reads as a
   # (dark) sulcal medial-wall grey; Okabe-Ito-like yellow / bluish green (v2.5 C3, G-D032 c2 Neuro N1)

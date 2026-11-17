@@ -59,6 +59,9 @@ def test_missing_key_rejected_in_every_section(section):
     ("normalize.photometric.enabled", "yes"),                # str where a bool is expected
     ("normalize.photometric.color_matrix", "bt601"),         # BT.709 everywhere (QA D6)
     ("normalize.video.crf", 99),
+    ("normalize.color.matrix", "bt601"),                     # P2/T1 BT.709 everywhere (D-053)
+    ("normalize.color.range", "pc"),
+    ("normalize.color.untagged.hd", "smpte170m"),
     ("budget.max_hours_per_instance", 5),                    # hard cap 4 h
     ("atlases.schaefer400_7.lh.sha256", "abc"),
     ("localize.unreliable_pattern", ["#000000"]),
