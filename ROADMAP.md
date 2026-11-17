@@ -166,6 +166,14 @@ Validate the pipeline as in v2.md §5 P5b. All of these must hold:
 ## P7 / P8 — Statistics and prediction
 **After unblinding:** run H4 (primary), then H1, H2, H3 and H4b (Holm-corrected family), then the exploratory analyses.
 
+## T3 and localisation (v2.3)
+- **P2:** produce photometrically normalised T3 copies.
+- **P4:** run TRIBE on T3, which doubles the inference count.
+- **P5:** compute T3 features.
+- **P7/P8:** H1 and H4 sensitivity analyses on T3.
+- **P9:** atlas peak-label tables (Schaefer/Yeo/HCP-MMP/Destrieux) and four-view maps for group means and the difference map.
+- Known TRIBE issues: docs/tribe_known_issues.md, reviewed at the P0 gate.
+
 ## P9 / P10 — Interpretation and report
 - Results are tied to M0, M0b and the ablations.
 - Figures show 4 views.
@@ -175,6 +183,7 @@ Validate the pipeline as in v2.md §5 P5b. All of these must hold:
 
 ## Revisions log (R-n)
 - **R-1 (2026-11-17):** v1 to v2 after the council review. See `reviews/prompt_v1/` and DECISIONS D-001 to D-012.
+- **R-5 (2026-11-17):** v2.3: T3 photometric sensitivity track and atlas localisation outputs (owner request; D-032).
 - **R-4 (2026-11-17):** v2.1 → v2.2 after round-3 Biostat + Neuro reviews (reviews/prompt_v2/round3_*.md); DECISIONS D-023–D-028.
 - **R-3 (2026-11-17):** v2 to v2.1 after the round-2 Watchdog and Referee reviews (`reviews/prompt_v2/`). See DECISIONS D-013 to D-022.
 - **R-2 (2026-11-17):** Infrastructure changes.

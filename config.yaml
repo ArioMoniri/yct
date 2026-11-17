@@ -40,4 +40,61 @@ budget:
 seeds:
   company_pick_salt: "yct-v2.1"  # random.Random(sha256(company_id + salt)).choice(sorted(video_ids))
 
+normalize:                     # P2 (v2.md §5 P2; tribe_requirements §2.3-2.4). Consumed by src/yct/normalize.
+  hash_len: 16                 # output names are <sha256(output mp4)[:hash_len]>.mp4 (cache hazard, §2.4)
+  edge_tolerance_s: 0.05       # a black/silent interval this close to a file edge counts as leading/trailing
+  trim_mode: both              # both = trim only where video is black AND audio silent; either = union
+  blackdetect: {min_duration_s: 0.1, pix_th: 0.10, pic_th: 0.98}
+  silencedetect: {noise_db: -50, min_duration_s: 0.5}
+  video: {codec: libx264, crf: 18, preset: medium, pix_fmt: yuv420p, threads: 1}
+  audio: {codec: aac, sample_rate: 48000, bitrate: 192k}
+  sidecar_wav: {sample_rate: 16000, channels: 1, subdir: audio16k}   # NOT next to the mp4 (TRIBE reuses <stem>.wav)
+  loudness:
+    target_lufs: -23.0         # speech-gated integrated loudness target
+    true_peak_dbtp: -1.0
+    target_lra: 20.0           # loudnorm LRA target; high so linear (pure-gain) mode is used where TP allows
+    tolerance_lu: 1.0          # |speech-gated LUFS(out) - target| above this -> flag
+    tp_tolerance_db: 0.5       # AAC re-encode overshoot allowance before flagging
+    min_speech_s: 1.0          # below this much gated speech, fall back to ungated integrated loudness
+  mono_phase: {max_drop_db: 3.0, drop_cap_db: 120.0}   # mono-mix RMS drop vs channel RMS; >max -> flag
+  av_sync: {max_offset_ms: 40}
+  quality_floor: {short_side_px: 480, crf: 28, subdir: q480}   # 480p round-trip copy
+  aspect: {portrait_max_ratio: 0.8}  # width/height <= this -> 9:16 stratum
+  ffmpeg_loglevel: error
+
+vad:                           # energy VAD shared by speech-gated loudness (P2) and confounds (P3); not speech-specific
+  sample_rate: 16000
+  frame_s: 0.03
+  hop_s: 0.01
+  abs_floor_dbfs: -50.0        # frames quieter than this are never speech
+  rel_db: 30.0                 # frames more than this below the 95th-percentile frame level are not speech
+  ref_percentile: 95
+  min_gap_s: 0.3               # merge speech segments separated by less than this
+  min_seg_s: 0.1               # drop speech segments shorter than this
+
+transcribe:                    # P2b (v2.md §5 P2b; tribe_requirements §2.2)
+  whisperx:
+    executable: whisperx
+    version: null              # pin at first GPU run (wrapper records the installed version)
+    model: large-v3
+    language: en
+    device: cuda
+    compute_type: float16
+    batch_size: 16
+    align_model: WAV2VEC2_ASR_LARGE_LV60K_960H
+  tsv_columns: [text, start, duration, sequence_id, sentence]
+  max_unmatched_ratio: 0.05    # TRIBE AddSentenceToWords tolerance; validator enforces the same
+  end_tolerance_s: 0.5         # last word may end this far past the media duration
+  manifest_columns: [video_id, tsv_sha256]
+
+confounds:                     # P3 per-TR M0 features (v2.md §5 P3)
+  rms_floor_db: -120.0
+  pitch: {frame_s: 0.04, hop_s: 0.01, fmin_hz: 60.0, fmax_hz: 400.0, voicing_threshold: 0.5}
+  video_fps: 10                # luminance / contrast / motion sampling rate
+  face_fps: 2                  # face detector sampling rate
+  analysis_short_side_px: 292  # frames are analysed at the V-JEPA2 resize (short edge 292)
+  face: {detector: haarcascade_frontalface_default.xml, scale_factor: 1.1, min_neighbors: 5, min_size_frac: 0.08}
+  scene: {detector: content, threshold: 27.0, min_scene_len_frames: 15}
+  text_detection: false        # on-screen text: not implemented (needs a downloaded EAST/OCR model)
+
 frozen: []

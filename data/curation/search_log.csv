@@ -88,3 +88,33 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-17T14:04:20Z,websearch,"site:linkedin.com ""YC application video"" rejected sharing our",18,0
 2026-11-17T14:04:20Z,websearch,"site:x.com ""YC application video"" rejected",18,0
 2026-11-17T14:04:20Z,websearch,"""our rejected YC application"" video",18,0
+2026-11-17T14:04:35Z,websearch,"site:vimeo.com ""YC application"" video",18,0
+2026-11-17T14:04:35Z,websearch,"""how we got into YC"" ""application video"" youtube",18,0
+2026-11-17T14:04:35Z,websearch,"medium ""YC application video"" ""we got rejected"" youtu.be",18,0
+2026-11-17T14:05:10Z,websearch,"substack ""YC application"" ""founder video"" rejected youtube link",17,0
+2026-11-17T14:05:10Z,websearch,"indiehackers ""YC application video"" rejected share feedback",17,0
+2026-11-17T14:05:10Z,websearch,"""here's our YC application video"" OR ""here is our YC application video""",19,0
+2026-11-17T14:05:10Z,webfetch,producthunt.com/discussions/who-else-applied-for-the-w24-yc-batch-2,1,0
+2026-11-17T14:05:10Z,webfetch,alexanderjarvis.com/monster-list-of-yc-application-video,23,1
+2026-11-17T14:05:25Z,youtube_search(yt-dlp),YC founder intro video,40,3
+2026-11-17T14:05:28Z,youtube_search(yt-dlp),Y Combinator founder video,50,4
+2026-11-17T14:05:30Z,youtube_search(yt-dlp),YC W25 founder video,50,15
+2026-11-17T14:05:33Z,youtube_search(yt-dlp),YC W24 founder video,50,16
+2026-11-17T14:05:35Z,youtube_search(yt-dlp),YC S24 founder video,50,10
+2026-11-17T14:05:38Z,youtube_search(yt-dlp),YC F24 founder video,48,11
+2026-11-17T14:05:48Z,youtube_search(yt-dlp),YC W26 founder video,40,9
+2026-11-17T14:05:57Z,youtube_search(yt-dlp),YC F25 founder video,20,4
+2026-11-17T14:06:04Z,websearch,"""Y Combinator"" application video 2012 OR 2013 OR 2014 ""we didn't get in"" blog youtube",18,0
+2026-11-17T14:06:04Z,websearch,"""rejected"" ""Y Combinator application video"" youtube.com/watch",18,0
+2026-11-17T14:06:04Z,youtube_search(yt-dlp),YC S26 founder video,20,6
+2026-11-17T14:06:14Z,youtube_search(yt-dlp),YC W23 founder video,40,15
+2026-11-17T14:06:17Z,youtube_search(yt-dlp),YC S23 founder video,50,12
+2026-11-17T14:06:19Z,youtube_search(yt-dlp),YC W22 founder video,50,17
+2026-11-17T14:07:39Z,websearch,"reddit ycombinator ""roast my YC video"" OR ""feedback on my founder video"" youtube",18,0
+2026-11-17T14:07:39Z,websearch,"""founder video"" ""YC"" ""got rejected"" ""here's the video""",17,0
+2026-11-17T14:07:39Z,webfetch,metorial.com/blog/open-sourcing-the-yc-application,0,0
+2026-11-17T14:07:39Z,webfetch,insforge.dev/blog/getting-into-yc-after-6-tries,0,0
+2026-11-17T14:07:39Z,webfetch,gibran.substack.com/p/my-super-app-wasnt-selected-to-yc,0,0
+2026-11-17T14:07:39Z,webfetch,veed.io/learn/rejected-from-yc,0,0
+2026-11-17T14:07:39Z,webfetch,liorn.substack.com/p/rejected-from-ycombinator,0,0
+2026-11-17T14:07:39Z,webfetch,close.com/blueprint/my-seven-attempts-to-get-into-y-combinator,0,0
