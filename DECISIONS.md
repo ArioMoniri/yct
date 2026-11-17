@@ -41,3 +41,4 @@ Append-only log. Format: date | phase | id | summary | evidence.
 - H-001 Owner set GPU budget cap to USD 200 → infra/BUDGET_USD (lambda_gpu.py now reads the file, not env).
 - H-002 Owner signed DATA_DECISION.md by chat message; media download in P1 is now permitted.
 - H-003 Owner fixed IAM/SSM + NAT path; pod i-02dc0aef7260534ee Online in SSM. Note: release its Elastic IP when the pod is deleted.
+- D-029 (deviation, interim) Phase 1 started before owner age key exists: Curator subagent writes plaintext labels to git-ignored data/sealed/labels_pending.csv; orchestrator/analysts never read data/sealed/; encrypt to docs/owner_age.pub and shred plaintext as soon as the owner commits the key. Watchdog to audit at P1 gate.

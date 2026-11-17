@@ -1,6 +1,6 @@
 data/raw/
 data/normalized/
-data/sealed/*.csv
+data/sealed/
 outputs/preds/
 outputs/logs/
 
