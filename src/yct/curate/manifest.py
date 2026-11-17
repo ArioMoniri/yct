@@ -83,14 +83,14 @@ def upload_lag_days(upload_date: str, claimed_batch: str, cfg: Mapping[str, Any]
 def fill_upload_lag(df: pd.DataFrame, cfg: Mapping[str, Any]) -> pd.DataFrame:
     """Return a copy with ``upload_lag_days`` computed where upload_date and claimed_batch are known."""
     out = df.copy()
-    lags = [upload_lag_days(u, b, cfg) for u, b in zip(out["upload_date"], out["claimed_batch"])]
+    lags = [upload_lag_days(u, b, cfg) for u, b in zip(out["upload_date"], out["claimed_batch"], strict=True)]
     out["upload_lag_days"] = ["" if v is None else str(v) for v in lags]
     return out
 
 
 def add_derived_columns(df: pd.DataFrame, cfg: Mapping[str, Any], wave: int = 1,
                         collected_after_lock: bool = False) -> pd.DataFrame:
-    """Wave-1 manifest -> FIX-P1 schema. ``upload_lag_days`` is left empty (filled by :func:`fill_upload_lag`)."""
+    """Wave-1 manifest -> FIX-P1 schema; ``upload_lag_days`` stays empty (see :func:`fill_upload_lag`)."""
     out = df[WAVE1_COLUMNS].copy()
     out["era_block"] = [era_block(e, cfg) for e in out["era_stratum"]]
     out["wave"] = str(int(wave))

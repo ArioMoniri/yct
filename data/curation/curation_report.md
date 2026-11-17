@@ -160,3 +160,36 @@ New rows yct_0628-yct_0661 (34). No new C rows were added (round-2 rule); candid
 - Hacker News Algolia API, web search, Exa search (LinkedIn founder posts), founder blogs, and two public curated lists (alexanderjarvis.com list; GitHub arrrtem22 YC Arena / discovered lists, used for discovery only, never as outcome evidence) were searched. Reddit JSON endpoints returned HTTP 403 and were skipped; Indie Hackers and Medium pages returned 403 to fetches.
 - For rows whose title gives no batch, `claimed_batch` was set only where a founder statement or the YC directory fixed the cycle; otherwise UNKNOWN.
 - Language for LinkedIn/web rows is UNKNOWN (no metadata); YouTube rows use YouTube metadata language. Two candidates with non-English metadata language were excluded.
+
+## FIX-P1 reconciliation (2026-11-17, recounted from data/manifest.csv; no outcome information)
+
+Supersedes the per-label statements above where they differ. Labels and confidence tiers B/C live only in
+the owner-encrypted archives under `data/sealed/` (the plaintext `labels_pending.csv` named at the top of this
+report no longer exists, D-043). The analyst manifest carries only `in_primary` (= confidence A), so the
+recount below splits A vs not-A; the B/C split is not recomputed here.
+
+### Counts by confidence x era (raw era_stratum)
+
+| confidence | E1 | E2 | E3 | UNKNOWN | total |
+|---|---|---|---|---|---|
+| A (in_primary) | 3 | 7 | 48 | 0 | 58 |
+| not A (B or C) | 23 | 91 | 466 | 23 | 603 |
+| total | 26 | 98 | 514 | 23 | 661 |
+
+### Counts by confidence x era_block (D-047: E1 + E2 -> E12)
+
+| confidence | E12 | E3 | UNKNOWN | total |
+|---|---|---|---|---|
+| A (in_primary) | 10 | 48 | 0 | 58 |
+| not A (B or C) | 114 | 466 | 23 | 603 |
+| total | 124 | 514 | 23 | 661 |
+
+### Companies
+
+- in_primary rows: 58 from 56 distinct company_id values. One company contributes 3 in_primary rows (three
+  different application cycles); every other company contributes 1. An earlier hand-off said this company had
+  4 rows; the manifest has 3 (BUG-014).
+- One-per-company (seeded label-free pick, v2.md §1): 56 videos, era_block E12 10 / E3 46.
+- All 661 rows are wave 1 (`wave` = 1, `collected_after_lock` = False; D-046).
+- Two outcome-revealing URLs in `exclusions.csv` and one in the manifest (yct_0644) are replaced by
+  `sealed:<id>`; the real URLs are in `data/sealed/sealed_p1c_urls.tar.age` (BUG-016, FIX-P1).
