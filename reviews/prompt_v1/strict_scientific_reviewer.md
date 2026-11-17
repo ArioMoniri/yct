@@ -120,6 +120,6 @@ Hedges g with bootstrap CIs for every exploratory effect; no "trend" language.
 4. The B9 locked 20% holdout, the B2 company random-effects model, and B1 within-company paired tests. Report pairs descriptively, because the few pairs are confounded by reapplication time.
 5. Linear SVM as a second classifier. Keep L2 logistic only.
 6. NiMARE/Neurosynth decoding.
-7. Quality-matched downscaled copies as "primary" (E1), and the stereo-phase-cancellation check. Keep these as QC flags only.
-8. Leave-one-year-out as a separate sensitivity analysis. Replace it with era-stratified permutation (item 4).
+7. Downscaled quality-matched copies as "primary" (E1) and the stereo-phase check: QC flags only.
+8. Leave-one-year-out; use era-stratified permutation (item 4) instead.
 9. Two estimands with TOST (B5/B4). At N≈60, equivalence bounds will be uninformatively wide. Report CIs and the MDE instead.
