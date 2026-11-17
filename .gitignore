@@ -1,0 +1,13 @@
+data/raw/
+data/normalized/
+data/labels_sealed/
+outputs/preds/
+outputs/logs/
+outputs/infra/
+*.npy
+*.mp4
+*.wav
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.env

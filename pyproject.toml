@@ -1,0 +1,19 @@
+[project]
+name = "yct"
+version = "0.0.1"
+description = "TRIBE v2 predicted cortical responses to accepted vs rejected YC application videos"
+requires-python = ">=3.10"
+dependencies = ["pyyaml", "pandas", "numpy", "pydantic>=2"]
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "."]
+
+[tool.ruff]
+line-length = 110
