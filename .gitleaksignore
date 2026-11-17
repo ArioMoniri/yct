@@ -1,0 +1,5 @@
+# BUG-023: synthetic probe strings (deliberately fake tokens) written by the QA reviewer to demonstrate the
+# BUG-020 allowlist evasion; redacted in the file at HEAD. Exact per-commit fingerprints only — nothing broader.
+de7cf74911eda1b638be44682f5f93bb5fc58ba0:reviews/qa_votes/BUG-019-020.md:generic-api-key:53
+de7cf74911eda1b638be44682f5f93bb5fc58ba0:reviews/qa_votes/BUG-019-020.md:generic-api-key:54
+de7cf74911eda1b638be44682f5f93bb5fc58ba0:reviews/qa_votes/BUG-019-020.md:aws-access-token:54
