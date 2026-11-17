@@ -1,0 +1,1 @@
+["env", "YCT_RUN_DIR=<this run dir>", "python", "scripts/gpu_p0_rerun.py", "--collect-only"]

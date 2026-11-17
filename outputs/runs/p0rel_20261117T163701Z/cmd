@@ -1,0 +1,1 @@
+["python", "scripts/gpu_p0_rerun.py", "--max-hours", "2", "--usd-limit", "15", "--keep-on-fail", "--steps", "rel_smoke,rel_long70,rel_long110"]
