@@ -387,3 +387,67 @@ def test_keep_fresh_copies_throwaway_features(clip, store, tmp_path):
     assert m["fresh_extraction_drift"]["feature_reliability"]["fresh_features_kept_at"] == str(keep)
     meta = json.loads((store.entry_dir(m["cache_key"]) / fc.SIDECAR).read_text())
     assert meta["n_extractions"] == 1
+
+
+# ---------------------------------------------------------------- exca on-disk layout (GPU run p0rerun_*)
+def _exca_dir(root: Path, arrays: dict, timed: bool, prefix: str, bad: bool = False) -> None:
+    """Mimic exca 0.5.20 CacheDict storage: <sub>/<worker>-info.jsonl + <sub>/data/<worker>.data."""
+    sub = root / "neuralset.extractors.video.X._get_data,release" / "frequency=2,name=X-abc"
+    (sub / "data").mkdir(parents=True)
+    off, lines = 0, []
+    with open(sub / "data" / "w1.data", "wb") as f:
+        for key, arr in arrays.items():
+            arr = np.ascontiguousarray(arr, np.float32)
+            spec = {"filename": "data/w1.data", "offset": off, "shape": list(arr.shape), "dtype": "float32",
+                    "#type": "MemmapArray"}
+            f.write(arr.tobytes())
+            off += arr.nbytes
+            rec = {"data": spec, "frequency": 2.0, "#type": "TimedArray"} if timed else dict(spec)
+            rec["#key"] = f"{prefix}/input/{key}"
+            lines.append(json.dumps(rec))
+    if bad:
+        lines.append(json.dumps({"#type": "Pickle", "filename": "x.pkl", "#key": "opaque"}))
+    (sub / "w1-info.jsonl").write_text("\n".join(lines) + "\n")
+
+
+def test_exca_reader_pairs_timed_arrays_across_paths(tmp_path):
+    rng = np.random.default_rng(1)
+    a = {"clip.mp4": rng.standard_normal((20, 8, 4))}
+    _exca_dir(tmp_path / "cached", a, True, "/home/ubuntu/yct/fc/KEY")
+    _exca_dir(tmp_path / "fresh", {k: v + 1e-3 * rng.standard_normal(v.shape) for k, v in a.items()}, True,
+              "/tmp/yct_drift_x")
+    fr = fc.feature_reliability(tmp_path / "cached", tmp_path / "fresh")
+    assert fr["n_arrays"] == 1 and fr["unreadable"] == []
+    (name, v), = fr["arrays"].items()
+    assert name.endswith("::input/clip.mp4") and v["shape_match"] and 0.99 < v["reliability"] < 1.0
+    assert fr["reliability_gate_pass"] is True
+
+
+def test_exca_reader_reads_plain_memmap_records(tmp_path):
+    arrs = {"w1": np.arange(12.0).reshape(3, 4), "w2": np.ones((2, 2))}
+    _exca_dir(tmp_path / "c", arrs, False, "p")
+    got, bad = fc._exca_arrays(tmp_path / "c")
+    assert bad == [] and len(got) == 2
+    assert any(np.array_equal(g, arrs["w1"]) for g in got.values())
+
+
+def test_unreadable_record_fails_the_gate(tmp_path):
+    """A cached feature that cannot be read must never be silently left out of the D-038 gate."""
+    a = {"clip.mp4": np.random.default_rng(2).standard_normal((5, 3))}
+    _exca_dir(tmp_path / "cached", a, True, "/a", bad=True)
+    _exca_dir(tmp_path / "fresh", a, True, "/b", bad=True)
+    fr = fc.feature_reliability(tmp_path / "cached", tmp_path / "fresh")
+    assert fr["unreadable"] and fr["reliability_min"] == 1.0
+    assert fr["reliability_gate_pass"] is False
+
+
+def test_as_array_handles_array_like_proxies():
+    class Proxy:  # exca ContiguousMemmap: not an ndarray, but implements __array__
+        def __array__(self, dtype=None, copy=None):
+            return np.arange(4.0)
+
+    class Timed:
+        def __init__(self):
+            self.data = Proxy()
+
+    assert np.array_equal(fc._as_array(Timed()), np.arange(4.0))

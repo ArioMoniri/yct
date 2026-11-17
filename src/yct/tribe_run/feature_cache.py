@@ -238,14 +238,16 @@ def reliability(a: np.ndarray, b: np.ndarray) -> float | None:
 
 
 def _as_array(v: Any) -> np.ndarray | None:
-    """numpy view of a cached value: ndarray / memmap, torch tensor, or an object holding one in ``.data``
-    (neuralset TimedArray for the audio/video extractors)."""
+    """numpy copy of an in-memory value: ndarray / memmap, torch tensor, or anything with __array__."""
     if hasattr(v, "detach"):
         v = v.detach().cpu().numpy()
     if isinstance(v, np.ndarray):
         return np.array(v)
+    if hasattr(v, "__array__"):
+        a = np.asarray(v)
+        return None if a.dtype == object else np.array(a)
     inner = getattr(v, "data", None)
-    if inner is not None and not isinstance(v, np.ndarray | bytes | memoryview):
+    if inner is not None and not isinstance(inner, bytes | memoryview):
         return _as_array(inner)
     return None
 
@@ -258,38 +260,62 @@ def _norm_key(key: str) -> str:
     return k[i + 1:] if i >= 0 else k
 
 
-def _exca_arrays(feat_dir: Path) -> dict[str, np.ndarray]:
-    """Arrays stored by exca CacheDicts (folders holding *-info.jsonl), read from a scratch copy
-    (CacheDict may chmod/clean its folder; the cache itself is never opened for writing)."""
-    out: dict[str, np.ndarray] = {}
-    folders = sorted({p.parent for p in feat_dir.rglob("*-info.jsonl")})
-    if not folders:
-        return out
-    from exca.cachedict import CacheDict  # GPU box only
-
-    with tempfile.TemporaryDirectory(prefix="yct_feat_read_") as td:
-        for folder in folders:
-            rel = folder.relative_to(feat_dir).as_posix()
-            tmp = Path(td) / rel
-            shutil.copytree(folder, tmp)
-            cd = CacheDict(tmp, permissions=None)
-            for k in sorted(cd.keys()):
-                v = cd[k]
-                items = v.items() if isinstance(v, dict) else [(None, v)]
-                for kk, vv in items:
-                    arr = _as_array(vv)
-                    if arr is not None:
-                        name = f"{rel}::{_norm_key(k)}" + ("" if kk is None else f"::{kk}")
-                        out[name] = arr
+def _memmap_specs(obj: Any, path: str = "") -> list[tuple[str, dict]]:
+    """Every {"#type": "MemmapArray", filename, offset, shape, dtype} spec inside one info record."""
+    out: list[tuple[str, dict]] = []
+    if isinstance(obj, dict):
+        if obj.get("#type") == "MemmapArray" and "filename" in obj:
+            return [(path, obj)]
+        for k, v in obj.items():
+            if not str(k).startswith("#"):
+                out += _memmap_specs(v, f"{path}::{k}" if path else str(k))
     return out
 
 
-def load_feature_arrays(feat_dir: str | Path) -> dict[str, np.ndarray]:
-    """Every numeric feature array under feat_dir: .npy files plus exca CacheDict entries."""
+def _exca_arrays(feat_dir: Path) -> tuple[dict[str, np.ndarray], list[str]]:
+    """Arrays of exca CacheDicts (folders holding ``*-info.jsonl``), read directly from the info records +
+    data files with numpy (read-only memmaps; no exca/neuralset import, so it also runs on the pod/CPU).
+    Returns (arrays, unreadable record names): any record without a readable array is reported, never
+    silently skipped (the D-038 gate then fails)."""
+    out: dict[str, np.ndarray] = {}
+    bad: list[str] = []
+    for info in sorted(feat_dir.rglob("*-info.jsonl")):
+        folder = info.parent
+        rel = folder.relative_to(feat_dir).as_posix()
+        for line in info.read_text().splitlines():
+            if not line.strip():
+                continue
+            rec = json.loads(line)
+            key = rec.get("#key")
+            if key is None:
+                continue
+            name = f"{rel}::{_norm_key(key)}"
+            specs = _memmap_specs(rec)
+            if not specs:
+                bad.append(name)
+                continue
+            for sub, spec in specs:
+                f = folder / spec["filename"]
+                try:
+                    arr = np.memmap(f, dtype=np.dtype(spec["dtype"]), mode="r",
+                                    offset=int(spec.get("offset", 0)), shape=tuple(spec["shape"]), order="C")
+                except (OSError, ValueError, TypeError):
+                    bad.append(name + (f"::{sub}" if sub else ""))
+                    continue
+                out[name + (f"::{sub}" if sub and sub != "data" else "")] = np.array(arr)
+    return out, bad
+
+
+def load_feature_arrays(feat_dir: str | Path, unreadable: list[str] | None = None) -> dict[str, np.ndarray]:
+    """Every numeric feature array under feat_dir: .npy files plus exca CacheDict records. Names of
+    records that hold no readable array are appended to `unreadable`."""
     feat_dir = Path(feat_dir)
     out = {p.relative_to(feat_dir).as_posix(): np.load(p, allow_pickle=False)
            for p in sorted(feat_dir.rglob("*.npy"))}
-    out.update(_exca_arrays(feat_dir))
+    exca, bad = _exca_arrays(feat_dir)
+    out.update(exca)
+    if unreadable is not None:
+        unreadable += bad
     return out
 
 
@@ -302,7 +328,9 @@ def _extractor_of(name: str) -> str:
 
 def feature_reliability(cached_feat: Path, fresh_feat: Path) -> dict[str, Any]:
     """Per-array and per-extractor reliability of a fresh extraction vs the cache (D-038 gate)."""
-    a, b = load_feature_arrays(cached_feat), load_feature_arrays(fresh_feat)
+    bad_a: list[str] = []
+    bad_b: list[str] = []
+    a, b = load_feature_arrays(cached_feat, bad_a), load_feature_arrays(fresh_feat, bad_b)
     arrays: dict[str, Any] = {}
     groups: dict[str, list[tuple[np.ndarray, np.ndarray]]] = {}
     for name in sorted(set(a) | set(b)):
@@ -323,9 +351,11 @@ def feature_reliability(cached_feat: Path, fresh_feat: Path) -> dict[str, Any]:
     complete = bool(arrays) and all(v.get("present_in_both", True) and v.get("shape_match", False)
                                     for v in arrays.values())
     rmin = min(rel) if rel else None
+    unreadable = sorted(set(bad_a) | set(bad_b))
     return {"n_arrays": len(arrays), "arrays": arrays, "per_extractor": per_extractor,
-            "reliability_min": rmin, "reliability_gate": RELIABILITY_GATE,
-            "reliability_gate_pass": bool(complete and rmin is not None and rmin >= RELIABILITY_GATE)}
+            "unreadable": unreadable, "reliability_min": rmin, "reliability_gate": RELIABILITY_GATE,
+            "reliability_gate_pass": bool(complete and not unreadable and rmin is not None
+                                          and rmin >= RELIABILITY_GATE)}
 
 
 def extraction_drift(store: FeatureStore, input_sha256: str, extract: Extractor, predict: Predictor,

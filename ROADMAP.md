@@ -18,6 +18,11 @@ This roadmap is the spec in `docs/prompts/v2.md`. The status values are TODO, WI
 | P9 Interpretation | TODO | Neuro | Neuro, Referee, Watchdog |
 | P10 Report | TODO | Reporter | all 5 |
 
+## Waves (D-044, owner-approved split-sample design)
+- **Wave 1 (discovery, exploratory):** everything collected until the current quota day ends → P2–P5 → P5b validation → owner unblinds wave 1 → exploratory P7/P8 → council roadmap review.
+- **Lock:** prereg-lock tag; no protocol changes after it.
+- **Wave 2+ (confirmatory/replication):** new videos only (collected after the lock), analysed once each with the locked protocol.
+
 ## P0 — Setup
 **Tasks**
 - Repo skeleton.
@@ -194,6 +199,7 @@ Validate the pipeline as in v2.md §5 P5b. All of these must hold:
 - **R-1 (2026-11-17):** v1 to v2 after the council review. See `reviews/prompt_v1/` and DECISIONS D-001 to D-012.
 - **R-7 (2026-11-17):** v2.5 C3 after G-D032 cycle 2 and Phase 0 cycle 1 (ticket FIX-C3-SCI; DECISIONS D-037–D-041): Q(M0) rule D-037 implemented (`m0.q_m0`; all linear M0, forced speech quadratics, fixed-order quadratics to numerical rank ⌊N/3⌋, label-free merge list, no PCA) with the P5b dropped-term FPR simulation; determinism policy D-038; latency/timing D-039 (`min_tail_s` 5, no timing claims < 5 s, P4b redesign + `controls:` ROI lists); era × route blocks D-040; pinned revisions + `HF_HUB_OFFLINE` as a hard P4 prerequisite; one GPU type for P4; legible stipple (raster-tested), zeros masked not thresholded, medial-wall shrinkage columns.
 - **R-6 (2026-11-17):** v2.4 after gate G-D032 (ticket FIX-D032-2; DECISIONS D-034): union medial wall (Schaefer ∪ HCP `???` ∪ Destrieux), crop-aware face regressor, M0 assembly rules (W-averaging, label-free imputation, no `text_frac`, speech rate + speech fraction forced into K_Q, rank ≤ ⌊N/3⌋, no-audio/<20-words exclusion), T3 crop statistics + `max_gain` cap + T3 analysis rules, localisation firewall (caption, claim lint, company-cluster BCa, stability, BH-FDR q, stippled unreliable vertices, best-overlap HCP). ENH-003 (subcortical) deferred.
+- **R-8 (2026-11-17):** split-sample waves (D-044).
 - **R-5 (2026-11-17):** v2.3: T3 photometric sensitivity track and atlas localisation outputs (owner request; D-032).
 - **R-4 (2026-11-17):** v2.1 → v2.2 after round-3 Biostat + Neuro reviews (reviews/prompt_v2/round3_*.md); DECISIONS D-023–D-028.
 - **R-3 (2026-11-17):** v2 to v2.1 after the round-2 Watchdog and Referee reviews (`reviews/prompt_v2/`). See DECISIONS D-013 to D-022.
