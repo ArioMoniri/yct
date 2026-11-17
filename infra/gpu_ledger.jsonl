@@ -151,3 +151,5 @@
 {"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794935509.0, "gpu_util": 0.0, "mem_mib": 2025.0, "source": "instance"}
 {"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794935539.0, "gpu_util": 7.0, "mem_mib": 9051.0, "source": "instance"}
 {"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794935569.0, "gpu_util": 31.0, "mem_mib": 10819.0, "source": "instance"}
+{"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794935599.0, "gpu_util": 100.0, "mem_mib": 12925.0, "source": "instance"}
+{"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794935629.0, "gpu_util": 100.0, "mem_mib": 12925.0, "source": "instance"}
