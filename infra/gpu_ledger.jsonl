@@ -28,3 +28,6 @@
 {"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931303.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
 {"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931334.0, "gpu_util": 0.0, "mem_mib": 1.0, "source": "instance"}
 {"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931364.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931394.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931424.0, "gpu_util": 31.0, "mem_mib": 7057.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931454.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
