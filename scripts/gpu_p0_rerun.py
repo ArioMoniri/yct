@@ -55,6 +55,19 @@ def pod(cmd: str, timeout: int = 900, check: bool = True) -> str:
     return res.stdout
 
 
+def pod_file(path: str, missing_ok: bool = False) -> str:
+    """Text of a pod file, fetched in base64 chunks (SSM StandardOutputContent is truncated at 24,000 chars)."""
+    n = pod(f"if [ -f {path} ]; then base64 -w0 {path} | wc -c; else echo -1; fi", 300).strip()
+    if int(n) < 0:
+        if missing_ok:
+            return ""
+        raise FileNotFoundError(path)
+    parts, step = [], 20000
+    for i in range(0, int(n), step):
+        parts.append(pod(f"base64 -w0 {path} | cut -c{i + 1}-{i + step}", 300).strip())
+    return base64.b64decode("".join(parts)).decode()
+
+
 class Box:
     def __init__(self, ip: str, pod_dir: str):
         self.ip, self.pod_dir = ip, pod_dir
@@ -114,6 +127,29 @@ run() {{ name=$1; shift; python $RC --feature-cache $FC --weights {B}/weights --
 """
 
 
+def collect(pod_dir: str, run_dir: Path, result: dict) -> None:
+    """Copy the small artifacts (per-run JSON, events, sha256 lists, cache manifest) from the pod run dir."""
+    for f in ("res/SHA256SUMS", "res/FC_SHA256SUMS", "pip_freeze.txt"):
+        (run_dir / Path(f).name).write_text(pod_file(f"{pod_dir}/{f}"))
+    names = ["smoke_a", "smoke_b", "smoke_c", "long70", "long110"]
+    names += [f"rel_{c}{x}" for c in ("smoke", "long70", "long110") for x in ("", "_rerun")]
+    for n in names:
+        out = pod_file(f"{pod_dir}/res/{n}.json", missing_ok=True)
+        if out.strip().startswith("{"):
+            (run_dir / f"{n}.json").write_text(out)
+            result.setdefault("runs", {})[n] = json.loads(out)
+        ev = pod_file(f"{pod_dir}/res/{n}.events.csv", missing_ok=True)
+        if ev.strip():
+            (run_dir / f"{n}.events.csv").write_text(ev)
+    pod(f"cd {pod_dir} && python3 -c \"import json,pathlib;"
+        "pathlib.Path('cache_manifest.json').write_text(json.dumps({str(p.parent.name): json.loads(p.read_text()) "
+        "for p in sorted(pathlib.Path('fc').glob('*/features.meta.json'))}))\"", 300)
+    man = pod_file(f"{pod_dir}/cache_manifest.json")
+    (run_dir / "cache_manifest.json").write_text(json.dumps(json.loads(man), indent=1, sort_keys=True))
+    smoke_old = pod("cd /work/yct/runs/smoke_20261117T142354Z && sha256sum *.npy clips/*/*", 300)
+    result["p0_smoke_artifacts_sha256"] = smoke_old.strip().splitlines()
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--max-hours", type=float, default=2.0)
@@ -123,6 +159,9 @@ def main() -> int:
     ap.add_argument("--keep-on-fail", action="store_true",
                     help="on a failed step leave the instance up for debugging (watch/idle-kill keep running)")
     ap.add_argument("--spent-before", type=float, default=None, help="ledger spend before the first attempt")
+    ap.add_argument("--collect-only", action="store_true",
+                    help="only (re)collect artifacts of an existing pod run dir /work/yct/runs/<run_id> into "
+                         "$YCT_RUN_DIR (same run_id); merges into its child_metrics.json")
     ap.add_argument("--steps", default="smoke,long70,long110",
                     help="comma list from: smoke, long70, long110 (P0 re-run) and rel_smoke, rel_long70, "
                          "rel_long110 (D-038 reliability: extract + fresh re-extraction kept for audit)")
@@ -133,6 +172,14 @@ def main() -> int:
     run_dir.mkdir(parents=True, exist_ok=True)
     run_id = run_dir.name
     pod_dir = f"/work/yct/runs/{run_id}"
+    if a.collect_only:
+        cm = run_dir / "child_metrics.json"
+        result = json.loads(cm.read_text()) if cm.exists() else {"run_id": run_id, "steps": {}}
+        result.pop("error", None)
+        result["collected_post_hoc"] = True
+        collect(pod_dir, run_dir, result)
+        cm.write_text(json.dumps(result, indent=1, default=str))
+        return 0
     price = lg.types()[ITYPE]["usd_per_hour"]
     if price * a.max_hours > a.usd_limit:
         raise SystemExit(f"{price}*{a.max_hours} h exceeds the task limit ${a.usd_limit}")
@@ -217,24 +264,7 @@ def main() -> int:
         pod(f"mkdir -p {pod_dir} /work/yct/cache && {box.ssh} 'tar cf - -C {B} res fc clips pip_freeze.txt "
             f"nvidia_smi.txt' | tar xf - -C {pod_dir} && cp -rn {pod_dir}/fc/. /work/yct/cache/ && "
             f"du -sh {pod_dir} /work/yct/cache", 1800)
-        for f in ("res/SHA256SUMS", "res/FC_SHA256SUMS", "pip_freeze.txt"):
-            (run_dir / Path(f).name).write_text(pod(f"cat {pod_dir}/{f}", 300))
-        names = ["smoke_a", "smoke_b", "smoke_c", "long70", "long110"]
-        names += [f"rel_{c}{x}" for c in ("smoke", "long70", "long110") for x in ("", "_rerun")]
-        for n in names:
-            out = pod(f"cat {pod_dir}/res/{n}.json 2>/dev/null || true", 300, check=False)
-            if out.strip().startswith("{"):
-                (run_dir / f"{n}.json").write_text(out)
-                result.setdefault("runs", {})[n] = json.loads(out)
-            ev = pod(f"cat {pod_dir}/res/{n}.events.csv 2>/dev/null || true", 300, check=False)
-            if ev.strip():
-                (run_dir / f"{n}.events.csv").write_text(ev)
-        man = pod(f"cd {pod_dir} && PYTHONPATH=/dev/null python3 -c \"import json,pathlib,hashlib;"
-                  "print(json.dumps({str(p.parent.name): json.loads(p.read_text()) "
-                  "for p in sorted(pathlib.Path('fc').glob('*/features.meta.json'))}))\"", 300)
-        (run_dir / "cache_manifest.json").write_text(json.dumps(json.loads(man), indent=1, sort_keys=True))
-        smoke_old = pod("cd /work/yct/runs/smoke_20261117T142354Z && sha256sum *.npy clips/*/*", 300)
-        result["p0_smoke_artifacts_sha256"] = smoke_old.strip().splitlines()
+        collect(pod_dir, run_dir, result)
     except Exception as exc:  # noqa: BLE001 - always record and fall through to terminate
         result["error"] = f"{type(exc).__name__}: {exc}"[-4000:]
         log(f"ERROR {result['error'][:500]}")

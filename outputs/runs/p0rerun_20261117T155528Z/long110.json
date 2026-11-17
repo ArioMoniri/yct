@@ -1,0 +1,127 @@
+{
+ "input_sha256": "172bef12434a93bf5dc331c1ea98e455fdc13b44b842d250475d7d5b59c790f1",
+ "transcript_sha256": "5612f139cdd1acd106edcc86c668d9babb16157f191d5e9846fe6e217dbdd384",
+ "cache_key": "23f3176c527f238433beab3f1abf6401e2de887eccac8f1036ecb79c25f1ec54",
+ "offline": true,
+ "cache_entry": "/home/ubuntu/yct/fc/23f3176c527f238433beab3f1abf6401e2de887eccac8f1036ecb79c25f1ec54",
+ "cache_reused": false,
+ "revisions": {
+  "tribe_commit": "af58661791a351a448a489042a28f6c37e1c14b7",
+  "ckpt_sha256": "9c79ffff6b642b7b0c71d558c935fb3fa33f2788bfb509feead94fafbba2f321",
+  "backbones": {
+   "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+   "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+   "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
+   "en_core_web_lg": "3.8.0"
+  },
+  "torch": "2.6.0+cu124",
+  "cuda": "12.4",
+  "gpu": "NVIDIA A100-SXM4-40GB",
+  "transformers": "5.17.0",
+  "exca": "0.5.20",
+  "neuralset": "0.0.2",
+  "neuraltrain": "0.0.2",
+  "numpy": "2.2.6",
+  "x-transformers": "1.27.20",
+  "moviepy": "2.2.1"
+ },
+ "feature_sha256": {
+  "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/129-213-149-162-35890-info.jsonl": "f4c0fcdc0c160e5b76f45291ef9ced1fdb7631a15c1bf027831bbafde9415f00",
+  "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/config.yaml": "92bc0bc94b6b7e6a15fdd5603948168397a94a729725fe71d904036655f11c89",
+  "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/data/129-213-149-162-35890.data": "f3038bdbaace8db1d4716b5d6c74c053b72918a75b7e15b5e411282b55b02e39",
+  "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/full-uid.yaml": "97402bddc70403a6c5bb3a1824fa196cb98747f7cd23427dcdfbd6cb2ebab7a9",
+  "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/inflight.db": "6e743e5340697b564586ef3254b95ba1f14f743a79a16cca978ce9d246a43180",
+  "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/uid.yaml": "a57cfb1fc07c7a06b22abfc64361f9b107e7ee45e735e3bebe1b33be34ddb55b",
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/129-213-149-162-35890-info.jsonl": "bf784a959c26dfbfedeeb61d0a34807fcf491131909fd4f6a430624160075d6b",
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/config.yaml": "44f6e445fd4562ee5ed91a99a6be91592516b796101391499816734fbefaa305",
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/data/129-213-149-162-35890.data": "1d943813d33e41114c20399f5655d1572b19d72712e08fbc86b382658bbca2c3",
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/full-uid.yaml": "8561fbe01d9e6cf0f22c0f0064d604a1aa7e157a11568c57c3de827c05b0e0d7",
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/inflight.db": "8d5a67e7ec7c118603e3b669a877d8590054fbe9d2355b9f34a10439790bd536",
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/uid.yaml": "c0202c696167c67a68bef879eb27946acae06e2d331eed1d1b7fb7ad4396e8cf",
+  "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/129-213-149-162-35890-info.jsonl": "5dea59d525927fecfbfad0bd368042b0b53653e89dd5bb53b1adb5d1d71ba346",
+  "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/config.yaml": "8ce002e179c34a1884b695e489cff6c6e6980d0a7bfcd5e16e766d1609493bb3",
+  "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/data/129-213-149-162-35890.data": "1c3686f455b6fb25264f741b94ad10093241ddff677f151eda90a9ed971e3f50",
+  "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/full-uid.yaml": "c2175bd9a39ad8f58cfc0640e6c6a359e1c63b7df882001348b86edb5023b19e",
+  "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/inflight.db": "f6f599739802309a0b417f6afb3e6ac4f93e51eaf6c766ea0a887f9274ffa6e9",
+  "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/uid.yaml": "dd143fb918a45b68060ea2a0268832b2ad461ea88427362d1128f3dfd9578f5d"
+ },
+ "pred_shape": [
+  229,
+  20484
+ ],
+ "pred_dtype": "float32",
+ "pred_sha256": "658a7c562f121dc332ae65c525a3fb8f15ef1125e7d49180c2a0ef93530fd78a",
+ "clip": "long110.mp4",
+ "duration_s": 110.0,
+ "shape": [
+  229,
+  20484
+ ],
+ "dtype": "float32",
+ "finite": true,
+ "TR_s": 1.0,
+ "expected_T": 110.0,
+ "T_within_1": false,
+ "first_segment_start_s": 0.0,
+ "last_segment_start_s": 228.0,
+ "event_types": {
+  "Word": 552,
+  "Sentence": 48,
+  "Audio": 2,
+  "Video": 2,
+  "Text": 1
+ },
+ "n_words": 552,
+ "chunks": {
+  "Audio": [
+   [
+    0.0,
+    60.0
+   ],
+   [
+    60.0,
+    50.0
+   ]
+  ],
+  "Video": [
+   [
+    0.0,
+    60.0
+   ],
+   [
+    60.0,
+    50.0
+   ]
+  ]
+ },
+ "n_segments": 229,
+ "word_start_min_s": 0.5,
+ "word_start_max_s": 228.57,
+ "words_after_duration": 276,
+ "offline_env": {
+  "HF_HUB_OFFLINE": "1",
+  "TRANSFORMERS_OFFLINE": "1",
+  "HF_DATASETS_OFFLINE": "1"
+ },
+ "backbone_revisions": {
+  "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+  "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+  "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
+  "en_core_web_lg": "3.8.0"
+ },
+ "wall_load_s": 1.8,
+ "wall_extract_s": 591.0,
+ "wall_events_predict_s": 3.1,
+ "peak_vram_smi_mib": 12889,
+ "vram_samples": 597,
+ "torch_max_allocated_mib": 10297,
+ "torch_max_reserved_mib": 12370,
+ "gpu": "NVIDIA A100-SXM4-40GB",
+ "torch": "2.6.0+cu124",
+ "cuda": "12.4",
+ "python": "3.11.18",
+ "pred_mean": 0.0012037815758958459,
+ "pred_std": 0.07796670496463776,
+ "uvx_on_path": false,
+ "asr_called": false
+}

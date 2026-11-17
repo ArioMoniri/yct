@@ -1,0 +1,1403 @@
+{
+ "input_sha256": "3c1427e6b98371b9c9fbfa6caf39776fe6f8f56297f40a28a974a26597f15a62",
+ "transcript_sha256": "8098afe30291e947fe4f8af4f6416a1774aa08735b2769c1ef8ef6240e89d32a",
+ "cache_key": "c5034647451464d24371a13de6b7eec39cd16db893ebfffce88fe8f7628dd7de",
+ "offline": true,
+ "cache_entry": "/home/ubuntu/yct/fc/c5034647451464d24371a13de6b7eec39cd16db893ebfffce88fe8f7628dd7de",
+ "cache_reused": false,
+ "revisions": {
+  "tribe_commit": "af58661791a351a448a489042a28f6c37e1c14b7",
+  "ckpt_sha256": "9c79ffff6b642b7b0c71d558c935fb3fa33f2788bfb509feead94fafbba2f321",
+  "backbones": {
+   "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+   "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+   "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
+   "en_core_web_lg": "3.8.0"
+  },
+  "torch": "2.6.0+cu124",
+  "cuda": "12.4",
+  "gpu": "NVIDIA A100-SXM4-40GB",
+  "transformers": "5.17.0",
+  "exca": "0.5.20",
+  "neuralset": "0.0.2",
+  "neuraltrain": "0.0.2",
+  "numpy": "2.2.6",
+  "x-transformers": "1.27.20",
+  "moviepy": "2.2.1"
+ },
+ "feature_sha256": {
+  "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/129-213-149-162-10880-info.jsonl": "c8b4083860aab22a9a11d9ba2fcfb59dfca6b394b3c73fe9db29ac8a0f63ae6b",
+  "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/config.yaml": "220af48a689701a5b4f761b5f753e992b627f402026fcb2201fff9c61a4f352c",
+  "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/data/129-213-149-162-10880.data": "53ce497ea88d916ca9df32911d3e357da9ed8521b0d1a6cd1188a9fc6ce2ece1",
+  "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/full-uid.yaml": "97402bddc70403a6c5bb3a1824fa196cb98747f7cd23427dcdfbd6cb2ebab7a9",
+  "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/inflight.db": "fd9ed31e9eaef93947e0eed0a9d260d9f5f95a7936b72619ddc0d024f3f929f7",
+  "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/uid.yaml": "a57cfb1fc07c7a06b22abfc64361f9b107e7ee45e735e3bebe1b33be34ddb55b",
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/129-213-149-162-10880-info.jsonl": "9e01000d6300b45a5a1e9d6f80fbc716df164ef8e01b9b9f8158275948549691",
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/config.yaml": "57336edc3427e43a519d55e318be3b617eac4beee47500d11740d5753c2a73af",
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/data/129-213-149-162-10880.data": "e094d82a864f1a254596889f3307cb076ecd1e0521fa2f9a99e84afbac4ee967",
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/full-uid.yaml": "8561fbe01d9e6cf0f22c0f0064d604a1aa7e157a11568c57c3de827c05b0e0d7",
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/inflight.db": "923bcebcade6a6eff5ee1a1d334300aec237ad2b09d43a45be825dd7443deb1d",
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/uid.yaml": "c0202c696167c67a68bef879eb27946acae06e2d331eed1d1b7fb7ad4396e8cf",
+  "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/129-213-149-162-10880-info.jsonl": "6dc7c97ed2737a49d154885b3952e9568448b83955658e112e3bbdd17a8bd2e4",
+  "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/config.yaml": "6ffdaefad9273992972e06a2384857a877ae42e8db01e0f028f3c7706d9b2d20",
+  "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/data/129-213-149-162-10880.data": "1e206b940ae04379b14282c36a67c74991bc3b92179323fb45c7653f89636e7b",
+  "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/full-uid.yaml": "c2175bd9a39ad8f58cfc0640e6c6a359e1c63b7df882001348b86edb5023b19e",
+  "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/inflight.db": "ecda3bfa88e15f9ce6445795742eeea952b127f3286f34b0841c08447877bde1",
+  "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/uid.yaml": "dd143fb918a45b68060ea2a0268832b2ad461ea88427362d1128f3dfd9578f5d"
+ },
+ "pred_shape": [
+  70,
+  20484
+ ],
+ "pred_dtype": "float32",
+ "pred_sha256": "4cba03520c0bf431f87c67a8070a8a18355e26add48492020e485fb93c2d7450",
+ "fresh_extraction_drift": {
+  "gated": false,
+  "pred_max_abs_diff": 0.001068606972694397,
+  "pred_pearson_r": 0.9999991357248218,
+  "pred_bit_identical": false,
+  "pred_shape_match": true,
+  "pred_reliability": 0.9999991339910336,
+  "tensors": {
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/129-213-149-162-10880-info.jsonl": {
+    "bit_identical": false
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/config.yaml": {
+    "bit_identical": false
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/data/129-213-149-162-10880.data": {
+    "bit_identical": true
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/full-uid.yaml": {
+    "bit_identical": true
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/inflight.db": {
+    "bit_identical": false
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/uid.yaml": {
+    "bit_identical": true
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/129-213-149-162-10880-info.jsonl": {
+    "bit_identical": false
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/config.yaml": {
+    "bit_identical": false
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/data/129-213-149-162-10880.data": {
+    "bit_identical": false
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/full-uid.yaml": {
+    "bit_identical": true
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/inflight.db": {
+    "bit_identical": false
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/uid.yaml": {
+    "bit_identical": true
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/129-213-149-162-10880-info.jsonl": {
+    "bit_identical": false
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/config.yaml": {
+    "bit_identical": false
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/data/129-213-149-162-10880.data": {
+    "bit_identical": true
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/full-uid.yaml": {
+    "bit_identical": true
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/inflight.db": {
+    "bit_identical": false
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/uid.yaml": {
+    "bit_identical": true
+   }
+  },
+  "feature_reliability": {
+   "n_arrays": 172,
+   "arrays": {
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::Customers_The young founders explain how their new company will change the way people work. Our product helps small team..191..ilt similar systems at large companies before. We are raising money to hire engineers and grow our sales team. Customers-14404647": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::Customers_The young founders explain how their new company will change the way people work. Our product helps small team..728..ilt similar systems at large companies before. We are raising money to hire engineers and grow our sales team. Customers-687f9705": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::Europe._The young founders explain how their new company will change the way people work. Our product helps small teams ..304..omers tell us they save hours every week using our tool. Next year we plan to expand into three new countries in europe.-fa994f69": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999556199163441,
+     "reliability": 0.9999555424244507,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::Next_The young founders explain how their new company will change the way people work. Our product helps small teams shi..242..ising money to hire engineers and grow our sales team. Customers tell us they save hours every week using our tool. Next-11e20736": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 0.9999999999999999,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::Our_The young founders explain how their new company will change the way people work. Our": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::Our_The young founders explain how their new company will change the way people work. Our product helps small teams ship..386..nto three new countries in europe. The young founders explain how their new company will change the way people work. Our-06525c8b": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::Our_The young founders explain how their new company will change the way people work. Our product helps small teams ship..53..last year and already have thousands of happy customers. The market is large and growing quickly every single month. Our-a2a90603": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999241387164672,
+     "reliability": 0.999924121970104,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::Our_The young founders explain how their new company will change the way people work. Our product helps small teams ship..590..last year and already have thousands of happy customers. The market is large and growing quickly every single month. Our-dd771c08": {
+     "shape_match": true,
+     "max_abs_diff": 0.1875,
+     "pearson_r": 0.9999030496106097,
+     "reliability": 0.9999028623087446,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::The_The": {
+     "shape_match": true,
+     "max_abs_diff": 0.0625,
+     "pearson_r": 0.9999999696140704,
+     "reliability": 0.9999999696123775,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::The_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands of happy customers. The": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999205101628394,
+     "reliability": 0.999920363687332,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::The_The young founders explain how their new company will change the way people work. Our product helps small teams ship..304..s tell us they save hours every week using our tool. Next year we plan to expand into three new countries in europe. The-24269679": {
+     "shape_match": true,
+     "max_abs_diff": 0.1875,
+     "pearson_r": 0.9999249867223149,
+     "reliability": 0.9999248662955343,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::The_The young founders explain how their new company will change the way people work. Our product helps small teams ship..530..ms ship software faster and with fewer mistakes. We started last year and already have thousands of happy customers. The-cb11834a": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::We_The young founders explain how their new company will change the way people work. Our product helps small teams ship ..113..market is large and growing quickly every single month. Our team has built similar systems at large companies before. We-5e323cbd": {
+     "shape_match": true,
+     "max_abs_diff": 0.09375,
+     "pearson_r": 0.9999172532167774,
+     "reliability": 0.9999170324414495,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::We_The young founders explain how their new company will change the way people work. Our product helps small teams ship ..460.. company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We-3c770745": {
+     "shape_match": true,
+     "max_abs_diff": 0.15625,
+     "pearson_r": 0.9998702482327853,
+     "reliability": 0.9998701185987986,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::We_The young founders explain how their new company will change the way people work. Our product helps small teams ship ..650..market is large and growing quickly every single month. Our team has built similar systems at large companies before. We-3b55b894": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 0.9999999999999999,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::We_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999389633452018,
+     "reliability": 0.9999389295552841,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::already_The young founders explain how their new company will change the way people work. Our product helps small teams ..495..eople work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and already-cea41d4c": {
+     "shape_match": true,
+     "max_abs_diff": 0.09375,
+     "pearson_r": 0.9999146418767582,
+     "reliability": 0.9999146251508064,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::already_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and already": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 0.9999999999999998,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::and_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::and_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and": {
+     "shape_match": true,
+     "max_abs_diff": 0.15625,
+     "pearson_r": 0.9999397716189556,
+     "reliability": 0.9999397486067776,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::and_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands of happy customers. The market is large and": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::and_The young founders explain how their new company will change the way people work. Our product helps small teams ship..154..y single month. Our team has built similar systems at large companies before. We are raising money to hire engineers and-7cc5272a": {
+     "shape_match": true,
+     "max_abs_diff": 0.1875,
+     "pearson_r": 0.9999216175468506,
+     "reliability": 0.9999216116404132,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::and_The young founders explain how their new company will change the way people work. Our product helps small teams ship..437..rs explain how their new company will change the way people work. Our product helps small teams ship software faster and-e7391113": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::and_The young founders explain how their new company will change the way people work. Our product helps small teams ship..483..he way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and-bbd48d07": {
+     "shape_match": true,
+     "max_abs_diff": 0.21875,
+     "pearson_r": 0.999900207538593,
+     "reliability": 0.9998994885406235,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::and_The young founders explain how their new company will change the way people work. Our product helps small teams ship..550..ter and with fewer mistakes. We started last year and already have thousands of happy customers. The market is large and-0841d82c": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::and_The young founders explain how their new company will change the way people work. Our product helps small teams ship..691..y single month. Our team has built similar systems at large companies before. We are raising money to hire engineers and-75763035": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::are_The young founders explain how their new company will change the way people work. Our product helps small teams ship..118..et is large and growing quickly every single month. Our team has built similar systems at large companies before. We are-ef21125f": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.999921172710157,
+     "reliability": 0.9999211726486716,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::are_The young founders explain how their new company will change the way people work. Our product helps small teams ship..655..et is large and growing quickly every single month. Our team has built similar systems at large companies before. We are-d7224c01": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 0.9999999999999999,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::at_The young founders explain how their new company will change the way people work. Our product helps small teams ship ..623..ds of happy customers. The market is large and growing quickly every single month. Our team has built similar systems at-419895f2": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::at_The young founders explain how their new company will change the way people work. Our product helps small teams ship ..86..ds of happy customers. The market is large and growing quickly every single month. Our team has built similar systems at-f5192933": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999194367905068,
+     "reliability": 0.9999194320531912,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::before._The young founders explain how their new company will change the way people work. Our product helps small teams ..115..he market is large and growing quickly every single month. Our team has built similar systems at large companies before.-aacb5e59": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 0.9999999999999999,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::before._The young founders explain how their new company will change the way people work. Our product helps small teams ..652..he market is large and growing quickly every single month. Our team has built similar systems at large companies before.-9f3797ee": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 0.9999999999999999,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::built_The young founders explain how their new company will change the way people work. Our product helps small teams sh..607..lready have thousands of happy customers. The market is large and growing quickly every single month. Our team has built-896dab77": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9998783099985689,
+     "reliability": 0.999877821843589,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::built_The young founders explain how their new company will change the way people work. Our product helps small teams sh..70..lready have thousands of happy customers. The market is large and growing quickly every single month. Our team has built-33778267": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::change_The young founders explain how their new company will change": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::change_The young founders explain how their new company will change the way people work. Our product helps small teams s..364.. year we plan to expand into three new countries in europe. The young founders explain how their new company will change-57c2ecff": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999042198087585,
+     "reliability": 0.999904205865886,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::companies_The young founders explain how their new company will change the way people work. Our product helps small team..109..omers. The market is large and growing quickly every single month. Our team has built similar systems at large companies-caa1a94d": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::companies_The young founders explain how their new company will change the way people work. Our product helps small team..646..omers. The market is large and growing quickly every single month. Our team has built similar systems at large companies-812f0b7a": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.999890726729804,
+     "reliability": 0.9998907230152052,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::company_The young founders explain how their new company": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.999950298867819,
+     "reliability": 0.999950287634659,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::company_The young founders explain how their new company will change the way people work. Our product helps small teams ..353..r tool. Next year we plan to expand into three new countries in europe. The young founders explain how their new company-458de815": {
+     "shape_match": true,
+     "max_abs_diff": 0.1875,
+     "pearson_r": 0.9997891158943621,
+     "reliability": 0.9997879752089525,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::countries_The young founders explain how their new company will change the way people work. Our product helps small team..295.. team. Customers tell us they save hours every week using our tool. Next year we plan to expand into three new countries-b45851d2": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 0.9999999999999999,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::customers._The young founders explain how their new company will change the way people work. Our product helps small tea..533.. teams ship software faster and with fewer mistakes. We started last year and already have thousands of happy customers.-4e6c6502": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::customers._The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands of happy customers.": {
+     "shape_match": true,
+     "max_abs_diff": 0.0625,
+     "pearson_r": 0.999955542472066,
+     "reliability": 0.9999555307491846,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::engineers_The young founders explain how their new company will change the way people work. Our product helps small team..156..every single month. Our team has built similar systems at large companies before. We are raising money to hire engineers-0bddc39b": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999336316678298,
+     "reliability": 0.9999335973147236,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::engineers_The young founders explain how their new company will change the way people work. Our product helps small team..693..every single month. Our team has built similar systems at large companies before. We are raising money to hire engineers-fd99117c": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::every_The young founders explain how their new company will change the way people work. Our product helps small teams sh..217..ompanies before. We are raising money to hire engineers and grow our sales team. Customers tell us they save hours every-d398e9ca": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::every_The young founders explain how their new company will change the way people work. Our product helps small teams sh..37..takes. We started last year and already have thousands of happy customers. The market is large and growing quickly every-46c79344": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::every_The young founders explain how their new company will change the way people work. Our product helps small teams sh..574..takes. We started last year and already have thousands of happy customers. The market is large and growing quickly every-cea0289f": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::every_The young founders explain how their new company will change the way people work. Our product helps small teams sh..754..ompanies before. We are raising money to hire engineers and grow our sales team. Customers tell us they save hours every-6995d61b": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::expand_The young founders explain how their new company will change the way people work. Our product helps small teams s..267..ineers and grow our sales team. Customers tell us they save hours every week using our tool. Next year we plan to expand-aec80205": {
+     "shape_match": true,
+     "max_abs_diff": 0.109375,
+     "pearson_r": 0.999920715023754,
+     "reliability": 0.9999205732723369,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::explain_The young founders explain": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.999949435832781,
+     "reliability": 0.9999492529706208,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::explain_The young founders explain how their new company will change the way people work. Our product helps small teams ..331..rs every week using our tool. Next year we plan to expand into three new countries in europe. The young founders explain-ce69fb4f": {
+     "shape_match": true,
+     "max_abs_diff": 0.09375,
+     "pearson_r": 0.999936884791333,
+     "reliability": 0.9999368365372802,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::faster_The young founders explain how their new company will change the way people work. Our product helps small teams s..436..unders explain how their new company will change the way people work. Our product helps small teams ship software faster-7f3dde52": {
+     "shape_match": true,
+     "max_abs_diff": 0.1875,
+     "pearson_r": 0.9998962431184253,
+     "reliability": 0.9998958136027053,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::faster_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::fewer_The young founders explain how their new company will change the way people work. Our product helps small teams sh..450..how their new company will change the way people work. Our product helps small teams ship software faster and with fewer-c8705ae8": {
+     "shape_match": true,
+     "max_abs_diff": 0.1875,
+     "pearson_r": 0.999796670025141,
+     "reliability": 0.9997965881295359,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::fewer_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer": {
+     "shape_match": true,
+     "max_abs_diff": 0.140625,
+     "pearson_r": 0.9999205304741936,
+     "reliability": 0.9999203069971679,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::founders_The young founders": {
+     "shape_match": true,
+     "max_abs_diff": 0.09375,
+     "pearson_r": 0.9999337986518017,
+     "reliability": 0.9999337512491275,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::founders_The young founders explain how their new company will change the way people work. Our product helps small teams..324..save hours every week using our tool. Next year we plan to expand into three new countries in europe. The young founders-6fe66352": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9998824068121337,
+     "reliability": 0.9998819333126118,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::grow_The young founders explain how their new company will change the way people work. Our product helps small teams shi..160..gle month. Our team has built similar systems at large companies before. We are raising money to hire engineers and grow-fe742bb1": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999216345929286,
+     "reliability": 0.9999215358540718,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::grow_The young founders explain how their new company will change the way people work. Our product helps small teams shi..697..gle month. Our team has built similar systems at large companies before. We are raising money to hire engineers and grow-b702d79a": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::growing_The young founders explain how their new company will change the way people work. Our product helps small teams ..25..with fewer mistakes. We started last year and already have thousands of happy customers. The market is large and growing-a2f2b0d4": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::growing_The young founders explain how their new company will change the way people work. Our product helps small teams ..562..with fewer mistakes. We started last year and already have thousands of happy customers. The market is large and growing-41c5a4d1": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::happy_The young founders explain how their new company will change the way people work. Our product helps small teams sh..517..helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands of happy-67a4b70a": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::happy_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands of happy": {
+     "shape_match": true,
+     "max_abs_diff": 0.09375,
+     "pearson_r": 0.9999350578077482,
+     "reliability": 0.9999350495501302,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::has_The young founders explain how their new company will change the way people work. Our product helps small teams ship..599.. and already have thousands of happy customers. The market is large and growing quickly every single month. Our team has-3e534f82": {
+     "shape_match": true,
+     "max_abs_diff": 0.15625,
+     "pearson_r": 0.9998780875344093,
+     "reliability": 0.9998779026634608,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::has_The young founders explain how their new company will change the way people work. Our product helps small teams ship..62.. and already have thousands of happy customers. The market is large and growing quickly every single month. Our team has-09445306": {
+     "shape_match": true,
+     "max_abs_diff": 0.1875,
+     "pearson_r": 0.9999195650361729,
+     "reliability": 0.9999195211382278,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::have_The young founders explain how their new company will change the way people work. Our product helps small teams shi..497.. work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and already have-514c9ae9": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9998925930339627,
+     "reliability": 0.9998924166889299,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::have_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and already have": {
+     "shape_match": true,
+     "max_abs_diff": 0.09375,
+     "pearson_r": 0.9999358556303559,
+     "reliability": 0.9999358551268498,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::helps_The young founders explain how their new company will change the way people work. Our product helps": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::helps_The young founders explain how their new company will change the way people work. Our product helps small teams sh..402..countries in europe. The young founders explain how their new company will change the way people work. Our product helps-8c5d5908": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::hire_The young founders explain how their new company will change the way people work. Our product helps small teams shi..141..g quickly every single month. Our team has built similar systems at large companies before. We are raising money to hire-fae3c26f": {
+     "shape_match": true,
+     "max_abs_diff": 0.09375,
+     "pearson_r": 0.9999205657578926,
+     "reliability": 0.9999205656932606,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::hire_The young founders explain how their new company will change the way people work. Our product helps small teams shi..678..g quickly every single month. Our team has built similar systems at large companies before. We are raising money to hire-d87109f3": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 0.9999999999999999,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::hours_The young founders explain how their new company will change the way people work. Our product helps small teams sh..211..arge companies before. We are raising money to hire engineers and grow our sales team. Customers tell us they save hours-81696fd5": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 0.9999999999999998,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::hours_The young founders explain how their new company will change the way people work. Our product helps small teams sh..748..arge companies before. We are raising money to hire engineers and grow our sales team. Customers tell us they save hours-4184c4ed": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::how_The young founders explain how": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999623182873506,
+     "reliability": 0.999962311918322,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::how_The young founders explain how their new company will change the way people work. Our product helps small teams ship..331..very week using our tool. Next year we plan to expand into three new countries in europe. The young founders explain how-4d0ae064": {
+     "shape_match": true,
+     "max_abs_diff": 0.25,
+     "pearson_r": 0.9997582738804399,
+     "reliability": 0.9997582441475745,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::in_The young founders explain how their new company will change the way people work. Our product helps small teams ship ..291..am. Customers tell us they save hours every week using our tool. Next year we plan to expand into three new countries in-b03bb7d9": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999301037969598,
+     "reliability": 0.9999300624844082,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::into_The young founders explain how their new company will change the way people work. Our product helps small teams shi..270..s and grow our sales team. Customers tell us they save hours every week using our tool. Next year we plan to expand into-c1625a16": {
+     "shape_match": true,
+     "max_abs_diff": 0.171875,
+     "pearson_r": 0.9999125096396739,
+     "reliability": 0.9999125081844028,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::is_The young founders explain how their new company will change the way people work. Our product helps small teams ship ..539..ftware faster and with fewer mistakes. We started last year and already have thousands of happy customers. The market is-a0b6ca44": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::is_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands of happy customers. The market is": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::large_The young founders explain how their new company will change the way people work. Our product helps small teams sh..548.. faster and with fewer mistakes. We started last year and already have thousands of happy customers. The market is large-f1269f57": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::large_The young founders explain how their new company will change the way people work. Our product helps small teams sh..632..happy customers. The market is large and growing quickly every single month. Our team has built similar systems at large-cf979b93": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::large_The young founders explain how their new company will change the way people work. Our product helps small teams sh..95..happy customers. The market is large and growing quickly every single month. Our team has built similar systems at large-22358f7e": {
+     "shape_match": true,
+     "max_abs_diff": 0.1875,
+     "pearson_r": 0.999928417605961,
+     "reliability": 0.9999282149315556,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::large_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands of happy customers. The market is large": {
+     "shape_match": true,
+     "max_abs_diff": 0.1875,
+     "pearson_r": 0.9999280880227982,
+     "reliability": 0.9999280820638744,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::last_The young founders explain how their new company will change the way people work. Our product helps small teams shi..475.. change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last-145e4355": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::last_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last": {
+     "shape_match": true,
+     "max_abs_diff": 0.09375,
+     "pearson_r": 0.9999369228498572,
+     "reliability": 0.9999369195208866,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::market_The young founders explain how their new company will change the way people work. Our product helps small teams s..540.. software faster and with fewer mistakes. We started last year and already have thousands of happy customers. The market-35a3936f": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::market_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands of happy customers. The market": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::mistakes._The young founders explain how their new company will change the way people work. Our product helps small team..464..new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes.-46e62a9a": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999194415520282,
+     "reliability": 0.999919440453621,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::mistakes._The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes.": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.999956759848496,
+     "reliability": 0.9999566237754677,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::money_The young founders explain how their new company will change the way people work. Our product helps small teams sh..134..d growing quickly every single month. Our team has built similar systems at large companies before. We are raising money-de5ad3f5": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999178799182806,
+     "reliability": 0.9999178147031349,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::money_The young founders explain how their new company will change the way people work. Our product helps small teams sh..671..d growing quickly every single month. Our team has built similar systems at large companies before. We are raising money-fa4eaafd": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::month._The young founders explain how their new company will change the way people work. Our product helps small teams s..52..ted last year and already have thousands of happy customers. The market is large and growing quickly every single month.-f28c743b": {
+     "shape_match": true,
+     "max_abs_diff": 0.0625,
+     "pearson_r": 0.9999478088164004,
+     "reliability": 0.999947781437971,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::month._The young founders explain how their new company will change the way people work. Our product helps small teams s..589..ted last year and already have thousands of happy customers. The market is large and growing quickly every single month.-8e1ff9de": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::new_The young founders explain how their new": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::new_The young founders explain how their new company will change the way people work. Our product helps small teams ship..279.. our sales team. Customers tell us they save hours every week using our tool. Next year we plan to expand into three new-760bca0b": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999248481048992,
+     "reliability": 0.9999248229136912,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::new_The young founders explain how their new company will change the way people work. Our product helps small teams ship..341..using our tool. Next year we plan to expand into three new countries in europe. The young founders explain how their new-1cfb9ccc": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999170463005842,
+     "reliability": 0.9999168267326397,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::of_The young founders explain how their new company will change the way people work. Our product helps small teams ship ..508..oduct helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands of-51fa2265": {
+     "shape_match": true,
+     "max_abs_diff": 0.25,
+     "pearson_r": 0.9998824073465385,
+     "reliability": 0.9998823300077415,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::of_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands of": {
+     "shape_match": true,
+     "max_abs_diff": 0.09375,
+     "pearson_r": 0.9999340945819241,
+     "reliability": 0.9999340925179921,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::our_The young founders explain how their new company will change the way people work. Our product helps small teams shi..769.. We are raising money to hire engineers and grow our sales team. Customers tell us they save hours every week using our-4db39197": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::our_The young founders explain how their new company will change the way people work. Our product helps small teams ship..163..month. Our team has built similar systems at large companies before. We are raising money to hire engineers and grow our-3d0755e1": {
+     "shape_match": true,
+     "max_abs_diff": 0.1875,
+     "pearson_r": 0.9999102635739823,
+     "reliability": 0.9999101736973512,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::our_The young founders explain how their new company will change the way people work. Our product helps small teams ship..230... We are raising money to hire engineers and grow our sales team. Customers tell us they save hours every week using our-39eecede": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999351381639031,
+     "reliability": 0.9999351002246957,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::our_The young founders explain how their new company will change the way people work. Our product helps small teams ship..700..month. Our team has built similar systems at large companies before. We are raising money to hire engineers and grow our-80b44dd1": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::people_The young founders explain how their new company will change the way people": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999431925273387,
+     "reliability": 0.9999429938019044,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::people_The young founders explain how their new company will change the way people work. Our product helps small teams s..379..o expand into three new countries in europe. The young founders explain how their new company will change the way people-e9ed5301": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::plan_The young founders explain how their new company will change the way people work. Our product helps small teams shi..255..o hire engineers and grow our sales team. Customers tell us they save hours every week using our tool. Next year we plan-e216abf8": {
+     "shape_match": true,
+     "max_abs_diff": 0.09375,
+     "pearson_r": 0.9999275105374439,
+     "reliability": 0.9999275001677259,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::product_The young founders explain how their new company will change the way people work. Our product": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::product_The young founders explain how their new company will change the way people work. Our product helps small teams ..398..e new countries in europe. The young founders explain how their new company will change the way people work. Our product-d6725ebf": {
+     "shape_match": true,
+     "max_abs_diff": 0.15625,
+     "pearson_r": 0.9998775726687967,
+     "reliability": 0.9998772591980296,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::quickly_The young founders explain how their new company will change the way people work. Our product helps small teams ..33..er mistakes. We started last year and already have thousands of happy customers. The market is large and growing quickly-e13743e9": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::quickly_The young founders explain how their new company will change the way people work. Our product helps small teams ..570..er mistakes. We started last year and already have thousands of happy customers. The market is large and growing quickly-d9f778f9": {
+     "shape_match": true,
+     "max_abs_diff": 0.078125,
+     "pearson_r": 0.9999094964193957,
+     "reliability": 0.9999094575447423,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::raising_The young founders explain how their new company will change the way people work. Our product helps small teams ..130..rge and growing quickly every single month. Our team has built similar systems at large companies before. We are raising-4957ac21": {
+     "shape_match": true,
+     "max_abs_diff": 0.09375,
+     "pearson_r": 0.9998908023285098,
+     "reliability": 0.9998905607038493,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::raising_The young founders explain how their new company will change the way people work. Our product helps small teams ..667..rge and growing quickly every single month. Our team has built similar systems at large companies before. We are raising-de7ac9b5": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::sales_The young founders explain how their new company will change the way people work. Our product helps small teams sh..171.. Our team has built similar systems at large companies before. We are raising money to hire engineers and grow our sales-9e693889": {
+     "shape_match": true,
+     "max_abs_diff": 0.12109375,
+     "pearson_r": 0.999922705138696,
+     "reliability": 0.9999226495576898,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::sales_The young founders explain how their new company will change the way people work. Our product helps small teams sh..708.. Our team has built similar systems at large companies before. We are raising money to hire engineers and grow our sales-8b94ba31": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 0.9999999999999999,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::save_The young founders explain how their new company will change the way people work. Our product helps small teams shi..204..s at large companies before. We are raising money to hire engineers and grow our sales team. Customers tell us they save-794a7763": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::save_The young founders explain how their new company will change the way people work. Our product helps small teams shi..741..s at large companies before. We are raising money to hire engineers and grow our sales team. Customers tell us they save-08b62519": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 0.9999999999999999,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::ship_The young founders explain how their new company will change the way people work. Our product helps small teams shi..418..pe. The young founders explain how their new company will change the way people work. Our product helps small teams ship-fa2f88e6": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::ship_The young founders explain how their new company will change the way people work. Our product helps small teams ship": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999214157278986,
+     "reliability": 0.9999213645383882,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::similar_The young founders explain how their new company will change the way people work. Our product helps small teams ..617..ave thousands of happy customers. The market is large and growing quickly every single month. Our team has built similar-f264c35c": {
+     "shape_match": true,
+     "max_abs_diff": 0.1875,
+     "pearson_r": 0.9998960386719838,
+     "reliability": 0.9998960104877254,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::similar_The young founders explain how their new company will change the way people work. Our product helps small teams ..80..ave thousands of happy customers. The market is large and growing quickly every single month. Our team has built similar-7c0fbdb9": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::single_The young founders explain how their new company will change the way people work. Our product helps small teams s..45..We started last year and already have thousands of happy customers. The market is large and growing quickly every single-cd8127af": {
+     "shape_match": true,
+     "max_abs_diff": 0.25,
+     "pearson_r": 0.9999190248033317,
+     "reliability": 0.9999188172921288,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::single_The young founders explain how their new company will change the way people work. Our product helps small teams s..582..We started last year and already have thousands of happy customers. The market is large and growing quickly every single-e4212ff2": {
+     "shape_match": true,
+     "max_abs_diff": 0.3125,
+     "pearson_r": 0.9995639117645023,
+     "reliability": 0.9995636471626658,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::small_The young founders explain how their new company will change the way people work. Our product helps small": {
+     "shape_match": true,
+     "max_abs_diff": 0.25,
+     "pearson_r": 0.9999287987955227,
+     "reliability": 0.9999286795995015,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::small_The young founders explain how their new company will change the way people work. Our product helps small teams sh..408..ies in europe. The young founders explain how their new company will change the way people work. Our product helps small-8e78e126": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::software_The young founders explain how their new company will change the way people work. Our product helps small teams ship software": {
+     "shape_match": true,
+     "max_abs_diff": 0.08203125,
+     "pearson_r": 0.9999250956144241,
+     "reliability": 0.9999249304690583,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::software_The young founders explain how their new company will change the way people work. Our product helps small teams..431..oung founders explain how their new company will change the way people work. Our product helps small teams ship software-47b8a3f3": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::started_The young founders explain how their new company will change the way people work. Our product helps small teams ..473.. will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started-329e0628": {
+     "shape_match": true,
+     "max_abs_diff": 0.1328125,
+     "pearson_r": 0.9999029418777465,
+     "reliability": 0.9999017936831558,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::started_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started": {
+     "shape_match": true,
+     "max_abs_diff": 0.09375,
+     "pearson_r": 0.9999329320476432,
+     "reliability": 0.9999329314117129,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::systems_The young founders explain how their new company will change the way people work. Our product helps small teams ..625..sands of happy customers. The market is large and growing quickly every single month. Our team has built similar systems-607bb14d": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::systems_The young founders explain how their new company will change the way people work. Our product helps small teams ..88..sands of happy customers. The market is large and growing quickly every single month. Our team has built similar systems-d3bdadca": {
+     "shape_match": true,
+     "max_abs_diff": 0.25,
+     "pearson_r": 0.9999207378335925,
+     "reliability": 0.9999207134693152,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::team._The young founders explain how their new company will change the way people work. Our product helps small teams sh..177..eam has built similar systems at large companies before. We are raising money to hire engineers and grow our sales team.-71d2907b": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::team._The young founders explain how their new company will change the way people work. Our product helps small teams sh..714..eam has built similar systems at large companies before. We are raising money to hire engineers and grow our sales team.-baaea8cc": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::team_The young founders explain how their new company will change the way people work. Our product helps small teams shi..59..year and already have thousands of happy customers. The market is large and growing quickly every single month. Our team-88c84539": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::team_The young founders explain how their new company will change the way people work. Our product helps small teams shi..596..year and already have thousands of happy customers. The market is large and growing quickly every single month. Our team-28edf1e2": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9998990849544954,
+     "reliability": 0.9998988023634855,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::teams_The young founders explain how their new company will change the way people work. Our product helps small teams": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::teams_The young founders explain how their new company will change the way people work. Our product helps small teams sh..414.. europe. The young founders explain how their new company will change the way people work. Our product helps small teams-1616b3b0": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::tell_The young founders explain how their new company will change the way people work. Our product helps small teams shi..191..imilar systems at large companies before. We are raising money to hire engineers and grow our sales team. Customers tell-62665d46": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999421947356412,
+     "reliability": 0.9999420025593118,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::tell_The young founders explain how their new company will change the way people work. Our product helps small teams shi..728..imilar systems at large companies before. We are raising money to hire engineers and grow our sales team. Customers tell-2c2a555f": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::the_The young founders explain how their new company will change the": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999514441893987,
+     "reliability": 0.9999514415108892,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::the_The young founders explain how their new company will change the way people work. Our product helps small teams ship..365..r we plan to expand into three new countries in europe. The young founders explain how their new company will change the-10e5d91e": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::their_The young founders explain how their": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 0.9999999999999998,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::their_The young founders explain how their new company will change the way people work. Our product helps small teams sh..339..eek using our tool. Next year we plan to expand into three new countries in europe. The young founders explain how their-c8a35d63": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999217016849407,
+     "reliability": 0.9999216533842405,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::they_The young founders explain how their new company will change the way people work. Our product helps small teams shi..199..ystems at large companies before. We are raising money to hire engineers and grow our sales team. Customers tell us they-da08f093": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.999942028333784,
+     "reliability": 0.9999420279057978,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::they_The young founders explain how their new company will change the way people work. Our product helps small teams shi..736..ystems at large companies before. We are raising money to hire engineers and grow our sales team. Customers tell us they-e3fed3c5": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::thousands_The young founders explain how their new company will change the way people work. Our product helps small team..512.. product helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands-381d8679": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 0.9999999999999999,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::thousands_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands": {
+     "shape_match": true,
+     "max_abs_diff": 0.140625,
+     "pearson_r": 0.9999305924211246,
+     "reliability": 0.9999305328376783,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::three_The young founders explain how their new company will change the way people work. Our product helps small teams sh..277..grow our sales team. Customers tell us they save hours every week using our tool. Next year we plan to expand into three-ba3241f5": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::to_The young founders explain how their new company will change the way people work. Our product helps small teams ship ..134..rowing quickly every single month. Our team has built similar systems at large companies before. We are raising money to-6a0a4e1e": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999278442846486,
+     "reliability": 0.9999277741157673,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::to_The young founders explain how their new company will change the way people work. Our product helps small teams ship ..256..ire engineers and grow our sales team. Customers tell us they save hours every week using our tool. Next year we plan to-12c052ff": {
+     "shape_match": true,
+     "max_abs_diff": 0.109375,
+     "pearson_r": 0.9999382607002767,
+     "reliability": 0.9999381774112184,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::to_The young founders explain how their new company will change the way people work. Our product helps small teams ship ..671..rowing quickly every single month. Our team has built similar systems at large companies before. We are raising money to-034398ea": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::tool._The young founders explain how their new company will change the way people work. Our product helps small teams s..776..re raising money to hire engineers and grow our sales team. Customers tell us they save hours every week using our tool-d9720174": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::tool._The young founders explain how their new company will change the way people work. Our product helps small teams sh..238..re raising money to hire engineers and grow our sales team. Customers tell us they save hours every week using our tool.-57fdf662": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::us_The young founders explain how their new company will change the way people work. Our product helps small teams ship ..192..lar systems at large companies before. We are raising money to hire engineers and grow our sales team. Customers tell us-55e6b348": {
+     "shape_match": true,
+     "max_abs_diff": 0.1875,
+     "pearson_r": 0.9999265524990446,
+     "reliability": 0.9999265463542419,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::us_The young founders explain how their new company will change the way people work. Our product helps small teams ship ..729..lar systems at large companies before. We are raising money to hire engineers and grow our sales team. Customers tell us-c7bf42fd": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::using_The young founders explain how their new company will change the way people work. Our product helps small teams s..767..ore. We are raising money to hire engineers and grow our sales team. Customers tell us they save hours every week using-15f6719f": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::using_The young founders explain how their new company will change the way people work. Our product helps small teams sh..228..fore. We are raising money to hire engineers and grow our sales team. Customers tell us they save hours every week using-cc927fca": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999369063271064,
+     "reliability": 0.9999368587199069,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::way_The young founders explain how their new company will change the way": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999477426589248,
+     "reliability": 0.999947673564986,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::way_The young founders explain how their new company will change the way people work. Our product helps small teams ship..369.. plan to expand into three new countries in europe. The young founders explain how their new company will change the way-9ca249be": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999106680351746,
+     "reliability": 0.9999106186662061,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::we_The young founders explain how their new company will change the way people work. Our product helps small teams ship ..248..ney to hire engineers and grow our sales team. Customers tell us they save hours every week using our tool. Next year we-ff1c4065": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::week_The young founders explain how their new company will change the way people work. Our product helps small teams shi..221..ies before. We are raising money to hire engineers and grow our sales team. Customers tell us they save hours every week-5b3faee5": {
+     "shape_match": true,
+     "max_abs_diff": 0.109375,
+     "pearson_r": 0.999913743587849,
+     "reliability": 0.9999136241275578,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::week_The young founders explain how their new company will change the way people work. Our product helps small teams shi..758..ies before. We are raising money to hire engineers and grow our sales team. Customers tell us they save hours every week-5a719713": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::will_The young founders explain how their new company will": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::will_The young founders explain how their new company will change the way people work. Our product helps small teams shi..355..l. Next year we plan to expand into three new countries in europe. The young founders explain how their new company will-cbc5d8d7": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999013610061389,
+     "reliability": 0.9999010814562317,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::with_The young founders explain how their new company will change the way people work. Our product helps small teams shi..443..plain how their new company will change the way people work. Our product helps small teams ship software faster and with-dd095432": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 0.9999999999999999,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::with_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::work._The young founders explain how their new company will change the way people work.": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::work._The young founders explain how their new company will change the way people work. Our product helps small teams sh..384..nd into three new countries in europe. The young founders explain how their new company will change the way people work.-5f672a80": {
+     "shape_match": true,
+     "max_abs_diff": 0.25,
+     "pearson_r": 0.9999349453718132,
+     "reliability": 0.9999348660590708,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::year_The young founders explain how their new company will change the way people work. Our product helps small teams shi..247.. money to hire engineers and grow our sales team. Customers tell us they save hours every week using our tool. Next year-2f9da76d": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999240362037582,
+     "reliability": 0.9999240334737302,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::year_The young founders explain how their new company will change the way people work. Our product helps small teams shi..480..ge the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year-909b2c46": {
+     "shape_match": true,
+     "max_abs_diff": 0.25,
+     "pearson_r": 0.9998989075835512,
+     "reliability": 0.9998988716713353,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::year_The young founders explain how their new company will change the way people work. Our product helps small teams ship software faster and with fewer mistakes. We started last year": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.9999297190486442,
+     "reliability": 0.9999296513412234,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::young_The young": {
+     "shape_match": true,
+     "max_abs_diff": 0.125,
+     "pearson_r": 0.999948086939331,
+     "reliability": 0.9999479058996273,
+     "bit_identical": false
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::young_The young founders explain how their new company will change the way people work. Our product helps small teams sh..312.. us they save hours every week using our tool. Next year we plan to expand into three new countries in europe. The young-d38ad917": {
+     "shape_match": true,
+     "max_abs_diff": 0.0,
+     "pearson_r": 1.0,
+     "reliability": 1.0,
+     "bit_identical": true
+    }
+   },
+   "per_extractor": {
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842": {
+     "n_arrays": 172,
+     "reliability": 0.9999921966658522,
+     "max_abs_diff": 0.3125,
+     "bit_identical": false
+    }
+   },
+   "reliability_min": 0.9995636471626658,
+   "reliability_gate": 0.99,
+   "reliability_gate_pass": true
+  }
+ },
+ "clip": "long70.mp4",
+ "duration_s": 70.0,
+ "shape": [
+  70,
+  20484
+ ],
+ "dtype": "float32",
+ "finite": true,
+ "TR_s": 1.0,
+ "expected_T": 70.0,
+ "T_within_1": true,
+ "first_segment_start_s": 0.0,
+ "last_segment_start_s": 69.0,
+ "event_types": {
+  "Word": 172,
+  "Sentence": 15,
+  "Audio": 1,
+  "Video": 1,
+  "Text": 1
+ },
+ "n_words": 172,
+ "chunks": {
+  "Audio": [
+   [
+    0.0,
+    70.0
+   ]
+  ],
+  "Video": [
+   [
+    0.0,
+    70.0
+   ]
+  ]
+ },
+ "n_segments": 70,
+ "word_start_min_s": 0.5,
+ "word_start_max_s": 67.984,
+ "words_after_duration": 0,
+ "offline_env": {
+  "HF_HUB_OFFLINE": "1",
+  "TRANSFORMERS_OFFLINE": "1",
+  "HF_DATASETS_OFFLINE": "1"
+ },
+ "backbone_revisions": {
+  "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+  "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+  "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
+  "en_core_web_lg": "3.8.0"
+ },
+ "wall_load_s": 1.9,
+ "wall_extract_s": 364.4,
+ "wall_events_predict_s": 2.5,
+ "peak_vram_smi_mib": 12931,
+ "vram_samples": 741,
+ "torch_max_allocated_mib": 10301,
+ "torch_max_reserved_mib": 12412,
+ "gpu": "NVIDIA A100-SXM4-40GB",
+ "torch": "2.6.0+cu124",
+ "cuda": "12.4",
+ "python": "3.11.18",
+ "pred_mean": 0.043763548135757446,
+ "pred_std": 0.11215603351593018,
+ "uvx_on_path": false,
+ "asr_called": false
+}

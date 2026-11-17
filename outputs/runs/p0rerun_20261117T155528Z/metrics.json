@@ -1,0 +1,623 @@
+{
+ "run_id": "p0rerun_20261117T155528Z",
+ "exit_code": 1,
+ "started_utc": "2026-11-17T15:55:49.454337+00:00",
+ "wall_s": 2187.399,
+ "git_sha": "0e3ed3ee313c1c252f6bcdfc950957280f264494",
+ "git_dirty": true,
+ "git_diff_sha256": "4b94721ede171e9842d452acf7e245aba45a46f348e6012f4bef53b5e060dbd7",
+ "untracked_files": [
+  "outputs/runs/p0rerun_20261117T153136Z/child_metrics.json",
+  "outputs/runs/p0rerun_20261117T153136Z/exit_code",
+  "outputs/runs/p0rerun_20261117T153136Z/metrics.json",
+  "outputs/runs/p0rerun_20261117T153136Z/pip_freeze.txt",
+  "outputs/runs/p0rerun_20261117T153136Z/report.md",
+  "outputs/runs/p0rerun_20261117T153136Z/watch.log",
+  "outputs/runs/p0rerun_20261117T154358Z/FC_SHA256SUMS",
+  "outputs/runs/p0rerun_20261117T154358Z/SHA256SUMS",
+  "outputs/runs/p0rerun_20261117T154358Z/cache_manifest.json",
+  "outputs/runs/p0rerun_20261117T154358Z/child_metrics.json",
+  "outputs/runs/p0rerun_20261117T154358Z/cmd",
+  "outputs/runs/p0rerun_20261117T154358Z/config_sha",
+  "outputs/runs/p0rerun_20261117T154358Z/exit_code",
+  "outputs/runs/p0rerun_20261117T154358Z/git_diff.patch",
+  "outputs/runs/p0rerun_20261117T154358Z/git_sha",
+  "outputs/runs/p0rerun_20261117T154358Z/metrics.json",
+  "outputs/runs/p0rerun_20261117T154358Z/pip_freeze.txt",
+  "outputs/runs/p0rerun_20261117T154358Z/report.md",
+  "outputs/runs/p0rerun_20261117T154358Z/stdout.log",
+  "outputs/runs/p0rerun_20261117T154358Z/untracked_sha256.txt",
+  "outputs/runs/p0rerun_20261117T154358Z/watch.log",
+  "outputs/runs/smoke_20261117T142354Z/artifacts_sha256.txt",
+  "outputs/runs/smoke_20261117T142354Z/cmd",
+  "outputs/runs/smoke_20261117T142354Z/config_sha",
+  "outputs/runs/smoke_20261117T142354Z/exit_code",
+  "outputs/runs/smoke_20261117T142354Z/git_sha",
+  "outputs/runs/smoke_20261117T142354Z/provenance.json",
+  "scripts/p0_rerun_report.py",
+  "src/yct/config_schema.py",
+  "tests/test_config_schema.py",
+  "tests/test_photometric_bt709.py",
+  "tests/test_tribe_offline.py"
+ ],
+ "python": "3.13.18",
+ "platform": "Linux-6.18.44-fc-v553-x86_64-with-glibc2.39",
+ "requirements_lock_sha256": "6218090691bb277f8b97620aaaa5b3e89a687ea136a0d4f2c7fa2773591ff0e2",
+ "pip_freeze_sha256": "465e262943c0d2c79dd4efb345e23d173baecfacc547b631a7447f3af7ad57ee",
+ "pytest": null,
+ "result": {
+  "run_id": "p0rerun_20261117T155528Z",
+  "instance_type": "gpu_1x_a100_sxm4",
+  "usd_per_hour": 1.99,
+  "steps": {
+   "setup": 0,
+   "smoke": 0,
+   "long70": 0,
+   "long110": 0
+  },
+  "attached": false,
+  "instance_id": "e1c5cf0525cd4f5f8406bceee3a19aba",
+  "runs": {
+   "smoke_a": {
+    "input_sha256": "e9ecef6c7a04e8288773a6e617762cdee0a565b08cf9f3d5f5f44a80465aecff",
+    "transcript_sha256": "13c11060e41881d3600f6febfb680471a04bc54ef292700336424f06abb89414",
+    "cache_key": "9837fca9bca0f2792749c2b144b14d7079d0595847171c2578474e83dad29f64",
+    "offline": true,
+    "cache_entry": "/home/ubuntu/yct/fc/9837fca9bca0f2792749c2b144b14d7079d0595847171c2578474e83dad29f64",
+    "cache_reused": false,
+    "revisions": {
+     "tribe_commit": "af58661791a351a448a489042a28f6c37e1c14b7",
+     "ckpt_sha256": "9c79ffff6b642b7b0c71d558c935fb3fa33f2788bfb509feead94fafbba2f321",
+     "backbones": {
+      "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+      "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+      "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
+      "en_core_web_lg": "3.8.0"
+     },
+     "torch": "2.6.0+cu124",
+     "cuda": "12.4",
+     "gpu": "NVIDIA A100-SXM4-40GB",
+     "transformers": "5.17.0",
+     "exca": "0.5.20",
+     "neuralset": "0.0.2",
+     "neuraltrain": "0.0.2",
+     "numpy": "2.2.6",
+     "x-transformers": "1.27.20",
+     "moviepy": "2.2.1"
+    },
+    "feature_sha256": {
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/129-213-149-162-5225-info.jsonl": "4dc6fa749fa03e9778c9af811f4651f510a4d4b3b6db9400746bf73657eaa1d5",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/config.yaml": "04c4548918b7fd5fb9a12d218fb85b8bd062ef45f5fe8d485799a1f44cf4e9be",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/data/129-213-149-162-5225.data": "14a2fd104552c84643408227010be83b1dffc1fd1904b5b17b60bdf715c44528",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/full-uid.yaml": "97402bddc70403a6c5bb3a1824fa196cb98747f7cd23427dcdfbd6cb2ebab7a9",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/inflight.db": "7b3084a4d51e24a5f58c19bc6414c261349df535ea321e4b6136635342cb52d0",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/uid.yaml": "a57cfb1fc07c7a06b22abfc64361f9b107e7ee45e735e3bebe1b33be34ddb55b",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/129-213-149-162-5225-info.jsonl": "cc54885379a31d49a17accafa455e1990013507790acfcba427ce87533adcbff",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/config.yaml": "c78ea6136588a39642920d2cb40ab1dfdca9b553f609e37d32a8327a8efa3002",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/data/129-213-149-162-5225.data": "891ddc32e7b609745e8bb62e576be88a2573527456c3431f1100526962c9023f",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/full-uid.yaml": "8561fbe01d9e6cf0f22c0f0064d604a1aa7e157a11568c57c3de827c05b0e0d7",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/inflight.db": "709bd07c2647dcaf27b5f284ec1452c9eeb72c4c1ad4610b7168c01a1f84f387",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/uid.yaml": "c0202c696167c67a68bef879eb27946acae06e2d331eed1d1b7fb7ad4396e8cf",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/129-213-149-162-5225-info.jsonl": "60ab2797dbdadd9124908054c757c1f19638e9b47d2443f17d8259775d0618d6",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/config.yaml": "25a1fe657462d4b7c250f1e64a56c80fa25d810434c82407bcf5ed6108a4d0ce",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/data/129-213-149-162-5225.data": "87ddb2170346661d86cd0c21fb14a87e71c4b02ae99cef7206765a00818bbd08",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/full-uid.yaml": "c2175bd9a39ad8f58cfc0640e6c6a359e1c63b7df882001348b86edb5023b19e",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/inflight.db": "ed69a6bc8d3f4dc888e49e484fff2339be3448fac056b242aa543c6e2cdf1332",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/uid.yaml": "dd143fb918a45b68060ea2a0268832b2ad461ea88427362d1128f3dfd9578f5d"
+    },
+    "pred_shape": [
+     10,
+     20484
+    ],
+    "pred_dtype": "float32",
+    "pred_sha256": "3de2734cd5173f7c861dca2108661115881373bc31dca3be4ca5efc3a6d0e366",
+    "clip": "smoke.mp4",
+    "duration_s": 10.0,
+    "shape": [
+     10,
+     20484
+    ],
+    "dtype": "float32",
+    "finite": true,
+    "TR_s": 1.0,
+    "expected_T": 10.0,
+    "T_within_1": true,
+    "first_segment_start_s": 0.0,
+    "last_segment_start_s": 9.0,
+    "event_types": {
+     "Word": 17,
+     "Audio": 1,
+     "Video": 1,
+     "Sentence": 1,
+     "Text": 1
+    },
+    "n_words": 17,
+    "chunks": {
+     "Audio": [
+      [
+       0.0,
+       10.0
+      ]
+     ],
+     "Video": [
+      [
+       0.0,
+       10.0
+      ]
+     ]
+    },
+    "n_segments": 10,
+    "word_start_min_s": 0.5,
+    "word_start_max_s": 5.984,
+    "words_after_duration": 0,
+    "offline_env": {
+     "HF_HUB_OFFLINE": "1",
+     "TRANSFORMERS_OFFLINE": "1",
+     "HF_DATASETS_OFFLINE": "1"
+    },
+    "backbone_revisions": {
+     "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+     "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+     "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
+     "en_core_web_lg": "3.8.0"
+    },
+    "wall_load_s": 1.9,
+    "wall_extract_s": 62.2,
+    "wall_events_predict_s": 2.2,
+    "peak_vram_smi_mib": 12889,
+    "vram_samples": 67,
+    "torch_max_allocated_mib": 10297,
+    "torch_max_reserved_mib": 12370,
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.6.0+cu124",
+    "cuda": "12.4",
+    "python": "3.11.18",
+    "pred_mean": 0.033670030534267426,
+    "pred_std": 0.13949771225452423,
+    "uvx_on_path": false,
+    "asr_called": false
+   },
+   "smoke_b": {
+    "input_sha256": "e9ecef6c7a04e8288773a6e617762cdee0a565b08cf9f3d5f5f44a80465aecff",
+    "transcript_sha256": "13c11060e41881d3600f6febfb680471a04bc54ef292700336424f06abb89414",
+    "cache_key": "9837fca9bca0f2792749c2b144b14d7079d0595847171c2578474e83dad29f64",
+    "offline": true,
+    "cache_entry": "/home/ubuntu/yct/fc/9837fca9bca0f2792749c2b144b14d7079d0595847171c2578474e83dad29f64",
+    "cache_reused": true,
+    "revisions": {
+     "backbones": {
+      "en_core_web_lg": "3.8.0",
+      "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+      "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+      "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062"
+     },
+     "ckpt_sha256": "9c79ffff6b642b7b0c71d558c935fb3fa33f2788bfb509feead94fafbba2f321",
+     "cuda": "12.4",
+     "exca": "0.5.20",
+     "gpu": "NVIDIA A100-SXM4-40GB",
+     "moviepy": "2.2.1",
+     "neuralset": "0.0.2",
+     "neuraltrain": "0.0.2",
+     "numpy": "2.2.6",
+     "torch": "2.6.0+cu124",
+     "transformers": "5.17.0",
+     "tribe_commit": "af58661791a351a448a489042a28f6c37e1c14b7",
+     "x-transformers": "1.27.20"
+    },
+    "feature_sha256": {
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/129-213-149-162-5225-info.jsonl": "4dc6fa749fa03e9778c9af811f4651f510a4d4b3b6db9400746bf73657eaa1d5",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/config.yaml": "04c4548918b7fd5fb9a12d218fb85b8bd062ef45f5fe8d485799a1f44cf4e9be",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/data/129-213-149-162-5225.data": "14a2fd104552c84643408227010be83b1dffc1fd1904b5b17b60bdf715c44528",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/full-uid.yaml": "97402bddc70403a6c5bb3a1824fa196cb98747f7cd23427dcdfbd6cb2ebab7a9",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/inflight.db": "7b3084a4d51e24a5f58c19bc6414c261349df535ea321e4b6136635342cb52d0",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/uid.yaml": "a57cfb1fc07c7a06b22abfc64361f9b107e7ee45e735e3bebe1b33be34ddb55b",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/129-213-149-162-5225-info.jsonl": "cc54885379a31d49a17accafa455e1990013507790acfcba427ce87533adcbff",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/config.yaml": "c78ea6136588a39642920d2cb40ab1dfdca9b553f609e37d32a8327a8efa3002",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/data/129-213-149-162-5225.data": "891ddc32e7b609745e8bb62e576be88a2573527456c3431f1100526962c9023f",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/full-uid.yaml": "8561fbe01d9e6cf0f22c0f0064d604a1aa7e157a11568c57c3de827c05b0e0d7",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/inflight.db": "709bd07c2647dcaf27b5f284ec1452c9eeb72c4c1ad4610b7168c01a1f84f387",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/uid.yaml": "c0202c696167c67a68bef879eb27946acae06e2d331eed1d1b7fb7ad4396e8cf",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/129-213-149-162-5225-info.jsonl": "60ab2797dbdadd9124908054c757c1f19638e9b47d2443f17d8259775d0618d6",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/config.yaml": "25a1fe657462d4b7c250f1e64a56c80fa25d810434c82407bcf5ed6108a4d0ce",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/data/129-213-149-162-5225.data": "87ddb2170346661d86cd0c21fb14a87e71c4b02ae99cef7206765a00818bbd08",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/full-uid.yaml": "c2175bd9a39ad8f58cfc0640e6c6a359e1c63b7df882001348b86edb5023b19e",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/inflight.db": "ed69a6bc8d3f4dc888e49e484fff2339be3448fac056b242aa543c6e2cdf1332",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/uid.yaml": "dd143fb918a45b68060ea2a0268832b2ad461ea88427362d1128f3dfd9578f5d"
+    },
+    "pred_shape": [
+     10,
+     20484
+    ],
+    "pred_dtype": "float32",
+    "pred_sha256": "3de2734cd5173f7c861dca2108661115881373bc31dca3be4ca5efc3a6d0e366",
+    "clip": "smoke.mp4",
+    "duration_s": 10.0,
+    "shape": [
+     10,
+     20484
+    ],
+    "dtype": "float32",
+    "finite": true,
+    "TR_s": 1.0,
+    "expected_T": 10.0,
+    "T_within_1": true,
+    "first_segment_start_s": 0.0,
+    "last_segment_start_s": 9.0,
+    "event_types": {
+     "Word": 17,
+     "Audio": 1,
+     "Video": 1,
+     "Sentence": 1,
+     "Text": 1
+    },
+    "n_words": 17,
+    "chunks": {
+     "Audio": [
+      [
+       0.0,
+       10.0
+      ]
+     ],
+     "Video": [
+      [
+       0.0,
+       10.0
+      ]
+     ]
+    },
+    "n_segments": 10,
+    "word_start_min_s": 0.5,
+    "word_start_max_s": 5.984,
+    "words_after_duration": 0,
+    "offline_env": {
+     "HF_HUB_OFFLINE": "1",
+     "TRANSFORMERS_OFFLINE": "1",
+     "HF_DATASETS_OFFLINE": "1"
+    },
+    "backbone_revisions": {
+     "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+     "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+     "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
+     "en_core_web_lg": "3.8.0"
+    },
+    "wall_load_s": 2.1,
+    "wall_events_predict_s": 3.8,
+    "peak_vram_smi_mib": 1179,
+    "vram_samples": 7,
+    "torch_max_allocated_mib": 734,
+    "torch_max_reserved_mib": 822,
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.6.0+cu124",
+    "cuda": "12.4",
+    "python": "3.11.18",
+    "pred_mean": 0.033670030534267426,
+    "pred_std": 0.13949771225452423,
+    "uvx_on_path": false,
+    "asr_called": false
+   },
+   "smoke_c": {
+    "input_sha256": "e9ecef6c7a04e8288773a6e617762cdee0a565b08cf9f3d5f5f44a80465aecff",
+    "transcript_sha256": "13c11060e41881d3600f6febfb680471a04bc54ef292700336424f06abb89414",
+    "cache_key": "9837fca9bca0f2792749c2b144b14d7079d0595847171c2578474e83dad29f64",
+    "offline": true,
+    "cache_entry": "/home/ubuntu/yct/fc/9837fca9bca0f2792749c2b144b14d7079d0595847171c2578474e83dad29f64",
+    "cache_reused": true,
+    "revisions": {
+     "backbones": {
+      "en_core_web_lg": "3.8.0",
+      "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+      "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+      "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062"
+     },
+     "ckpt_sha256": "9c79ffff6b642b7b0c71d558c935fb3fa33f2788bfb509feead94fafbba2f321",
+     "cuda": "12.4",
+     "exca": "0.5.20",
+     "gpu": "NVIDIA A100-SXM4-40GB",
+     "moviepy": "2.2.1",
+     "neuralset": "0.0.2",
+     "neuraltrain": "0.0.2",
+     "numpy": "2.2.6",
+     "torch": "2.6.0+cu124",
+     "transformers": "5.17.0",
+     "tribe_commit": "af58661791a351a448a489042a28f6c37e1c14b7",
+     "x-transformers": "1.27.20"
+    },
+    "feature_sha256": {
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/129-213-149-162-5225-info.jsonl": "4dc6fa749fa03e9778c9af811f4651f510a4d4b3b6db9400746bf73657eaa1d5",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/config.yaml": "04c4548918b7fd5fb9a12d218fb85b8bd062ef45f5fe8d485799a1f44cf4e9be",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/data/129-213-149-162-5225.data": "14a2fd104552c84643408227010be83b1dffc1fd1904b5b17b60bdf715c44528",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/full-uid.yaml": "97402bddc70403a6c5bb3a1824fa196cb98747f7cd23427dcdfbd6cb2ebab7a9",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/inflight.db": "7b3084a4d51e24a5f58c19bc6414c261349df535ea321e4b6136635342cb52d0",
+     "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/uid.yaml": "a57cfb1fc07c7a06b22abfc64361f9b107e7ee45e735e3bebe1b33be34ddb55b",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/129-213-149-162-5225-info.jsonl": "cc54885379a31d49a17accafa455e1990013507790acfcba427ce87533adcbff",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/config.yaml": "c78ea6136588a39642920d2cb40ab1dfdca9b553f609e37d32a8327a8efa3002",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/data/129-213-149-162-5225.data": "891ddc32e7b609745e8bb62e576be88a2573527456c3431f1100526962c9023f",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/full-uid.yaml": "8561fbe01d9e6cf0f22c0f0064d604a1aa7e157a11568c57c3de827c05b0e0d7",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/inflight.db": "709bd07c2647dcaf27b5f284ec1452c9eeb72c4c1ad4610b7168c01a1f84f387",
+     "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/uid.yaml": "c0202c696167c67a68bef879eb27946acae06e2d331eed1d1b7fb7ad4396e8cf",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/129-213-149-162-5225-info.jsonl": "60ab2797dbdadd9124908054c757c1f19638e9b47d2443f17d8259775d0618d6",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/config.yaml": "25a1fe657462d4b7c250f1e64a56c80fa25d810434c82407bcf5ed6108a4d0ce",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/data/129-213-149-162-5225.data": "87ddb2170346661d86cd0c21fb14a87e71c4b02ae99cef7206765a00818bbd08",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/full-uid.yaml": "c2175bd9a39ad8f58cfc0640e6c6a359e1c63b7df882001348b86edb5023b19e",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/inflight.db": "ed69a6bc8d3f4dc888e49e484fff2339be3448fac056b242aa543c6e2cdf1332",
+     "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/uid.yaml": "dd143fb918a45b68060ea2a0268832b2ad461ea88427362d1128f3dfd9578f5d"
+    },
+    "pred_shape": [
+     10,
+     20484
+    ],
+    "pred_dtype": "float32",
+    "pred_sha256": "3de2734cd5173f7c861dca2108661115881373bc31dca3be4ca5efc3a6d0e366",
+    "fresh_extraction_drift": {
+     "gated": false,
+     "pred_max_abs_diff": 0.0008518733084201813,
+     "pred_pearson_r": 0.9999994413684343,
+     "pred_bit_identical": false,
+     "pred_shape_match": true,
+     "pred_reliability": 0.9999994401001876,
+     "tensors": {
+      "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/129-213-149-162-5225-info.jsonl": {
+       "present": false
+      },
+      "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/config.yaml": {
+       "bit_identical": false
+      },
+      "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/data/129-213-149-162-5225.data": {
+       "present": false
+      },
+      "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/full-uid.yaml": {
+       "bit_identical": true
+      },
+      "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/inflight.db": {
+       "bit_identical": false
+      },
+      "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/uid.yaml": {
+       "bit_identical": true
+      },
+      "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/129-213-149-162-5225-info.jsonl": {
+       "present": false
+      },
+      "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/config.yaml": {
+       "bit_identical": false
+      },
+      "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/data/129-213-149-162-5225.data": {
+       "present": false
+      },
+      "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/full-uid.yaml": {
+       "bit_identical": true
+      },
+      "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/inflight.db": {
+       "bit_identical": false
+      },
+      "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/uid.yaml": {
+       "bit_identical": true
+      },
+      "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/129-213-149-162-5225-info.jsonl": {
+       "present": false
+      },
+      "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/config.yaml": {
+       "bit_identical": false
+      },
+      "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/data/129-213-149-162-5225.data": {
+       "present": false
+      },
+      "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/full-uid.yaml": {
+       "bit_identical": true
+      },
+      "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/inflight.db": {
+       "bit_identical": false
+      },
+      "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/uid.yaml": {
+       "bit_identical": true
+      }
+     },
+     "feature_reliability": {
+      "n_arrays": 17,
+      "arrays": {
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::The_The": {
+        "shape_match": true,
+        "max_abs_diff": 0.25,
+        "pearson_r": 0.9999998930803781,
+        "reliability": 0.9999998930766183,
+        "bit_identical": false
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::brown_The quick brown": {
+        "shape_match": true,
+        "max_abs_diff": 0.0,
+        "pearson_r": 1.0,
+        "reliability": 1.0,
+        "bit_identical": true
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::company._The quick brown fox jumps over the lazy dog while the young founders explain their new company": {
+        "shape_match": true,
+        "max_abs_diff": 0.0,
+        "pearson_r": 1.0,
+        "reliability": 1.0,
+        "bit_identical": true
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::dog_The quick brown fox jumps over the lazy dog": {
+        "shape_match": true,
+        "max_abs_diff": 0.125,
+        "pearson_r": 0.9998505022778138,
+        "reliability": 0.9998498962132737,
+        "bit_identical": false
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::explain_The quick brown fox jumps over the lazy dog while the young founders explain": {
+        "shape_match": true,
+        "max_abs_diff": 0.25,
+        "pearson_r": 0.9999138123596105,
+        "reliability": 0.999913812072049,
+        "bit_identical": false
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::founders_The quick brown fox jumps over the lazy dog while the young founders": {
+        "shape_match": true,
+        "max_abs_diff": 0.0,
+        "pearson_r": 0.9999999999999999,
+        "reliability": 1.0,
+        "bit_identical": true
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::fox_The quick brown fox": {
+        "shape_match": true,
+        "max_abs_diff": 0.0,
+        "pearson_r": 1.0,
+        "reliability": 1.0,
+        "bit_identical": true
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::jumps_The quick brown fox jumps": {
+        "shape_match": true,
+        "max_abs_diff": 0.0,
+        "pearson_r": 1.0,
+        "reliability": 1.0,
+        "bit_identical": true
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::lazy_The quick brown fox jumps over the lazy": {
+        "shape_match": true,
+        "max_abs_diff": 0.1171875,
+        "pearson_r": 0.9998061341019878,
+        "reliability": 0.9998058501768258,
+        "bit_identical": false
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::new_The quick brown fox jumps over the lazy dog while the young founders explain their new": {
+        "shape_match": true,
+        "max_abs_diff": 0.0,
+        "pearson_r": 1.0,
+        "reliability": 1.0,
+        "bit_identical": true
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::over_The quick brown fox jumps over": {
+        "shape_match": true,
+        "max_abs_diff": 0.0,
+        "pearson_r": 0.9999999999999999,
+        "reliability": 1.0,
+        "bit_identical": true
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::quick_The quick": {
+        "shape_match": true,
+        "max_abs_diff": 0.083984375,
+        "pearson_r": 0.9999454704589874,
+        "reliability": 0.9999454704215706,
+        "bit_identical": false
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::the_The quick brown fox jumps over the": {
+        "shape_match": true,
+        "max_abs_diff": 0.15625,
+        "pearson_r": 0.9997712971170671,
+        "reliability": 0.9997712780907566,
+        "bit_identical": false
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::the_The quick brown fox jumps over the lazy dog while the": {
+        "shape_match": true,
+        "max_abs_diff": 0.25,
+        "pearson_r": 0.9998534960921648,
+        "reliability": 0.9998533908389692,
+        "bit_identical": false
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::their_The quick brown fox jumps over the lazy dog while the young founders explain their": {
+        "shape_match": true,
+        "max_abs_diff": 0.125,
+        "pearson_r": 0.9998581391253237,
+        "reliability": 0.9998579475809836,
+        "bit_identical": false
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::while_The quick brown fox jumps over the lazy dog while": {
+        "shape_match": true,
+        "max_abs_diff": 0.0,
+        "pearson_r": 1.0,
+        "reliability": 1.0,
+        "bit_identical": true
+       },
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::young_The quick brown fox jumps over the lazy dog while the young": {
+        "shape_match": true,
+        "max_abs_diff": 0.0,
+        "pearson_r": 1.0,
+        "reliability": 1.0,
+        "bit_identical": true
+       }
+      },
+      "per_extractor": {
+       "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842": {
+        "n_arrays": 17,
+        "reliability": 0.9999988231553192,
+        "max_abs_diff": 0.25,
+        "bit_identical": false
+       }
+      },
+      "reliability_min": 0.9997712780907566,
+      "reliability_gate": 0.99,
+      "reliability_gate_pass": true
+     }
+    },
+    "clip": "smoke.mp4",
+    "duration_s": 10.0,
+    "shape": [
+     10,
+     20484
+    ],
+    "dtype": "float32",
+    "finite": true,
+    "TR_s": 1.0,
+    "expected_T": 10.0,
+    "T_within_1": true,
+    "first_segment_start_s": 0.0,
+    "last_segment_start_s": 9.0,
+    "event_types": {
+     "Word": 17,
+     "Audio": 1,
+     "Video": 1,
+     "Sentence": 1,
+     "Text": 1
+    },
+    "n_words": 17,
+    "chunks": {
+     "Audio": [
+      [
+       0.0,
+       10.0
+      ]
+     ],
+     "Video": [
+      [
+       0.0,
+       10.0
+      ]
+     ]
+    },
+    "n_segments": 10,
+    "word_start_min_s": 0.5,
+    "word_start_max_s": 5.984,
+    "words_after_duration": 0,
+    "offline_env": {
+     "HF_HUB_OFFLINE": "1",
+     "TRANSFORMERS_OFFLINE": "1",
+     "HF_DATASETS_OFFLINE": "1"
+    },
+    "backbone_revisions": {
+     "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+     "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+     "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
+     "en_core_web_lg": "3.8.0"
+    },
+    "wall_load_s": 1.9,
+    "wall_events_predict_s": 2.2,
+    "wall_extract_s": 58.9,
+    "peak_vram_smi_mib": 12901,
+    "vram_samples": 70,
+    "torch_max_allocated_mib": 10300,
+    "torch_max_reserved_mib": 12382,
+    "gpu": "NVIDIA A100-SXM4-40GB",
+    "torch": "2.6.0+cu124",
+    "cuda": "12.4",
+    "python": "3.11.18",
+    "pred_mean": 0.033670030534267426,
+    "pred_std": 0.13949771225452423,
+    "uvx_on_path": false,
+    "asr_called": false
+   }
+  },
+  "error": "JSONDecodeError: Invalid control character at: line 288 column 355 (char 24000)",
+  "alive_after": [],
+  "usd_spent_this_run": 1.2035,
+  "instance_heartbeats": 63,
+  "kept_alive_for_debug": false
+ }
+}

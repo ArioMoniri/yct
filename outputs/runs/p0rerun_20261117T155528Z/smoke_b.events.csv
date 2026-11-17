@@ -1,0 +1,22 @@
+type,start,duration,stop,text,sequence_id
+Audio,0.0,10.0,10.0,,
+Video,0.0,10.0,10.0,,
+Sentence,0.499999,5.793002,6.293001,The quick brown fox jumps over the lazy dog while the young founders explain their new company,
+Text,0.5,5.793,6.293,The quick brown fox jumps over the lazy dog while the young founders explain their new company,0.0
+Word,0.5,0.309,0.8089999999999999,The,0.0
+Word,0.843,0.309,1.152,quick,0.0
+Word,1.186,0.309,1.4949999999999999,brown,0.0
+Word,1.528,0.309,1.837,fox,0.0
+Word,1.871,0.309,2.18,jumps,0.0
+Word,2.214,0.309,2.523,over,0.0
+Word,2.557,0.309,2.866,the,0.0
+Word,2.899,0.309,3.208,lazy,0.0
+Word,3.242,0.309,3.551,dog,0.0
+Word,3.585,0.309,3.894,while,0.0
+Word,3.928,0.309,4.237,the,0.0
+Word,4.271,0.309,4.58,young,0.0
+Word,4.613,0.309,4.922000000000001,founders,0.0
+Word,4.956,0.309,5.265000000000001,explain,0.0
+Word,5.299,0.309,5.6080000000000005,their,0.0
+Word,5.642,0.309,5.9510000000000005,new,0.0
+Word,5.984,0.309,6.293,company.,0.0

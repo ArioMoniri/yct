@@ -1,0 +1,40 @@
+[15:55:54] instance e1c5cf0525cd4f5f8406bceee3a19aba (launched)
+[16:00:08] box 129.213.149.162 reachable
+[16:01:21]   setup: running (7 s) ''
+[16:02:14]   setup: running (61 s) '          | 0/4 [00:00<?, ?it/s]\nFetching 4 files:  75%|███████▌  | 3/4 [00:00<00:00, 22.04it/s]\nFetching 4 files: 100%|██████████| 4/4 [00:02<00:00,  1.72it/s]'
+[16:03:07] setup OK
+[16:03:31]   smoke: running (8 s) ''
+[16:04:24]   smoke: running (61 s) ''
+[16:05:17]   smoke: running (113 s) ''
+[16:06:10]   smoke: running (167 s) ''
+[16:07:03] step smoke rc=0
+[16:07:27]   long70: running (7 s) ''
+[16:08:20]   long70: running (60 s) ''
+[16:09:12]   long70: running (113 s) ''
+[16:10:05]   long70: running (166 s) ''
+[16:10:58]   long70: running (219 s) ''
+[16:11:52]   long70: running (272 s) ''
+[16:12:44]   long70: running (325 s) ''
+[16:13:37]   long70: running (378 s) ''
+[16:14:31]   long70: running (431 s) ''
+[16:15:24]   long70: running (485 s) ''
+[16:16:18]   long70: running (539 s) ''
+[16:17:11]   long70: running (591 s) ''
+[16:18:04]   long70: running (644 s) ''
+[16:18:57]   long70: running (698 s) ''
+[16:19:50] step long70 rc=0
+[16:20:14]   long110: running (7 s) ''
+[16:21:06]   long110: running (60 s) ''
+[16:21:59]   long110: running (113 s) ''
+[16:22:52]   long110: running (166 s) ''
+[16:23:45]   long110: running (218 s) ''
+[16:24:38]   long110: running (271 s) ''
+[16:25:30]   long110: running (324 s) ''
+[16:26:24]   long110: running (378 s) ''
+[16:27:17]   long110: running (431 s) ''
+[16:28:10]   long110: running (484 s) ''
+[16:29:04]   long110: running (537 s) ''
+[16:29:56]   long110: running (590 s) ''
+[16:30:50] step long110 rc=0
+[16:32:10] ERROR JSONDecodeError: Invalid control character at: line 288 column 355 (char 24000)
+[16:32:16] terminated; alive=[]; spent this run $1.2035
