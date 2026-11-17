@@ -62,8 +62,11 @@ def main(argv: list[str]) -> int:
         return 2
     d.mkdir(parents=True)
     git_sha = _git("rev-parse", "HEAD").strip()
-    diff = _git("diff", "HEAD")
-    untracked = _git("ls-files", "--others", "--exclude-standard").split()
+    # BUG-024: never capture data/ or CSVs (manifest/curation/sealed) in provenance diffs — blinding.
+    excl = [":(exclude)data", ":(exclude)*.csv", ":(exclude)*.age"]
+    diff = _git("diff", "HEAD", "--", ".", *excl)
+    untracked = [u for u in _git("ls-files", "--others", "--exclude-standard").split()
+                 if not u.startswith("data/") and not u.endswith((".csv", ".age"))]
     cfg = ROOT / "config.yaml"
     if diff.strip() or untracked:  # dirty tree: keep the exact uncommitted state next to the run
         (d / "git_diff.patch").write_text(diff)

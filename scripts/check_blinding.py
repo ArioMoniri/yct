@@ -31,6 +31,8 @@ import guardlib as g  # noqa: E402
 
 EXCLUDED = ("data/sealed/", "src/yct/curate/")
 FORBIDDEN = {"outcome"}
+# BUG-024: sealed-only columns (label proxies) must never appear in tracked tables or stored diffs.
+SEALED_COLS = {"label_confidence", "discovery_method", "evidence_url", "evidence_quote", "route"}
 MANIFEST = "data/manifest.csv"
 OUTCOME_WORDS = re.compile(r"reject|accepted|got[-_ ]in|into[-_ ]yc|didn'?t[-_ ]get", re.IGNORECASE)
 URL_RE = re.compile(r"(?:https?://|sealed:)[^\s\"'<>()\[\]{}|\\^`,]+", re.IGNORECASE)
@@ -76,7 +78,7 @@ def header_hits(path: str, text: str) -> list[str]:
         first = text.splitlines()[0] if text.strip() else ""
         delim = "\t" if path.endswith(".tsv") or ("\t" in first and "," not in first) else ","
         row = next(csv.reader(io.StringIO(first), delimiter=delim), [])
-        return [c for c in row if _norm(c) in FORBIDDEN]
+        return [c for c in row if _norm(c) in FORBIDDEN | SEALED_COLS]
     if path.endswith((".jsonl", ".json")):
         hits = []
         docs = text.splitlines() if path.endswith(".jsonl") else [text]
@@ -87,8 +89,11 @@ def header_hits(path: str, text: str) -> list[str]:
                 continue
             for o in obj if isinstance(obj, list) else [obj]:
                 if isinstance(o, dict):
-                    hits += [k for k in o if _norm(k) in FORBIDDEN]
+                    hits += [k for k in o if _norm(k) in FORBIDDEN | SEALED_COLS]
         return sorted(set(hits))
+    if path.endswith((".patch", ".diff")):
+        return sorted({c for c in SEALED_COLS | FORBIDDEN
+                       if re.search(rf"(^|[,\t\s\"]){re.escape(c)}([,\t\s\"]|$)", text, re.M)})
     return []
 
 
