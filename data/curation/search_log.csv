@@ -77,3 +77,14 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-17T14:02:58Z,websearch,"site:news.ycombinator.com ""YC application video""",19,1
 2026-11-17T14:02:58Z,websearch,site:reddit.com/r/ycombinator application video rejected share,18,0
 2026-11-17T14:03:00Z,youtube_search(yt-dlp),YC fall 2024 application video,50,31
+2026-11-17T14:03:11Z,youtube_search(yt-dlp),YC P26 application video,40,33
+2026-11-17T14:03:29Z,youtube_search(yt-dlp),YC application video accepted,50,2
+2026-11-17T14:03:32Z,youtube_search(yt-dlp),YC founder video accepted,50,2
+2026-11-17T14:03:38Z,youtube_search(yt-dlp),YC application video got in,0,0
+2026-11-17T14:03:40Z,youtube_search(yt-dlp),YC application video didn't get in,50,38
+2026-11-17T14:03:47Z,youtube_search(yt-dlp),YC application video no interview,0,0
+2026-11-17T14:03:56Z,youtube_search(yt-dlp),YC W24 founder video rejected,20,0
+2026-11-17T14:04:20Z,websearch,"""YC application video"" rejected youtube.com founder share ""didn't get in""",18,0
+2026-11-17T14:04:20Z,websearch,"site:linkedin.com ""YC application video"" rejected sharing our",18,0
+2026-11-17T14:04:20Z,websearch,"site:x.com ""YC application video"" rejected",18,0
+2026-11-17T14:04:20Z,websearch,"""our rejected YC application"" video",18,0
