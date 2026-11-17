@@ -1,62 +1,60 @@
 # Watchdog Review: Prompt v1 (A/B/C)
 
-Reviewer: Watchdog (independent integrity and governance auditor)
-Target: `docs/prompts/v1_original.md` (82 lines)
-Scope: how the agents work and are governed, not the science.
+Target: `docs/prompts/v1_original.md`. Scope: agentic and governance failure modes.
 
 ## Verdict: FIX
 
-The science plan is strong. The governance is not. As written, one LLM grades its own work, writes the labels it later analyses, can unblind itself (C§6 "unanimous GO; then unblind"), and can rent GPUs with no spending limit. None of these flaws is fatal, but the prompt must not run until items 1–8 are merged. Items 6 and 7 must be in place before any download (P1 Step 4) and before any GPU rental (P4). They are hard blockers.
+Strong science, weak governance: one LLM grades its own work, labels what it later analyses, can unblind itself (C§6), and can rent GPUs with no limit. Fixable, but do not run until items 1–8 are merged; 6 and 7 hard-block downloads and GPU rental.
 
 ## Required changes
 
-**1. [CRITICAL] The council can rubber-stamp itself (C§2).** One model is told to play nine or more roles. Each role sees the author's summary. A majority GO passes the gate. No evidence is required.
+**1. [CRITICAL] The council can rubber-stamp itself (C§2).** One model plays 9+ roles, sees the author's summary, majority GO passes, no evidence required.
 Drop-in (replace the gate protocol):
 > Each reviewer runs as a separate subagent with fresh context. Its input is only the gate packet: file paths, commit SHA, test output and metric tables. It never sees the author's narrative, conclusions or other reviews. A review must list ≥3 concrete defects, each citing `path:line`, a metric or a command output. Alternatively it must say "Searched: <X, Y, Z>; found none" and list the checks it ran. A review with neither counts as missing, not as GO. Each gate has a red-team reviewer, assigned by rotation from `reviews/rotation.txt`, whose instructions are to break the result. GO needs every required review present, no STOP, and Watchdog evidence-complete status.
 
-**2. [CRITICAL] Agents can unblind themselves (C§3, P6).** `data/manifest.csv` holds `outcome`, and every analyst reads the manifest. The shuffled labels are produced by the same agents that hold the real ones.
+**2. [CRITICAL] Agents can unblind themselves (C§3, P6).** `manifest.csv` holds `outcome` and analysts read it; the shufflers hold the real labels.
 Drop-in:
-> True labels live only in `data/sealed/labels.csv.age`, encrypted to the human owner's key. The analysis manifest has no outcome column. During blinded phases, `src/stats` reads `labels_blinded.csv`: a permutation made with a seed that is withheld from agents. Unblinding needs an `UNBLIND_TOKEN` that the human issues after verifying the prereg hash. Only `src/stats/unblind.py` reads it. Curation (P1) writes labels straight to the sealed file. After P1, curators do not take analyst roles.
+> True labels live only in `data/sealed/labels.csv.age`, encrypted to the human owner's key. The analysis manifest has no outcome column. During blinded phases, `src/stats` reads `labels_blinded.csv`: a permutation made with a seed that is withheld from agents. Unblinding needs an `UNBLIND_TOKEN` that the human issues after verifying the prereg hash. Only `src/stats/unblind.py` reads it. Curators write straight to the sealed file and take no analyst role.
 
-**3. [CRITICAL] Labels and evidence can be fabricated (A Step 2).** `evidence_quote` is free text with nothing to check it against. "B: founder states outcome" can be invented.
+**3. [CRITICAL] Labels and evidence can be fabricated (A Step 2).** `evidence_quote` is uncheckable free text.
 Drop-in:
-> For every `evidence_url`, store a snapshot at `data/evidence/<sha256>.{html,png,txt}`. Record `evidence_sha256`, `fetched_at_utc` and an archive.org URL if one exists. `scripts/verify_labels.py` must find each `evidence_quote` verbatim in the stored text and recompute the A-rule from a stored YC-directory snapshot. CI fails on any mismatch. At each P1 gate, a fresh agent with no curation context re-derives the labels for a random 15% (≥10 rows) of the manifest from the URLs alone. Any disagreement on more than 1 row sends the gate back to FIX. A human spot-checks 10 rows.
+> For every `evidence_url`, store a snapshot at `data/evidence/<sha256>.{html,png,txt}`. Record `evidence_sha256`, `fetched_at_utc` and an archive.org URL if one exists. `scripts/verify_labels.py` must find each `evidence_quote` verbatim in the stored text and recompute the A-rule from a stored YC-directory snapshot. CI fails on any mismatch. At each P1 gate a fresh agent re-derives a random 15% (≥10 rows) from URLs alone; >1 disagreement = FIX. A human spot-checks 10 rows.
 
-**4. [CRITICAL] Goalposts can move with no guard (C§3 "QA vote to change", P6).** QA is also an agent. Nothing enforces the prereg hash or keeps DECISIONS.md append-only.
+**4. [CRITICAL] Goalposts can move with no guard (C§3 "QA vote to change", P6).** QA is an agent; nothing enforces the prereg hash or append-only DECISIONS.md.
 Drop-in:
 > CI blocks a merge if any of these fail: (a) `prereg/PREREG.md` sha256 ≠ the hash in `prereg/PREREG.sha256` after the lock tag `prereg-lock`; (b) `DECISIONS.md` and `reviews/watchdog/audit_log.jsonl` are not strict prefix-extensions of their previous versions; (c) a `tests/` diff deletes or loosens an assertion (lower `assert` count, wider tolerance, new `skip`/`xfail`) without a `TEST-CHANGE:` entry in DECISIONS.md approved by Watchdog; (d) a threshold key in `config.yaml` (listed in `config_frozen_keys.txt`) changes after it is frozen. `.github/CODEOWNERS` (or `infra/protected_paths.txt` plus a pre-receive hook) names the human owner for `prereg/`, `config_frozen_keys.txt`, `tests/` and the CI config.
 
-**5. [MAJOR] Test results can be invented.** An agent can report "tests green" without running the tests.
+**5. [MAJOR] Test results can be invented.**
 Drop-in:
 > A claim of a test result or metric is valid only with a link to `outputs/runs/<run_id>/` holding the command, exit code, stdout, git SHA and env hash, written by `make` and never typed by hand. A claim about TRIBE v2 must cite a file and line in the pinned TRIBE commit, otherwise it is labelled UNVERIFIED.
 
 **6. [CRITICAL] GPU spending has no limits (P4; no rental text at all).**
 Drop-in:
-> GPUs come only from Lambda Cloud, through `infra/gpu.py`. The default is an A10 ($1.29/h). An A100 needs a DECISIONS.md entry that justifies the extra cost. Hard cap: $150 total per project (`GPU_BUDGET_USD`). The ledger `infra/gpu_ledger.jsonl` updates every 5 min. At 80% of the cap, the Watchdog is alerted. At 100%, everything terminates. Each instance gets a max-lifetime tag (default 4 h) and is killed when the tag expires. The job sends a heartbeat every 2 min, and 10 min without one means terminate. GPU use below 5% for 15 min means terminate. Instances are created with `try/finally` termination, and the orchestrator lists all instances at the start of every session and at every gate. An instance not in the ledger is terminated and reported as an incident. Never launch EC2: the vCPU quota is exhausted. Never run TRIBE on the t3.large pod.
+> GPUs come only from Lambda Cloud, through `infra/gpu.py`. Default A10; A100 needs a DECISIONS.md justification. Hard cap: $150 total per project (`GPU_BUDGET_USD`). The ledger `infra/gpu_ledger.jsonl` updates every 5 min. At 80% of the cap, the Watchdog is alerted. At 100%, everything terminates. Each instance gets a max-lifetime tag (default 4 h) and is killed when the tag expires. The job sends a heartbeat every 2 min, and 10 min without one means terminate. GPU use below 5% for 15 min means terminate. Launch with `try/finally` termination; list all instances every session and gate; unledgered instances are terminated as incidents. Never launch EC2: the vCPU quota is exhausted. Never run TRIBE on the t3.large pod.
 
-**7. [CRITICAL] The legal and data position is unresolved (A RULES).** "Follow platform ToS" contradicts "yt-dlp best quality": YouTube ToS forbids downloading except through YouTube's own features. Founders' faces and voices are personal data. The pod is in eu-central-1, so GDPR applies. TRIBE v2 is licensed CC-BY-NC-4.0.
+**7. [CRITICAL] The legal and data position is unresolved (A RULES).** "Follow ToS" contradicts yt-dlp (YouTube ToS forbids downloads). Founders' faces and voices are GDPR personal data (eu-central-1); TRIBE is CC-BY-NC.
 Drop-in:
-> Before P1 Step 4, the human owner signs `docs/legal/DATA_DECISION.md`. It must state: ToS risk accepted or not; the legal basis (Art. 6(1)(f) plus Art. 89 research safeguards); a one-page DPIA-lite; the retention period (default: raw video deleted 90 days after P4 QC, keeping only hashes, features and evidence text); that the use is non-commercial (CC-BY-NC). If the owner's use is commercial, STOP. Raw media and evidence stay encrypted at rest on the pod and in an S3 bucket in eu-central-1, never git, never a public bucket, never sent to Lambda except an ephemeral copy that is deleted on termination. Outputs carry pseudonymous `video_id`s. No company or founder name appears in figures or reports. No per-video brain map is published. On a takedown or erasure request, delete within 72 h and log it.
+> Before P1 Step 4, the human owner signs `docs/legal/DATA_DECISION.md`. It covers: ToS risk acceptance; legal basis (Art. 6(1)(f) + Art. 89 safeguards); a DPIA-lite; retention (default: raw video deleted 90 days after P4 QC); non-commercial use (else STOP). Raw media and evidence stay encrypted at rest on the pod and in an S3 bucket in eu-central-1, never git, never a public bucket, never sent to Lambda except an ephemeral copy that is deleted on termination. Outputs carry pseudonymous `video_id`s. No company or founder name appears in figures or reports. No per-video brain map is published. On a takedown or erasure request, delete within 72 h and log it.
 
 **8. [MAJOR] Secrets have no rules.**
 Drop-in:
-> Keys come only from env (`LAMBDA_API_KEY`, `HF_TOKEN`), loaded from `~/.config/yct/env` with mode 600. Never pass keys on the command line, put them in config or notebooks, or echo them. A logging filter redacts `[A-Za-z0-9_\-]{24,}` that matches known key prefixes. `gitleaks` runs in pre-commit and CI. A leak means: rotate the key, record an incident, and hold the gate until the human confirms the rotation.
+> Keys come only from env (`LAMBDA_API_KEY`, `HF_TOKEN`), loaded from `~/.config/yct/env` with mode 600. Never pass keys on the command line, put them in config or notebooks, or echo them. A logging filter redacts key-like strings. `gitleaks` runs in pre-commit and CI. A leak means rotate, log an incident, hold the gate until the human confirms.
 
 **9. [MAJOR] Debug and enhance loops have no bound (C§4); "stuck" is undefined.**
 Drop-in:
 > Stuck means any of these: 3 fix attempts on one BUGS.md item without a new failing test turning green; 2 hours wall-clock on one item; the same error signature 3 times; no new commit in 90 min while active. Stuck triggers an escalation file `reviews/escalations/<id>.md` (what was tried, evidence, options) and pauses that work stream. Each phase may raise at most 5 enhancement tickets. Enhancements are frozen after the prereg lock except as EXPLORATORY.
 
-**10. [MAJOR] Pressure to inflate labels.** The STOP rule "<15 conf-A per group" gives agents a reason to upgrade B labels to A, and the pilot findings in C§0 prime curators.
+**10. [MAJOR] Pressure to inflate labels.** The STOP rule rewards upgrading B to A; C§0 primes curators.
 Drop-in:
 > Curators do not see C§0 or the hypotheses. Upgrading a confidence level needs a new evidence snapshot. The Watchdog checks the history of A/B/C changes in git.
 
-**11. [MAJOR] B12 "two coders κ≥0.7" is not independent if both coders are the same LLM.** Require one human coder on ≥20% of rows, or two different model families with no shared context. Report κ against the human coder.
+**11. [MAJOR] B12 κ between two copies of the same LLM is not independent.** Require a human coder on ≥20% of rows; report κ against them.
 
-**12. [MAJOR] Some actions are human-only, and the prompt does not say so.** List them as HUMAN-ONLY: unblinding; any prereg edit after the lock; budget increases; Prolific or IRB (Phase 9b); signing the legal decision; making the repository or report public; deleting raw data early or late. Agents prepare a request in `reviews/escalations/` and continue other unblocked work. They never wait idle and never proceed on assumption.
+**12. [MAJOR] Some actions are human-only, and the prompt does not say so.** List them as HUMAN-ONLY: unblinding; any prereg edit after the lock; budget increases; Prolific or IRB (Phase 9b); signing the legal decision; making the repository or report public; deleting raw data early or late. Agents file a request in `reviews/escalations/` and continue unblocked work, never proceeding on assumption.
 
-**13. [MINOR] "Majority GO" with 12+ roles lets the core roles be outvoted.** Each gate names required roles (as in C§5). Every required role must vote GO.
+**13. [MINOR] Majority GO lets core roles be outvoted.** Every role named for a gate in C§5 must vote GO.
 
-**14. [MINOR] Gate packets have no fixed format.** Require `reviews/<phase>/packet.md` with: SHA, run IDs, changed files, open BUGS, deviations, and the checklist from the phase DoD.
+**14. [MINOR] Gate packet format.** `reviews/<phase>/packet.md`: SHA, run IDs, changed files, open BUGS, deviations, DoD checklist.
 
 **15. [MINOR] The global DoD (C§6) lacks an integrity line.** Add: "Watchdog final audit GO; zero running GPU instances; ledger reconciled with Lambda invoices; retention schedule active."
 
@@ -92,4 +90,4 @@ Drop-in:
 - Never leave a GPU instance running without a heartbeat. When in doubt, terminate.
 - Report your own mistakes immediately in BUGS.md. Concealment is the only unrecoverable error.
 
-**2b.7 Watchdog fallibility.** The human owner reviews the audit log weekly. Every 3rd gate, a second independent Watchdog instance audits the same SHA. A disagreement goes to the human.
+**2b.7 Fallibility.** The human reviews the audit log weekly; every 3rd gate a second Watchdog audits the same SHA; disagreements go to the human.
