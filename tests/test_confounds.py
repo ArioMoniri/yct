@@ -184,3 +184,27 @@ def test_summary_speech_rate_and_fraction_per_video(stim):
     for col in ("face_present_crop", "face_area_crop_frac", "luminance_crop", "contrast_crop"):
         v = df[col].dropna()
         assert len(v) and ((v >= 0) & (v <= 1)).all(), col
+
+
+def test_apply_transcript_matches_full_extraction(stim):
+    """P2b after P3: filling the transcript columns later gives exactly the with-tsv extraction."""
+    from yct.confounds import apply_transcript
+
+    df0, s0 = extract_confounds(stim["mp4"], stim["wav"], None, video_id="vid0")
+    df1, s1 = apply_transcript(df0, s0, stim["tsv"])
+    ref_df, ref_s = stim["df"], stim["summary"]
+    assert np.allclose(df1["speech_rate_wps"], ref_df["speech_rate_wps"])
+    for k in ("n_words", "speech_rate_wps", "words_per_min", "speech_rate_wps_mean"):
+        assert s1[k] == pytest.approx(ref_s[k]), k
+    others = [c for c in ref_df.columns if c != "speech_rate_wps"]
+    pd.testing.assert_frame_equal(df1[others], df0[others])
+    assert df0["speech_rate_wps"].isna().all()  # input frame untouched
+
+
+def test_apply_transcript_empty_tsv_gives_zero_rate(stim, tmp_path):
+    from yct.confounds import apply_transcript
+
+    df0, s0 = extract_confounds(stim["mp4"], stim["wav"], None, video_id="vid0")
+    empty = write_tribe_tsv([], tmp_path / "empty.tsv")
+    df1, s1 = apply_transcript(df0, s0, empty)
+    assert (df1["speech_rate_wps"] == 0).all() and s1["n_words"] == 0 and s1["words_per_min"] == 0.0

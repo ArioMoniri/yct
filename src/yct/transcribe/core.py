@@ -112,11 +112,16 @@ def validate_tsv(
 
 
 # ---------------------------------------------------------------- pinned WhisperX wrapper (runs on GPU)
-def whisperx_command(wav: str | Path, out_dir: str | Path, cfg: dict | None = None) -> list[str]:
+def whisperx_command(
+    wav: str | Path | list[str | Path], out_dir: str | Path, cfg: dict | None = None
+) -> list[str]:
+    """Pinned WhisperX CLI argv for one wav or a list of wavs (the CLI takes `audio` nargs='+', so a batch
+    loads the models once; each <stem>.json lands in out_dir)."""
     w = (cfg or load_config())["transcribe"]["whisperx"]
+    wavs = [str(x) for x in wav] if isinstance(wav, list | tuple) else [str(wav)]
     return [
         w["executable"],
-        str(wav),
+        *wavs,
         "--model",
         w["model"],
         "--language",
@@ -170,6 +175,47 @@ def transcribe_whisperx(
         "version": version,
         "command": cmd,
     }
+
+
+def check_whisperx_pin(cfg: dict | None = None) -> str | None:
+    """Installed whisperx version; raises UnpinnedASRError if config pins a different one."""
+    w = (cfg or load_config())["transcribe"]["whisperx"]
+    version = _installed_whisperx_version()
+    if w.get("version") and version != w["version"]:
+        raise UnpinnedASRError(f"whisperx {version} installed, config pins {w['version']}")
+    return version
+
+
+def transcribe_whisperx_batch(
+    wavs: list[str | Path],
+    out_dir: str | Path,
+    cfg: dict | None = None,
+    runner: Callable[[list[str]], Any] | None = None,
+) -> dict[str, Any]:
+    """One pinned WhisperX invocation over many wavs (models loaded once). The raw `<stem>.json` files stay in
+    out_dir; returns {'segments': {stem: segments}, 'missing': [...], 'version', 'model', 'command'}.
+
+    Unlike `transcribe_whisperx` the installed version must be present AND equal the pin (a pinned config with
+    whisperx absent is an error, not a skip)."""
+    cfg = cfg or load_config()
+    w = cfg["transcribe"]["whisperx"]
+    version = check_whisperx_pin(cfg) if runner is None else _installed_whisperx_version()
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    stems = [Path(x).stem for x in wavs]
+    if len(set(stems)) != len(stems):
+        raise ValueError("duplicate wav stems in one WhisperX batch")
+    run = runner or (lambda c: subprocess.run(c, check=True))
+    cmd = whisperx_command(list(wavs), out_dir, cfg)
+    run(cmd)
+    segs, missing = {}, []
+    for st in stems:
+        f = out_dir / f"{st}.json"
+        if f.exists():
+            segs[st] = json.loads(f.read_text())["segments"]
+        else:
+            missing.append(st)
+    return {"segments": segs, "missing": missing, "version": version, "model": w["model"], "command": cmd}
 
 
 # ---------------------------------------------------------------- transcript store + manifest

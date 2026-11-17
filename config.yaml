@@ -142,7 +142,7 @@ vad:                           # energy VAD shared by speech-gated loudness (P2)
 transcribe:                    # P2b (v2.md §5 P2b; tribe_requirements §2.2)
   whisperx:
     executable: whisperx
-    version: null              # pin at first GPU run (wrapper records the installed version)
+    version: "3.8.6"           # pinned at the first GPU run (D-061); a different install raises UnpinnedASRError
     model: large-v3
     language: en
     device: cuda

@@ -144,12 +144,7 @@ def audio_features(
         half = c["pitch"]["frame_s"] / 2  # the whole pitch frame must lie in VAD-active audio
         active = vad_at(tp - half) & vad_at(tp + half)
         f0 = np.where(active, f0, np.nan)
-    if words is not None and len(words):
-        mid = (words["start"] + words["duration"] / 2).to_numpy()
-        cnt = np.bincount(_bin(mid, tr, n), minlength=n)[:n].astype(float)
-        rate = cnt / (grid["tr_coverage"].to_numpy() * tr)
-    else:
-        rate = np.full(n, np.nan if words is None else 0.0)
+    rate = word_rate_per_tr(words, grid, tr)
     return {
         "rms_db": rms_db,
         "speech_frac": speech,
@@ -159,6 +154,49 @@ def audio_features(
         "_f0": f0,
         "_speech_s": sum(e - s for s, e in segs),
     }
+
+
+def word_rate_per_tr(words: pd.DataFrame | None, grid: pd.DataFrame, tr: float) -> np.ndarray:
+    """Per-TR speech rate (words / s): words binned by midpoint, divided by the TR's coverage.
+    NaN everywhere without a transcript; 0 for a transcript with no words."""
+    n = len(grid)
+    if words is None:
+        return np.full(n, np.nan)
+    if not len(words):
+        return np.zeros(n)
+    mid = (words["start"] + words["duration"] / 2).to_numpy(dtype=float)
+    cnt = np.bincount(_bin(mid, tr, n), minlength=n)[:n].astype(float)
+    return cnt / (grid["tr_coverage"].to_numpy() * tr)
+
+
+def speech_rate_summary(words: pd.DataFrame | None, dur: float) -> dict[str, Any]:
+    """Per-video transcript-derived summary fields (None without a transcript)."""
+    n_words = int(len(words)) if words is not None else None
+    return {
+        "n_words": n_words,
+        "speech_rate_wps": float(n_words / dur) if n_words is not None and dur > 0 else None,
+        "words_per_min": float(n_words / dur * 60) if n_words is not None and dur > 0 else None,
+    }
+
+
+def apply_transcript(
+    df: pd.DataFrame, summary: dict[str, Any], tsv: str | Path, cfg: dict[str, Any] | None = None
+) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Fill the transcript-derived confounds of an existing per-TR frame + summary (P2b after P3).
+
+    Recomputes exactly what `extract_confounds(..., tsv=tsv)` would put in `speech_rate_wps` (per TR),
+    `n_words`, `speech_rate_wps`, `words_per_min` and `speech_rate_wps_mean`, without re-running the
+    audio/video extractors. The frame's TR grid and the summary's `duration_s` are reused."""
+    cfg = cfg or load_config()
+    tr = cfg["tribe"]["tr_s"]
+    words = pd.read_csv(tsv, sep="\t", keep_default_na=False)
+    grid = df[["tr", "tr_start_s", "tr_end_s", "tr_coverage"]]
+    out = df.copy()
+    out["speech_rate_wps"] = word_rate_per_tr(words, grid, tr)
+    s = {**summary, **speech_rate_summary(words, float(summary["duration_s"]))}
+    col = out["speech_rate_wps"].to_numpy(dtype=float)
+    s["speech_rate_wps_mean"] = float(np.nanmean(col)) if np.isfinite(col).any() else None
+    return out, s
 
 
 # ---------------------------------------------------------------- video
@@ -288,17 +326,17 @@ def extract_confounds(
         else:
             df[k] = a[k] if k in a else v[k]
     f0 = a["_f0"][np.isfinite(a["_f0"])]
-    n_words = int(len(words)) if words is not None else None
+    sr = speech_rate_summary(words, dur)
     summary = {
         "video_id": vid,
         "duration_s": dur,
         "n_tr": n,
         "has_audio_track": stream(ffprobe(mp4), "audio") is not None,
-        "n_words": n_words,
-        "speech_rate_wps": float(n_words / dur) if n_words is not None and dur > 0 else None,
+        "n_words": sr["n_words"],
+        "speech_rate_wps": sr["speech_rate_wps"],
         "speech_s": a["_speech_s"],
         "speech_frac": float(df["speech_frac"].mean()),
-        "words_per_min": float(len(words) / dur * 60) if words is not None else None,
+        "words_per_min": sr["words_per_min"],
         "pitch_mean_hz": float(f0.mean()) if f0.size else None,
         "pitch_sd_hz": float(f0.std()) if f0.size else None,
         "n_scene_cuts": len(cuts),

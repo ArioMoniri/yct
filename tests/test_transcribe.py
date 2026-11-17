@@ -185,3 +185,41 @@ def test_asr_guard_blocks_whisperx_and_uvx():
             os.system("uvx whisperx a.wav")
         assert subprocess.run(["true"]).returncode == 0
     assert subprocess.run(["echo", "uvx"], capture_output=True).returncode == 0  # restored
+
+
+def test_whisperx_batch_one_invocation(tmp_path, cfg):
+    """P2b batch: one CLI call for many wavs (models load once); per-stem JSON parsed, missing reported."""
+    from yct.transcribe import transcribe_whisperx_batch
+
+    wavs = [tmp_path / f"{s}.wav" for s in ("aaaa", "bbbb", "cccc")]
+    for w in wavs:
+        w.write_bytes(b"")
+    calls = []
+
+    def fake_runner(cmd):
+        calls.append(cmd)
+        out = Path(cmd[cmd.index("--output_dir") + 1])
+        for st in ("aaaa", "bbbb"):  # cccc produces no json
+            (out / f"{st}.json").write_text(json.dumps({"segments": SEGMENTS}))
+
+    res = transcribe_whisperx_batch(wavs, tmp_path / "out", cfg, runner=fake_runner)
+    assert len(calls) == 1
+    cmd = calls[0]
+    assert cmd[1:4] == [str(w) for w in wavs] and cmd[4] == "--model"
+    assert cmd == whisperx_command(wavs, tmp_path / "out", cfg)
+    assert sorted(res["segments"]) == ["aaaa", "bbbb"] and res["missing"] == ["cccc"]
+    assert whisperx_segments_to_words(res["segments"]["aaaa"]) == whisperx_segments_to_words(SEGMENTS)
+    with pytest.raises(ValueError, match="duplicate"):
+        transcribe_whisperx_batch([wavs[0], wavs[0]], tmp_path / "o2", cfg, runner=fake_runner)
+
+
+def test_whisperx_version_pinned_in_config(cfg):
+    """P2b pin (D-061): exact whisperx version pinned; a pinned config refuses a missing/different install."""
+    import re
+
+    from yct.transcribe import check_whisperx_pin
+
+    v = cfg["transcribe"]["whisperx"]["version"]
+    assert isinstance(v, str) and re.fullmatch(r"\d+\.\d+\.\d+", v)
+    with pytest.raises(UnpinnedASRError):
+        check_whisperx_pin(cfg)  # whisperx is not installed in the CPU test env
