@@ -16,3 +16,15 @@ Append-only log. Format: date | phase | id | summary | evidence.
 - D-011 DATA_DECISION.md human signature required before any media download (Watchdog legal).
 - D-012 Phase 9b rater study deferred; Neurosynth reverse inference removed; Destrieux label-only (Referee).
 - Budget: BUDGET_USD=50 default pending human (Watchdog proposed 150).
+
+## 2026-11-17 | Prompt v2 → v2.1 | round-2: Watchdog FIX, Strict Referee FIX → decision: adopt v2.1
+- D-013 H4 residualises M1 once (label-free, full set) on Q(M0) = M0 + squares + products; same R for observed and null (Referee sim: raw-vs-residual mismatch skews p; nonlinear M0 leaks at 0.40).
+- D-014 Confirmatory set = one video per company, seeded label-free choice; pair swaps invalid (accepted always later). Pairs exploratory.
+- D-015 M1 = 6 non-limbic Yeo means + spatial SD (rank-6 issue). M0b PCA per block 3/2/2.
+- D-016 H4 MDE stated as d≈1.06 beyond M0 at 30/group (optimistic sim). No brain-specific claim licensed.
+- D-017 Positive controls fully specified (HAC within-video, selectivity, between-video at analysis aggregation).
+- D-018 T1 = first 60 s clip (no chunking); exclude <47 s from T1; W frozen in P4 before M0/M0b averaging; impulse latency may shift W.
+- D-019 Era strata from YC calendar with mechanical merge rule; M0 AUC≥.85 never demotes H4.
+- D-020 Curator = separate subagent; plaintext labels never on disk; Curator never sees §1.
+- D-021 Human-only actions enforced by SSH-signed commits checked in CI (to build in P0; Watchdog treats agent-performed ones as CRITICAL until then). Gate quorum = ⌈2/3⌉ of assigned reviewers; P6 unanimous 5/5.
+- D-022 P5b pipeline validation moved before prereg lock; DATA_DECISION adds EU→US transfer, Llama licence, HCP-MMP terms; short side ≥292 px; tsv injection order + uvx block.

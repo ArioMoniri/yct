@@ -5,12 +5,13 @@ This roadmap is the spec in `docs/prompts/v2.md`. The status values are TODO, WI
 | Phase | Status | Owner (exec) | Gate reviewers |
 |---|---|---|---|
 | P0 Setup + TRIBE smoke | WIP | PI / Modeling | QA, Neuro, Watchdog |
-| P1 Curation | TODO (blocked on `DATA_DECISION.md` for media download) | Curator | Referee, Biostat, Watchdog |
+| P1 Curation | TODO (blocked on `DATA_DECISION.md` for media download) | Curator (separate subagent) | Referee, Biostat, Watchdog |
 | P2 Normalisation + P2b transcripts | TODO | Preproc | QA, Neuro, Referee, Watchdog |
 | P3 Stimulus + M0b features | TODO | Preproc | Referee, Biostat, Watchdog |
 | P4 TRIBE inference + QC | TODO | Modeling | QA, Neuro, Watchdog |
 | P4b Controls gate | TODO | Neuro | all 5 |
 | P5 Features (blinded) | TODO | Neuro | Neuro, Biostat, Watchdog |
+| P5b Pipeline validation (permuted labels) | TODO | Biostat | Biostat, Referee, QA, Watchdog |
 | P6 Prereg lock + human unblind | TODO | PI | all 5, unanimous |
 | P7 Group stats | TODO | Biostat | Biostat, Referee, Watchdog |
 | P8 Prediction | TODO | Biostat | Biostat, Referee, Watchdog |
@@ -97,7 +98,7 @@ This roadmap is the spec in `docs/prompts/v2.md`. The status values are TODO, WI
 - Audio features: RMS, speech fraction, speech rate, pitch, music.
 - Visual features: cuts, optical flow, luminance, contrast, faces, text.
 - Crop coverage, caption flag, era.
-- M0b backbone embeddings, time-averaged over window W.
+- Per-TR M0b backbone embeddings (W-averaging happens only after W is frozen in P4).
 
 **Tests**
 - Feature values within range.
@@ -151,13 +152,14 @@ This roadmap is the spec in `docs/prompts/v2.md`. The status values are TODO, WI
 - Unanimous council GO plus Watchdog PASS.
 - The human issues `UNBLIND_TOKEN`.
 
-## P7 / P8 — Statistics and prediction
-**Before unblinding:** validate the pipeline on permuted labels.
+## P5b — Pipeline validation (before P6)
+Validate the pipeline on permuted labels. All of these must hold:
 - False-positive rate within 3.7–6.4%.
 - Planted effects recovered.
 - AUC ≈ 0.5.
 - Leakage test passes.
 
+## P7 / P8 — Statistics and prediction
 **After unblinding:** run H4 (primary), then H1, H2, H3 and H4b (Holm-corrected family), then the exploratory analyses.
 
 ## P9 / P10 — Interpretation and report
@@ -169,6 +171,7 @@ This roadmap is the spec in `docs/prompts/v2.md`. The status values are TODO, WI
 
 ## Revisions log (R-n)
 - **R-1 (2026-11-17):** v1 to v2 after the council review. See `reviews/prompt_v1/` and DECISIONS D-001 to D-012.
+- **R-3 (2026-11-17):** v2 to v2.1 after the round-2 Watchdog and Referee reviews (`reviews/prompt_v2/`). See DECISIONS D-013 to D-022.
 - **R-2 (2026-11-17):** Infrastructure changes.
   - The EC2 pod is a t3.large, because the account vCPU quota is 16 and 14 are in use.
   - All GPU work runs on Lambda.
