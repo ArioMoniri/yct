@@ -2,7 +2,7 @@
 name = "yct"
 version = "0.0.1"
 description = "TRIBE v2 predicted cortical responses to accepted vs rejected YC application videos"
-requires-python = ">=3.10"
+requires-python = ">=3.11"  # v2.md §3 pins: Python >= 3.11
 dependencies = ["pyyaml", "pandas", "numpy", "pydantic>=2"]
 
 [project.optional-dependencies]

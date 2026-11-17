@@ -11,9 +11,14 @@ from yct.normalize.photometric import iter_rgb_frames, photometric_normalize
 W709 = np.array([0.2126, 0.7152, 0.0722])
 
 
-def _measure(path, fps=5):
-    """Independent of the module's covariance shortcut: direct per-frame Y statistics."""
-    ys = [px @ W709 for px in iter_rgb_frames(path, fps)]
+# V-JEPA2 view of a 640x360 frame, derived independently: short edge 360 -> 292, centre 256^2 crop
+# = a 256 * 360 / 292 = 315.6 -> 316 px square centred in the source: y 22..338, x 162..478.
+CROP_640x360 = (22, 338, 162, 478)
+
+
+def _measure(path, fps=5, region=CROP_640x360):
+    """Independent of the module's covariance shortcut: direct per-frame Y statistics (in the crop)."""
+    ys = [px @ W709 for px in iter_rgb_frames(path, fps, region)]
     return np.array([y.mean() for y in ys]), np.array([y.std() for y in ys])
 
 

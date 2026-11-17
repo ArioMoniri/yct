@@ -9,6 +9,10 @@ Per commit in --base..HEAD (or HEAD vs index with --staged), per test file, flag
     (rel=, abs=, atol=, rtol=, tol=, eps=, delta=) grew, `places=` shrank, a bound after < / <= grew
     or a bound after > / >= shrank.
 A commit whose message contains "[QA-approved test change]" is reported but not failed.
+History allowlist (FIX-D032-1): config.yaml `guards.test_weakening_allowlist` entries
+{commit: <full sha>, path: <test file>, kind: skip|assertion|testdef|threshold, ticket: BUG-/ENH-nnn}
+excuse exactly that finding, reported as ALLOWLISTED; the ticket must exist in BUGS.md/ENHANCEMENTS.md.
+There are no wildcards: every other finding, including new ones in the same commit/file, still fails.
 Exit 1 on any unapproved finding.
 """
 from __future__ import annotations
@@ -100,6 +104,33 @@ def analyse(diff: str) -> list[str]:
     return findings
 
 
+KINDS = {"skip": "skip/xfail marker(s) added", "assertion": "assertion line(s) deleted",
+         "testdef": "test function(s) deleted", "threshold": "loosened threshold"}
+
+
+def allowlist() -> list[dict]:
+    out = []
+    for e in g.guard_config().get("test_weakening_allowlist") or []:
+        if not isinstance(e, dict) or not re.fullmatch(r"[0-9a-f]{40}", str(e.get("commit", ""))):
+            print(f"WARNING ignoring allowlist entry without a full commit SHA: {e}")
+            continue
+        if e.get("kind") not in KINDS:
+            print(f"WARNING ignoring allowlist entry with unknown kind: {e}")
+            continue
+        if not g.ticket_exists(e.get("ticket", "")):
+            print(f"WARNING ignoring allowlist entry: ticket {e.get('ticket')!r} not in BUGS/ENHANCEMENTS")
+            continue
+        out.append(e)
+    return out
+
+
+def allowlisted(commit: str, finding: str, entries: list[dict]) -> str | None:
+    for e in entries:
+        if e["commit"] == commit and finding.startswith(f"{e['path']}: ") and KINDS[e["kind"]] in finding:
+            return e["ticket"]
+    return None
+
+
 def tests_diff(old: str, new: str | None) -> str:
     args = ["diff", "-U0", "--no-color", "--no-renames"]
     args += [old, "--cached"] if new is None else [old, new]
@@ -111,18 +142,28 @@ def main() -> int:
     ap.add_argument("msg_file", nargs="?", help="commit message file (commit-msg hook / --staged)")
     a = ap.parse_args()
     reports: list[tuple[str, list[str], bool]] = []
+    allowed: list[tuple[str, str, str]] = []
     if a.staged:
         old = "HEAD" if g.ref_exists("HEAD") else g.EMPTY_TREE
         msg = Path(a.msg_file).read_text() if a.msg_file else ""
         reports.append(("staged", analyse(tests_diff(old, None)), APPROVAL in msg))
     else:
+        entries = allowlist()
         for c in g.commits_in_range(g.resolve_base(a.base)):
             ps = g.parents(c)
             if len(ps) > 1:
                 continue  # merge: branch commits are checked individually
-            findings = analyse(tests_diff(ps[0] if ps else g.EMPTY_TREE, c))
+            findings = []
+            for f in analyse(tests_diff(ps[0] if ps else g.EMPTY_TREE, c)):
+                t = allowlisted(c, f, entries)
+                if t:
+                    allowed.append((c[:12], f, t))
+                else:
+                    findings.append(f)
             if findings:
                 reports.append((c[:12], findings, APPROVAL in g.commit_message(c)))
+    for who, f, t in allowed:
+        print(f"ALLOWLISTED ({t}) {who}: {f}")
     failed = False
     for who, findings, approved in reports:
         for f in findings:

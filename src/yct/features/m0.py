@@ -93,7 +93,8 @@ def m0_window_features(per_tr: pd.DataFrame, start: int, length: int, features: 
         for c in features:
             v = w[c].to_numpy(dtype=float)
             out[c] = float(np.mean(v[np.isfinite(v)])) if np.isfinite(v).any() else np.nan
-        rate = w["speech_rate_wps"].to_numpy(dtype=float) if "speech_rate_wps" in w else np.full(length, np.nan)
+        rate = (w["speech_rate_wps"].to_numpy(dtype=float) if "speech_rate_wps" in w
+                else np.full(length, np.nan))
         cov = w["tr_coverage"].to_numpy(dtype=float)
         out["n_words_w"] = float(np.round(np.sum(rate * cov * tr_s))) if np.isfinite(rate).all() else np.nan
         out["n_tr_w"] = len(w)

@@ -1,0 +1,24 @@
+{
+ "run_id": "fixD032_1_local",
+ "exit_code": 0,
+ "started_utc": "2026-11-17T14:50:57.254190+00:00",
+ "wall_s": 101.004,
+ "git_sha": "6b46cfee6754e4d34f0873d56c73670caaaa1a61",
+ "git_dirty": true,
+ "git_diff_sha256": "b2902fd090616593b6a80afd69421ae11d36be5e9732c1ad2235f3e2038cd15b",
+ "untracked_files": [
+  "requirements.lock",
+  "scripts/fetch_atlases.py",
+  "scripts/guard_range.py",
+  "scripts/run_with_provenance.py",
+  "tests/test_ci_config.py",
+  "tests/test_guards_history_exceptions.py",
+  "tests/test_guards_range.py",
+  "tests/test_photometric_t3.py",
+  "tests/test_run_with_provenance.py"
+ ],
+ "python": "3.13.18",
+ "pytest": {
+  "passed": 237
+ }
+}

@@ -3,8 +3,9 @@
 Pipeline per video, for a prediction ``pred`` of shape (T, 20484):
 
 1. :func:`spatial_standardize`: at each TR, centre and scale across non-medial-wall vertices
-   (medial wall -> NaN; the medial wall is the union mask of ``atlas.load_all``, D-034; ddof from
-   ``features.standardize_ddof``, independent of ``features.spatial_sd_ddof``). Never z-score per vertex over time (that zeroes every mean [B1]).
+   (medial wall -> NaN; the medial wall is the union mask of ``atlas.load_all``, D-034; ddof
+   from ``features.standardize_ddof``, independent of ``features.spatial_sd_ddof``). Never
+   z-score per vertex over time (that zeroes every mean [B1]).
 2. :func:`window_average` over W = [start, start + length) TRs.
 3. :func:`yeo7_means`: network means. The size-weighted sum of the 7 means is 0 (rank 6), so
    M1 keeps the 6 non-limbic networks; Limbic is the omitted reference.

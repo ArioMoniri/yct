@@ -7,9 +7,15 @@ src/yct/owner_actions.py). Therefore no commit may:
   * add, modify or delete infra/BUDGET_USD;
   * change docs/preregistration.md after the prereg-lock tag.
 Every commit in the range is checked individually (a later revert does not excuse it).
+
+History exception (FIX-D032-1): config.yaml `guards.human_signed_since` names the D-030 adoption
+commit. Commits that are strict ancestors of it predate SSM owner actions (e.g. 6c16d89 committed the
+budget file under the earlier signed-commit rule, D-021) and are skipped; that commit and everything
+after it are checked. The SHA must be a full commit SHA reachable from HEAD, else exit 2.
 """
 from __future__ import annotations
 
+import re
 import sys
 from pathlib import Path
 
@@ -29,6 +35,18 @@ def main() -> int:
     lock = g.rev(f"refs/tags/{g.PREREG_TAG}") if g.tag_exists() else None
     bad = []
     commits = g.commits_in_range(base)
+    since = g.guard_config().get("human_signed_since")
+    skipped = 0
+    if since:
+        since = str(since)
+        if not re.fullmatch(r"[0-9a-f]{40}", since) or not g.ref_exists(since):
+            raise g.GuardError(f"guards.human_signed_since {since!r} is not a full commit SHA")
+        if not g.is_ancestor(since, "HEAD"):
+            raise g.GuardError(f"guards.human_signed_since {since[:12]} is not in HEAD's history")
+        kept = [c for c in commits if c == since or not g.is_ancestor(c, since)]
+        skipped = len(commits) - len(kept)
+        commits = kept
+        print(f"note: {skipped} commit(s) before guards.human_signed_since {since[:12]} (D-030) not checked")
     for c in commits:
         paths = g.changed_paths(c)
         for p, why in ALWAYS_FORBIDDEN.items():

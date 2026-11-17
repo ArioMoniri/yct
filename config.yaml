@@ -69,7 +69,10 @@ normalize:                     # P2 (v2.md §5 P2; tribe_requirements §2.3-2.4)
     gray_world: true           # per-video channel gains so R,G,B means are equal
     target_mean_y: 0.45        # ONE global gain/offset per video (within-video dynamics preserved)
     target_rms_contrast: 0.20  # mean over frames of the spatial SD of Y
-    max_clip_frac: 0.01        # fraction of clipped RGB samples above this -> flag
+    stats_region: vjepa_crop   # statistics on the V-JEPA2 view (short edge -> 292, centre 256^2) (v2.4 G-D032 N-D6)
+    max_gain: 3.0              # contrast gain a capped to [min_gain, max_gain]; b re-solved; flag gain_capped
+    min_gain: 0.25
+    max_clip_frac: 0.01        # fraction of clipped RGB samples (in the crop) above this -> flag; clip is KEPT
     crf: 18
     temporal_smoothing: {enabled: false, size_frames: 5}   # ffmpeg deflicker (per-frame luminance smoothing)
 
@@ -169,9 +172,50 @@ m0:                            # H4 M0 assembly (v2.4 G-D032 Biostat D1, Referee
   k_q: 3                       # K_Q = forced + top (k_q - 2) by 1/VIF; Q has 1 + p + p_nonbin + C(k_q,2) (+ era) columns
   min_words_in_w: 20           # label-free exclusion: no audio track or < 20 words in W (known issue #7)
 
-localize:                      # v2.3 activation localisation outputs (D-032; descriptive)
+localize:                      # v2.3 activation localisation outputs (D-032; descriptive); firewall v2.4 G-D032
   top_k: 20
   ci_level: 0.95
   views: [lateral, medial, ventral, dorsal]
+  bootstrap_B: 10000           # company-cluster bootstrap, stratified by group; BCa with company jackknife
+  unreliable_parcel_max_frac: 0.5   # parcels with a larger share of unreliable vertices are not ranked
+  hcp_second_below: 0.5        # report the 2nd-best-overlap HCP area when the best overlap is below this
+  unreliable_pattern: ["#000000", "#ffd400"]   # stipple colours for unreliable vertices (outside RdBu_r; never grey)
+  caption: >-
+    Descriptive only; not inferential. TRIBE v2-predicted (average-subject) relative responses, T1,
+    spatially standardised per TR (union medial wall), averaged over W. Atlas names are anatomical
+    labels, not functions; no reverse inference. Only the H1 networks and the H2 composite carry
+    inferential claims. CIs are company-cluster bootstrap BCa and are not adjusted for parcel
+    selection; q (difference map only) is BH-FDR over all parcels (exploratory).
+  banned_patterns:             # claim-language lint (yct.interpret.localize.lint_claims); case-insensitive regexes
+    - '\bengag(?:e|es|ed|ing|ement)\b'
+    - '\bpersua\w*'
+    - '\btrust\w*'
+    - '\bbrain activity\b'
+    - '\bthe brain prefers?\b'
+    - '\bactivat(?:e|es|ed|ing)\b'   # verb ("X activates FFA"); the noun "activation" is allowed
+    - '\blanguage areas?\b'
+    - '\breward\w*'
+    - '\bvaluation\b'
+    - '\btheory of mind\b'
+
+guards:                        # history exceptions for scripts/check_*.py (FIX-D032-1); exact entries only
+  # D-030 adoption commit (owner actions via SSM). Strict ancestors (e.g. 6c16d89, infra/BUDGET_USD under
+  # the earlier signed-commit rule) are not checked by check_human_signed; this commit and later are.
+  human_signed_since: e4cdc4eedbbbe0c468eed87c10f7548641180147
+  test_weakening_allowlist:    # each: full sha + exact test file + finding kind + ticket in BUGS.md
+    - {commit: c35c53c533705c080718410cbad001f43ff83247, path: tests/_atlas.py, kind: skip, ticket: BUG-008,
+       note: "load_or_skip skip; since FIX-D032-1 it fails unless YCT_OFFLINE=1 (never set in CI)"}
+    - {commit: e4cdc4eedbbbe0c468eed87c10f7548641180147, path: tests/conftest.py, kind: skip, ticket: BUG-009,
+       note: "ssh-keygen skip in SSH-signing fixture; fixture removed in 8005ceb (D-030)"}
+    - {commit: 8005ceb0224dc776f19d996a88ea4311b22affd3, path: tests/test_guards_human_signed.py,
+       kind: assertion, ticket: BUG-009, note: "SSH-signature tests removed with D-030 (SSM)"}
+    - {commit: 8005ceb0224dc776f19d996a88ea4311b22affd3, path: tests/test_guards_human_signed.py,
+       kind: testdef, ticket: BUG-009, note: "SSH-signature tests removed with D-030 (SSM)"}
+    - {commit: 8005ceb0224dc776f19d996a88ea4311b22affd3, path: tests/test_guards_prereg.py,
+       kind: assertion, ticket: BUG-009, note: "signed-prereg test removed with D-030 (SSM)"}
+    - {commit: 8005ceb0224dc776f19d996a88ea4311b22affd3, path: tests/test_guards_prereg.py,
+       kind: testdef, ticket: BUG-009, note: "signed-prereg test removed with D-030 (SSM)"}
+    - {commit: 8005ceb0224dc776f19d996a88ea4311b22affd3, path: tests/test_guards_test_weakening.py,
+       kind: skip, ticket: BUG-009, note: "skip-pattern string in a detector test fixture, not a real skip"}
 
 frozen: []

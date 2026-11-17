@@ -1,4 +1,4 @@
-"""Union medial wall (v2.4 G-D032, D-034): Schaefer 0 | HCP ??? | Destrieux Medial_wall, one mask everywhere."""
+"""Union medial wall (v2.4 G-D032, D-034): Schaefer 0 | HCP ??? | Destrieux Medial_wall, one mask."""
 from __future__ import annotations
 
 import numpy as np

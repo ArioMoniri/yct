@@ -13,39 +13,42 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0        # guards diff against the base and need tags (prereg-lock)
+          fetch-depth: 0        # guards check the whole history and need tags (prereg-lock)
       - run: git fetch --force --tags origin '+refs/heads/*:refs/remotes/origin/*'
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install
+          cache: pip
+          cache-dependency-path: requirements.lock
+      - name: "Install from fully pinned lock (.[dev,pre,neuro], incl. ruff)"
         run: |
           sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
-          pip install -e '.[dev,pre]' ruff==0.8.4
-      - name: Resolve guard base
-        id: base
-        env:
-          EVENT: ${{ github.event_name }}
-          PR_BASE: ${{ github.base_ref }}
-          BEFORE: ${{ github.event.before }}
-          DEFAULT: ${{ github.event.repository.default_branch }}
-        run: |
-          if [ "$EVENT" = "pull_request" ]; then
-            BASE="origin/$PR_BASE"
-          elif [ -n "$BEFORE" ] && [ "$BEFORE" != "0000000000000000000000000000000000000000" ] \
-               && git cat-file -e "$BEFORE^{commit}" 2>/dev/null; then
-            BASE="$BEFORE"
-          else
-            BASE="origin/$DEFAULT"
-          fi
-          echo "base=$BASE" >> "$GITHUB_OUTPUT"
-          echo "guard base: $BASE"
+          pip install --require-hashes -r requirements.lock
+          pip install --no-deps -e .
+          pip check
+      # Atlas tests must RUN in CI (BUG-008): restore the cache keyed by the atlas sha256s in config.yaml,
+      # then fetch + verify (no-op on a cache hit). The offline-skip variable is never set here.
+      - name: Atlas cache key
+        id: atlas
+        run: echo "key=atlases-$(python scripts/fetch_atlases.py --key)" >> "$GITHUB_OUTPUT"
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/yct/atlases
+          key: ${{ steps.atlas.outputs.key }}
+      - name: Fetch + verify atlases
+        run: python scripts/fetch_atlases.py
       - name: Lint
         run: ruff check .
-      - name: Tests
-        run: python -m pytest -q
-      - name: Integrity guards
-        run: make guards BASE=${{ steps.base.outputs.base }}
+      - name: Tests (with provenance run dir)
+        run: make test RUN_ID=ci_${{ github.run_id }}_${{ github.run_attempt }}
+      - name: Upload test run dir
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: run-ci_${{ github.run_id }}_${{ github.run_attempt }}
+          path: outputs/runs/ci_${{ github.run_id }}_${{ github.run_attempt }}
+      - name: "Integrity guards (whole history; exceptions in config.yaml guards section)"
+        run: make guards
 
   gitleaks:
     runs-on: ubuntu-24.04

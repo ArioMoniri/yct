@@ -6,8 +6,10 @@ silently pass).
 from __future__ import annotations
 
 import argparse
+import re
 import subprocess
 import sys
+from pathlib import Path
 
 EMPTY_TREE = "4b825dc642cb6eb9a060e54bf8d69288fbee4904"
 ZERO_SHA = "0" * 40
@@ -99,6 +101,29 @@ def commit_message(commit: str) -> str:
 
 def is_ancestor(a: str, b: str) -> bool:
     return git_ok("merge-base", "--is-ancestor", a, b)
+
+
+def toplevel() -> Path:
+    return Path(git("rev-parse", "--show-toplevel").strip())
+
+
+def guard_config() -> dict:
+    """The `guards:` section of config.yaml in the checked-out tree ({} if absent)."""
+    path = toplevel() / "config.yaml"
+    if not path.exists():
+        return {}
+    import yaml
+
+    return (yaml.safe_load(path.read_text()) or {}).get("guards") or {}
+
+
+def ticket_exists(ticket: str) -> bool:
+    """A ticket id is real only if BUGS.md or ENHANCEMENTS.md has an entry line `- <id> ...`."""
+    if not re.fullmatch(r"(BUG|ENH)-\d{3,}", str(ticket)):
+        return False
+    pat = re.compile(rf"^\s*-\s*{re.escape(ticket)}\b", re.M)
+    return any(pat.search(f.read_text()) for f in (toplevel() / n for n in ("BUGS.md", "ENHANCEMENTS.md"))
+               if f.exists())
 
 
 def base_parser(desc: str, staged: bool = False) -> argparse.ArgumentParser:

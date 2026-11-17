@@ -12,3 +12,4 @@ __pycache__/
 .ruff_cache/
 .env
 data/curation/search_log.csv
+*.egg-info/

@@ -163,7 +163,7 @@ def test_build_q_rank_assertion_and_aliasing(caplog):
     dup["luminance_crop"] = dup["contrast_crop"] * 2 + 1         # exact alias of another column
     with caplog.at_level(logging.WARNING, logger="yct.features.m0"):
         qr = m0m.build_q(dup, kq, binary=res.binary)
-    assert "luminance_crop" in qr.aliased and "aliased" in caplog.text
+    assert "contrast_crop" in qr.aliased and "aliased" in caplog.text   # the later duplicate
     with pytest.raises(ValueError, match="non-finite"):
         bad = res.m0.copy()
         bad.iloc[0, 0] = np.nan
