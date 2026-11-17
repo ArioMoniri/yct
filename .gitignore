@@ -1,9 +1,9 @@
 data/raw/
 data/normalized/
-data/labels_sealed/
+data/sealed/*.csv
 outputs/preds/
 outputs/logs/
-outputs/infra/
+
 *.npy
 *.mp4
 *.wav
