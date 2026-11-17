@@ -13,7 +13,7 @@ table indexed by label id.
 
 Files are cached under ``atlases.cache_dir`` (env ``YCT_ATLAS_DIR`` overrides) and their sha256
 is checked against ``config.yaml`` on every load. A missing file that cannot be downloaded raises
-:class:`AtlasUnavailable`; a hash mismatch raises :class:`AtlasIntegrityError`.
+:class:`AtlasUnavailableError`; a hash mismatch raises :class:`AtlasIntegrityError`.
 """
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ MEDIAL_WALL = "Medial_Wall"
 HEMIS = ("lh", "rh")
 
 
-class AtlasUnavailable(RuntimeError):
+class AtlasUnavailableError(RuntimeError):
     """The atlas file is not cached and could not be obtained (offline, missing dependency)."""
 
 
@@ -87,7 +87,7 @@ def _download(url: str, dest: Path, timeout: float = 60.0) -> None:
             shutil.copyfileobj(r, tmp)
             tmp_path = Path(tmp.name)
     except (urllib.error.URLError, OSError, TimeoutError) as e:
-        raise AtlasUnavailable(f"cannot download {url}: {e}") from e
+        raise AtlasUnavailableError(f"cannot download {url}: {e}") from e
     tmp_path.replace(dest)
 
 
@@ -108,7 +108,7 @@ def atlas_file(atlas_key: str, hemi: str, cfg: dict[str, Any] | None = None) -> 
         elif atlas_key == "destrieux":
             _fetch_destrieux(cfg)
         if not path.exists():
-            raise AtlasUnavailable(f"{path} missing after fetch")
+            raise AtlasUnavailableError(f"{path} missing after fetch")
     return _verified(path, entry["sha256"])
 
 
@@ -116,18 +116,18 @@ def _fetch_destrieux(cfg: dict[str, Any] | None) -> None:
     try:
         from nilearn import datasets
     except ImportError as e:  # optional `neuro` group
-        raise AtlasUnavailable("nilearn is not installed (pip install -e '.[neuro]')") from e
+        raise AtlasUnavailableError("nilearn is not installed (pip install -e '.[neuro]')") from e
     try:
         datasets.fetch_atlas_surf_destrieux(data_dir=str(cache_dir(cfg) / "nilearn"), verbose=0)
     except Exception as e:  # nilearn wraps network failures in several exception types
-        raise AtlasUnavailable(f"nilearn Destrieux fetch failed: {e}") from e
+        raise AtlasUnavailableError(f"nilearn Destrieux fetch failed: {e}") from e
 
 
 def _read_annot(path: Path, n: int) -> tuple[np.ndarray, list[str]]:
     try:
         import nibabel as nib
     except ImportError as e:
-        raise AtlasUnavailable("nibabel is not installed (pip install -e '.[neuro]')") from e
+        raise AtlasUnavailableError("nibabel is not installed (pip install -e '.[neuro]')") from e
     labels, _ctab, names = nib.freesurfer.read_annot(str(path))
     if labels.shape[0] < n:
         raise ValueError(f"{path}: {labels.shape[0]} vertices < {n}")

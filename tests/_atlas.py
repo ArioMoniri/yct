@@ -4,7 +4,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from yct.features.atlas import Atlas, AtlasSet, AtlasUnavailable
+from yct.features.atlas import Atlas, AtlasSet, AtlasUnavailableError
 
 NV = 20484
 NH = 10242
@@ -13,7 +13,7 @@ NH = 10242
 def load_or_skip(loader):
     try:
         return loader()
-    except AtlasUnavailable as e:  # offline or optional `neuro` deps missing
+    except AtlasUnavailableError as e:  # offline or optional `neuro` deps missing
         pytest.skip(f"atlas unavailable: {e}")
 
 

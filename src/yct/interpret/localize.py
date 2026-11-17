@@ -8,7 +8,7 @@ For a (20484,) map on fsaverage5 (a group mean or a difference map, LH then RH):
   bootstrap CI from optional bootstrap maps (B, 20484).
 * :func:`plot_four_views` -- lateral / medial / ventral / dorsal views of each hemisphere on the
   fsaverage5 inflated surface; medial wall masked (not coloured), reliability-masked vertices
-  greyed (not coloured, light-grey background).
+  greyed (not coloured, flat light background) and outlined in black.
 
 Only parcels from the confirmatory family carry inferential claims.
 """
@@ -54,7 +54,7 @@ def peak_table(vmap: np.ndarray, atlases: AtlasSet, bootstrap: np.ndarray | None
         raise ValueError(f"map must have shape ({NV},), got {vmap.shape}")
     sch = atlases.schaefer
     vals = parcel_means(vmap, sch)
-    lo = hi = np.full(vals.shape, np.nan)
+    lo, hi = np.full(vals.shape, np.nan), np.full(vals.shape, np.nan)
     if bootstrap is not None:
         boots = np.asarray(bootstrap, dtype=np.float64)
         if boots.ndim != 2 or boots.shape[1] != NV:
@@ -109,9 +109,8 @@ def plot_four_views(vmap: np.ndarray, out_png: str | Path, medial_wall: np.ndarr
     if vmax is None:
         vmax = float(np.nanmax(np.abs(vmap[shown]))) if shown.any() else 1.0
         vmax = vmax or 1.0
-    thr = 1e-6 * vmax
+    thr = 1e-6 * vmax                                      # hidden vertices (0) stay uncoloured
     stat = np.where(shown, vmap, 0.0)
-    stat[shown & (np.abs(stat) < thr)] = np.copysign(thr * 1.01, stat[shown & (np.abs(stat) < thr)] + 1e-300)
 
     fs = datasets.load_fsaverage("fsaverage5")
     sulc = datasets.load_fsaverage_data(mesh="fsaverage5", data_type="sulcal")
@@ -130,6 +129,11 @@ def plot_four_views(vmap: np.ndarray, out_png: str | Path, medial_wall: np.ndarr
                 vmin=-vmax, vmax=vmax, symmetric_cbar=True, axes=ax, figure=fig,
                 title=f"{'LH' if hemi == 'left' else 'RH'} {view}",
             )
+            if unreliable is not None and unreliable[sl].any():   # outline the greyed region
+                plotting.plot_surf_contours(
+                    fs["inflated"].parts[hemi], unreliable[sl].astype(int), levels=[1],
+                    colors=["k"], axes=ax, figure=fig,
+                )
     if title:
         fig.suptitle(title)
     out = Path(out_png)

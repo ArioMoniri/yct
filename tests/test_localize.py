@@ -2,15 +2,17 @@
 from __future__ import annotations
 
 import matplotlib
+import numpy as np
+import pytest
 
-matplotlib.use("Agg")
+from tests._atlas import NV, load_or_skip, synthetic_atlases
+from yct.features import atlas as atl
+from yct.interpret import localize as loc
 
-import numpy as np  # noqa: E402
-import pytest  # noqa: E402
 
-from tests._atlas import NV, load_or_skip, synthetic_atlases  # noqa: E402
-from yct.features import atlas as A  # noqa: E402
-from yct.interpret import localize as L  # noqa: E402
+@pytest.fixture(autouse=True)
+def _agg():
+    matplotlib.use("Agg")
 
 COLS = ["sign", "rank", "parcel_id", "parcel", "hemi", "yeo7", "hcp_mmp", "hcp_overlap",
         "destrieux", "value", "ci_lo", "ci_hi"]
@@ -29,7 +31,7 @@ def test_peak_table_synthetic():
     at = synthetic_atlases()
     m = _planted(at, pid=5, neg_pid=20)
     boots = np.stack([_planted(at, 5, 20, seed=s) for s in range(1, 41)])
-    t = L.peak_table(m, at, bootstrap=boots, k=3)
+    t = loc.peak_table(m, at, bootstrap=boots, k=3)
     assert list(t.columns) == COLS
     assert len(t) == 6
     top = t[(t.sign == "pos") & (t["rank"] == 1)].iloc[0]
@@ -45,10 +47,10 @@ def test_peak_table_synthetic():
 
 def test_peak_table_without_bootstrap_and_shape_check():
     at = synthetic_atlases()
-    t = L.peak_table(_planted(at, 2), at, k=2)
+    t = loc.peak_table(_planted(at, 2), at, k=2)
     assert t.ci_lo.isna().all()
     with pytest.raises(ValueError):
-        L.peak_table(np.zeros(100), at)
+        loc.peak_table(np.zeros(100), at)
 
 
 def test_plot_four_views_synthetic(tmp_path):
@@ -56,18 +58,18 @@ def test_plot_four_views_synthetic(tmp_path):
     m = _planted(at, 5, 20)
     rel = np.zeros(NV, bool)
     rel[at.schaefer.labels == 7] = True
-    out = L.plot_four_views(m, tmp_path / "map.png", medial_wall=at.medial_wall,
+    out = loc.plot_four_views(m, tmp_path / "map.png", medial_wall=at.medial_wall,
                             unreliable=rel, title="synthetic")
     assert out.exists() and out.stat().st_size > 10_000
 
 
 @pytest.mark.atlas
 def test_peak_table_real_atlases_planted():
-    at = load_or_skip(A.load_all)
+    at = load_or_skip(atl.load_all)
     pid = at.schaefer.names.index("7Networks_LH_Vis_3")
-    neg = at.schaefer.names.index("7Networks_RH_Default_PFCm_1")
+    neg = at.schaefer.names.index("7Networks_RH_Default_Par_1")
     m = _planted(at, pid, neg)
-    t = L.peak_table(m, at, k=20)
+    t = loc.peak_table(m, at, k=20)
     assert len(t) == 40
     top = t.iloc[0]
     assert top.sign == "pos" and top.parcel_id == pid and top.yeo7 == "Vis" and top.hemi == "LH"
@@ -82,7 +84,7 @@ def test_peak_table_real_atlases_planted():
 
 @pytest.mark.atlas
 def test_plot_four_views_real(tmp_path):
-    at = load_or_skip(A.load_all)
+    at = load_or_skip(atl.load_all)
     m = _planted(at, 3, 250)
-    out = L.plot_four_views(m, tmp_path / "real.png", medial_wall=at.medial_wall)
+    out = loc.plot_four_views(m, tmp_path / "real.png", medial_wall=at.medial_wall)
     assert out.stat().st_size > 10_000

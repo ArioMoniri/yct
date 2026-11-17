@@ -6,19 +6,19 @@ import pytest
 
 from tests._atlas import NH, NV, load_or_skip
 from yct.config import load_config
-from yct.features import atlas as A
+from yct.features import atlas as atl
 
 pytestmark = pytest.mark.atlas
 
 
 @pytest.fixture(scope="module")
 def schaefer():
-    return load_or_skip(A.load_schaefer400)
+    return load_or_skip(atl.load_schaefer400)
 
 
 def test_schaefer_shape_and_parcels(schaefer):
     assert schaefer.labels.shape == (NV,)
-    assert schaefer.names[0] == A.MEDIAL_WALL
+    assert schaefer.names[0] == atl.MEDIAL_WALL
     ids = np.unique(schaefer.labels)
     assert set(ids) == set(range(401))          # 400 parcels + medial wall, all present
     assert schaefer.n_labels == 400
@@ -33,7 +33,7 @@ def test_schaefer_hemisphere_order(schaefer):
 
 
 def test_medial_wall(schaefer):
-    mw = A.medial_wall_mask(schaefer)
+    mw = atl.medial_wall_mask(schaefer)
     assert mw.dtype == bool and mw.shape == (NV,)
     assert mw[:NH].sum() == 870                  # tribe_requirements §3 (checked locally there)
     assert 500 < mw[NH:].sum() < 1500
@@ -41,11 +41,11 @@ def test_medial_wall(schaefer):
 
 
 def test_yeo7_derivation(schaefer):
-    yeo = A.yeo7_from_schaefer(schaefer)
+    yeo = atl.yeo7_from_schaefer(schaefer)
     nets = load_config()["atlases"]["yeo7"]["networks"]
     assert yeo.labels.shape == (NV,)
-    assert yeo.names == (A.MEDIAL_WALL, *nets)
-    assert ((yeo.labels == 0) == A.medial_wall_mask(schaefer)).all()
+    assert yeo.names == (atl.MEDIAL_WALL, *nets)
+    assert ((yeo.labels == 0) == atl.medial_wall_mask(schaefer)).all()
     for pid in (1, 57, 200, 201, 333, 400):
         net = schaefer.names[pid].split("_")[2]
         assert (yeo.labels[schaefer.labels == pid] == nets.index(net) + 1).all()
@@ -53,7 +53,7 @@ def test_yeo7_derivation(schaefer):
 
 
 def test_hcp_mmp1():
-    hcp = load_or_skip(A.load_hcp_mmp1)
+    hcp = load_or_skip(atl.load_hcp_mmp1)
     assert hcp.labels.shape == (NV,) and hcp.n_labels == 360
     assert hcp.names[1].startswith("L_") and hcp.names[181].startswith("R_")
     assert hcp.labels[:NH].max() <= 180 and hcp.labels[NH:][hcp.labels[NH:] > 0].min() > 180
@@ -62,7 +62,7 @@ def test_hcp_mmp1():
 
 
 def test_destrieux():
-    des = load_or_skip(A.load_destrieux)
+    des = load_or_skip(atl.load_destrieux)
     assert des.labels.shape == (NV,)
     assert "L Medial_wall" in des.names and "R Medial_wall" in des.names
     assert des.labels[:NH].max() <= 75 < des.labels[NH:].max()
@@ -73,17 +73,17 @@ def test_hashes_recorded_and_checked(tmp_path, monkeypatch):
     for key in ("schaefer400_7", "hcp_mmp1", "destrieux"):
         for h in ("lh", "rh"):
             assert len(cfg[key][h]["sha256"]) == 64
-    p = load_or_skip(lambda: A.atlas_file("schaefer400_7", "lh"))
+    p = load_or_skip(lambda: atl.atlas_file("schaefer400_7", "lh"))
     # a corrupted cache file must fail loudly, not skip
     monkeypatch.setenv("YCT_ATLAS_DIR", str(tmp_path))
     (tmp_path / p.name).write_bytes(b"corrupt")
-    with pytest.raises(A.AtlasIntegrityError):
-        A.atlas_file("schaefer400_7", "lh")
+    with pytest.raises(atl.AtlasIntegrityError):
+        atl.atlas_file("schaefer400_7", "lh")
 
 
 def test_offline_raises_unavailable(tmp_path, monkeypatch):
     monkeypatch.setenv("YCT_ATLAS_DIR", str(tmp_path))
-    monkeypatch.setattr(A.urllib.request, "urlopen",
-                        lambda *a, **k: (_ for _ in ()).throw(A.urllib.error.URLError("offline")))
-    with pytest.raises(A.AtlasUnavailable):
-        A.load_schaefer400()
+    monkeypatch.setattr(atl.urllib.request, "urlopen",
+                        lambda *a, **k: (_ for _ in ()).throw(atl.urllib.error.URLError("offline")))
+    with pytest.raises(atl.AtlasUnavailableError):
+        atl.load_schaefer400()
