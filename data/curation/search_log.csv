@@ -131,3 +131,5 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-17T14:24:57Z,youtube_search(yt-dlp),rejected YC founder video S25,40,0
 2026-11-17T14:24:59Z,youtube_search(yt-dlp),rejected YC application W26,50,1
 2026-11-17T14:25:11Z,youtube_search(yt-dlp),rejected YC application S26,40,13
+2026-11-17T14:25:20Z,youtube_search(yt-dlp),rejected YC application F26,0,0
+2026-11-17T14:25:21Z,youtube_search(yt-dlp),rejected YC application X25,8,3
