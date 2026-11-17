@@ -356,3 +356,34 @@ def test_offline_run_blocks_network_during_prediction(clip, store, tmp_path):
 def test_offline_run_records_flag(clip, store, tmp_path):
     m = fc.run_cached(clip, store, MockExtractor(), MockPredictor(), REV, tmp_path / "o1", offline=True)
     assert m["offline"] is True
+
+
+
+# ---------------------------------------------------------------- exca/neuralset value + key normalisation
+def test_as_array_unwraps_timed_arrays_and_tensors():
+    class TimedArray:  # neuralset audio/video cache value: array in .data
+        def __init__(self, data):
+            self.data = data
+            self.frequency = 2.0
+
+    a = np.arange(6, dtype=np.float32).reshape(2, 3)
+    assert np.array_equal(fc._as_array(TimedArray(a)), a)
+    assert np.array_equal(fc._as_array(a), a)
+    assert fc._as_array("text") is None and fc._as_array(3) is None
+
+
+def test_norm_key_pairs_cached_and_fresh_paths():
+    cached = "/home/ubuntu/yct/fc/9837fca9/input/smoke.mp4"
+    fresh = "/tmp/yct_drift_abc/input/smoke.mp4"
+    assert fc._norm_key(cached) == fc._norm_key(fresh) == "input/smoke.mp4"
+    assert fc._norm_key("dog_The quick brown fox") == "dog_The quick brown fox"
+
+
+def test_keep_fresh_copies_throwaway_features(clip, store, tmp_path):
+    keep = tmp_path / "kept_fresh"
+    m = fc.run_cached(clip, store, MockExtractor(), MockPredictor(), REV, tmp_path / "o1", fresh_drift=True,
+                      keep_fresh=keep)
+    assert (keep / "audio.npy").exists() and (keep / "video" / "vjepa.npy").exists()
+    assert m["fresh_extraction_drift"]["feature_reliability"]["fresh_features_kept_at"] == str(keep)
+    meta = json.loads((store.entry_dir(m["cache_key"]) / fc.SIDECAR).read_text())
+    assert meta["n_extractions"] == 1

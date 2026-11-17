@@ -237,6 +237,27 @@ def reliability(a: np.ndarray, b: np.ndarray) -> float | None:
     return float(1.0 - np.var(a - b) / den)
 
 
+def _as_array(v: Any) -> np.ndarray | None:
+    """numpy view of a cached value: ndarray / memmap, torch tensor, or an object holding one in ``.data``
+    (neuralset TimedArray for the audio/video extractors)."""
+    if hasattr(v, "detach"):
+        v = v.detach().cpu().numpy()
+    if isinstance(v, np.ndarray):
+        return np.array(v)
+    inner = getattr(v, "data", None)
+    if inner is not None and not isinstance(v, np.ndarray | bytes | memoryview):
+        return _as_array(inner)
+    return None
+
+
+def _norm_key(key: str) -> str:
+    """Cache keys of the audio/video extractors embed the absolute input path (cache entry or throw-away
+    dir); keep only the part from ``input/`` on so cached and fresh extractions pair up."""
+    k = str(key)
+    i = k.rfind("/input/")
+    return k[i + 1:] if i >= 0 else k
+
+
 def _exca_arrays(feat_dir: Path) -> dict[str, np.ndarray]:
     """Arrays stored by exca CacheDicts (folders holding *-info.jsonl), read from a scratch copy
     (CacheDict may chmod/clean its folder; the cache itself is never opened for writing)."""
@@ -254,15 +275,12 @@ def _exca_arrays(feat_dir: Path) -> dict[str, np.ndarray]:
             cd = CacheDict(tmp, permissions=None)
             for k in sorted(cd.keys()):
                 v = cd[k]
-                if hasattr(v, "detach"):
-                    v = v.detach().cpu().numpy()
-                if isinstance(v, dict):
-                    for kk, vv in v.items():
-                        vv = vv.detach().cpu().numpy() if hasattr(vv, "detach") else vv
-                        if isinstance(vv, np.ndarray):
-                            out[f"{rel}::{k}::{kk}"] = np.array(vv)
-                elif isinstance(v, np.ndarray):
-                    out[f"{rel}::{k}"] = np.array(v)
+                items = v.items() if isinstance(v, dict) else [(None, v)]
+                for kk, vv in items:
+                    arr = _as_array(vv)
+                    if arr is not None:
+                        name = f"{rel}::{_norm_key(k)}" + ("" if kk is None else f"::{kk}")
+                        out[name] = arr
     return out
 
 
@@ -311,7 +329,8 @@ def feature_reliability(cached_feat: Path, fresh_feat: Path) -> dict[str, Any]:
 
 
 def extraction_drift(store: FeatureStore, input_sha256: str, extract: Extractor, predict: Predictor,
-                     cached_preds: np.ndarray, offline: bool = False) -> dict[str, Any]:
+                     cached_preds: np.ndarray, offline: bool = False,
+                     keep_fresh: str | Path | None = None) -> dict[str, Any]:
     """Throw-away fresh extraction (never stored) vs the cache. The reported predictions are never
     affected (``gated: False`` for them); ``feature_reliability`` carries the D-038 per-feature gate."""
     meta = store.verify(input_sha256)
@@ -339,6 +358,9 @@ def extraction_drift(store: FeatureStore, input_sha256: str, extract: Extractor,
             else:
                 tensors[rel] = {"bit_identical": sha256_file(f) == meta["tensors"][rel]["sha256"]}
         feat_rel = feature_reliability(e / "feat", feat)
+        if keep_fresh is not None:  # audit copy of the throw-away extraction (never used for predictions)
+            shutil.copytree(feat, Path(keep_fresh), dirs_exist_ok=False)
+            feat_rel["fresh_features_kept_at"] = str(keep_fresh)
     p = _compare(cached_preds, np.asarray(fresh_preds))
     store.verify(input_sha256, "after prediction")
     return {"gated": False, "pred_max_abs_diff": p.get("max_abs_diff"), "pred_pearson_r": p.get("pearson_r"),
@@ -348,7 +370,8 @@ def extraction_drift(store: FeatureStore, input_sha256: str, extract: Extractor,
 
 def run_cached(video: str | Path, store: FeatureStore, extract: Extractor, predict: Predictor,
                revisions: dict[str, Any], out_prefix: str | Path,
-               fresh_drift: bool = False, offline: bool = False) -> dict[str, Any]:
+               fresh_drift: bool = False, offline: bool = False,
+               keep_fresh: str | Path | None = None) -> dict[str, Any]:
     """Extract-once + predict-from-cache. Writes <out_prefix>.npy and <out_prefix>.json (metrics).
 
     Returns the metrics dict plus ``aux`` (the predictor's auxiliary output, not serialised)."""
@@ -372,6 +395,7 @@ def run_cached(video: str | Path, store: FeatureStore, extract: Extractor, predi
         "pred_sha256": sha256_file(npy),
     }
     if fresh_drift:
-        m["fresh_extraction_drift"] = extraction_drift(store, sha, extract, predict, preds, offline=offline)
+        m["fresh_extraction_drift"] = extraction_drift(store, sha, extract, predict, preds, offline=offline,
+                                                       keep_fresh=keep_fresh)
     Path(f"{out_prefix}.json").write_text(json.dumps(m, indent=1, sort_keys=True))
     return {**m, "aux": aux}

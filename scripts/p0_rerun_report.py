@@ -36,7 +36,7 @@ def summarise(run_dir: Path) -> dict:
         "feature_sha256_equal": a.get("feature_sha256") == b.get("feature_sha256") == c.get("feature_sha256"),
     }
     s["fresh_drift"] = {}
-    for n in ("smoke_c", "long70"):
+    for n in [k for k, r in runs.items() if r.get("fresh_extraction_drift")]:
         d = _get(runs, n, "fresh_extraction_drift") or {}
         fr = d.get("feature_reliability") or {}
         s["fresh_drift"][n] = {
@@ -46,6 +46,10 @@ def summarise(run_dir: Path) -> dict:
             "per_extractor": {k: {"reliability": v.get("reliability"), "max_abs_diff": v.get("max_abs_diff"),
                                   "n_arrays": v.get("n_arrays")} for k, v in (fr.get("per_extractor") or {}).items()},
         }
+    s["rel_reruns"] = {c: {"bit_identical": bool(_get(runs, f"rel_{c}", "pred_sha256"))
+                           and _get(runs, f"rel_{c}", "pred_sha256") == _get(runs, f"rel_{c}_rerun", "pred_sha256"),
+                           "rerun_cache_reused": _get(runs, f"rel_{c}_rerun", "cache_reused")}
+                       for c in ("smoke", "long70", "long110") if f"rel_{c}" in runs}
     s["clips"] = {}
     for n, r in runs.items():
         s["clips"][n] = {k: r.get(k) for k in (
@@ -68,6 +72,7 @@ def report(s: dict) -> str:
              f"(cache_reused={cr['b_cache_reused']}, {cr['c_cache_reused']}).",
              f"- predictions bit-identical A==B: **{cr['bit_identical_a_b']}**, A==C: **{cr['bit_identical_a_c']}** "
              f"(sha256 {str(cr['pred_sha256_a'])[:16]}); feature sha256 equal: {cr['feature_sha256_equal']}.", "",
+             f"- reliability runs, cached rerun bit-identical: {s.get('rel_reruns')}", "",
              "## Fresh re-extraction reliability (D-038 gate: >= 0.99 per feature)", ""]
     for n, d in s["fresh_drift"].items():
         lines.append(f"- {n}: reliability_min **{d['reliability_min']}** over {d['n_arrays']} arrays, gate pass "

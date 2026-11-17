@@ -123,6 +123,9 @@ def main() -> int:
     ap.add_argument("--keep-on-fail", action="store_true",
                     help="on a failed step leave the instance up for debugging (watch/idle-kill keep running)")
     ap.add_argument("--spent-before", type=float, default=None, help="ledger spend before the first attempt")
+    ap.add_argument("--steps", default="smoke,long70,long110",
+                    help="comma list from: smoke, long70, long110 (P0 re-run) and rel_smoke, rel_long70, "
+                         "rel_long110 (D-038 reliability: extract + fresh re-extraction kept for audit)")
     a = ap.parse_args()
     from infra import lambda_gpu as lg
 
@@ -187,12 +190,16 @@ def main() -> int:
           if rc != 0:
               raise RuntimeError("setup failed:\n" + box.cat("~/steps/setup.log")[-3000:])
           log("setup OK")
-        steps = {
+        all_steps = {
             "smoke": RUN + "run smoke_a --video clips/smoke/smoke.mp4\nrun smoke_b --video clips/smoke/smoke.mp4\n"
                            "run smoke_c --video clips/smoke/smoke.mp4 --fresh-drift\n",
             "long70": RUN + "run long70 --video clips/long70/long70.mp4 --fresh-drift\n",
             "long110": RUN + "run long110 --video clips/long110/long110.mp4\n",
+            **{f"rel_{c}": RUN + f"run rel_{c} --video clips/{c}/{c}.mp4 --fresh-drift --keep-fresh\n"
+                                 f"run rel_{c}_rerun --video clips/{c}/{c}.mp4\n"
+               for c in ("smoke", "long70", "long110")},
         }
+        steps = {k: all_steps[k] for k in a.steps.split(",")}
         for name, script in steps.items():
             box.start(name, script)
             rc = box.wait(name, 3000)
@@ -201,7 +208,7 @@ def main() -> int:
             if rc != 0:
                 result.setdefault("errors", {})[name] = box.run(
                     f"tail -n 60 {B}/res/*.log 2>/dev/null || true; tail -n 30 ~/steps/{name}.log")[-6000:]
-                if name == "smoke":
+                if name in ("smoke", "rel_smoke"):
                     keep = a.keep_on_fail
                     break
         # Persist off the ephemeral box: pod run dir + content-addressed cache root.
@@ -212,7 +219,9 @@ def main() -> int:
             f"du -sh {pod_dir} /work/yct/cache", 1800)
         for f in ("res/SHA256SUMS", "res/FC_SHA256SUMS", "pip_freeze.txt"):
             (run_dir / Path(f).name).write_text(pod(f"cat {pod_dir}/{f}", 300))
-        for n in ("smoke_a", "smoke_b", "smoke_c", "long70", "long110"):
+        names = ["smoke_a", "smoke_b", "smoke_c", "long70", "long110"]
+        names += [f"rel_{c}{x}" for c in ("smoke", "long70", "long110") for x in ("", "_rerun")]
+        for n in names:
             out = pod(f"cat {pod_dir}/res/{n}.json 2>/dev/null || true", 300, check=False)
             if out.strip().startswith("{"):
                 (run_dir / f"{n}.json").write_text(out)

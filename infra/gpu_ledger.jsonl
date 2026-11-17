@@ -31,3 +31,12 @@
 {"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931394.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
 {"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931424.0, "gpu_util": 31.0, "mem_mib": 7057.0, "source": "instance"}
 {"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931454.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931484.0, "gpu_util": 0.0, "mem_mib": 4.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931514.0, "gpu_util": 12.0, "mem_mib": 8213.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931544.0, "gpu_util": 100.0, "mem_mib": 12901.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931574.0, "gpu_util": 0.0, "mem_mib": 1397.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931604.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931634.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931664.0, "gpu_util": 4.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931694.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e1c5cf0525cd4f5f8406bceee3a19aba", "t": 1794931724.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}

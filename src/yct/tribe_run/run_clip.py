@@ -73,6 +73,8 @@ def main() -> None:
     ap.add_argument("--out", required=True)
     ap.add_argument("--weights", required=True)
     ap.add_argument("--fresh-drift", action="store_true", help="also report fresh-extraction drift")
+    ap.add_argument("--keep-fresh", action="store_true",
+                    help="keep the throw-away fresh extraction in OUT.fresh_feat/ (D-038 gate audit)")
     a = ap.parse_args()
 
     _strip_uv_from_path()
@@ -131,7 +133,7 @@ def main() -> None:
     try:
         res = run_cached(src, FeatureStore(a.feature_cache), extract, predict,
                          _revisions(weights, tribev2, torch, backbones), a.out, fresh_drift=a.fresh_drift,
-                         offline=True)
+                         offline=True, keep_fresh=(a.out + ".fresh_feat") if a.keep_fresh else None)
     finally:
         smi.terminate()
         smi.wait()
