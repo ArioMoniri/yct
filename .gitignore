@@ -16,3 +16,4 @@ data/curation/search_log.csv
 data/sealed/*
 !data/sealed/*.age
 !data/sealed/*.age.sha256
+.tmp/
