@@ -144,3 +144,30 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-17T14:26:11Z,youtube_search(yt-dlp),YC application video accepted W21,50,7
 2026-11-17T14:26:13Z,youtube_search(yt-dlp),YC application video accepted S21,50,22
 2026-11-17T14:26:16Z,youtube_search(yt-dlp),YC application video accepted 2019,50,32
+2026-11-17T14:26:26Z,youtube_search(yt-dlp),YC application video accepted 2018,20,13
+2026-11-17T14:26:29Z,youtube_search(yt-dlp),YC application video accepted 2017,50,39
+2026-11-17T14:26:40Z,youtube_search(yt-dlp),Y Combinator application video 2011,50,34
+2026-11-17T14:26:42Z,youtube_search(yt-dlp),Y Combinator application video 2010,50,25
+2026-11-17T14:26:45Z,youtube_search(yt-dlp),Y Combinator application video 2009,50,29
+2026-11-17T14:26:47Z,youtube_search(yt-dlp),ycombinator video application S12,50,16
+2026-11-17T14:26:58Z,youtube_search(yt-dlp),ycombinator video application W13,0,0
+2026-11-17T14:27:09Z,youtube_search(yt-dlp),ycombinator application S14,40,16
+2026-11-17T14:27:11Z,youtube_search(yt-dlp),ycombinator application W14,50,30
+2026-11-17T14:27:19Z,youtube_search(yt-dlp),ycombinator application S13,20,0
+2026-11-17T14:27:29Z,youtube_search(yt-dlp),YC W12 application video,0,0
+2026-11-17T14:27:38Z,youtube_search(yt-dlp),YC S12 application video,0,0
+2026-11-17T14:27:40Z,youtube_search(yt-dlp),YC S16 application video,50,36
+2026-11-17T14:27:42Z,youtube_search(yt-dlp),YC W16 application video,50,12
+2026-11-17T14:27:45Z,youtube_search(yt-dlp),YC S15 application video,50,27
+2026-11-17T14:27:47Z,youtube_search(yt-dlp),YC W15 application video,50,18
+2026-11-17T14:27:50Z,youtube_search(yt-dlp),YC S14 application video,50,17
+2026-11-17T14:28:01Z,youtube_search(yt-dlp),YC W14 application video,20,8
+2026-11-17T14:28:03Z,youtube_search(yt-dlp),YC W13 application,50,30
+2026-11-17T14:28:06Z,youtube_search(yt-dlp),YC S13 application,50,4
+2026-11-17T14:28:16Z,youtube_search(yt-dlp),Y Combinator Fellowship application video,40,22
+2026-11-17T14:28:27Z,youtube_search(yt-dlp),YC application video W27,20,14
+2026-11-17T14:28:29Z,youtube_search(yt-dlp),YC founder video W27,37,11
+2026-11-17T14:28:36Z,youtube_search(yt-dlp),YC founder video F26,0,0
+2026-11-17T14:28:45Z,youtube_search(yt-dlp),YC founder video X26,0,0
+2026-11-17T14:28:47Z,youtube_search(yt-dlp),YC founder video P26,36,15
+2026-11-17T14:28:55Z,youtube_search(yt-dlp),YC application video P26 rejected,0,0
