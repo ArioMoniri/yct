@@ -64,3 +64,16 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-17T14:02:06Z,youtube_search(yt-dlp),YC application video interview rejected,50,6
 2026-11-17T14:02:15Z,youtube_search(yt-dlp),failed YC application video,20,2
 2026-11-17T14:02:18Z,youtube_search(yt-dlp),Y Combinator rejected us application video,50,6
+2026-11-17T14:02:26Z,youtube_search(yt-dlp),YC W24 founder video rejected,20,0
+2026-11-17T14:02:28Z,youtube_search(yt-dlp),YC S24 application rejected,50,4
+2026-11-17T14:02:30Z,youtube_search(yt-dlp),YC F25 application video rejected,42,13
+2026-11-17T14:02:38Z,youtube_search(yt-dlp),YC W25 application video rejected,40,2
+2026-11-17T14:02:40Z,youtube_search(yt-dlp),YC S25 founder video,50,20
+2026-11-17T14:02:43Z,youtube_search(yt-dlp),YC X25 founder video,40,30
+2026-11-17T14:02:45Z,youtube_search(yt-dlp),YC spring 2025 application video,50,33
+2026-11-17T14:02:55Z,youtube_search(yt-dlp),YC fall 2025 application video,40,9
+2026-11-17T14:02:57Z,youtube_search(yt-dlp),YC summer 2026 application video,50,20
+2026-11-17T14:02:58Z,websearch,"""our YC application video"" rejected",18,3
+2026-11-17T14:02:58Z,websearch,"site:news.ycombinator.com ""YC application video""",19,1
+2026-11-17T14:02:58Z,websearch,site:reddit.com/r/ycombinator application video rejected share,18,0
+2026-11-17T14:03:00Z,youtube_search(yt-dlp),YC fall 2024 application video,50,31
