@@ -34,7 +34,7 @@ Drop-in:
 
 **7. [CRITICAL] The legal and data position is unresolved (A RULES).** "Follow ToS" contradicts yt-dlp (YouTube ToS forbids downloads). Founders' faces and voices are GDPR personal data (eu-central-1); TRIBE is CC-BY-NC.
 Drop-in:
-> Before P1 Step 4, the human owner signs `docs/legal/DATA_DECISION.md`. It covers: ToS risk acceptance; legal basis (Art. 6(1)(f) + Art. 89 safeguards); a DPIA-lite; retention (default: raw video deleted 90 days after P4 QC); non-commercial use (else STOP). Raw media and evidence stay encrypted at rest on the pod and in an S3 bucket in eu-central-1, never git, never a public bucket, never sent to Lambda except an ephemeral copy that is deleted on termination. Outputs carry pseudonymous `video_id`s. No company or founder name appears in figures or reports. No per-video brain map is published. On a takedown or erasure request, delete within 72 h and log it.
+> Before P1 Step 4, the human owner signs `docs/legal/DATA_DECISION.md`. It covers: ToS risk acceptance; legal basis (Art. 6(1)(f) + Art. 89 safeguards); a DPIA-lite; retention (default: raw video deleted 90 days after P4 QC); non-commercial use (else STOP). Raw media stays encrypted in eu-central-1 (pod/private S3), never in git; Lambda gets only ephemeral copies. Outputs carry pseudonymous `video_id`s. No company or founder name appears in figures or reports. Erasure requests: delete within 72 h.
 
 **8. [MAJOR] Secrets have no rules.**
 Drop-in:
@@ -56,7 +56,7 @@ Drop-in:
 
 **14. [MINOR] Gate packet format.** `reviews/<phase>/packet.md`: SHA, run IDs, changed files, open BUGS, deviations, DoD checklist.
 
-**15. [MINOR] The global DoD (C§6) lacks an integrity line.** Add: "Watchdog final audit GO; zero running GPU instances; ledger reconciled with Lambda invoices; retention schedule active."
+**15. [MINOR] Global DoD (C§6)** add: "Watchdog final audit GO; zero running GPU instances; ledger reconciled with Lambda invoices; retention schedule active."
 
 ---
 
