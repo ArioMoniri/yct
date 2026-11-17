@@ -131,3 +131,32 @@ n=627; min 35, Q1 60, median 66, Q3 80, max 180.
 ## Shortfall statement
 
 Total retained: 627 rows (39 confidence-A). The target of >=40 confidence-A per label was not reached; see the orchestrator hand-off for per-label stop-rule counts (kept out of this file to preserve blinding). Main limits: scarcity of explicit public outcome statements and YouTube metadata rate-limiting.
+
+## Round 2 additions (2026-11-17)
+
+New rows yct_0628-yct_0661 (34). No new C rows were added (round-2 rule); candidates with implied-only outcomes are logged in `exclusions.csv`.
+
+### Round 2 counts by label confidence x era
+
+| confidence | E1 | E2 | E3 | UNKNOWN | total |
+|---|---|---|---|---|---|
+| A | 1 | 4 | 14 | 0 | 19 |
+| B | 0 | 0 | 5 | 10 | 15 |
+| total | 1 | 4 | 19 | 10 | 34 |
+
+### Cumulative counts (round 1 + round 2) by label confidence x era
+
+| confidence | E1 | E2 | E3 | UNKNOWN | total |
+|---|---|---|---|---|---|
+| A | 3 | 7 | 48 | 0 | 58 |
+| B | 0 | 1 | 25 | 21 | 47 |
+| C | 23 | 90 | 441 | 2 | 556 |
+| total | 26 | 98 | 514 | 23 | 661 |
+
+### Round 2 sources and notes
+
+- Platforms of new rows: youtube 22, linkedin 11 (founder posts with native LinkedIn video; duration/upload date from the page's VideoObject metadata), web 1 (founder-blog-hosted mp4).
+- YouTube Data API v3 (key configured mid-session): ~8,000 units used (search.list time-sliced keyword and batch-code queries, one playlistItems listing, batched videos.list for metadata). Per-company directory sweep queries were not run at scale: an OR-grouped company-name query returned generic results, and round 1 found the per-company sweep low-yield.
+- Hacker News Algolia API, web search, Exa search (LinkedIn founder posts), founder blogs, and two public curated lists (alexanderjarvis.com list; GitHub arrrtem22 YC Arena / discovered lists, used for discovery only, never as outcome evidence) were searched. Reddit JSON endpoints returned HTTP 403 and were skipped; Indie Hackers and Medium pages returned 403 to fetches.
+- For rows whose title gives no batch, `claimed_batch` was set only where a founder statement or the YC directory fixed the cycle; otherwise UNKNOWN.
+- Language for LinkedIn/web rows is UNKNOWN (no metadata); YouTube rows use YouTube metadata language. Two candidates with non-English metadata language were excluded.
