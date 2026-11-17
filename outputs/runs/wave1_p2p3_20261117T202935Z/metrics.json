@@ -1,0 +1,15 @@
+{
+ "run_id": "wave1_p2p3_20261117T202935Z",
+ "exit_code": 0,
+ "started_utc": "2026-11-17T20:29:36.303882+00:00",
+ "wall_s": 10650.012,
+ "git_sha": "b24fc1cf1a697d5345354fe36836c787a98715bb",
+ "git_dirty": false,
+ "git_diff_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+ "untracked_files": [],
+ "python": "3.12.3",
+ "platform": "Linux-7.0.0-1014-aws-x86_64-with-glibc2.39",
+ "requirements_lock_sha256": "6218090691bb277f8b97620aaaa5b3e89a687ea136a0d4f2c7fa2773591ff0e2",
+ "pip_freeze_sha256": "d807494d80c10d498179eebc18513bc0c3a3b2649275ecfa4dcc5b2be3df56bc",
+ "pytest": null
+}
