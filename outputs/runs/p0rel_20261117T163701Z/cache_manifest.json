@@ -1,0 +1,323 @@
+{
+ "23f3176c527f238433beab3f1abf6401e2de887eccac8f1036ecb79c25f1ec54": {
+  "cache_key": "23f3176c527f238433beab3f1abf6401e2de887eccac8f1036ecb79c25f1ec54",
+  "created_t": 1794935506.6219425,
+  "input_files": {
+   "long110.mp4": "172bef12434a93bf5dc331c1ea98e455fdc13b44b842d250475d7d5b59c790f1",
+   "long110.tsv": "5612f139cdd1acd106edcc86c668d9babb16157f191d5e9846fe6e217dbdd384",
+   "long110.wav": "d5aad5faf152a9901b16c54749427e5887c2b2a789d1337bc426bedd1d131e07"
+  },
+  "input_name": "long110.mp4",
+  "input_sha256": "172bef12434a93bf5dc331c1ea98e455fdc13b44b842d250475d7d5b59c790f1",
+  "n_extractions": 1,
+  "revisions": {
+   "backbones": {
+    "en_core_web_lg": "3.8.0",
+    "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+    "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+    "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062"
+   },
+   "ckpt_sha256": "9c79ffff6b642b7b0c71d558c935fb3fa33f2788bfb509feead94fafbba2f321",
+   "cuda": "12.4",
+   "exca": "0.5.20",
+   "gpu": "NVIDIA A100-SXM4-40GB",
+   "moviepy": "2.2.1",
+   "neuralset": "0.0.2",
+   "neuraltrain": "0.0.2",
+   "numpy": "2.2.6",
+   "torch": "2.6.0+cu124",
+   "transformers": "5.17.0",
+   "tribe_commit": "af58661791a351a448a489042a28f6c37e1c14b7",
+   "x-transformers": "1.27.20"
+  },
+  "tensors": {
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/150-136-95-106-36031-info.jsonl": {
+    "bytes": 642,
+    "sha256": "68e8bb324dc6e6e0f826ffc90ab94808ec07652928760f86e40d91e887e7767c"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/config.yaml": {
+    "bytes": 969,
+    "sha256": "92bc0bc94b6b7e6a15fdd5603948168397a94a729725fe71d904036655f11c89"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/data/150-136-95-106-36031.data": {
+    "bytes": 22528000,
+    "sha256": "f3038bdbaace8db1d4716b5d6c74c053b72918a75b7e15b5e411282b55b02e39"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/full-uid.yaml": {
+    "bytes": 234,
+    "sha256": "97402bddc70403a6c5bb3a1824fa196cb98747f7cd23427dcdfbd6cb2ebab7a9"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/inflight.db": {
+    "bytes": 12288,
+    "sha256": "27f198810e77f0b2a6f6aad251ae544b6b276492f85d14d2b60ab35a29b89ded"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/uid.yaml": {
+    "bytes": 75,
+    "sha256": "a57cfb1fc07c7a06b22abfc64361f9b107e7ee45e735e3bebe1b33be34ddb55b"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/150-136-95-106-36031-info.jsonl": {
+    "bytes": 208685,
+    "sha256": "3e2342c60b6c95fe80597798fff97932ed1025adce52e867480d977998ff56c5"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/config.yaml": {
+    "bytes": 969,
+    "sha256": "44f6e445fd4562ee5ed91a99a6be91592516b796101391499816734fbefaa305"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/data/150-136-95-106-36031.data": {
+    "bytes": 135659520,
+    "sha256": "870415f33190935fcf641abc1075aaca9798f29da7b6c7b2fa91785ed145500c"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/full-uid.yaml": {
+    "bytes": 204,
+    "sha256": "8561fbe01d9e6cf0f22c0f0064d604a1aa7e157a11568c57c3de827c05b0e0d7"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/inflight.db": {
+    "bytes": 339968,
+    "sha256": "ca42e0a35f74d159b63f35a600fa1b5ddc4b27a421e4e5ccf6ac2c36e924f141"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/uid.yaml": {
+    "bytes": 100,
+    "sha256": "c0202c696167c67a68bef879eb27946acae06e2d331eed1d1b7fb7ad4396e8cf"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/150-136-95-106-36031-info.jsonl": {
+    "bytes": 642,
+    "sha256": "48c00e1133d3a0fb9b14b6a9ca0eb034f1a0db8b5262de13c714c962f558f1b8"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/config.yaml": {
+    "bytes": 1804,
+    "sha256": "8ce002e179c34a1884b695e489cff6c6e6980d0a7bfcd5e16e766d1609493bb3"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/data/150-136-95-106-36031.data": {
+    "bytes": 24780800,
+    "sha256": "1c3686f455b6fb25264f741b94ad10093241ddff677f151eda90a9ed971e3f50"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/full-uid.yaml": {
+    "bytes": 389,
+    "sha256": "c2175bd9a39ad8f58cfc0640e6c6a359e1c63b7df882001348b86edb5023b19e"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/inflight.db": {
+    "bytes": 12288,
+    "sha256": "575debb29b017c92e95dc276096e2aff22ba69112c42fb103c0f1ffb46b42318"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/uid.yaml": {
+    "bytes": 178,
+    "sha256": "dd143fb918a45b68060ea2a0268832b2ad461ea88427362d1128f3dfd9578f5d"
+   }
+  },
+  "transcript_sha256": "5612f139cdd1acd106edcc86c668d9babb16157f191d5e9846fe6e217dbdd384"
+ },
+ "9837fca9bca0f2792749c2b144b14d7079d0595847171c2578474e83dad29f64": {
+  "cache_key": "9837fca9bca0f2792749c2b144b14d7079d0595847171c2578474e83dad29f64",
+  "created_t": 1794933989.0173192,
+  "input_files": {
+   "smoke.mp4": "e9ecef6c7a04e8288773a6e617762cdee0a565b08cf9f3d5f5f44a80465aecff",
+   "smoke.tsv": "13c11060e41881d3600f6febfb680471a04bc54ef292700336424f06abb89414",
+   "smoke.wav": "87f58c4fe2a62c68023169f0fd99cef4c3472ad6e585c5c3e27d49903c09ab80"
+  },
+  "input_name": "smoke.mp4",
+  "input_sha256": "e9ecef6c7a04e8288773a6e617762cdee0a565b08cf9f3d5f5f44a80465aecff",
+  "n_extractions": 1,
+  "revisions": {
+   "backbones": {
+    "en_core_web_lg": "3.8.0",
+    "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+    "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+    "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062"
+   },
+   "ckpt_sha256": "9c79ffff6b642b7b0c71d558c935fb3fa33f2788bfb509feead94fafbba2f321",
+   "cuda": "12.4",
+   "exca": "0.5.20",
+   "gpu": "NVIDIA A100-SXM4-40GB",
+   "moviepy": "2.2.1",
+   "neuralset": "0.0.2",
+   "neuraltrain": "0.0.2",
+   "numpy": "2.2.6",
+   "torch": "2.6.0+cu124",
+   "transformers": "5.17.0",
+   "tribe_commit": "af58661791a351a448a489042a28f6c37e1c14b7",
+   "x-transformers": "1.27.20"
+  },
+  "tensors": {
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/150-136-95-106-5553-info.jsonl": {
+    "bytes": 313,
+    "sha256": "a226fd72c77b5b993e03c27082397dedfddd76e7261b39e62d096301cddd4f9d"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/config.yaml": {
+    "bytes": 969,
+    "sha256": "04c4548918b7fd5fb9a12d218fb85b8bd062ef45f5fe8d485799a1f44cf4e9be"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/data/150-136-95-106-5553.data": {
+    "bytes": 2048000,
+    "sha256": "14a2fd104552c84643408227010be83b1dffc1fd1904b5b17b60bdf715c44528"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/full-uid.yaml": {
+    "bytes": 234,
+    "sha256": "97402bddc70403a6c5bb3a1824fa196cb98747f7cd23427dcdfbd6cb2ebab7a9"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/inflight.db": {
+    "bytes": 12288,
+    "sha256": "bba64ec3d6eb61fb7107d455e6cd9fa3c7f95ce3f589b099d44ccc79064f535e"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/uid.yaml": {
+    "bytes": 75,
+    "sha256": "a57cfb1fc07c7a06b22abfc64361f9b107e7ee45e735e3bebe1b33be34ddb55b"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/150-136-95-106-5553-info.jsonl": {
+    "bytes": 3080,
+    "sha256": "9fc83ace7069648fb5171e1c53f4ecb9b48499a1662191ec47fa9c46e1b3e8d0"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/config.yaml": {
+    "bytes": 969,
+    "sha256": "c78ea6136588a39642920d2cb40ab1dfdca9b553f609e37d32a8327a8efa3002"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/data/150-136-95-106-5553.data": {
+    "bytes": 4177920,
+    "sha256": "6ee17dbf36f9ae735dd619b666d841c3c7ad9ac5da9ae9555b9a8c1b9ac58613"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/full-uid.yaml": {
+    "bytes": 204,
+    "sha256": "8561fbe01d9e6cf0f22c0f0064d604a1aa7e157a11568c57c3de827c05b0e0d7"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/inflight.db": {
+    "bytes": 12288,
+    "sha256": "d4f2cc8e9cc6c5563cca46dd34f8deaa5f09f1db2a6a8632c2d57885c200770b"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/uid.yaml": {
+    "bytes": 100,
+    "sha256": "c0202c696167c67a68bef879eb27946acae06e2d331eed1d1b7fb7ad4396e8cf"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/150-136-95-106-5553-info.jsonl": {
+    "bytes": 313,
+    "sha256": "af58b0e35bafb02bf5ecfa77518cca860c8390fd2df827eda5624bec3029f00a"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/config.yaml": {
+    "bytes": 1804,
+    "sha256": "25a1fe657462d4b7c250f1e64a56c80fa25d810434c82407bcf5ed6108a4d0ce"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/data/150-136-95-106-5553.data": {
+    "bytes": 2252800,
+    "sha256": "87ddb2170346661d86cd0c21fb14a87e71c4b02ae99cef7206765a00818bbd08"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/full-uid.yaml": {
+    "bytes": 389,
+    "sha256": "c2175bd9a39ad8f58cfc0640e6c6a359e1c63b7df882001348b86edb5023b19e"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/inflight.db": {
+    "bytes": 12288,
+    "sha256": "4453a9759eb9a472e66a5622c8c103252420aa98eb51890c59114cd96b4a090e"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/uid.yaml": {
+    "bytes": 178,
+    "sha256": "dd143fb918a45b68060ea2a0268832b2ad461ea88427362d1128f3dfd9578f5d"
+   }
+  },
+  "transcript_sha256": "13c11060e41881d3600f6febfb680471a04bc54ef292700336424f06abb89414"
+ },
+ "c5034647451464d24371a13de6b7eec39cd16db893ebfffce88fe8f7628dd7de": {
+  "cache_key": "c5034647451464d24371a13de6b7eec39cd16db893ebfffce88fe8f7628dd7de",
+  "created_t": 1794934465.3943956,
+  "input_files": {
+   "long70.mp4": "3c1427e6b98371b9c9fbfa6caf39776fe6f8f56297f40a28a974a26597f15a62",
+   "long70.tsv": "8098afe30291e947fe4f8af4f6416a1774aa08735b2769c1ef8ef6240e89d32a",
+   "long70.wav": "086e91a4e028c12fdae3664dc661ea3bf9167811e60581f251a09f4204dbe588"
+  },
+  "input_name": "long70.mp4",
+  "input_sha256": "3c1427e6b98371b9c9fbfa6caf39776fe6f8f56297f40a28a974a26597f15a62",
+  "n_extractions": 1,
+  "revisions": {
+   "backbones": {
+    "en_core_web_lg": "3.8.0",
+    "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+    "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+    "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062"
+   },
+   "ckpt_sha256": "9c79ffff6b642b7b0c71d558c935fb3fa33f2788bfb509feead94fafbba2f321",
+   "cuda": "12.4",
+   "exca": "0.5.20",
+   "gpu": "NVIDIA A100-SXM4-40GB",
+   "moviepy": "2.2.1",
+   "neuralset": "0.0.2",
+   "neuraltrain": "0.0.2",
+   "numpy": "2.2.6",
+   "torch": "2.6.0+cu124",
+   "transformers": "5.17.0",
+   "tribe_commit": "af58661791a351a448a489042a28f6c37e1c14b7",
+   "x-transformers": "1.27.20"
+  },
+  "tensors": {
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/150-136-95-106-10596-info.jsonl": {
+    "bytes": 316,
+    "sha256": "d643dddfa46763e08f3726e675a7b7a6c2e536eef4687379e11c4080886e102d"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/config.yaml": {
+    "bytes": 969,
+    "sha256": "220af48a689701a5b4f761b5f753e992b627f402026fcb2201fff9c61a4f352c"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/data/150-136-95-106-10596.data": {
+    "bytes": 14336000,
+    "sha256": "53ce497ea88d916ca9df32911d3e357da9ed8521b0d1a6cd1188a9fc6ce2ece1"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/full-uid.yaml": {
+    "bytes": 234,
+    "sha256": "97402bddc70403a6c5bb3a1824fa196cb98747f7cd23427dcdfbd6cb2ebab7a9"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/inflight.db": {
+    "bytes": 12288,
+    "sha256": "1b2becf83942809723f44a27151e080585ec6aa25b85d9b3d3f6888520d08f10"
+   },
+   "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142/uid.yaml": {
+    "bytes": 75,
+    "sha256": "a57cfb1fc07c7a06b22abfc64361f9b107e7ee45e735e3bebe1b33be34ddb55b"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/150-136-95-106-10596-info.jsonl": {
+    "bytes": 61518,
+    "sha256": "a4ecec77d399de9fb255441e3983dba95916b84dfb561a385676dc34498e3869"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/config.yaml": {
+    "bytes": 969,
+    "sha256": "57336edc3427e43a519d55e318be3b617eac4beee47500d11740d5753c2a73af"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/data/150-136-95-106-10596.data": {
+    "bytes": 42270720,
+    "sha256": "b65535ccd5dc65c9c498069866a9dc2910d9e9b070417b3c70e0faa6bc326402"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/full-uid.yaml": {
+    "bytes": 204,
+    "sha256": "8561fbe01d9e6cf0f22c0f0064d604a1aa7e157a11568c57c3de827c05b0e0d7"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/inflight.db": {
+    "bytes": 106496,
+    "sha256": "69d638ce6195a987e8d1fde3cb290f30d7856861202d6d2f3dcab75aa15e69c4"
+   },
+   "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842/uid.yaml": {
+    "bytes": 100,
+    "sha256": "c0202c696167c67a68bef879eb27946acae06e2d331eed1d1b7fb7ad4396e8cf"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/150-136-95-106-10596-info.jsonl": {
+    "bytes": 316,
+    "sha256": "b68a04c24807ab41aa054835d1ed2a35f6056cd5f122c0828fab3f345edf8841"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/config.yaml": {
+    "bytes": 1804,
+    "sha256": "6ffdaefad9273992972e06a2384857a877ae42e8db01e0f028f3c7706d9b2d20"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/data/150-136-95-106-10596.data": {
+    "bytes": 15769600,
+    "sha256": "1e206b940ae04379b14282c36a67c74991bc3b92179323fb45c7653f89636e7b"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/full-uid.yaml": {
+    "bytes": 389,
+    "sha256": "c2175bd9a39ad8f58cfc0640e6c6a359e1c63b7df882001348b86edb5023b19e"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/inflight.db": {
+    "bytes": 12288,
+    "sha256": "34321b2b84f0d838d27b57909561179836799621ee3e90d391e17d9d6f4144dd"
+   },
+   "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb/uid.yaml": {
+    "bytes": 178,
+    "sha256": "dd143fb918a45b68060ea2a0268832b2ad461ea88427362d1128f3dfd9578f5d"
+   }
+  },
+  "transcript_sha256": "8098afe30291e947fe4f8af4f6416a1774aa08735b2769c1ef8ef6240e89d32a"
+ }
+}

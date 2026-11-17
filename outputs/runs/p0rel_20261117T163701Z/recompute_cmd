@@ -1,0 +1,1 @@
+["python3", "scripts/recompute_reliability.py", "/work/yct/runs/p0rel_20261117T163701Z"]  # run on the pod from /work/yct/code_fixc3 (working-tree code, see git_diff of the later commit)

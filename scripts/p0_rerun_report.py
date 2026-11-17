@@ -46,6 +46,16 @@ def summarise(run_dir: Path) -> dict:
             "per_extractor": {k: {"reliability": v.get("reliability"), "max_abs_diff": v.get("max_abs_diff"),
                                   "n_arrays": v.get("n_arrays")} for k, v in (fr.get("per_extractor") or {}).items()},
         }
+    for f in sorted(run_dir.glob("*.reliability.json")):  # recomputed from kept fresh features (CPU)
+        fr = json.loads(f.read_text())
+        n = f.name[: -len(".reliability.json")]
+        s["fresh_drift"].setdefault(n, {}).update({
+            "recomputed_from_kept_fresh_features": True, "n_arrays": fr.get("n_arrays"),
+            "unreadable": len(fr.get("unreadable", [])), "reliability_min": fr.get("reliability_min"),
+            "reliability_gate_pass": fr.get("reliability_gate_pass"),
+            "per_extractor": {k: {"reliability": v.get("reliability"), "max_abs_diff": v.get("max_abs_diff"),
+                                  "n_arrays": v.get("n_arrays"), "bit_identical": v.get("bit_identical")}
+                              for k, v in (fr.get("per_extractor") or {}).items()}})
     s["rel_reruns"] = {c: {"bit_identical": bool(_get(runs, f"rel_{c}", "pred_sha256"))
                            and _get(runs, f"rel_{c}", "pred_sha256") == _get(runs, f"rel_{c}_rerun", "pred_sha256"),
                            "rerun_cache_reused": _get(runs, f"rel_{c}_rerun", "cache_reused")}

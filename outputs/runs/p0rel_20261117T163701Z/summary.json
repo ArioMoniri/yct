@@ -1,0 +1,462 @@
+{
+ "run_id": "p0rel_20261117T163701Z",
+ "instance_id": "daa44e473dd8454bb8a8a8ebdcc639a0",
+ "instance_type": "gpu_1x_a100_sxm4",
+ "usd_spent_this_run": 1.7382,
+ "alive_after": [],
+ "instance_heartbeats": 95,
+ "steps": {
+  "setup": 0,
+  "rel_smoke": 0,
+  "rel_long70": 0,
+  "rel_long110": 0
+ },
+ "error": null,
+ "cached_rerun": {
+  "a_cache_reused": null,
+  "b_cache_reused": null,
+  "c_cache_reused": null,
+  "pred_sha256_a": null,
+  "pred_sha256_b": null,
+  "pred_sha256_c": null,
+  "bit_identical_a_b": false,
+  "bit_identical_a_c": false,
+  "feature_sha256_equal": true
+ },
+ "fresh_drift": {
+  "rel_smoke": {
+   "pred_max_abs_diff": 0.001660376787185669,
+   "pred_pearson_r": 0.999999069855893,
+   "pred_reliability": 0.9999990667989792,
+   "n_arrays": 19,
+   "reliability_min": 0.9997097081718677,
+   "reliability_gate_pass": true,
+   "per_extractor": {
+    "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142": {
+     "reliability": 1.0,
+     "max_abs_diff": 0.0,
+     "n_arrays": 1,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842": {
+     "reliability": 0.9999991796535215,
+     "max_abs_diff": 0.21875,
+     "n_arrays": 17,
+     "bit_identical": false
+    },
+    "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb": {
+     "reliability": 1.0,
+     "max_abs_diff": 0.0,
+     "n_arrays": 1,
+     "bit_identical": true
+    }
+   },
+   "recomputed_from_kept_fresh_features": true,
+   "unreadable": 0
+  },
+  "rel_long70": {
+   "pred_max_abs_diff": 0.0016425549983978271,
+   "pred_pearson_r": 0.9999986892593727,
+   "pred_reliability": 0.9999986773466241,
+   "n_arrays": 174,
+   "reliability_min": 0.9995379950056881,
+   "reliability_gate_pass": true,
+   "per_extractor": {
+    "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142": {
+     "reliability": 1.0,
+     "max_abs_diff": 0.0,
+     "n_arrays": 1,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842": {
+     "reliability": 0.9999918742208835,
+     "max_abs_diff": 0.375,
+     "n_arrays": 172,
+     "bit_identical": false
+    },
+    "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb": {
+     "reliability": 1.0,
+     "max_abs_diff": 0.0,
+     "n_arrays": 1,
+     "bit_identical": true
+    }
+   },
+   "recomputed_from_kept_fresh_features": true,
+   "unreadable": 0
+  },
+  "rel_long110": {
+   "pred_max_abs_diff": 0.009696274995803833,
+   "pred_pearson_r": 0.9999681117883004,
+   "pred_reliability": 0.999967745523739,
+   "n_arrays": 556,
+   "reliability_min": 0.9913476551699258,
+   "reliability_gate_pass": true,
+   "per_extractor": {
+    "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142": {
+     "reliability": 1.0,
+     "max_abs_diff": 0.0,
+     "n_arrays": 2,
+     "bit_identical": true
+    },
+    "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842": {
+     "reliability": 0.9999540086339564,
+     "max_abs_diff": 1.0625,
+     "n_arrays": 552,
+     "bit_identical": false
+    },
+    "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb": {
+     "reliability": 1.0,
+     "max_abs_diff": 0.0,
+     "n_arrays": 2,
+     "bit_identical": true
+    }
+   },
+   "recomputed_from_kept_fresh_features": true,
+   "unreadable": 0
+  }
+ },
+ "rel_reruns": {
+  "smoke": {
+   "bit_identical": true,
+   "rerun_cache_reused": true
+  },
+  "long70": {
+   "bit_identical": true,
+   "rerun_cache_reused": true
+  },
+  "long110": {
+   "bit_identical": true,
+   "rerun_cache_reused": true
+  }
+ },
+ "clips": {
+  "rel_smoke": {
+   "duration_s": 10.0,
+   "shape": [
+    10,
+    20484
+   ],
+   "expected_T": 10.0,
+   "T_within_1": true,
+   "finite": true,
+   "n_segments": 10,
+   "first_segment_start_s": 0.0,
+   "last_segment_start_s": 9.0,
+   "chunks": {
+    "Audio": [
+     [
+      0.0,
+      10.0
+     ]
+    ],
+    "Video": [
+     [
+      0.0,
+      10.0
+     ]
+    ]
+   },
+   "n_words": 17,
+   "word_start_min_s": 0.5,
+   "word_start_max_s": 5.984,
+   "words_after_duration": 0,
+   "peak_vram_smi_mib": 12931,
+   "torch_max_allocated_mib": 10301,
+   "torch_max_reserved_mib": 12412,
+   "wall_extract_s": 58.9,
+   "wall_events_predict_s": 2.3,
+   "gpu": "NVIDIA A100-SXM4-40GB",
+   "offline": true,
+   "offline_env": {
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "HF_DATASETS_OFFLINE": "1"
+   },
+   "backbone_revisions": {
+    "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+    "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+    "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
+    "en_core_web_lg": "3.8.0"
+   },
+   "cache_key": "9837fca9bca0f2792749c2b144b14d7079d0595847171c2578474e83dad29f64",
+   "input_sha256": "e9ecef6c7a04e8288773a6e617762cdee0a565b08cf9f3d5f5f44a80465aecff",
+   "transcript_sha256": "13c11060e41881d3600f6febfb680471a04bc54ef292700336424f06abb89414"
+  },
+  "rel_smoke_rerun": {
+   "duration_s": 10.0,
+   "shape": [
+    10,
+    20484
+   ],
+   "expected_T": 10.0,
+   "T_within_1": true,
+   "finite": true,
+   "n_segments": 10,
+   "first_segment_start_s": 0.0,
+   "last_segment_start_s": 9.0,
+   "chunks": {
+    "Audio": [
+     [
+      0.0,
+      10.0
+     ]
+    ],
+    "Video": [
+     [
+      0.0,
+      10.0
+     ]
+    ]
+   },
+   "n_words": 17,
+   "word_start_min_s": 0.5,
+   "word_start_max_s": 5.984,
+   "words_after_duration": 0,
+   "peak_vram_smi_mib": 1179,
+   "torch_max_allocated_mib": 734,
+   "torch_max_reserved_mib": 822,
+   "wall_extract_s": null,
+   "wall_events_predict_s": 3.8,
+   "gpu": "NVIDIA A100-SXM4-40GB",
+   "offline": true,
+   "offline_env": {
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "HF_DATASETS_OFFLINE": "1"
+   },
+   "backbone_revisions": {
+    "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+    "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+    "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
+    "en_core_web_lg": "3.8.0"
+   },
+   "cache_key": "9837fca9bca0f2792749c2b144b14d7079d0595847171c2578474e83dad29f64",
+   "input_sha256": "e9ecef6c7a04e8288773a6e617762cdee0a565b08cf9f3d5f5f44a80465aecff",
+   "transcript_sha256": "13c11060e41881d3600f6febfb680471a04bc54ef292700336424f06abb89414"
+  },
+  "rel_long70": {
+   "duration_s": 70.0,
+   "shape": [
+    70,
+    20484
+   ],
+   "expected_T": 70.0,
+   "T_within_1": true,
+   "finite": true,
+   "n_segments": 70,
+   "first_segment_start_s": 0.0,
+   "last_segment_start_s": 69.0,
+   "chunks": {
+    "Audio": [
+     [
+      0.0,
+      70.0
+     ]
+    ],
+    "Video": [
+     [
+      0.0,
+      70.0
+     ]
+    ]
+   },
+   "n_words": 172,
+   "word_start_min_s": 0.5,
+   "word_start_max_s": 67.984,
+   "words_after_duration": 0,
+   "peak_vram_smi_mib": 12931,
+   "torch_max_allocated_mib": 10301,
+   "torch_max_reserved_mib": 12412,
+   "wall_extract_s": 361.7,
+   "wall_events_predict_s": 2.5,
+   "gpu": "NVIDIA A100-SXM4-40GB",
+   "offline": true,
+   "offline_env": {
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "HF_DATASETS_OFFLINE": "1"
+   },
+   "backbone_revisions": {
+    "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+    "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+    "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
+    "en_core_web_lg": "3.8.0"
+   },
+   "cache_key": "c5034647451464d24371a13de6b7eec39cd16db893ebfffce88fe8f7628dd7de",
+   "input_sha256": "3c1427e6b98371b9c9fbfa6caf39776fe6f8f56297f40a28a974a26597f15a62",
+   "transcript_sha256": "8098afe30291e947fe4f8af4f6416a1774aa08735b2769c1ef8ef6240e89d32a"
+  },
+  "rel_long70_rerun": {
+   "duration_s": 70.0,
+   "shape": [
+    70,
+    20484
+   ],
+   "expected_T": 70.0,
+   "T_within_1": true,
+   "finite": true,
+   "n_segments": 70,
+   "first_segment_start_s": 0.0,
+   "last_segment_start_s": 69.0,
+   "chunks": {
+    "Audio": [
+     [
+      0.0,
+      70.0
+     ]
+    ],
+    "Video": [
+     [
+      0.0,
+      70.0
+     ]
+    ]
+   },
+   "n_words": 172,
+   "word_start_min_s": 0.5,
+   "word_start_max_s": 67.984,
+   "words_after_duration": 0,
+   "peak_vram_smi_mib": 1179,
+   "torch_max_allocated_mib": 734,
+   "torch_max_reserved_mib": 822,
+   "wall_extract_s": null,
+   "wall_events_predict_s": 4.1,
+   "gpu": "NVIDIA A100-SXM4-40GB",
+   "offline": true,
+   "offline_env": {
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "HF_DATASETS_OFFLINE": "1"
+   },
+   "backbone_revisions": {
+    "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+    "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+    "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
+    "en_core_web_lg": "3.8.0"
+   },
+   "cache_key": "c5034647451464d24371a13de6b7eec39cd16db893ebfffce88fe8f7628dd7de",
+   "input_sha256": "3c1427e6b98371b9c9fbfa6caf39776fe6f8f56297f40a28a974a26597f15a62",
+   "transcript_sha256": "8098afe30291e947fe4f8af4f6416a1774aa08735b2769c1ef8ef6240e89d32a"
+  },
+  "rel_long110": {
+   "duration_s": 110.0,
+   "shape": [
+    229,
+    20484
+   ],
+   "expected_T": 110.0,
+   "T_within_1": false,
+   "finite": true,
+   "n_segments": 229,
+   "first_segment_start_s": 0.0,
+   "last_segment_start_s": 228.0,
+   "chunks": {
+    "Audio": [
+     [
+      0.0,
+      60.0
+     ],
+     [
+      60.0,
+      50.0
+     ]
+    ],
+    "Video": [
+     [
+      0.0,
+      60.0
+     ],
+     [
+      60.0,
+      50.0
+     ]
+    ]
+   },
+   "n_words": 552,
+   "word_start_min_s": 0.5,
+   "word_start_max_s": 228.57,
+   "words_after_duration": 276,
+   "peak_vram_smi_mib": 12925,
+   "torch_max_allocated_mib": 10300,
+   "torch_max_reserved_mib": 12406,
+   "wall_extract_s": 608.7,
+   "wall_events_predict_s": 3.0,
+   "gpu": "NVIDIA A100-SXM4-40GB",
+   "offline": true,
+   "offline_env": {
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "HF_DATASETS_OFFLINE": "1"
+   },
+   "backbone_revisions": {
+    "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+    "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+    "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
+    "en_core_web_lg": "3.8.0"
+   },
+   "cache_key": "23f3176c527f238433beab3f1abf6401e2de887eccac8f1036ecb79c25f1ec54",
+   "input_sha256": "172bef12434a93bf5dc331c1ea98e455fdc13b44b842d250475d7d5b59c790f1",
+   "transcript_sha256": "5612f139cdd1acd106edcc86c668d9babb16157f191d5e9846fe6e217dbdd384"
+  },
+  "rel_long110_rerun": {
+   "duration_s": 110.0,
+   "shape": [
+    229,
+    20484
+   ],
+   "expected_T": 110.0,
+   "T_within_1": false,
+   "finite": true,
+   "n_segments": 229,
+   "first_segment_start_s": 0.0,
+   "last_segment_start_s": 228.0,
+   "chunks": {
+    "Audio": [
+     [
+      0.0,
+      60.0
+     ],
+     [
+      60.0,
+      50.0
+     ]
+    ],
+    "Video": [
+     [
+      0.0,
+      60.0
+     ],
+     [
+      60.0,
+      50.0
+     ]
+    ]
+   },
+   "n_words": 552,
+   "word_start_min_s": 0.5,
+   "word_start_max_s": 228.57,
+   "words_after_duration": 276,
+   "peak_vram_smi_mib": 1179,
+   "torch_max_allocated_mib": 782,
+   "torch_max_reserved_mib": 938,
+   "wall_extract_s": null,
+   "wall_events_predict_s": 4.8,
+   "gpu": "NVIDIA A100-SXM4-40GB",
+   "offline": true,
+   "offline_env": {
+    "HF_HUB_OFFLINE": "1",
+    "TRANSFORMERS_OFFLINE": "1",
+    "HF_DATASETS_OFFLINE": "1"
+   },
+   "backbone_revisions": {
+    "facebook/vjepa2-vitg-fpc64-256": "875c192b7b704b87d1e1d99345769632dd5f739a",
+    "facebook/w2v-bert-2.0": "da985ba0987f70aaeb84a80f2851cfac8c697a7b",
+    "meta-llama/Llama-3.2-3B": "13afe5124825b4f3751f836b40dafda64c1ed062",
+    "en_core_web_lg": "3.8.0"
+   },
+   "cache_key": "23f3176c527f238433beab3f1abf6401e2de887eccac8f1036ecb79c25f1ec54",
+   "input_sha256": "172bef12434a93bf5dc331c1ea98e455fdc13b44b842d250475d7d5b59c790f1",
+   "transcript_sha256": "5612f139cdd1acd106edcc86c668d9babb16157f191d5e9846fe6e217dbdd384"
+  }
+ }
+}

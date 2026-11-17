@@ -174,3 +174,13 @@
 {"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794936200.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
 {"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794936230.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
 {"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794936260.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794936290.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794936320.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794936350.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794936380.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794936410.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794936440.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794936470.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794936500.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794936530.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "terminate", "id": "daa44e473dd8454bb8a8a8ebdcc639a0", "t": 1794936583.7918947, "reason": "job_done"}

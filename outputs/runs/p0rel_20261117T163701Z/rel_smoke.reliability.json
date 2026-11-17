@@ -1,0 +1,164 @@
+{
+ "n_arrays": 19,
+ "arrays": {
+  "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142::input/smoke.wav_0.00_10.00": {
+   "shape_match": true,
+   "max_abs_diff": 0.0,
+   "pearson_r": 1.0,
+   "reliability": 1.0,
+   "bit_identical": true
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::The_The": {
+   "shape_match": true,
+   "max_abs_diff": 0.0,
+   "pearson_r": 1.0,
+   "reliability": 1.0,
+   "bit_identical": true
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::brown_The quick brown": {
+   "shape_match": true,
+   "max_abs_diff": 0.21875,
+   "pearson_r": 0.9997099234270734,
+   "reliability": 0.9997097081718677,
+   "bit_identical": false
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::company._The quick brown fox jumps over the lazy dog while the young founders explain their new company": {
+   "shape_match": true,
+   "max_abs_diff": 0.125,
+   "pearson_r": 0.9999317092611829,
+   "reliability": 0.9999316640355497,
+   "bit_identical": false
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::dog_The quick brown fox jumps over the lazy dog": {
+   "shape_match": true,
+   "max_abs_diff": 0.0,
+   "pearson_r": 0.9999999999999999,
+   "reliability": 1.0,
+   "bit_identical": true
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::explain_The quick brown fox jumps over the lazy dog while the young founders explain": {
+   "shape_match": true,
+   "max_abs_diff": 0.0,
+   "pearson_r": 0.9999999999999999,
+   "reliability": 1.0,
+   "bit_identical": true
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::founders_The quick brown fox jumps over the lazy dog while the young founders": {
+   "shape_match": true,
+   "max_abs_diff": 0.0,
+   "pearson_r": 1.0,
+   "reliability": 1.0,
+   "bit_identical": true
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::fox_The quick brown fox": {
+   "shape_match": true,
+   "max_abs_diff": 0.0,
+   "pearson_r": 0.9999999999999999,
+   "reliability": 1.0,
+   "bit_identical": true
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::jumps_The quick brown fox jumps": {
+   "shape_match": true,
+   "max_abs_diff": 0.0,
+   "pearson_r": 1.0,
+   "reliability": 1.0,
+   "bit_identical": true
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::lazy_The quick brown fox jumps over the lazy": {
+   "shape_match": true,
+   "max_abs_diff": 0.1171875,
+   "pearson_r": 0.9998061341019872,
+   "reliability": 0.9998058501768258,
+   "bit_identical": false
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::new_The quick brown fox jumps over the lazy dog while the young founders explain their new": {
+   "shape_match": true,
+   "max_abs_diff": 0.0,
+   "pearson_r": 1.0,
+   "reliability": 1.0,
+   "bit_identical": true
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::over_The quick brown fox jumps over": {
+   "shape_match": true,
+   "max_abs_diff": 0.15625,
+   "pearson_r": 0.9997907853936153,
+   "reliability": 0.9997906674189446,
+   "bit_identical": false
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::quick_The quick": {
+   "shape_match": true,
+   "max_abs_diff": 0.083984375,
+   "pearson_r": 0.9999454704589872,
+   "reliability": 0.9999454704215706,
+   "bit_identical": false
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::the_The quick brown fox jumps over the": {
+   "shape_match": true,
+   "max_abs_diff": 0.0,
+   "pearson_r": 1.0,
+   "reliability": 1.0,
+   "bit_identical": true
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::the_The quick brown fox jumps over the lazy dog while the": {
+   "shape_match": true,
+   "max_abs_diff": 0.0,
+   "pearson_r": 1.0,
+   "reliability": 1.0,
+   "bit_identical": true
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::their_The quick brown fox jumps over the lazy dog while the young founders explain their": {
+   "shape_match": true,
+   "max_abs_diff": 0.0,
+   "pearson_r": 1.0,
+   "reliability": 1.0,
+   "bit_identical": true
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::while_The quick brown fox jumps over the lazy dog while": {
+   "shape_match": true,
+   "max_abs_diff": 0.0,
+   "pearson_r": 0.9999999999999999,
+   "reliability": 1.0,
+   "bit_identical": true
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842::young_The quick brown fox jumps over the lazy dog while the young": {
+   "shape_match": true,
+   "max_abs_diff": 0.0,
+   "pearson_r": 1.0,
+   "reliability": 1.0,
+   "bit_identical": true
+  },
+  "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb::input/smoke.mp4_0.00_10.00": {
+   "shape_match": true,
+   "max_abs_diff": 0.0,
+   "pearson_r": 0.9999999999999999,
+   "reliability": 1.0,
+   "bit_identical": true
+  }
+ },
+ "per_extractor": {
+  "neuralset.extractors.audio.Wav2VecBert._get_data,release/frequency=2,name=Wav2VecBert,cache_n_layers=20,infra.version=release-69924142": {
+   "n_arrays": 1,
+   "reliability": 1.0,
+   "max_abs_diff": 0.0,
+   "bit_identical": true
+  },
+  "neuralset.extractors.text.HuggingFaceText._get_data,release/cache_n_layers=20,name=HuggingFaceText,infra.version=release,model_name=meta-llama-Llama-3.2-3B-57aba842": {
+   "n_arrays": 17,
+   "reliability": 0.9999991796535215,
+   "max_abs_diff": 0.21875,
+   "bit_identical": false
+  },
+  "neuralset.extractors.video.HuggingFaceVideo._get_data,release/frequency=2,clip_duration=4,infra.version=release,name=HuggingFaceVideo,image={cache_n_layers=20,name=HuggingFaceImage,model_nam...33-23256cbb": {
+   "n_arrays": 1,
+   "reliability": 1.0,
+   "max_abs_diff": 0.0,
+   "bit_identical": true
+  }
+ },
+ "unreadable": [],
+ "reliability_min": 0.9997097081718677,
+ "reliability_gate": 0.99,
+ "reliability_gate_pass": true,
+ "cache_key": "9837fca9bca0f2792749c2b144b14d7079d0595847171c2578474e83dad29f64",
+ "clip": "smoke.mp4"
+}
