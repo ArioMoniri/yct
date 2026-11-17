@@ -41,7 +41,7 @@ def test_caption_fixed_and_on_every_output(tmp_path):
                    "no reverse inference", "spatially standardised", "averaged over W"):
         assert phrase in cap
     assert loc.lint_claims(cap) == []
-    t = loc.peak_table(_std(at, np.random.default_rng(0).normal(0, 1, NV)), at, k=2)
+    t = loc.peak_table(_std(at, np.random.default_rng(0).normal(0, 1, NV)), at, unreliable=None, k=2)
     assert t.attrs["caption"] == cap
     out = loc.write_peak_table(t, tmp_path / "peaks.csv")
     back, header = loc.read_peak_table(out)
@@ -137,7 +137,7 @@ def test_stability_and_ci_columns():
     maps, _ = _videos(at, n=30, seed=2)
     pv = loc.parcel_values(maps, at.schaefer)
     boot = loc.company_bootstrap(pv, None, np.arange(30), n_boot=500, seed=0)
-    t = loc.peak_table(maps.mean(0), at, boot=boot, k=2)
+    t = loc.peak_table(maps.mean(0), at, boot=boot, unreliable=None, k=2)
     top = t.iloc[0]
     assert top.parcel_id == 5 and top.stability_topk > 0.95
     assert top.ci_lo < top.value < top.ci_hi
@@ -182,16 +182,16 @@ def test_difference_table_requires_and_shows_q():
     pv = loc.parcel_values(maps, at.schaefer)
     diff = maps[group == "acc"].mean(0) - maps[group == "rej"].mean(0)
     with pytest.raises(ValueError, match="BH-FDR"):
-        loc.peak_table(diff, at, kind="difference", k=2)
+        loc.peak_table(diff, at, kind="difference", unreliable=None, k=2)
     p = loc.parcel_permutation_p(pv, group, n_perm=99, seed=0, groups=("rej", "acc"))
     boot = loc.company_bootstrap(pv, group, np.arange(20), n_boot=200, stat="diff", groups=("rej", "acc"))
-    t = loc.peak_table(diff, at, boot=boot, p_perm=p, kind="difference", k=2)
+    t = loc.peak_table(diff, at, boot=boot, p_perm=p, kind="difference", unreliable=None, k=2)
     q = loc.bh_fdr(p)
     for _, r in t.iterrows():
         assert r.p_perm == p[r.parcel_id - 1] and r.q_bh == pytest.approx(q[r.parcel_id - 1])
     assert t.attrs["kind"] == "difference" and "BH-FDR" in t.attrs["q_bh"]
     with pytest.raises(ValueError):
-        loc.peak_table(maps.mean(0), at, p_perm=p, k=2)            # p only for the difference map
+        loc.peak_table(maps.mean(0), at, p_perm=p, unreliable=None, k=2)   # p only for the difference map
 
 
 # ----------------------------------------------------------------------------- unreliable + HCP wording
@@ -223,11 +223,11 @@ def test_best_overlap_hcp_and_second_when_weak():
     at2 = type(at)(at.schaefer, at.yeo7, hcp, at.destrieux)
     m = np.random.default_rng(0).normal(0, 0.1, NV)
     m[at.schaefer.labels == 5] += 3
-    t = loc.peak_table(_std(at2, m), at2, k=1)
+    t = loc.peak_table(_std(at2, m), at2, unreliable=None, k=1)
     r = t.iloc[0]
     assert r.parcel_id == 5 and r.hcp_mmp == "X_1_ROI" and r.hcp_overlap == pytest.approx(0.4, abs=0.01)
     assert r.hcp_mmp_2nd in ("X_2_ROI", "X_3_ROI") and r.hcp_overlap_2nd == pytest.approx(0.3, abs=0.01)
-    t1 = loc.peak_table(_std(at, m), at, k=1)
+    t1 = loc.peak_table(_std(at, m), at, unreliable=None, k=1)
     assert t1.iloc[0].hcp_mmp_2nd == "" or pd.isna(t1.iloc[0].hcp_mmp_2nd)
 
 

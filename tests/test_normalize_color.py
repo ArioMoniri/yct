@@ -20,7 +20,8 @@ from yct.media import iter_gray_frames
 from yct.normalize import normalize_video
 from yct.normalize.core import source_color
 
-BT709_TV = {"color_space": "bt709", "color_transfer": "bt709", "color_primaries": "bt709", "color_range": "tv"}
+BT709_TV = {"color_space": "bt709", "color_transfer": "bt709", "color_primaries": "bt709",
+            "color_range": "tv"}
 SAT = "eq=saturation=1.8"
 
 
@@ -40,7 +41,8 @@ def rgb(path, matrix, w, h, n=5):
 
 def y_plane(path, w, h, n=5):
     out = subprocess.run(["ffmpeg", "-v", "error", "-nostdin", "-i", str(path), "-an", "-frames:v", str(n),
-                          "-pix_fmt", "yuv420p", "-f", "rawvideo", "-"], capture_output=True, check=True).stdout
+                          "-pix_fmt", "yuv420p", "-f", "rawvideo", "-"],
+                         capture_output=True, check=True).stdout
     fsz = w * h * 3 // 2
     return np.stack([np.frombuffer(out[i * fsz:i * fsz + w * h], np.uint8).reshape(h, w)
                      for i in range(len(out) // fsz)]).astype(float)
@@ -54,7 +56,8 @@ def tagged_clip(out, matrix: str | None, size="640x360", dur=2.0):
     if matrix is not None:
         sw = {"smpte170m": "bt601", "bt709": "bt709"}[matrix]
         v += f",scale=out_color_matrix={sw}:out_range=tv"
-        extra = ["-colorspace", matrix, "-color_primaries", matrix, "-color_trc", matrix, "-color_range", "tv"]
+        extra = ["-colorspace", matrix, "-color_primaries", matrix, "-color_trc", matrix,
+                 "-color_range", "tv"]
     else:
         v += ",scale=out_color_matrix=bt601:out_range=tv"           # untagged SD: BT.601 bytes, no tag
     syn.ff("-f", "lavfi", "-i", v, "-f", "lavfi", "-i", a, "-shortest", "-c:v", "libx264", "-preset",

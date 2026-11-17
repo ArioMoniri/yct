@@ -40,7 +40,8 @@ def test_stipple_is_legible_in_the_raster_at_default_dpi(tmp_path):
     ids = [at.schaefer.names.index(f"7Networks_LH_Vis_{i}") for i in range(1, 11)]
     unrel = np.isin(at.schaefer.labels, ids)
     a = _rgb(loc.plot_four_views(m, tmp_path / "unrel.png", medial_wall=at.medial_wall, unreliable=unrel))
-    b = _rgb(loc.plot_four_views(m, tmp_path / "rel.png", medial_wall=at.medial_wall))
+    b = _rgb(loc.plot_four_views(m, tmp_path / "rel.png", medial_wall=at.medial_wall,
+                                    unreliable=None))
     assert a.shape == b.shape
     legend_rows = slice(int(0.06 * a.shape[0]), a.shape[0])           # ignore the legend swatch row
     changed = np.zeros(a.shape[:2], bool)
@@ -102,5 +103,5 @@ def test_medial_wall_shrinkage_disclosed_in_peak_table():
 
 def test_synthetic_set_without_raw_reports_zero_shrinkage():
     at = synthetic_atlases()
-    t = loc.peak_table(_std(at, np.random.default_rng(0).normal(0, 1, NV)), at, k=2)
+    t = loc.peak_table(_std(at, np.random.default_rng(0).normal(0, 1, NV)), at, unreliable=None, k=2)
     assert (t.mw_removed_frac == 0).all() and (t.n_vertices > 0).all() and not t.mw_shrunk.any()

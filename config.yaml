@@ -43,6 +43,9 @@ manifest:                      # data/manifest.csv derived columns (D-046/D-047/
     X: {month: 3, day: 1, year_offset: 0}      # Spring batch (2025+): early March
     S: {month: 5, day: 15, year_offset: 0}     # Summer batch: mid-May
     F: {month: 8, day: 15, year_offset: 0}     # Fall batch (2024+): mid-August
+  company_key:                 # D-053 (Referee P1 D1/B4): company_key = sha256(salt + company_id)[:length]. The salt
+    salt: "yct-company-key-v1" # is a NON-secret project constant (pseudonymisation against casual joins; company_id
+    length: 12                 # stays in the manifest for curation only; analysis code uses company_key)
 
 budget:
   usd_file: infra/BUDGET_USD   # legacy file; owner value now in SSM /yct/owner/budget_usd (D-030)
@@ -201,6 +204,15 @@ m0:                            # H4 M0 assembly (v2.4 G-D032 Biostat D1, Referee
   never: [text_frac]           # on-screen text not implemented: dropped from M0, never imputed
   binary: [voiced_any]         # added by the pitch imputation rule; linear only, never squared or in products
   forced_speech: [speech_rate_wps, speech_frac]   # known issue #8: linear + both squares + product ALWAYS in Q
+  covariates:                  # D-047 upload-metadata covariates (from data/manifest.csv; label-free); D-053
+    forced: [platform_nonYT]   # primary: platform != youtube, binary, linear only, ALWAYS in Q(M0)
+    # upload_lag_days may be outcome-caused (post-decision uploads; G-D032 c3 Referee N2), so it is NOT in the
+    # primary M0: S-LAG sensitivity = primary + these; S-PREDECISION = rows with known lag <= the max below.
+    sensitivity: [upload_lag_days, lag_unknown]
+    binary: [platform_nonYT, lag_unknown]     # raw 0/1, linear only, never squared or in products
+    linear_only: [upload_lag_days]            # z-scored, linear only, never squared or in products
+    lag_impute: median         # UNKNOWN lag -> median over the analysis set's known lags + lag_unknown = 1
+    predecision_max_lag_days: 0
   min_words_in_w: 20           # label-free exclusion: no audio track or < 20 words in W (known issue #7)
   # Q(M0) rule (D-037; v2.5 C3; yct.features.m0.q_m0). NO PCA. Q columns, in this order:
   #   [1, z(forced_speech), z(other continuous M0), binary, era dummies]           (all linear M0 terms)

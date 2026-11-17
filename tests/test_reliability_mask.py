@@ -53,14 +53,15 @@ def test_mask_resolves_to_non_empty_bilateral_set_matching_count_and_hash():
 @pytest.mark.atlas
 def test_mask_fails_on_drift():
     at = load_or_skip(atl.load_all)
-    drift = with_overrides(load_config(), {"localize": {"reliability_mask": {"n_vertices": RM["n_vertices"] + 1}}})
+    drift = with_overrides(load_config(),
+                           {"localize": {"reliability_mask": {"n_vertices": RM["n_vertices"] + 1}}})
     with pytest.raises(ValueError, match="n_vertices"):
         loc.reliability_mask(at, drift)
     bad_hash = with_overrides(load_config(), {"localize": {"reliability_mask": {"sha256": "0" * 64}}})
     with pytest.raises(ValueError, match="sha256"):
         loc.reliability_mask(at, bad_hash)
     with pytest.raises(ValueError, match="not in"):
-        loc.reliability_mask(synthetic_atlases())                              # areas absent -> no silent empty
+        loc.reliability_mask(synthetic_atlases())                 # areas absent -> no silent empty
 
 
 @pytest.mark.atlas

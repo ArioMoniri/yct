@@ -12,13 +12,17 @@
 #   (b) block codes: opaque exchangeability block codes for era_block x discovery route (D-040, D-047),
 #       era blocks with < 6 videos merged within route; codes B1..Bk ordered by a secret random salt; written
 #       to SSM /yct/owner/blocks as "video_id:code,..."; prints only the size of each code;
-#   (c) spot-check: prints 10 random conf-A rows WITH labels for your manual check (ROADMAP P1 DoD).
-#       Only you should see the screen for step (c). Nothing is written to disk outside the temp dir.
-# Options (env): REF=<branch/sha> (default below), WRITE_BLOCKS=0 to skip the SSM write, SPOT_N=10.
+#   (c) verify_labels.py (A-rule recomputation, BUG-022): prints COUNTS only; per-id detail stays in the temp dir;
+#   (d) spot-check (opt-in, BUG-021 root-cause fix, D-053): ONLY with SHOW_LABELS=1, printed to STDERR after a
+#       "DO NOT PASTE" banner, AFTER the report-back summary. Without SHOW_LABELS=1 no label is ever printed.
+#       Nothing is written to disk outside the temp dir.
+# Options (env): REF=<branch/sha> (default below), WRITE_BLOCKS=0 to skip the SSM write, SPOT_N=10,
+#   SHOW_LABELS=1 to show the spot-check rows (stderr, owner eyes only; never paste them anywhere).
 REPO="ArioMoniri/yct"
 REF="${REF:-claude/yc-videos-agent-system-dirk8p}"
 WRITE_BLOCKS="${WRITE_BLOCKS:-1}"
 SPOT_N="${SPOT_N:-10}"
+SHOW_LABELS="${SHOW_LABELS:-0}"
 
 set -euo pipefail
 export AWS_DEFAULT_REGION=eu-central-1
@@ -55,6 +59,8 @@ import tarfile
 from pathlib import Path
 
 ROUTE_MERGE_MIN_VIDEOS = 6          # = config.yaml era_blocks.route_merge_min_videos (test-checked)
+BANNER = ("=" * 72 + "\nDO NOT PASTE BELOW THIS LINE - labels for the owner's eyes only (BUG-021)\n"
+          + "=" * 72)
 ERA_ORDER = ["E12", "E3", "UNKNOWN"]
 ROUTE_COLUMNS = ("route", "discovery_route")
 ROUTE_FALLBACKS = ("discovery", "discovery_method")
@@ -355,8 +361,15 @@ def main(argv=None) -> int:
         print(f"{len(sizes)} blocks over {len(codes)} in_primary videos{note}: "
               + " ".join(f"{c}={sizes[c]}" for c in sorted(sizes, key=lambda x: int(x[1:]))))
     elif a.cmd == "spot":
+        # BUG-021 root cause: labels must never share the summary stream. Opt-in only, stderr only, after
+        # an explicit banner; stdout gets one label-free line either way (D-053).
+        if os.environ.get("SHOW_LABELS") != "1":
+            print("spot-check not shown (set SHOW_LABELS=1; rows go to stderr after a DO NOT PASTE banner)")
+            return 0
+        print(BANNER, file=sys.stderr)
         for r in spot_rows(manifest, sealed, sealed_urls(Path(a.sealed)), a.n):
-            print(" | ".join(f"{k}={v}" for k, v in r.items()))
+            print(" | ".join(f"{k}={v}" for k, v in r.items()), file=sys.stderr)
+        print(BANNER.splitlines()[0], file=sys.stderr)
     return 0
 
 
@@ -413,6 +426,24 @@ else
   echo "  WRITE_BLOCKS=0: not written"
 fi
 
-echo "== 3c. Human spot-check: $SPOT_N random conf-A rows (labels shown - for your eyes only) =="
-python3 "$TMP/qc.py" spot --manifest "$TMP/manifest.csv" --sealed "$TMP/plain/labels" --n "$SPOT_N"
-echo "Done. Temp dir removed. Report back only: kappa line, disagreeing ids, and 'spot-check N/10 correct'."
+echo "== 3c. verify_labels.py: A-rule recomputation (BUG-022; counts only, detail stays in the temp dir) =="
+if api scripts/verify_labels.py "$TMP/verify_labels.py" raw 2>/dev/null; then
+  SHOW_LABELS=0 python3 "$TMP/verify_labels.py" --manifest "$TMP/manifest.csv" --sealed "$TMP/plain/labels" \
+    --out "$TMP/verify_labels.tsv" --owner-side || echo "  (verify_labels exit $?: see counts above)"
+else
+  echo "  scripts/verify_labels.py not found at $REF - skipped"
+fi
+
+echo "Done. Report back ONLY the lines above this point: the kappa line, the disagreeing ids, the block sizes,"
+echo "the verify_labels counts and 'spot-check N/$SPOT_N correct'. Never paste anything printed below a banner."
+
+echo "== 3d. Human spot-check: $SPOT_N random conf-A rows (SHOW_LABELS=1 only; stderr, owner eyes only) =="
+if [ "$SHOW_LABELS" = 1 ]; then
+  SHOW_LABELS=1 python3 "$TMP/qc.py" spot --manifest "$TMP/manifest.csv" --sealed "$TMP/plain/labels" --n "$SPOT_N"
+  if [ -s "$TMP/verify_labels.tsv" ]; then
+    echo "verify_labels flagged rows (id, status, reason):" >&2; cat "$TMP/verify_labels.tsv" >&2
+  fi
+else
+  echo "  not shown (re-run with SHOW_LABELS=1 to see the rows; they go to stderr after a DO NOT PASTE banner)"
+fi
+echo "Temp dir removed on exit."

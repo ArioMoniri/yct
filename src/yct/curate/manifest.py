@@ -5,6 +5,7 @@ Columns (analyst view; never an outcome, confidence tier, evidence or discovery 
     video_id, url, platform, upload_date, claimed_batch, era_stratum, company_id, duration_s, language,
     is_original_application_video, in_primary,              # wave-1 Curator columns (BUG-012)
     era_block, wave, collected_after_lock, platform_nonYT, upload_lag_days   # FIX-P1 (D-046/D-047/D-048)
+    qc_pass, company_key                                                    # D-050; D-053
 
 * ``era_block``: raw ``era_stratum`` mapped through config ``era_blocks.merge`` (E1 + E2 -> E12, D-047).
 * ``wave``: 1 for every row collected before the prereg lock; ``collected_after_lock`` is True only for
@@ -12,7 +13,12 @@ Columns (analyst view; never an outcome, confidence tier, evidence or discovery 
 * ``platform_nonYT``: ``platform != "youtube"`` (D-047 forced M0 covariate).
 * ``upload_lag_days``: upload_date minus the nominal decision date of ``claimed_batch``
   (:func:`decision_date`, config ``manifest.decision_date``); empty when either is UNKNOWN. Positive =
-  uploaded after the decision. Label-free: it uses the YC calendar, never the outcome.
+  uploaded after the decision. Label-free: it uses the YC calendar, never the outcome. Always equal to
+  :func:`fill_upload_lag` (``validate`` checks it; D-053). Since D-053 it is a SENSITIVITY-only M0
+  covariate (possibly outcome-caused: post-decision uploads), never forced into the primary Q(M0).
+* ``company_key``: ``sha256(salt + company_id)[:12]``, salt = config ``manifest.company_key.salt`` (a
+  non-secret project constant; pseudonymisation against casual joins, not secrecy). Analysis code uses
+  ``company_key`` (:func:`analysis_view`); ``company_id`` is a curation column only (D-053, Referee P1 B4).
 
 Decision-date rule (D-048): YC notifies applicants shortly after the interview weeks, which follow a fixed
 seasonal calendar. The nominal decision date per batch season is config ``manifest.decision_date``:
@@ -23,6 +29,7 @@ used only as a coarse M0 covariate (upload timing relative to the decision), nev
 from __future__ import annotations
 
 import datetime as dt
+import hashlib
 import re
 from collections.abc import Mapping
 from typing import Any
@@ -35,7 +42,9 @@ WAVE1_COLUMNS = [
 ]
 DERIVED_COLUMNS = [
     "era_block", "wave", "collected_after_lock", "platform_nonYT", "upload_lag_days", "qc_pass",
+    "company_key",
 ]
+ANALYSIS_DROP = ["company_id", "url"]   # curation-only identifiers, never passed to analysis code (D-053)
 COLUMNS = WAVE1_COLUMNS + DERIVED_COLUMNS
 UNKNOWN = "UNKNOWN"
 SEALED_URL_PREFIX = "sealed:"
@@ -90,17 +99,31 @@ def fill_upload_lag(df: pd.DataFrame, cfg: Mapping[str, Any]) -> pd.DataFrame:
     return out
 
 
+def company_key(company_id: str, cfg: Mapping[str, Any]) -> str:
+    """Salted company pseudonym: sha256(salt + company_id)[:length] (config ``manifest.company_key``)."""
+    ck = cfg["manifest"]["company_key"]
+    return hashlib.sha256((str(ck["salt"]) + str(company_id)).encode()).hexdigest()[: int(ck["length"])]
+
+
+def add_company_key(df: pd.DataFrame, cfg: Mapping[str, Any]) -> pd.DataFrame:
+    out = df.copy()
+    out["company_key"] = [company_key(c, cfg) for c in out["company_id"]]
+    return out
+
+
 def add_derived_columns(df: pd.DataFrame, cfg: Mapping[str, Any], wave: int = 1,
                         collected_after_lock: bool = False) -> pd.DataFrame:
-    """Wave-1 manifest -> FIX-P1 schema; ``upload_lag_days`` stays empty (see :func:`fill_upload_lag`)."""
+    """Wave-1 manifest -> current schema; ``upload_lag_days`` by :func:`fill_upload_lag` (D-053)."""
     out = df[WAVE1_COLUMNS].copy()
     out["era_block"] = [era_block(e, cfg) for e in out["era_stratum"]]
     out["wave"] = str(int(wave))
     out["collected_after_lock"] = str(bool(collected_after_lock))
     out["platform_nonYT"] = [str(p.strip().lower() != "youtube") for p in out["platform"]]
     out["upload_lag_days"] = ""
+    out = fill_upload_lag(out, cfg)
     # D-050: owner label QC not yet run for new rows -> not in the analysis set until it passes.
     out["qc_pass"] = df["qc_pass"].astype(str) if "qc_pass" in df.columns else "False"
+    out = add_company_key(out, cfg)
     return out[COLUMNS]
 
 
@@ -117,6 +140,11 @@ def write_manifest(df: pd.DataFrame, path) -> None:
 def analysis_set(df: pd.DataFrame) -> pd.DataFrame:
     """Wave-1 primary analysis set (D-050): conf-A per Curator AND owner label-QC pass."""
     return df[(df["in_primary"] == "True") & (df["qc_pass"] == "True")]
+
+
+def analysis_view(df: pd.DataFrame) -> pd.DataFrame:
+    """The analysis set as analysis code sees it: ``company_key`` instead of ``company_id``, no URL."""
+    return analysis_set(df).drop(columns=ANALYSIS_DROP)
 
 
 def validate(df: pd.DataFrame, cfg: Mapping[str, Any]) -> list[str]:
@@ -153,6 +181,15 @@ def validate(df: pd.DataFrame, cfg: Mapping[str, Any]) -> list[str]:
     lag = df["upload_lag_days"]
     if not (lag.eq("") | lag.str.fullmatch(r"-?\d+")).all():
         errs.append("upload_lag_days must be empty or an integer")
+    else:
+        exp_lag = fill_upload_lag(df, cfg)["upload_lag_days"]
+        bad = df.loc[lag != exp_lag, "video_id"].tolist()
+        if bad:
+            errs.append(f"upload_lag_days != fill_upload_lag (config manifest.decision_date): {bad[:5]}")
+    exp_key = [company_key(c, cfg) for c in df["company_id"]]
+    bad = df.loc[df["company_key"] != exp_key, "video_id"].tolist()
+    if bad:
+        errs.append(f"company_key != sha256(salt + company_id)[:12]: {bad[:5]}")
     if (df.loc[df["wave"] == "1", "collected_after_lock"] == "True").any():
         errs.append("wave-1 rows cannot be collected_after_lock")
     urls = df["url"]

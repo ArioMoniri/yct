@@ -113,7 +113,7 @@ def test_fill_upload_lag_and_derived_columns():
     assert list(out.columns) == mf.COLUMNS
     assert out["era_block"].tolist() == ["E3", "E12", "UNKNOWN"]
     assert out["platform_nonYT"].tolist() == ["False", "True", "True"]
-    assert out["upload_lag_days"].tolist() == ["", "", ""]
+    assert out["upload_lag_days"].tolist() == ["47", "", ""]          # D-053: filled by the config rule
     assert mf.validate(out, CFG) == []
     filled = mf.fill_upload_lag(out, CFG)
     assert filled["upload_lag_days"].tolist() == ["47", "", ""]
@@ -151,3 +151,49 @@ def test_qc_pass_analysis_set(df):
     assert set(df.loc[(df["in_primary"] == "True") & (df["qc_pass"] == "False"), "video_id"]) == qc_fail
     assert (df.loc[df["qc_pass"] == "True", "in_primary"] == "True").all()
     assert len(mf.analysis_set(df)) == 53
+
+
+# ---------------------------------------------------------------- D-053 (P1 c2 open items)
+def test_upload_lag_filled_by_rule_and_validated(df):
+    """QA P1 c2 #1, Referee B3: upload_lag_days = fill_upload_lag (config decision-date rule) on every row;
+    rows without a usable upload_date / batch stay empty (imputed label-free in M0 sensitivity only)."""
+    assert df["upload_lag_days"].tolist() == mf.fill_upload_lag(df, CFG)["upload_lag_days"].tolist()
+    known = df["upload_date"].map(mf.parse_upload_date).notna() & \
+        df["claimed_batch"].map(lambda b: mf.decision_date(b, CFG)).notna()
+    assert (df.loc[known, "upload_lag_days"] != "").all() and known.any()
+    assert (df.loc[~known, "upload_lag_days"] == "").all()
+    bad = df.head(5).copy()
+    i = bad.index[bad["upload_lag_days"] != ""][0] if (bad["upload_lag_days"] != "").any() else bad.index[0]
+    bad.loc[i, "upload_lag_days"] = "9999"
+    assert any("fill_upload_lag" in e for e in mf.validate(bad, CFG))
+
+
+def test_company_key_is_salted_hash_and_validated(df):
+    """Referee P1 D1/B4: company_key = sha256(salt + company_id)[:12], salt = config manifest.company_key
+    (a non-secret project constant); analysis code uses company_key, company_id is for curation only."""
+    import hashlib
+
+    ck = CFG["manifest"]["company_key"]
+    assert ck["length"] == 12 and ck["salt"]
+    exp = [hashlib.sha256((ck["salt"] + c).encode()).hexdigest()[:12] for c in df["company_id"]]
+    assert df["company_key"].tolist() == exp
+    assert mf.company_key("acme", CFG) == hashlib.sha256((ck["salt"] + "acme").encode()).hexdigest()[:12]
+    assert (df.groupby("company_id")["company_key"].nunique() == 1).all()
+    assert df["company_key"].nunique() == df["company_id"].nunique()
+    bad = df.head(3).copy()
+    bad.loc[bad.index[0], "company_key"] = "0" * 12
+    assert any("company_key" in e for e in mf.validate(bad, CFG))
+
+
+def test_analysis_view_drops_curation_identifiers(df):
+    view = mf.analysis_view(df)
+    assert len(view) == 53 and "company_id" not in view.columns and "url" not in view.columns
+    assert "company_key" in view.columns and view["company_key"].is_unique
+
+
+def test_analysis_code_never_reads_company_id():
+    """company_id is a curation column only (D-053): no analysis module under src/yct outside curate/."""
+    src = ROOT / "src" / "yct"
+    hits = [str(p.relative_to(ROOT)) for p in src.rglob("*.py")
+            if "curate" not in p.parts and "company_id" in p.read_text()]
+    assert hits == []

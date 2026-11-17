@@ -45,7 +45,9 @@ def one(i,scen,eff,obs_kind):
     return (1+np.sum(np.array(null)>=obs))/(B+1)
 
 if __name__=="__main__":
+    # usage: h4sim.py <scen lin|nonlin> <eff> <raw|resid> <n datasets> [N total, default 60] (D-053)
     scen,eff,obs_kind,ns=sys.argv[1],float(sys.argv[2]),sys.argv[3],int(sys.argv[4])
+    if len(sys.argv)>5: N=int(sys.argv[5])
     ps=np.array(Parallel(n_jobs=4)(delayed(one)(i,scen,eff,obs_kind) for i in range(ns)))
     ps=ps[~np.isnan(ps)]
     print(scen,eff,obs_kind,"n=",len(ps),"rej@.05=",np.mean(ps<=0.05).round(3),"mean p",ps.mean().round(3))

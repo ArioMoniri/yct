@@ -171,7 +171,8 @@ def _write_fixture(tmp_path):
     return lab, red, man, ids
 
 
-def test_end_to_end_kappa_blocks_spot(qc, tmp_path, capsys):
+def test_end_to_end_kappa_blocks_spot(qc, tmp_path, capsys, monkeypatch):
+    monkeypatch.setenv("SHOW_LABELS", "1")
     lab, red, man, ids = _write_fixture(tmp_path)
     assert qc.main(["kappa", "--manifest", str(man), "--sealed", str(lab), "--rederive", str(red)]) == 0
     out = capsys.readouterr().out
@@ -183,8 +184,38 @@ def test_end_to_end_kappa_blocks_spot(qc, tmp_path, capsys):
     assert "3 blocks over 58" in out and "OPEN" not in out and "TARGETED" not in out
     assert len(blocks.read_text().split(",")) == 58
     assert qc.main(["spot", "--manifest", str(man), "--sealed", str(lab), "--n", "10"]) == 0
-    lines = capsys.readouterr().out.strip().splitlines()
+    cap = capsys.readouterr()
+    assert cap.out == ""                                              # BUG-021: never the summary stream
+    err = cap.err.strip().splitlines()
+    assert "DO NOT PASTE" in err[1] and err[0].startswith("=") and err[-1].startswith("=")
+    lines = err[3:-1]                                                 # rows only AFTER the banner
     assert len(lines) == 10 and all("outcome=" in x for x in lines)
+
+
+def test_spot_check_hidden_without_show_labels(qc, tmp_path, capsys, monkeypatch):
+    """BUG-021 root cause (D-053): without SHOW_LABELS=1 no label is printed on any stream."""
+    monkeypatch.delenv("SHOW_LABELS", raising=False)
+    lab, _, man, _ = _write_fixture(tmp_path)
+    for val in (None, "0", "yes"):
+        if val is not None:
+            monkeypatch.setenv("SHOW_LABELS", val)
+        assert qc.main(["spot", "--manifest", str(man), "--sealed", str(lab), "--n", "10"]) == 0
+        cap = capsys.readouterr()
+        assert cap.err == "" and "outcome=" not in cap.out
+        assert ACC not in cap.out and REJ not in cap.out and "SHOW_LABELS=1" in cap.out
+
+
+def test_shell_prints_spot_check_only_opt_in_and_after_report_back():
+    text = SH.read_text()
+    shell = text[text.index("\nPYQC\n"):]
+    assert 'SHOW_LABELS="${SHOW_LABELS:-0}"' in text
+    report = shell.index("Report back ONLY")
+    spot = shell.index('qc.py" spot')
+    assert report < spot                                              # summary first, labels last
+    block = shell[shell.rindex("if", 0, spot):spot]
+    assert '[ "$SHOW_LABELS" = 1 ]' in block                          # opt-in only
+    assert "SHOW_LABELS=0 python3" in shell[:report]                  # verify_labels detail never pre-summary
+    assert shell.count('qc.py" spot') == 1
 
 
 def test_spot_resolves_sealed_url(qc, tmp_path):

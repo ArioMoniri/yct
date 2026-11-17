@@ -26,6 +26,13 @@ All steps are LABEL-FREE: no outcome, group or era-by-label information is read 
    label-free ``m0.merge_list`` is applied step by step. cond(Q) <= ``m0.max_cond`` is asserted;
    aliased columns are dropped and logged. :func:`q_dimension_table` is the planned dimension table.
 5. :func:`residualize` -- R = M1 residualised by unpenalised OLS on Q(M0).
+6. Upload-metadata covariates (D-047; D-053): :func:`metadata_covariates` turns manifest columns into
+   M0 columns -- ``platform_nonYT`` (FORCED, binary, linear only: always in the primary Q) and, for the
+   S-LAG sensitivity only, ``upload_lag_days`` (z-scored, linear only; UNKNOWN -> label-free median of the
+   known lags) + ``lag_unknown`` (binary). ``upload_lag_days`` may be outcome-caused (post-decision
+   uploads; G-D032 c3 Referee N2), so it is never in the primary Q. :func:`predecision_ids` is the
+   S-PREDECISION subset (known lag <= ``m0.covariates.predecision_max_lag_days``). :func:`h4_m0` is the
+   production entry: confounds + forced covariates (missing -> hard failure).
 The P5b "dropped term drives M1 and y" FPR simulation is :mod:`yct.features.h4_null_sim`.
 """
 from __future__ import annotations
@@ -186,6 +193,72 @@ def assemble_m0(per_tr: pd.DataFrame, start: int, length: int, has_audio: Mappin
     return M0Result(m0=m0, excluded=excluded, imputation=rep, binary=binary)
 
 
+# ----------------------------------------------------------------------------- 6. metadata covariates
+
+def _cov_cfg(cfg: dict[str, Any] | None) -> dict[str, Any]:
+    return _m0_cfg(cfg)["covariates"]
+
+
+def metadata_covariates(meta: pd.DataFrame, sensitivity: bool = False,
+                        cfg: dict[str, Any] | None = None) -> tuple[pd.DataFrame, dict[str, Any]]:
+    """Manifest metadata (index = video id; columns ``platform_nonYT`` 'True'/'False', ``upload_lag_days``
+    integer string or '') -> M0 covariate columns (float) and an imputation report. Label-free."""
+    cc = _cov_cfg(cfg)
+    names = list(cc["forced"]) + (list(cc["sensitivity"]) if sensitivity else [])
+    out = pd.DataFrame(index=meta.index)
+    rep: dict[str, Any] = {"covariates": names}
+    if "platform_nonYT" in names:
+        if "platform_nonYT" not in meta.columns:
+            raise ValueError("metadata lacks platform_nonYT (forced M0 covariate, D-047)")
+        v = meta["platform_nonYT"].astype(str)
+        if not v.isin(["True", "False"]).all():
+            raise ValueError("platform_nonYT must be True/False")
+        out["platform_nonYT"] = (v == "True").astype(float)
+    if "upload_lag_days" in names:
+        if "upload_lag_days" not in meta.columns:
+            raise ValueError("metadata lacks upload_lag_days (S-LAG sensitivity)")
+        raw = meta["upload_lag_days"].astype(str).str.strip()
+        if not (raw.eq("") | raw.str.fullmatch(r"-?\d+")).all():
+            raise ValueError("upload_lag_days must be an integer or empty")
+        known = raw != ""
+        if not known.any():
+            raise ValueError("no known upload_lag_days: S-LAG cannot be imputed")
+        lag = pd.to_numeric(raw.where(known), errors="coerce").astype(float)
+        med = float(np.median(lag[known]))
+        out["upload_lag_days"] = lag.where(known, med)
+        out["lag_unknown"] = (~known).astype(float)
+        rep.update(lag_impute=cc["lag_impute"], lag_median=med, n_lag_unknown=int((~known).sum()))
+    return out[[c for c in names if c in out.columns]], rep
+
+
+def predecision_ids(meta: pd.DataFrame, cfg: dict[str, Any] | None = None) -> list[str]:
+    """S-PREDECISION subset: ids with a KNOWN upload lag <= predecision_max_lag_days (unknown excluded)."""
+    raw = meta["upload_lag_days"].astype(str).str.strip()
+    if not (raw.eq("") | raw.str.fullmatch(r"-?\d+")).all():
+        raise ValueError("upload_lag_days must be an integer or empty")
+    mx = int(_cov_cfg(cfg)["predecision_max_lag_days"])
+    return sorted(i for i, v in raw.items() if v != "" and int(v) <= mx)
+
+
+def h4_m0(per_tr: pd.DataFrame, start: int, length: int, has_audio: Mapping[str, bool], meta: pd.DataFrame,
+          sensitivity: bool = False, cfg: dict[str, Any] | None = None) -> M0Result:
+    """Production M0 for H4: :func:`assemble_m0` + the forced metadata covariates (S-LAG adds lag)."""
+    cfg = cfg if cfg is not None else load_config()
+    res = assemble_m0(per_tr, start, length, has_audio, cfg=cfg)
+    missing = [v for v in res.m0.index if v not in meta.index]
+    if missing:
+        raise KeyError(f"metadata missing for {len(missing)} M0 videos: {missing[:5]}")
+    cov, rep = metadata_covariates(meta.loc[res.m0.index], sensitivity=sensitivity, cfg=cfg)
+    for c in _cov_cfg(cfg)["forced"]:
+        if c not in cov.columns:
+            raise ValueError(f"forced M0 covariate {c} missing (D-047/D-053)")
+    m0 = pd.concat([res.m0, cov], axis=1)
+    cc = _cov_cfg(cfg)
+    binary = res.binary + [c for c in cov.columns if c in cc["binary"]]
+    imp = dict(res.imputation, covariates=rep)
+    return M0Result(m0=m0, excluded=res.excluded, imputation=imp, binary=binary)
+
+
 # ----------------------------------------------------------------------------- 4-5. Q(M0), rule D-037
 
 def zscore(x: np.ndarray, ddof: int = 0) -> np.ndarray:
@@ -324,7 +397,10 @@ def q_m0(m0: pd.DataFrame, binary: list[str] | tuple[str, ...] | None = None, er
     """
     mc = _m0_cfg(cfg)
     forced = list(mc["forced_speech"])
-    binary = list(binary if binary is not None else [b for b in mc.get("binary", []) if b in m0.columns])
+    cc = mc["covariates"]
+    default_bin = [*mc.get("binary", []), *cc["binary"]]
+    binary = list(binary if binary is not None else [b for b in default_bin if b in m0.columns])
+    linear_only = [c for c in cc["linear_only"] if c in m0.columns]   # metadata: linear, never quadratic
     rcond = float(mc["rank_rcond"])
     max_cond = float(mc["max_cond"])
     ddof = int(mc.get("z_ddof", 0))
@@ -370,7 +446,7 @@ def q_m0(m0: pd.DataFrame, binary: list[str] | tuple[str, ...] | None = None, er
         log.warning("Q(M0): rank %d > floor(N/3) = %d -> merge step %r (%s)", len(kept), limit,
                     nxt[0]["name"], "+".join(nxt[0]["members"]))
 
-    cand = optional_term_order(z, forced, ddof)
+    cand = optional_term_order(z.drop(columns=linear_only), forced, ddof)
     for t in cand:
         if "*" in t:
             a, b = t.split("*")
@@ -407,22 +483,31 @@ def residualize(m1: np.ndarray, q: np.ndarray) -> np.ndarray:
     return m1 - q @ beta
 
 
-def q_dimension_table(n_values: tuple[int, ...] = (40, 60, 80), n_era_levels: int = 3,
-                      voiced_varies: bool = True, cfg: dict[str, Any] | None = None) -> pd.DataFrame:
+def q_dimension_table(n_values: tuple[int, ...] = (46, 50, 53, 56), n_era_levels: int | None = None,
+                      voiced_varies: bool = True, n_covariates: int | None = None, sensitivity: bool = False,
+                      cfg: dict[str, Any] | None = None) -> pd.DataFrame:
     """Planned Q(M0) dimensions under D-037 for generic (non-aliased) data -- the prereg table.
 
-    Columns: N, limit = floor(N/3), required (1 + linear + era + 3 forced), merges, optional, rank.
+    Era levels default to the config ``era_blocks.merge`` blocks (E12/E3 = 2, D-047) and the metadata
+    covariates to ``m0.covariates.forced`` (+ ``sensitivity`` for S-LAG; D-053). Columns: N, limit =
+    floor(N/3), required (1 + linear + binary + covariates + era dummies + 3 forced), merges, optional, rank.
     """
-    mc = _m0_cfg(cfg)
-    p = len(m0_feature_list(cfg))
+    full = cfg if cfg is not None else load_config()
+    mc = _m0_cfg(full)
+    cc = mc["covariates"]
+    if n_era_levels is None:
+        n_era_levels = len(full["era_blocks"]["merge"])
+    if n_covariates is None:
+        n_covariates = len(cc["forced"]) + (len(cc["sensitivity"]) if sensitivity else 0)
+    p = len(m0_feature_list(full))
     n_bin = len(mc.get("binary", [])) if voiced_varies else 0
-    n_merge_avail = sum(len(s["members"]) - 1 for s in merge_list(cfg))
-    req = 1 + p + n_bin + (n_era_levels - 1) + 3
+    n_merge_avail = sum(len(s["members"]) - 1 for s in merge_list(full))
+    req = 1 + p + n_bin + n_covariates + (n_era_levels - 1) + 3
     rows = []
     for n in n_values:
         lim = n // 3
         merges, red = 0, 0
-        for s in merge_list(cfg):
+        for s in merge_list(full):
             if req - red <= lim:
                 break
             merges += 1

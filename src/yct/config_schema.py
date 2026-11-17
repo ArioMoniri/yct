@@ -70,8 +70,14 @@ class DecisionDate(M):
     year_offset: Annotated[int, Field(ge=-1, le=0)]
 
 
+class CompanyKey(M):
+    salt: Annotated[str, Field(min_length=8)]
+    length: Annotated[int, Field(ge=8, le=64)]
+
+
 class Manifest(M):
     decision_date: dict[Literal["W", "X", "S", "F"], DecisionDate]
+    company_key: CompanyKey
 
     @field_validator("decision_date")
     @classmethod
@@ -344,11 +350,32 @@ class MergeStep(M):
     why: str
 
 
+class M0Covariates(M):
+    forced: list[str]
+    sensitivity: list[str]
+    binary: list[str]
+    linear_only: list[str]
+    lag_impute: Literal["median"]
+    predecision_max_lag_days: int
+
+    @model_validator(mode="after")
+    def _consistent(self):
+        allc = set(self.forced) | set(self.sensitivity)
+        if set(self.forced) & set(self.sensitivity):
+            raise ValueError("a covariate is forced or sensitivity-only, not both")
+        if set(self.binary) | set(self.linear_only) != allc or set(self.binary) & set(self.linear_only):
+            raise ValueError("every covariate is exactly one of binary / linear_only")
+        if "upload_lag_days" in self.forced:
+            raise ValueError("upload_lag_days is sensitivity-only (D-053, Referee G-D032 c3 N2)")
+        return self
+
+
 class M0(M):
     features: Annotated[list[str], Field(min_length=1)]
     never: list[str]
     binary: list[str]
     forced_speech: Annotated[list[str], Field(min_length=2, max_length=2)]
+    covariates: M0Covariates
     min_words_in_w: PosInt
     q_rule: str
     z_ddof: Literal[0, 1]

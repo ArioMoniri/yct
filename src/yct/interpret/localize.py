@@ -23,6 +23,12 @@ Firewall (G-D032 Referee D5-D7, Biostat D2, Neuro D1-D4):
   exceeds ``unreliable_parcel_max_frac`` are excluded from the ranking (count in attrs). Every row
   discloses ``n_vertices`` (post-mask) and ``mw_removed_frac`` (share lost to the union medial wall);
   ``mw_shrunk`` flags > ``mw_shrink_flag_frac`` (G-D032 c2 Neuro N3).
+* Unreliable vertices (G-D032 c3 Neuro G2; D-053): the fixed, label-free mask of config
+  ``localize.reliability_mask`` (:func:`reliability_mask`: susceptibility-dropout HCP-MMP1 areas, vertex
+  count and sha256 checked) is the DEFAULT of :func:`peak_table`, :func:`render_four_views` and
+  :func:`plot_four_views` (``unreliable="config"``). ``unreliable=None`` means no mask (tests / explicit
+  opt-out, recorded as such); an explicit array overrides. Tables record the mask in
+  ``attrs['unreliable_mask']``.
 * Surface maps: medial wall masked (NaN, not a threshold: exact zeros keep the colormap centre);
   unreliable vertices STIPPLED as a coarse two-colour checker outside the colormap (never a grey that
   reads as zero), legible at the default ``localize.dpi`` (raster-tested), with a legend entry.
@@ -302,6 +308,57 @@ def bh_fdr(p: np.ndarray) -> np.ndarray:
     return q
 
 
+# ----------------------------------------------------------------------------- reliability mask (D-053)
+
+CONFIG_MASK = "config"
+
+
+def reliability_mask(atlases: AtlasSet, cfg: dict[str, Any] | None = None) -> np.ndarray:
+    """The unreliable-vertex mask of config ``localize.reliability_mask`` on the union-masked atlas set.
+
+    Union of the listed bilateral HCP-MMP1 areas minus the union medial wall. Fails (never an empty or
+    drifting mask) if an area is missing, the vertex count differs from ``n_vertices`` or the sha256 of
+    the sorted vertex ids (little-endian int32) differs from ``sha256``.
+    """
+    import hashlib
+
+    rm = _loc_cfg(cfg)["reliability_mask"]
+    hcp = atlases.hcp
+    names = [f"{h}_{a}_ROI" for h in rm["hemis"] for a in rm["areas"]]
+    missing = [n for n in names if n not in hcp.names]
+    if missing:
+        raise ValueError(f"reliability_mask areas {missing} not in the {hcp.name} atlas")
+    mask = np.isin(hcp.labels, [hcp.names.index(n) for n in names]) & ~atlases.medial_wall
+    if int(mask.sum()) != int(rm["n_vertices"]):
+        raise ValueError(f"reliability_mask resolves to {int(mask.sum())} vertices, config n_vertices = "
+                         f"{rm['n_vertices']}")
+    digest = hashlib.sha256(np.flatnonzero(mask).astype("<i4").tobytes()).hexdigest()
+    if digest != rm["sha256"]:
+        raise ValueError(f"reliability_mask sha256 {digest} != config {rm['sha256']}")
+    return mask
+
+
+def mask_label(cfg: dict[str, Any] | None = None) -> str:
+    rm = _loc_cfg(cfg)["reliability_mask"]
+    return f"{rm['source']} ({len(rm['areas'])} HCP areas x {len(rm['hemis'])} hemis, " \
+           f"{rm['n_vertices']} vertices, sha256 {rm['sha256'][:12]})"
+
+
+def _resolve_unreliable(unreliable, atlases: AtlasSet | None, cfg: dict[str, Any] | None):
+    """-> (bool mask or None, provenance label)."""
+    if isinstance(unreliable, str):
+        if unreliable != CONFIG_MASK:
+            raise ValueError(f"unreliable must be an array, None or {CONFIG_MASK!r}")
+        if atlases is None:
+            from yct.features.atlas import load_all
+
+            atlases = load_all(cfg)
+        return reliability_mask(atlases, cfg), mask_label(cfg)
+    if unreliable is None:
+        return None, "none (explicit)"
+    return np.asarray(unreliable, bool), "explicit array"
+
+
 # ----------------------------------------------------------------------------- peak table
 
 def _overlaps(other: Atlas, mask: np.ndarray) -> list[tuple[str, float]]:
@@ -315,7 +372,7 @@ def _overlaps(other: Atlas, mask: np.ndarray) -> list[tuple[str, float]]:
 
 
 def peak_table(vmap: np.ndarray, atlases: AtlasSet, boot: ParcelBootstrap | None = None,
-               p_perm: np.ndarray | None = None, unreliable: np.ndarray | None = None,
+               p_perm: np.ndarray | None = None, unreliable: np.ndarray | str | None = CONFIG_MASK,
                kind: str = "group_mean", k: int | None = None, ci_level: float | None = None,
                cfg: dict[str, Any] | None = None) -> pd.DataFrame:
     """Top-k positive (descending) then top-k negative (ascending) Schaefer parcels; descriptive.
@@ -339,8 +396,8 @@ def peak_table(vmap: np.ndarray, atlases: AtlasSet, boot: ParcelBootstrap | None
     n_par = vals.size
 
     unrel_frac = np.zeros(n_par)
+    unreliable, mask_src = _resolve_unreliable(unreliable, atlases, cfg)
     if unreliable is not None:
-        unreliable = np.asarray(unreliable, bool)
         if unreliable.shape != (NV,):
             raise ValueError(f"unreliable must have shape ({NV},)")
         cnt = np.bincount(sch.labels, minlength=n_par + 1)[1:]
@@ -402,6 +459,7 @@ def peak_table(vmap: np.ndarray, atlases: AtlasSet, boot: ParcelBootstrap | None
         "ci_method": boot.method if boot is not None else "none",
         "ci_level": ci_level,
         "n_excluded_unreliable": int((np.isfinite(vals) & ~eligible).sum()),
+        "unreliable_mask": mask_src,
         "map": "T1, spatially standardised per TR (union medial wall), averaged over W",
         "hcp_label": "best-overlap HCP-MMP1 area (overlap fraction); 2nd-best when fraction < "
                      f"{second_below}",
@@ -469,7 +527,7 @@ def stipple_colors(base: np.ndarray, faces: np.ndarray, unreliable_h: np.ndarray
 
 
 def render_four_views(vmap: np.ndarray, medial_wall: np.ndarray | None = None,
-                      unreliable: np.ndarray | None = None, title: str | None = None,
+                      unreliable: np.ndarray | str | None = CONFIG_MASK, title: str | None = None,
                       vmax: float | None = None, cmap: str = "RdBu_r", views: list[str] | None = None,
                       cfg: dict[str, Any] | None = None):
     """2 x 4 figure (LH, RH) x (lateral, medial, ventral, dorsal) on fsaverage5 inflated.
@@ -499,6 +557,7 @@ def render_four_views(vmap: np.ndarray, medial_wall: np.ndarray | None = None,
     hidden = ~np.isfinite(vmap)
     if medial_wall is not None:
         hidden |= np.asarray(medial_wall, bool)
+    unreliable, _ = _resolve_unreliable(unreliable, None, cfg)   # default: config reliability_mask (D-053)
     unrel = np.zeros(NV, bool) if unreliable is None else np.asarray(unreliable, bool) & ~hidden
     shown = ~hidden & ~unrel
     if vmax is None:
@@ -541,7 +600,7 @@ def render_four_views(vmap: np.ndarray, medial_wall: np.ndarray | None = None,
 
 
 def plot_four_views(vmap: np.ndarray, out_png: str | Path, medial_wall: np.ndarray | None = None,
-                    unreliable: np.ndarray | None = None, title: str | None = None,
+                    unreliable: np.ndarray | str | None = CONFIG_MASK, title: str | None = None,
                     vmax: float | None = None, cmap: str = "RdBu_r", views: list[str] | None = None,
                     dpi: int | None = None, cfg: dict[str, Any] | None = None) -> Path:
     """Render :func:`render_four_views` (caption always on the figure) and save it at ``localize.dpi``."""
