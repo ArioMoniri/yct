@@ -97,6 +97,7 @@ def photometric_normalize(mp4: str | Path, out_dir: str | Path, cfg: dict[str, A
     n = cfg["normalize"]
     pcfg = n["photometric"]
     mp4, out_dir = Path(mp4), Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
     before = frame_stats(mp4, pcfg)
     tf = solve_transform(before, pcfg)
     clip = clip_fraction(mp4, tf, pcfg)

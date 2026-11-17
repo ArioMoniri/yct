@@ -146,7 +146,8 @@ def energy_vad(x: np.ndarray, sr: int, vcfg: dict[str, Any]) -> tuple[np.ndarray
     active = (lv > vcfg["abs_floor_dbfs"]) & (lv > ref - vcfg["rel_db"])
     segs: list[list[float]] = []
     for k in np.flatnonzero(active):
-        s, e = k * hop_s, k * hop_s + frame_s
+        c = k * hop_s + frame_s / 2  # each active frame claims the hop-wide span around its centre
+        s, e = c - hop_s / 2, c + hop_s / 2
         if segs and s - segs[-1][1] < vcfg["min_gap_s"]:
             segs[-1][1] = max(segs[-1][1], e)
         else:

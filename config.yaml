@@ -100,12 +100,57 @@ transcribe:                    # P2b (v2.md §5 P2b; tribe_requirements §2.2)
 
 confounds:                     # P3 per-TR M0 features (v2.md §5 P3)
   rms_floor_db: -120.0
-  pitch: {frame_s: 0.04, hop_s: 0.01, fmin_hz: 60.0, fmax_hz: 400.0, voicing_threshold: 0.5}
+  pitch: {frame_s: 0.04, hop_s: 0.01, fmin_hz: 60.0, fmax_hz: 400.0, voicing_threshold: 0.5, octave_ratio: 0.9}
   video_fps: 10                # luminance / contrast / motion sampling rate
   face_fps: 2                  # face detector sampling rate
   analysis_short_side_px: 292  # frames are analysed at the V-JEPA2 resize (short edge 292)
   face: {detector: haarcascade_frontalface_default.xml, scale_factor: 1.1, min_neighbors: 5, min_size_frac: 0.08}
   scene: {detector: content, threshold: 27.0, min_scene_len_frames: 15}
   text_detection: false        # on-screen text: not implemented (needs a downloaded EAST/OCR model)
+
+atlases:                       # P5 (v2.md §5 P5; tribe_requirements §8). Consumed by src/yct/features/atlas.py.
+  cache_dir: ~/.cache/yct/atlases   # override with env YCT_ATLAS_DIR; files are sha256-checked on every load
+  n_vertices_per_hemi: 10242   # fsaverage5 = first 10,242 vertices of each fsaverage hemisphere; order LH then RH
+  schaefer400_7:               # primary parcellation; label 0 = Background+FreeSurfer_Defined_Medial_Wall
+    source: "CBIG GitHub (ThomasYeoLab/CBIG master), Schaefer2018_LocalGlobal FreeSurfer5.3 fsaverage5 .annot"
+    mesh: fsaverage5
+    lh:
+      url: https://raw.githubusercontent.com/ThomasYeoLab/CBIG/master/stable_projects/brain_parcellation/Schaefer2018_LocalGlobal/Parcellations/FreeSurfer5.3/fsaverage5/label/lh.Schaefer2018_400Parcels_7Networks_order.annot
+      file: lh.Schaefer2018_400Parcels_7Networks_order.annot
+      sha256: 48dcdc0c63df9feddb34eb631ef3571dfbd73360709a3aa799e05e1bc7d9e2b5
+    rh:
+      url: https://raw.githubusercontent.com/ThomasYeoLab/CBIG/master/stable_projects/brain_parcellation/Schaefer2018_LocalGlobal/Parcellations/FreeSurfer5.3/fsaverage5/label/rh.Schaefer2018_400Parcels_7Networks_order.annot
+      file: rh.Schaefer2018_400Parcels_7Networks_order.annot
+      sha256: 1c24e9c5e2e35df05ddb8b82c60ea4ebbbbe48986bc11aa24a58ede47742f5aa
+  yeo7:                        # derived from Schaefer names (7Networks_LH_<Net>_<i>); label 0 = medial wall
+    networks: [Vis, SomMot, DorsAttn, SalVentAttn, Limbic, Cont, Default]
+  hcp_mmp1:                    # labelling + H2 ROIs; fsaverage (163,842/hemi) -> first 10,242 (tribe_requirements §8)
+    source: "HCP-MMP1.0 (Glasser 2016) fsaverage annot, figshare files 5528816/5528819 = the files mne.datasets.fetch_hcp_mmp_parcellation (and tribev2.utils.get_hcp_labels) downloads; md5 matches mne's registry. Use requires accepting the HCP terms."
+    mesh: fsaverage
+    lh:
+      url: https://ndownloader.figshare.com/files/5528816
+      file: lh.HCPMMP1.annot
+      sha256: d4da634644b4c595dbda23963e01752059f0e7714be70169eb84e25e09ba2b44
+      md5: 46a102b59b2fb1bb4bd62d51bf02e975
+    rh:
+      url: https://ndownloader.figshare.com/files/5528819
+      file: rh.HCPMMP1.annot
+      sha256: 744eff4e57ce8121c43851eea425475baf92d9ba8686299a7435517ab972e9a2
+      md5: 75e96b331940227bbcb07c1c791c2463
+  destrieux:                   # labelling only; native fsaverage5
+    source: "nilearn.datasets.fetch_atlas_surf_destrieux (nilearn 0.14.1), data_dir=<cache_dir>/nilearn"
+    mesh: fsaverage5
+    lh: {file: nilearn/destrieux_surface/left.aparc.a2009s.annot, sha256: c2401d6137949f33788283a4926cb61cb3b0bfe5bda1b368c22aa921ea06d38d}
+    rh: {file: nilearn/destrieux_surface/right.aparc.a2009s.annot, sha256: 99c028f9f9d8dce617e9f29a5ebdc2f1b187d83650b68128fae53c3669588da7}
+
+features:                      # P5 M1 features (v2.md §1)
+  m1_networks: [Vis, SomMot, DorsAttn, SalVentAttn, Cont, Default]   # Limbic = omitted reference (rank 6)
+  m1_reference: Limbic
+  spatial_sd_ddof: 0
+
+localize:                      # v2.3 activation localisation outputs (D-032; descriptive)
+  top_k: 20
+  ci_level: 0.95
+  views: [lateral, medial, ventral, dorsal]
 
 frozen: []

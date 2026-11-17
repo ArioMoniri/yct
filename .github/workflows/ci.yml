@@ -19,7 +19,9 @@ jobs:
         with:
           python-version: "3.11"
       - name: Install
-        run: pip install -e '.[dev]' ruff==0.8.4
+        run: |
+          sudo apt-get update && sudo apt-get install -y --no-install-recommends ffmpeg
+          pip install -e '.[dev,pre]' ruff==0.8.4
       - name: Resolve guard base
         id: base
         env:

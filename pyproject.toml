@@ -7,6 +7,11 @@ dependencies = ["pyyaml", "pandas", "numpy", "pydantic>=2"]
 
 [project.optional-dependencies]
 dev = ["pytest", "ruff"]
+# P2/P3 preprocessing (also needs system ffmpeg/ffprobe >= 6). opencv 4.x: 5.x dropped CascadeClassifier;
+# scenedetect 0.6.x: 0.7 hard-depends on non-headless opencv-python. pyarrow: confounds.parquet.
+pre = ["opencv-python-headless==4.11.0.86", "scenedetect==0.6.7", "pyarrow==26.0.1"]
+# P5 atlases / localisation plots (src/yct/features, src/yct/interpret)
+neuro = ["nilearn==0.14.1", "nibabel==5.5.0", "matplotlib==3.11.2"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -14,6 +19,9 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src", "."]
+markers = [
+    "atlas: needs real atlas files (downloaded once to ~/.cache/yct/atlases; skips cleanly offline)",
+]
 
 [tool.ruff]
 line-length = 110
