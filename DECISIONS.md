@@ -28,3 +28,11 @@ Append-only log. Format: date | phase | id | summary | evidence.
 - D-020 Curator = separate subagent; plaintext labels never on disk; Curator never sees §1.
 - D-021 Human-only actions enforced by SSH-signed commits checked in CI (to build in P0; Watchdog treats agent-performed ones as CRITICAL until then). Gate quorum = ⌈2/3⌉ of assigned reviewers; P6 unanimous 5/5.
 - D-022 P5b pipeline validation moved before prereg lock; DATA_DECISION adds EU→US transfer, Llama licence, HCP-MMP terms; short side ≥292 px; tsv injection order + uvx block.
+
+## 2026-11-17 | Prompt v2.1 → v2.2 | round-3: Biostat FIX, Neuro FIX → adopt v2.2; prompt-review FIX cycle 3 of 3 reached → escalate residual to human
+- D-023 H4 residualisation = unpenalised OLS on Q(M0) = [1, M0, M0², pairwise products among K_Q prereg-named features], rank(Q) ≤ ⌊N/3⌋, era linear only, no ridge/PCA; M0 feature list and p frozen in prereg, binary/categorical not squared (Biostat D1, D5; supersedes D-013's ridge).
+- D-024 P5b: H4 FPR on synthetic nonlinear-M0 outcomes (500 reps, B = 500, accept 3.1–7.1%; reduce K_Q pre-P6 if failing); H1–H3/H4b keep 1,000 shuffles at 3.7–6.4%; planted-effect PASS = power at d = 0.5/0.8/1.06 within ±10 pts of h4sim (Biostat D2, D3).
+- D-025 ROADMAP aligned to v2.md: short side ≥292 px, test_controls mirrors final P4b, P5b listed before P6 in both files (Biostat D4).
+- D-026 T1 clip = first 58.0 s (ffprobe ≤ 58.5 s) with a one-Audio/one-Video-chunk test; W = [max(5, 4+L+1), +40) TRs; T1 exclusion = trimmed duration < W_end + 2 s; ≥2 s latency-shift clause removed (Neuro M1, M2; supersedes D-018's 60 s / 47 s).
+- D-027 Limbic is the omitted reference (exact linear combination), not dropped for SNR; H1 still tests all 7 (compositional); H2 parcels = HCP-MMP STSv, STSdp, PGi, 45, 44, TE1a, TP excluded (Neuro M3, Biostat minor).
+- D-028 P4b controls: (a) partial Pearson r with crop-restricted, L-shifted, impulse-convolved regressors, Fisher-z t across videos, low-SD exclusion with reference-clip fallback (HAC dropped); STG → AUD = A4 ∪ A5; (c) uses mean speech envelope; new (d) face/place localiser replication (Neuro M4, M5).

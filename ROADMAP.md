@@ -11,7 +11,7 @@ This roadmap is the spec in `docs/prompts/v2.md`. The status values are TODO, WI
 | P4 TRIBE inference + QC | TODO | Modeling | QA, Neuro, Watchdog |
 | P4b Controls gate | TODO | Neuro | all 5 |
 | P5 Features (blinded) | TODO | Neuro | Neuro, Biostat, Watchdog |
-| P5b Pipeline validation (permuted labels) | TODO | Biostat | Biostat, Referee, QA, Watchdog |
+| P5b Pipeline validation (permuted labels + synthetic H4 null; v2.2 B-D2) | TODO | Biostat | Biostat, Referee, QA, Watchdog |
 | P6 Prereg lock + human unblind | TODO | PI | all 5, unanimous |
 | P7 Group stats | TODO | Biostat | Biostat, Referee, Watchdog |
 | P8 Prediction | TODO | Biostat | Biostat, Referee, Watchdog |
@@ -72,8 +72,8 @@ This roadmap is the spec in `docs/prompts/v2.md`. The status values are TODO, WI
 
 ## P2 / P2b — Normalisation and transcripts
 **Tasks**
-- Trim videos.
-- Keep native aspect ratio, short side ≥256, CFR 30 fps.
+- Trim videos. The T1 clip is the first 58.0 s (ffprobe duration ≤ 58.5 s asserted) (v2.2 N-M1).
+- Keep native aspect ratio, short side ≥292 px, CFR 30 fps (v2.2 B-D4).
 - Record a crop-coverage covariate.
 - Make 480p quality-floor copies.
 - Check A/V sync ≤40 ms.
@@ -114,7 +114,7 @@ This roadmap is the spec in `docs/prompts/v2.md`. The status values are TODO, WI
 - Run all videos on T1/T2.
 - Run ablations (audio, video, text+TTS).
 - QC report.
-- Set window W from the label-free mean time course.
+- Set window W from the label-free mean time course: default W = [max(5, 4 + L + 1), that + 40) TRs, L = P0 impulse latency rounded up to whole TRs; videos with trimmed duration < W_end + 2 s are excluded from T1 (logged) and kept in T2 (v2.2 N-M2).
 - Positive and negative controls.
 - OOD check.
 - Reliability mask.
@@ -122,10 +122,13 @@ This roadmap is the spec in `docs/prompts/v2.md`. The status values are TODO, WI
 **Tests**
 - `test_tribe_outputs`.
 - `test_determinism` (empty cache).
-- `test_controls`:
-  - fusiform face-contrast d > 0.8;
-  - STG speech-contrast d > 0.8.
-  - If either fails, STOP.
+- Events dataframe holds exactly one Audio and one Video chunk per T1 clip (v2.2 N-M1).
+- `test_controls`: implements v2.md §5 P4b (v2.2 B-D4, N-M4, N-M5):
+  - (a) within-video partial Pearson r (regressors inside the central 256×256 crop, shifted by L and convolved with the P0 impulse response; low-SD videos excluded, < 15 remaining → reference clips), Fisher-z one-sample t, mean z > 0.2 and p < .001;
+  - (b) selectivity (FFC vs V1–V3 for face; AUD = HCP-MMP A4 ∪ A5 vs FFC for speech), paired p < .01;
+  - (c) between-video r > 0.3 and permutation p < .05 (FFC × face fraction; AUD × mean speech envelope);
+  - (d) localiser replication: FFC face > place and PH place > face, sign-consistent in both hemispheres.
+  - Any FAIL means STOP.
 
 **DoD**
 - `outputs/qc_report.html`.
@@ -146,18 +149,19 @@ This roadmap is the spec in `docs/prompts/v2.md`. The status values are TODO, WI
 - Means not degenerate (guards against the [B1] regression).
 - Features reproducible from cache.
 
+## P5b — Pipeline validation (before P6; section moved above P6 in v2.2 B-D4)
+Validate the pipeline as in v2.md §5 P5b. All of these must hold:
+- H4 null FPR on synthetic outcomes y* ~ Bernoulli(logit(g(M0))) (pre-specified nonlinear g, AUC(M0) ≈ 0.70, real M1; 500 replicates, B = 500, 5 repeats, full nesting) within 3.1–7.1%. If H4 fails, reduce K_Q and rerun before P6; this must not change after P6 (v2.2 B-D2).
+- H1–H3/H4b false-positive rate within 3.7–6.4% over 1,000 label shuffles.
+- Planted effects: empirical power at d = 0.5, 0.8 and 1.06 within ±10 points of `analysis/power/h4sim.py` at the same N (pipeline-correctness check, not a power requirement) (v2.2 B-D3).
+- AUC ≈ 0.5.
+- Leakage test passes.
+
 ## P6 — Prereg lock
 - Fill in `docs/preregistration.md`.
 - Tag `prereg-lock`.
 - Unanimous council GO plus Watchdog PASS.
 - The human issues `UNBLIND_TOKEN`.
-
-## P5b — Pipeline validation (before P6)
-Validate the pipeline on permuted labels. All of these must hold:
-- False-positive rate within 3.7–6.4%.
-- Planted effects recovered.
-- AUC ≈ 0.5.
-- Leakage test passes.
 
 ## P7 / P8 — Statistics and prediction
 **After unblinding:** run H4 (primary), then H1, H2, H3 and H4b (Holm-corrected family), then the exploratory analyses.
@@ -171,6 +175,7 @@ Validate the pipeline on permuted labels. All of these must hold:
 
 ## Revisions log (R-n)
 - **R-1 (2026-11-17):** v1 to v2 after the council review. See `reviews/prompt_v1/` and DECISIONS D-001 to D-012.
+- **R-4 (2026-11-17):** v2.1 → v2.2 after round-3 Biostat + Neuro reviews (reviews/prompt_v2/round3_*.md); DECISIONS D-023–D-028.
 - **R-3 (2026-11-17):** v2 to v2.1 after the round-2 Watchdog and Referee reviews (`reviews/prompt_v2/`). See DECISIONS D-013 to D-022.
 - **R-2 (2026-11-17):** Infrastructure changes.
   - The EC2 pod is a t3.large, because the account vCPU quota is 16 and 14 are in use.
