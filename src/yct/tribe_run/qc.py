@@ -58,7 +58,8 @@ def sanitize_metrics(j: dict[str, Any]) -> dict[str, Any]:
         out.pop("chunks")
     wc = j.get("bug018_word_check") or {}
     out["bug018_word_check"] = {k: wc.get(k) for k in ("ok", "n_words", "n_tsv_rows", "bug018_fix",
-                                                       "n_duplicate_text_start", "words_after_duration")
+                                                       "n_duplicate_text_start", "words_after_duration",
+                                                       "n_tsv_words_past_end")
                                 if k in wc}
     if "n_feature_files" in j:
         out["n_feature_files"] = j["n_feature_files"]

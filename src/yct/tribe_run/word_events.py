@@ -94,7 +94,7 @@ def absolute_word_events(audio_events: pd.DataFrame, transcripts: dict[str, pd.D
 def clamp_durations(start: pd.Series, duration: pd.Series, end: float) -> pd.Series:
     """BUG-029: durations cut so that start + duration <= end (never negative; start is never moved)."""
     st, du = start.astype(float), duration.astype(float)
-    return (du.where(st + du <= end, end - st)).clip(lower=0.0)
+    return du.where((st + du <= end) | du.isna(), (end - st).clip(lower=0.0))   # NaN stays NaN (QA P2 #3)
 
 
 def n_words_past_end(tsv: pd.DataFrame, duration_s: float) -> int:

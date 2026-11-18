@@ -235,3 +235,18 @@ def test_bug029_clamp_to_video_end_when_video_shorter(tmp_path):
     w = w[w.type == "Word"].sort_values("start").reset_index(drop=True)
     assert len(w) == 2 and w.duration[0] == pytest.approx(0.3)
     assert w.start[1] + w.duration[1] == pytest.approx(53.0667 - we.END_GUARD_S)
+
+
+def test_clamp_keeps_nan_duration_and_handles_timeline_offset(tmp_path):
+    """QA FIX-P4G #3, #5: NaN duration stays NaN; event start = offset + 10 s shifts the bound by 10 s."""
+    out = we.clamp_durations(pd.Series([57.9]), pd.Series([float("nan")]), 58.0)
+    assert out.isna().all()
+    wav, tr = _tsv_rows(tmp_path, [(57.53, 0.48)])
+    ev = chunked_events(wav, [(0.0, 58.0)])
+    ev["start"] = ev["start"] + 10.0                      # timeline starts at 10 s, file offset 0
+    et = fake_et()
+    we.install(et)
+    w = et.ExtractWordsFromAudio()._run(ev)
+    w = w[w.type == "Word"].reset_index(drop=True)
+    assert w.start[0] == pytest.approx(67.53)
+    assert w.start[0] + w.duration[0] == pytest.approx(68.0 - we.END_GUARD_S)

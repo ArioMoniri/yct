@@ -138,3 +138,10 @@ def test_gate_on_real_d062_records():
         assert clip_gate(fixed, "t1")["pass"] and clip_gate(fixed, "t3")["pass"]
     f = clip_gate(runs["long160"], "t3")["failures"]
     assert "Audio chunks = 3, need exactly 1" in f and "Video chunks = 3, need exactly 1" in f
+
+
+def test_sanitize_keeps_clamped_word_count():
+    """Watchdog FIX-P4G #2: the BUG-029 verification count must reach the S3 record (int, firewall-safe)."""
+    m = _bad(bug018_word_check={"ok": True, "n_words": 113, "n_tsv_rows": 113, "bug018_fix": True,
+                                "n_tsv_words_past_end": 1})
+    assert sanitize_metrics(m)["bug018_word_check"]["n_tsv_words_past_end"] == 1
