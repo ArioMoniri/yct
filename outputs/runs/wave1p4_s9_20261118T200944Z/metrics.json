@@ -1,0 +1,21 @@
+{
+ "run_id": "wave1p4_s9_20261118T200944Z",
+ "exit_code": 1,
+ "started_utc": "2026-11-18T20:09:44.622875+00:00",
+ "wall_s": 130.424,
+ "git_sha": "d94b6e42d4dffdec516e03eec27d3f993672c092",
+ "git_dirty": true,
+ "git_diff_sha256": "58061c70894af5b603151e78fa047208fe764a16f5ad03a6bddaa13ffb360d77",
+ "untracked_files": [
+  "outputs/runs/wave1p4_s8_20261118T183108Z/child_metrics.json",
+  "outputs/runs/wave1p4_s8_20261118T183108Z/exit_code",
+  "outputs/runs/wave1p4_s8_20261118T183108Z/metrics.json",
+  "outputs/runs/wave1p4_s8_20261118T183108Z/pip_freeze.txt",
+  "outputs/runs/wave1p4_s8_20261118T183108Z/report.md"
+ ],
+ "python": "3.13.18",
+ "platform": "Linux-6.18.44-fc-v595-x86_64-with-glibc2.39",
+ "requirements_lock_sha256": "6218090691bb277f8b97620aaaa5b3e89a687ea136a0d4f2c7fa2773591ff0e2",
+ "pip_freeze_sha256": "465e262943c0d2c79dd4efb345e23d173baecfacc547b631a7447f3af7ad57ee",
+ "pytest": null
+}
