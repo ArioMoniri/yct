@@ -1504,3 +1504,4 @@
 {"event": "heartbeat", "id": "781a23c111244036aa4f69532b8e7e74", "t": 1795015027.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
 {"event": "heartbeat", "id": "781a23c111244036aa4f69532b8e7e74", "t": 1795015057.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
 {"event": "heartbeat", "id": "781a23c111244036aa4f69532b8e7e74", "t": 1795015087.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "terminate", "id": "781a23c111244036aa4f69532b8e7e74", "t": 1795015159.938655, "reason": "job_done"}
