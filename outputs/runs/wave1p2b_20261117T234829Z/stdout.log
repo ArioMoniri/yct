@@ -1,0 +1,14 @@
+[23:48:45] instance e08f4bc1dfb840d4a786ff531bf3da61 launched
+[23:54:01] box 150.230.233.161 reachable
+[23:55:32]   setup: running (7 s) ''
+[23:56:25]   setup: running (60 s) '  | 1/4 [00:00<00:01,  1.62it/s]\nFetching 4 files: 100%|██████████| 4/4 [00:06<00:00,  1.53s/it]\nFetching 4 files: 100%|██████████| 4/4 [00:06<00:00,  1.53s/it]'
+[23:57:18]   setup: running (113 s) '2169313}\n{"clip": "/home/ubuntu/yct/clips/long110/long110.mp4", "duration_s": 110.0, "n_words": 276, "n_sentences": 24, "last_word_start_s": 108.56996220710506}'
+[23:58:11] setup OK
+[23:58:34]   wxsetup: running (7 s) ''
+[23:59:51]   asr: running (7 s) ''
+[00:00:43]   asr: running (60 s) ''
+[00:01:36]   asr: running (113 s) ''
+[00:02:29]   asr: running (166 s) ''
+[00:04:25] ingest {'n': 57, 'n_valid': 57, 'wer_pending': ['yct_0016', 'yct_0034', 'yct_0036', 'yct_0040', 'yct_0043'], 'n_manifest': 114, 'flag_counts': {'': 57}}
+[00:04:49] ERROR ValueError: dictionary update sequence element #3 has length 0; 2 is required
+[00:04:56] terminated; alive=[]; spent this run $0.5333

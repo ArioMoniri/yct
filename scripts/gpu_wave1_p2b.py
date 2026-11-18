@@ -265,8 +265,10 @@ python -m yct.transcribe --out-dir asr/json --record asr/whisperx_run.json audio
             tsvs = " ".join(f"{r['content_id']}.tsv" for r in reals)
             pod(f"cd /work/yct/norm/t1 && tar cf - {names} | {box.ssh} 'mkdir -p {B}/clips/real && tar xf - -C {B}/clips/real' && "
                 f"cd /work/yct/transcripts && tar cf - {tsvs} | {box.ssh} 'tar xf - -C {B}/clips/real'", 900)
-            man = dict(r.split(",") for r in pod("tail -n +2 /work/yct/transcripts/manifest.csv", 120).split())
-            got = dict(ln.split()[::-1] for ln in pod(f"{box.ssh} 'cd {B}/clips/real && sha256sum *.tsv'", 120).splitlines())
+            man = dict(r.split(",") for r in pod("tail -n +2 /work/yct/transcripts/manifest.csv", 120).split()
+                       if r.count(",") == 1)
+            got = dict(ln.split()[::-1] for ln in pod(f"{box.ssh} 'cd {B}/clips/real && sha256sum *.tsv'", 120).splitlines()
+                       if len(ln.split()) == 2)  # pod output ends with blank lines (run 1: ValueError here)
             for r in reals:
                 if man.get(r["content_id"]) != got.get(f"{r['content_id']}.tsv"):
                     raise RuntimeError(f"transcript sha256 mismatch for {r['video_id']}")
