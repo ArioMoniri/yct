@@ -93,9 +93,17 @@ def test_frozen_at_must_be_ancestor_and_have_key(repo):
     assert repo.run_script(S).returncode == 1
 
 
-def test_repo_config_has_v22_defaults_and_nothing_frozen():
+D063_FROZEN = ["window.latency_l_tr", "window.start_tr", "window.end_tr", "window.min_tail_s",
+               "stimulus.min_source_fps", "p4.analysis_excluded", "p4.t1_excluded", "p4.run_set_t3",
+               "p4.run_set_t1", "p4.flags", "p4.d038_clips", "transcribe.wer", "controls.rois.MT_plus",
+               "controls.regressors.motion", "controls.descriptive"]
+
+
+def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
+    """Nothing was frozen until Gate P4-entry; FIX-P4E froze exactly the D-063 rulings at c616a9d."""
     cfg = yaml.safe_load((ROOT / "config.yaml").read_text())
-    assert cfg["frozen"] == []
+    sha = "c616a9d33b7eb861795aa9fb64f6314d95e379f8"
+    assert cfg["frozen"] == [{"key": k, "frozen_at": sha} for k in D063_FROZEN]
     assert cfg["tribe"]["tr_s"] == 1.0
     assert cfg["stimulus"]["t1_trim_s"] == 58.0
     assert cfg["stimulus"]["fps"] == 30

@@ -84,3 +84,12 @@ def test_p4_compute_settings():
     assert set(P4["d038_clips"]) <= set(P4["run_set_t1"])
     from yct.tribe_run.qc import GPU_NAME
     assert GPU_NAME == P4["gpu_name"]
+
+
+def test_d063_rulings_are_frozen():
+    """check_frozen_config.py then forbids any change to these keys (and any unfreezing)."""
+    frozen = {e["key"] for e in CFG["frozen"]}
+    assert {"window.latency_l_tr", "window.start_tr", "window.end_tr", "window.min_tail_s",
+            "stimulus.min_source_fps", "p4.analysis_excluded", "p4.t1_excluded", "p4.run_set_t3",
+            "p4.run_set_t1", "p4.flags", "p4.d038_clips", "transcribe.wer", "controls.rois.MT_plus",
+            "controls.regressors.motion", "controls.descriptive"} <= frozen

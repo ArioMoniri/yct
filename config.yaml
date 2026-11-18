@@ -439,4 +439,19 @@ owner:                         # FROZEN (check_guard_config.py: arn_pin can neve
   # Env YCT_OWNER_ARN, if set, must ALSO match.
   arn_pin: "arn:aws:iam::235229001983:root"
 
-frozen: []
+frozen:                        # D-063 (Gate P4-entry) label-blind rulings, frozen before any real-data P4 output (FIX-P4E)
+  - {key: window.latency_l_tr, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  - {key: window.start_tr, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  - {key: window.end_tr, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  - {key: window.min_tail_s, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  - {key: stimulus.min_source_fps, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  - {key: p4.analysis_excluded, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  - {key: p4.t1_excluded, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  - {key: p4.run_set_t3, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  - {key: p4.run_set_t1, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  - {key: p4.flags, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  - {key: p4.d038_clips, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  - {key: transcribe.wer, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  - {key: controls.rois.MT_plus, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  - {key: controls.regressors.motion, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  - {key: controls.descriptive, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
