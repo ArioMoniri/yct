@@ -1,0 +1,1 @@
+Driver killed externally at ~07:00Z by the agent harness's background time limit (BUG-028), mid-job on yct_0206.t1. Instance terminated by the agent at 07:01Z. Completed per-video outputs are in S3 wave1/derived/p4/; resumed in wave1p4_s3_*.
