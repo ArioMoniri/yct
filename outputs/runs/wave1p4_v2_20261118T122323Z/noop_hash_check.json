@@ -1,0 +1,114 @@
+[
+ {
+  "job": "yct_0016.t1",
+  "n_tsv_words_past_end": 0,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0034.t1",
+  "n_tsv_words_past_end": 0,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0036.t1",
+  "n_tsv_words_past_end": 0,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0040.t1",
+  "n_tsv_words_past_end": 0,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0043.t1",
+  "n_tsv_words_past_end": 0,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0049.t1",
+  "n_tsv_words_past_end": 0,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0072.t1",
+  "n_tsv_words_past_end": 1,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0100.t1",
+  "n_tsv_words_past_end": 0,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0104.t1",
+  "n_tsv_words_past_end": 1,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0105.t1",
+  "n_tsv_words_past_end": 1,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0128.t1",
+  "n_tsv_words_past_end": 0,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0138.t1",
+  "n_tsv_words_past_end": 0,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0159.t1",
+  "n_tsv_words_past_end": 0,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0160.t1",
+  "n_tsv_words_past_end": 0,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0175.t1",
+  "n_tsv_words_past_end": 0,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ },
+ {
+  "job": "yct_0186.t1",
+  "n_tsv_words_past_end": 0,
+  "pred_sha256_equal": false,
+  "input_sha256_equal": true,
+  "transcript_sha256_equal": true
+ }
+]
