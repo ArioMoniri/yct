@@ -8,7 +8,9 @@ feature names (they contain transcript text) from the record that leaves the box
 
     clip_gate(metrics, track, expected=None) -> {"pass": bool, "failures": [str, ...]}
 
-track "t1": the 58.0 s T1 trim (|T - 58| <= 1, duration <= 58.5 s); "t3": the photometric copy of the same
+track "t1": the T1 trim (first <= 58.0 s; duration <= 58.5 s and >= window.end_tr + window.min_tail_s = 50 s,
+D-039; T within 1 of duration / TR. BUG-030: was |T - 58| <= 1, which wrongly failed source videos
+shorter than 58 s that D-039 keeps); "t3": the photometric copy of the same
 clip, gated on its own duration (T within 1 of duration / TR). Both: exactly one Audio and one Video chunk
 (v2.md:52), shape (T, 20484), all finite, n_words == .tsv rows, no word after the clip, no ASR, no uvx,
 offline, GPU == GPU_NAME, BUG-018 word fix on (one setting for all of P4, QA D11).
@@ -24,6 +26,8 @@ GPU_NAME = "NVIDIA A100-SXM4-40GB"   # D-062 / v2.md §3: one GPU type for all o
 N_VERTICES = 20484
 T1_TRIM_S = 58.0
 T1_MAX_PROBE_S = 58.5
+T1_MIN_S = 45 + 5          # window.end_tr + window.min_tail_s (D-039; frozen, D-063); test pins == config
+WORD_END_CLAMP = "v1"      # BUG-029: one word-end clamp version for all of P4 (== word_events.WORD_END_CLAMP)
 TRACKS = ("t1", "t3")
 
 _KEEP = ("duration_s", "shape", "finite", "TR_s", "expected_T", "T_within_1", "n_words", "n_segments",
@@ -112,8 +116,10 @@ def clip_gate(m: dict[str, Any], track: str, expected: dict[str, Any] | None = N
     elif track == "t1":
         if dur > T1_MAX_PROBE_S:
             f.append(f"T1 duration {dur} s > {T1_MAX_PROBE_S} s")
-        if n_t is not None and abs(n_t - T1_TRIM_S) > 1:
-            f.append(f"T1 T = {n_t}, need 58 +- 1")
+        if dur < T1_MIN_S:
+            f.append(f"T1 duration {dur} s < {T1_MIN_S} s (window end + min tail, D-039)")
+        if n_t is not None and (n_t > T1_TRIM_S + 1 or abs(n_t - dur) > 1):
+            f.append(f"T1 T = {n_t}, need within 1 of duration {dur} s and <= 59")
     wc = m.get("bug018_word_check") or {}
     if wc.get("ok") is not True:
         f.append("word check not ok")
@@ -129,6 +135,8 @@ def clip_gate(m: dict[str, Any], track: str, expected: dict[str, Any] | None = N
         f.append(f"gpu {rev.get('gpu')!r} != {GPU_NAME!r} (one GPU type for all of P4)")
     if rev.get("bug018_word_fix") is not True:
         f.append("bug018 word fix not on (one setting for all of P4)")
+    if rev.get("bug018_word_end_clamp") != WORD_END_CLAMP:
+        f.append(f"word-end clamp {rev.get('bug018_word_end_clamp')!r} != {WORD_END_CLAMP!r} (BUG-029)")
     for k in ("pred_sha256", "cache_key", "input_sha256", "transcript_sha256"):
         if not m.get(k):
             f.append(f"{k} missing")

@@ -15,6 +15,11 @@ Fix (same contract as the upstream transform, only the timing/assignment differs
   * its absolute start is ``audio_event.start - audio_event.offset + t_file`` (= ``s0 + t_file``).
 With a single, unchunked Audio event (offset 0) the result equals upstream's, so T1 (58 s) is unchanged.
 
+BUG-029 (P4 session 4, FIX-P4G): a word whose END runs past the end of its file's audio (the 58.0 s T1 trim
+cuts the last word: end 58.010-58.030 s in 6/6 failing clips, 0/5 passing) is silently dropped downstream
+(n_words = .tsv rows - 1). Each word's end is therefore clamped to ``END_GUARD_S`` before the file's audio end
+(start unchanged); :data:`WORD_END_CLAMP` is part of the cache key (run_clip revisions).
+
 :func:`install` monkeypatches ``ExtractWordsFromAudio._run`` (ASR is never run: a missing .tsv raises).
 :func:`check_word_events` is the post-run regression check (n_words == .tsv rows, no word after the clip,
 no duplicate (text, start)); :func:`guard_duration` is run_clip's hard guard: clips longer than
@@ -30,6 +35,8 @@ from typing import Any
 
 import pandas as pd
 
+END_GUARD_S = 1e-3             # BUG-029: clamped word end = audio end - 1 ms
+WORD_END_CLAMP = "v1"          # BUG-029 fix version; recorded in run_clip revisions (cache key)
 MAX_UNPATCHED_S = 60.0          # ChunkEvents max chunk length; longer clips may be chunked (BUG-018)
 _SKIP_COLS = ("frequency", "filepath", "type", "start", "duration", "offset")   # as upstream
 PATCH_MARK = "_yct_bug018_absolute_words"
@@ -72,8 +79,24 @@ def absolute_word_events(audio_events: pd.DataFrame, transcripts: dict[str, pd.D
         w["type"] = "Word"
         w["language"] = language
         w["start"] = float(ev.start) - o + w["start"].astype(float)
+        if "duration" in w:
+            end_abs = float(ev.start) - o + last - END_GUARD_S
+            w["duration"] = clamp_durations(w["start"], w["duration"], end_abs)
         out.append(w)
     return out
+
+
+def clamp_durations(start: pd.Series, duration: pd.Series, end: float) -> pd.Series:
+    """BUG-029: durations cut so that start + duration <= end (never negative; start is never moved)."""
+    st, du = start.astype(float), duration.astype(float)
+    return (du.where(st + du <= end, end - st)).clip(lower=0.0)
+
+
+def n_words_past_end(tsv: pd.DataFrame, duration_s: float) -> int:
+    """.tsv rows whose end (start + duration) is after the clip end: the words BUG-029 clamps."""
+    if len(tsv) == 0 or "duration" not in tsv:
+        return 0
+    return int((tsv["start"].astype(float) + tsv["duration"].astype(float) > duration_s).sum())
 
 
 def _read_tsv(path: Path) -> pd.DataFrame:

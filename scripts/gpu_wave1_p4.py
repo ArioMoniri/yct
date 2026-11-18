@@ -26,7 +26,7 @@ reliability >= 0.99; a failure is a STOP) and their fresh predictions + features
 
 Resumable, per-video sync (D-063 engineering blockers):
   * after EACH job: cache entry tar (no media) + FILES_SHA256SUMS -> S3 feature_cache/<key>.*, an entry index
-    entries/<job>.json (which run/instance produced it), predictions + segments -> pred/<track>/<video>.*,
+    entries_clampv1/<job>.json (which run/instance produced it), predictions + segments -> pred_clampv1/<track>/<video>.*,
     the sanitised record -> records/, then one row appended to manifest.jsonl (+ immutable rows/<run>/<job>);
     media of the entry (clip copy, TRIBE's .wav) stay on the pod (/work/yct/p4/cache_media, by sha256);
   * S3 objects are immutable: an existing object whose .sha256 sidecar differs is never overwritten;
@@ -77,7 +77,14 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
-from yct.tribe_run.qc import GPU_NAME, clip_gate, sanitize_metrics  # noqa: E402
+from yct.tribe_run.qc import GPU_NAME, WORD_END_CLAMP, clip_gate, sanitize_metrics  # noqa: E402
+
+# BUG-029 (FIX-P4G, D-067): predictions of the clamped stack go to their own prefix, so a job re-run after the
+# superseded (pre-clamp) runs never collides with their pred/<track>/<video>.npy (S3 objects are never
+# overwritten). Consumers read the row's pred_key, never a fixed path.
+PRED_PREFIX = f"pred_clamp{WORD_END_CLAMP}"
+ENTRY_PREFIX = f"entries_clamp{WORD_END_CLAMP}"   # same reason for entries/<job>.json
+D038_PREFIX = f"d038_fresh_clamp{WORD_END_CLAMP}"  # ... and d038_fresh/<video>.fresh_*
 
 EXIT_OK, EXIT_FAIL, EXIT_INCOMPLETE = 0, 1, 75
 TEARDOWN_S = 600          # sync of the last job + terminate, reserved before the deadline
@@ -211,16 +218,24 @@ class State:
         return shas.pop() if shas else None
 
 
-def load_state(backend) -> State:
+def load_state(backend, superseded: tuple[str, ...] | list[str] = ()) -> State:
+    """Manifest rows + entries. Rows/entries of ``superseded`` runs (config p4.superseded_run_ids, BUG-029: made
+    before the word-end clamp) are ignored for done/restore/revisions; their S3 objects stay (append-only).
+    D-038 STOP markers are never ignored."""
+    sup = set(superseded)
     text = backend.s3_get_text("manifest.jsonl")
     keys = set(backend.s3_list(""))
     if text is None and any(k.startswith("rows/") for k in keys):
         raise SystemExit("S3 manifest.jsonl is absent while rows/ exist: inconsistent store, refusing (repair "
                          "from rows/ by hand; never rewritten automatically)")
     rows = [json.loads(x) for x in (text or "").splitlines() if x.strip()]
+    stop_rows = [r for r in rows if r.get("d038") is not None and r.get("gate_pass") is False]
+    rows = [r for r in rows if r.get("run_id") not in sup] + [r for r in stop_rows if r.get("run_id") in sup]
     entries = {}
-    for k in sorted(x for x in keys if x.startswith("entries/") and x.endswith(".json")):
+    for k in sorted(x for x in keys if x.startswith(("entries/", ENTRY_PREFIX + "/")) and x.endswith(".json")):
         e = json.loads(backend.s3_get_text(k))
+        if e.get("run_id") in sup:
+            continue
         entries[e["job"]] = e
     return State(rows, entries, keys)
 
@@ -341,18 +356,18 @@ def do_job(job: Job, ctx: dict) -> str:
     store.put_file(files["entry_tar"][0], tar_key, files["entry_tar"][1])
     store.put_file(files["entry_sums"][0], sums_key, files["entry_sums"][1])
     if restore is None:
-        store.put_text(f"entries/{job.id}.json", json.dumps(
+        store.put_text(f"{ENTRY_PREFIX}/{job.id}.json", json.dumps(
             {"job": job.id, "cache_key": key, "tar_key": tar_key, "sums_key": sums_key,
              "tar_sha256": files["entry_tar"][1], "sums_sha256": files["entry_sums"][1], "run_id": a.run_id,
              "instance_id": ctx["iid"], "revisions_sha256": rec.get("revisions_sha256"), "t": ctx["clock"]()},
             sort_keys=True, indent=1))
     b.after_entry_sync(job)          # dry-run fault injection point (crash between entry and predictions)
-    pred_key = f"pred/{job.track}/{job.video_id}.npy"
+    pred_key = f"{PRED_PREFIX}/{job.track}/{job.video_id}.npy"
     store.put_file(files["pred"][0], pred_key, files["pred"][1])
-    store.put_file(files["segments"][0], f"pred/{job.track}/{job.video_id}.segments.csv", files["segments"][1])
+    store.put_file(files["segments"][0], f"{PRED_PREFIX}/{job.track}/{job.video_id}.segments.csv", files["segments"][1])
     if d038 is not None:
-        store.put_file(files["fresh_pred"][0], f"d038_fresh/{job.video_id}.fresh_pred.npy", files["fresh_pred"][1])
-        store.put_file(files["fresh_feat"][0], f"d038_fresh/{job.video_id}.fresh_feat.tar", files["fresh_feat"][1])
+        store.put_file(files["fresh_pred"][0], f"{D038_PREFIX}/{job.video_id}.fresh_pred.npy", files["fresh_pred"][1])
+        store.put_file(files["fresh_feat"][0], f"{D038_PREFIX}/{job.video_id}.fresh_feat.tar", files["fresh_feat"][1])
         if files["fresh_pred"][1] != d038["fresh_pred_sha256"]:
             raise RuntimeError(f"fresh prediction sha256 mismatch for {job.id}")
     row.update({"pred_key": pred_key, "tar_sha256": files["entry_tar"][1], "sums_sha256": files["entry_sums"][1]})
@@ -375,7 +390,7 @@ def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) ->
         raise SystemExit(f"config p4.gpu_name {p['gpu_name']!r} != qc.GPU_NAME {GPU_NAME!r}")
     store = Store(backend)
     jobs = plan_jobs(cfg)
-    st = load_state(backend)
+    st = load_state(backend, p.get("superseded_run_ids") or [])
     res: dict[str, Any] = {"run_id": a.run_id, "git_sha": backend.git_sha(), "instance_type": itype,
                            "jobs_run": [], "restored": [], "gate_failures": {}, "errors": {},
                            "decision": "D-063", "firewall": "per-clip checks only (D-063 B2)"}
@@ -409,7 +424,7 @@ def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) ->
         res["stop_cleared"] = {r: a.clear_stop for r in stops}
     if not pending:
         res["status"] = "complete"
-        return _finish(res, run_dir, backend, store, jobs)
+        return _finish(res, run_dir, backend, store, jobs, p.get("superseded_run_ids") or [])
     if a.limit:
         pending = pending[:a.limit]
     price = lg.types()[itype]["usd_per_hour"]
@@ -495,11 +510,11 @@ def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) ->
             backend.mirror_ledger(a.run_id)
         except Exception as exc:  # noqa: BLE001
             res.setdefault("teardown_errors", []).append(f"ledger mirror: {exc}"[:300])
-    return _finish(res, run_dir, backend, store, jobs)
+    return _finish(res, run_dir, backend, store, jobs, p.get("superseded_run_ids") or [])
 
 
-def _finish(res: dict, run_dir: Path, backend, store: Store, jobs: list[Job]) -> tuple[int, dict]:
-    st = load_state(backend)
+def _finish(res: dict, run_dir: Path, backend, store: Store, jobs: list[Job], superseded: list[str] = ()) -> tuple[int, dict]:
+    st = load_state(backend, superseded)
     res["remaining"] = [j.id for j in jobs if not is_done(j, st)]
     res["n_done"] = len(jobs) - len(res["remaining"])
     res["n_jobs"] = len(jobs)
@@ -633,6 +648,7 @@ class DryRunBackend:
     def __init__(self, root: Path, cfg: dict, clock):
         self.root, self.cfg, self.clock = Path(root), cfg, clock
         self.s3, self.pod = self.root / "s3", self.root / "pod"
+        self.rev_extra: dict = {}          # test hook: extra revisions (simulates a stack change, BUG-029)
         self.s3.mkdir(parents=True, exist_ok=True)
         self.pod.mkdir(parents=True, exist_ok=True)
         self.faults: dict[str, str] = {}
@@ -759,7 +775,8 @@ class DryRunBackend:
         out = box["dir"] / "res" / (job.id + ("_rerun" if mode == "rerun" else ""))
         fresh = job.d038 and mode == "main"
         m = run_cached(clip, FeatureStore(box["dir"] / "fc"), extract, predict,
-                       {"gpu": GPU_NAME, "bug018_word_fix": True, "backbones": {"dry": "run"}}, out,
+                       {"gpu": GPU_NAME, "bug018_word_fix": True, "bug018_word_end_clamp": WORD_END_CLAMP,
+                        "backbones": {"dry": "run"}, **self.rev_extra}, out,
                        fresh_drift=fresh, offline=True, keep_fresh=f"{out}.fresh_feat" if fresh else None,
                        fresh_preds_out=f"{out}.fresh_pred.npy" if fresh else None)
         m.pop("aux")

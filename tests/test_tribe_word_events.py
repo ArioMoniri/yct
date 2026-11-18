@@ -176,3 +176,49 @@ def test_run_clip_preflight_guard_and_patch(tmp_path):
     assert ap.parse_args(base).bug018_word_fix is False
     assert ap.parse_args(["--video", "v", "--feature-cache", "c", "--out", "o", "--weights", "w",
                           "--bug018-word-fix"]).bug018_word_fix is True
+
+
+def _tsv_rows(tmp_path, rows, name="t1"):
+    df = pd.DataFrame({"text": [f"w{i}" for i in range(len(rows))], "start": [r[0] for r in rows],
+                       "duration": [r[1] for r in rows], "sequence_id": 0, "sentence": "s"})
+    wav = tmp_path / f"{name}.wav"
+    wav.write_bytes(b"")
+    df.to_csv(wav.with_suffix(".tsv"), sep="\t", index=False)
+    return wav, df
+
+
+def test_bug029_last_word_past_clip_end_is_clamped_not_dropped(tmp_path):
+    """P4 session 4: the 58.0 s trim cuts the last word (end 58.010-58.030 s) and TRIBE dropped it
+    (n_words = .tsv rows - 1). The fix keeps every word; only that word's end is cut to 58.0 - 1 ms."""
+    wav, tr = _tsv_rows(tmp_path, [(0.07, 0.3), (30.0, 0.4), (57.53, 0.48)])
+    assert we.n_words_past_end(tr, 58.0) == 1
+    et = fake_et()
+    we.install(et)
+    out = et.ExtractWordsFromAudio()._run(chunked_events(wav, [(0.0, 58.0)]))
+    w = out[out.type == "Word"].reset_index(drop=True)
+    assert len(w) == 3
+    assert list(w.start) == pytest.approx([0.07, 30.0, 57.53])                 # starts never move
+    assert list(w.duration[:2]) == pytest.approx([0.3, 0.4])                   # others untouched
+    assert w.start[2] + w.duration[2] == pytest.approx(58.0 - we.END_GUARD_S)
+    assert ((w.start + w.duration) <= 58.0).all()
+    assert we.check_word_events(out, len(tr), 58.0)["ok"] is True
+
+
+def test_bug029_clamp_is_at_file_end_not_chunk_boundary_and_timeline_offset(tmp_path):
+    wav, tr = _tsv_rows(tmp_path, [(59.9, 0.3), (109.9, 0.3)])
+    et = fake_et()
+    we.install(et)
+    out = et.ExtractWordsFromAudio()._run(chunked_events(wav, [(0.0, 60.0), (60.0, 50.0)]))
+    w = out[out.type == "Word"].sort_values("start").reset_index(drop=True)
+    assert len(w) == 2
+    assert w.duration[0] == pytest.approx(0.3)                                 # straddles chunk edge: kept
+    assert w.start[1] + w.duration[1] == pytest.approx(110.0 - we.END_GUARD_S)
+
+
+def test_clamp_durations_unit():
+    st = pd.Series([1.0, 57.5, 58.5])
+    du = pd.Series([0.5, 1.0, 0.2])
+    out = we.clamp_durations(st, du, 58.0)
+    assert list(out) == pytest.approx([0.5, 0.5, 0.0])
+    assert we.n_words_past_end(pd.DataFrame({"start": st, "duration": du}), 58.0) == 2
+    assert we.n_words_past_end(pd.DataFrame(), 58.0) == 0

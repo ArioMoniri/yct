@@ -88,9 +88,9 @@ def test_full_dry_run_session_syncs_every_video_and_terminates(env):
     b, lg = env["backend"], env["lg"]
     keys = set(b.s3_list(""))
     for vid in SMALL["p4"]["run_set_t1"]:
-        assert f"pred/t1/{vid}.npy" in keys and f"pred/t1/{vid}.segments.csv" in keys
+        assert f"{p4.PRED_PREFIX}/t1/{vid}.npy" in keys and f"{p4.PRED_PREFIX}/t1/{vid}.segments.csv" in keys
     for vid in SMALL["p4"]["run_set_t3"]:
-        assert f"pred/t3/{vid}.npy" in keys
+        assert f"{p4.PRED_PREFIX}/t3/{vid}.npy" in keys
     rows = _manifest(env)
     assert len(rows) == 7 and all(r["gate_pass"] for r in rows)
     assert all(r["gpu"] == "NVIDIA A100-SXM4-40GB" and r["run_id"] == "p4_test" for r in rows)
@@ -98,9 +98,10 @@ def test_full_dry_run_session_syncs_every_video_and_terminates(env):
     for r in rows:
         assert f"feature_cache/{r['cache_key']}.tar" in keys
         assert f"feature_cache/{r['cache_key']}.FILES_SHA256SUMS" in keys
-        assert f"entries/{r['job']}.json" in keys and r["pred_sha256"] == b.s3_sha(r["pred_key"])
+        assert f"{p4.ENTRY_PREFIX}/{r['job']}.json" in keys and r["pred_sha256"] == b.s3_sha(r["pred_key"])
     # D-038: fresh-extraction predictions persisted (Gate 2 re-scored on M1 after P4), Gate 1 checked
-    assert "d038_fresh/yct_0016.fresh_pred.npy" in keys and "d038_fresh/yct_0016.fresh_feat.tar" in keys
+    assert f"{p4.D038_PREFIX}/yct_0016.fresh_pred.npy" in keys
+    assert f"{p4.D038_PREFIX}/yct_0016.fresh_feat.tar" in keys
     d = next(r for r in rows if r["job"] == "yct_0016.t1")["d038"]
     assert d["cached_rerun_bit_identical"] and d["fresh_gate_pass"] and d["fresh_pred_sha256"]
     # instance: name deadline, terminated, terminator scheduled at deadline + 15 min
@@ -146,8 +147,8 @@ def test_crash_after_entry_sync_restores_cache_on_new_box_no_reextraction(env):
     rc, res = _run(env, "p4_a")
     assert rc == 1 and "error" in res
     assert env["lg"].status[env["lg"].launched[0]] == "terminated"                 # always terminated
-    assert "entries/yct_0040.t1.json" in b.s3_list("entries/")
-    assert "pred/t1/yct_0040.npy" not in b.s3_list("pred/")
+    assert f"{p4.ENTRY_PREFIX}/yct_0040.t1.json" in b.s3_list(p4.ENTRY_PREFIX + "/")
+    assert f"{p4.PRED_PREFIX}/t1/yct_0040.npy" not in b.s3_list(p4.PRED_PREFIX + "/")
     box1_sha = b.box_pred_sha["yct_0040.t1"]
     b.faults.clear()
     rc2, res2 = _run(env, "p4_b")
@@ -166,7 +167,7 @@ def test_chunk_gate_failure_exits_nonzero_and_is_retried_next_session(env):
     assert rc == 1 and res["gate_failures"]["yct_0043.t3"]
     row = next(r for r in _manifest(env) if r["job"] == "yct_0043.t3")
     assert row["gate_pass"] is False and any("Audio" in f for f in row["gate_failures"])
-    assert "pred/t3/yct_0043.npy" not in b.s3_list("pred/")                     # failed clip not published
+    assert f"{p4.PRED_PREFIX}/t3/yct_0043.npy" not in b.s3_list(p4.PRED_PREFIX + "/")  # not published
     assert len([r for r in _manifest(env) if r["gate_pass"]]) == 6
     b.faults.clear()
     rc2, res2 = _run(env, "p4_b")
@@ -182,10 +183,10 @@ def test_d038_gate1_failure_is_a_stop(env):
 
 def test_existing_s3_object_with_other_sha_is_never_overwritten(env):
     b = env["backend"]
-    b.s3_put_text("pred/t1/yct_0040.npy.sha256", "0" * 64 + "\n")
+    b.s3_put_text(f"{p4.PRED_PREFIX}/t1/yct_0040.npy.sha256", "0" * 64 + "\n")
     rc, res = _run(env)
     assert rc == 1 and "yct_0040.t1" in res["errors"] and "overwrite" in res["errors"]["yct_0040.t1"]
-    assert b.s3_get_text("pred/t1/yct_0040.npy.sha256").strip() == "0" * 64
+    assert b.s3_get_text(f"{p4.PRED_PREFIX}/t1/yct_0040.npy.sha256").strip() == "0" * 64
 
 
 def test_manifest_append_refuses_a_changed_remote():
@@ -397,7 +398,7 @@ def test_transient_read_error_never_truncates_manifest_or_overwrites(env):
     with pytest.raises(p4.S3ReadError):
         store.append_rows([{"job": "x", "gate_pass": True}], "p4_z")
     with pytest.raises(p4.S3ReadError):
-        store.put_file(str(b.s3 / "manifest.jsonl"), "pred/t1/yct_0016.npy", "0" * 64)
+        store.put_file(str(b.s3 / "manifest.jsonl"), f"{p4.PRED_PREFIX}/t1/yct_0016.npy", "0" * 64)
     b.s3_get_text = real
     assert b.s3_get_text("manifest.jsonl") == before and "rows/p4_z/x.json" not in b.s3_list("rows/")
 
@@ -412,3 +413,35 @@ def test_missing_manifest_with_existing_rows_refuses(env):
     assert len(env["lg"].launched) == 1
     with pytest.raises(p4.ManifestConflictError):
         p4.Store(b).append_rows([{"job": "x"}], "p4_c")
+
+
+def test_superseded_runs_are_ignored_and_every_job_reruns(env, monkeypatch):
+    """BUG-029 (FIX-P4G, D-067): rows/entries of runs listed in p4.superseded_run_ids (made before the
+    word-end clamp) never count as done or restorable; S3 objects stay; manifest append-only."""
+    env["backend"].rev_extra = {"pre_clamp": True}     # superseded runs: other stack -> other cache keys
+    monkeypatch.setattr(p4, "PRED_PREFIX", "pred")      # ... and wrote the pre-BUG-029 prefixes
+    monkeypatch.setattr(p4, "ENTRY_PREFIX", "entries")
+    monkeypatch.setattr(p4, "D038_PREFIX", "d038_fresh")
+    assert _run(env, "p4_a")[0] == 0
+    monkeypatch.undo()
+    env["backend"].rev_extra = {}
+    old = set(env["backend"].s3_list("pred/")) | set(env["backend"].s3_list("entries/"))
+    n_rows, n = len(_manifest(env)), env["backend"].n_extractions
+    env["cfg"] = with_overrides(env["cfg"], {"p4": {"superseded_run_ids": ["p4_a"]}})
+    rc, res = _run(env, "p4_b")
+    assert rc == 0 and res["status"] == "complete", {k: res.get(k) for k in ("error", "errors", "stop")}
+    assert len(res["jobs_run"]) == n_rows and res["restored"] == []
+    assert env["backend"].n_extractions > n
+    rows = _manifest(env)
+    assert len(rows) == 2 * n_rows and {r["run_id"] for r in rows} == {"p4_a", "p4_b"}
+    assert old <= set(env["backend"].s3_list("pred/")) | set(env["backend"].s3_list("entries/"))   # kept
+    st = p4.load_state(env["backend"], ["p4_a"])
+    assert {r["run_id"] for r in st.rows} == {"p4_b"}
+    assert all(e["run_id"] == "p4_b" for e in st.entries.values())
+
+
+def test_superseded_failed_d038_row_still_latches(env):
+    rows = [{"job": "yct_0016.t1", "run_id": "old", "d038": {"pass": False}, "gate_pass": False}]
+    env["backend"].s3_put_text("manifest.jsonl", "\n".join(json.dumps(r) for r in rows) + "\n")
+    st = p4.load_state(env["backend"], ["old"])
+    assert p4.latched_stops(st) == ["old"]

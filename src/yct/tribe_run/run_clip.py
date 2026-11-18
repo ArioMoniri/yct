@@ -176,6 +176,9 @@ def main() -> None:
     torch.cuda.reset_peak_memory_stats()
     revisions = _revisions(weights, tribev2, torch, backbones)
     revisions["bug018_word_fix"] = bool(a.bug018_word_fix)   # part of the cache key (QA P4-entry D11)
+    if a.bug018_word_fix:                                    # BUG-029 word-end clamp version (cache key)
+        from yct.tribe_run.word_events import WORD_END_CLAMP
+        revisions["bug018_word_end_clamp"] = WORD_END_CLAMP
     try:
         res = run_cached(src, FeatureStore(a.feature_cache), extract, predict,
                          revisions, a.out,
@@ -204,10 +207,12 @@ def main() -> None:
     words = ev[ev.type == "Word"]
     dur = ffprobe_duration(aux["video"])
     n_words = int((df.type == "Word").sum())
-    from yct.tribe_run.word_events import check_word_events, is_installed
+    from yct.tribe_run.word_events import check_word_events, is_installed, n_words_past_end
 
-    n_tsv = len(pd.read_csv(src.with_suffix(".tsv"), sep="\t"))
-    word_check = {**check_word_events(df, n_tsv, dur), "bug018_fix": is_installed(et)}
+    tsv_df = pd.read_csv(src.with_suffix(".tsv"), sep="\t")
+    n_tsv = len(tsv_df)
+    word_check = {**check_word_events(df, n_tsv, dur), "bug018_fix": is_installed(et),
+                  "n_tsv_words_past_end": n_words_past_end(tsv_df, dur)}   # BUG-029: clamped, not dropped
     m = {
         **res,
         "clip": src.name, "duration_s": dur, "shape": list(preds.shape), "dtype": str(preds.dtype),

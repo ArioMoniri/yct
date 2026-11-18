@@ -569,6 +569,7 @@ class P4(M):
     gpu_type: str
     gpu_name: str
     s3_prefix: Annotated[str, Field(pattern=r"^s3://yct-research-235229001983/")]
+    superseded_run_ids: list[Annotated[str, Field(pattern=r"^[A-Za-z0-9_]+$")]]   # BUG-029, D-067 (required)
     session_max_hours: Annotated[float, Field(gt=0, le=4)]
     terminator_margin_s: PosInt
 

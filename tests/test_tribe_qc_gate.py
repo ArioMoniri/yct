@@ -13,7 +13,8 @@ GOOD = {
     "T_within_1": True, "chunks": {"Audio": [[0.0, 58.0]], "Video": [[0.0, 58.0]]},
     "bug018_word_check": {"ok": True, "n_words": 181, "n_tsv_rows": 181, "bug018_fix": True},
     "words_after_duration": 0, "asr_called": False, "uvx_on_path": False, "offline": True,
-    "revisions": {"gpu": GPU_NAME, "bug018_word_fix": True, "backbones": {"x": "y"}},
+    "revisions": {"gpu": GPU_NAME, "bug018_word_fix": True, "bug018_word_end_clamp": "v1",
+                  "backbones": {"x": "y"}},
     "pred_shape": [58, 20484], "pred_sha256": "a" * 64, "cache_key": "b" * 64, "input_sha256": "c" * 64,
     "transcript_sha256": "d" * 64, "n_words": 181, "pred_mean": 0.01, "pred_std": 0.15,
     "feature_sha256": {"text/llama::some transcript words": "e" * 64},
@@ -51,8 +52,11 @@ def test_good_t1_clip_passes():
     ({"asr_called": True}, "asr"),
     ({"uvx_on_path": True}, "uvx"),
     ({"offline": False}, "offline"),
-    ({"revisions": {"gpu": "NVIDIA A100-SXM4-80GB", "bug018_word_fix": True}}, "gpu"),
-    ({"revisions": {"gpu": GPU_NAME, "bug018_word_fix": False}}, "bug018"),
+    ({"revisions": {"gpu": "NVIDIA A100-SXM4-80GB", "bug018_word_fix": True,
+                    "bug018_word_end_clamp": "v1"}}, "gpu"),
+    ({"revisions": {"gpu": GPU_NAME, "bug018_word_fix": False, "bug018_word_end_clamp": "v1"}}, "bug018"),
+    ({"revisions": {"gpu": GPU_NAME, "bug018_word_fix": True}}, "clamp"),
+    ({"revisions": {"gpu": GPU_NAME, "bug018_word_fix": True, "bug018_word_end_clamp": "v0"}}, "clamp"),
     ({"pred_sha256": None}, "pred_sha256"),
     ({"chunks": None}, "chunks"),
     ({"duration_s": 59.2}, "duration"),
@@ -65,7 +69,29 @@ def test_each_violation_fails_the_gate(change, why):
 def test_t3_short_clip_gated_on_its_own_duration_not_58():
     short = _bad(duration_s=42.8, shape=[43, 20484], pred_shape=[43, 20484], expected_T=42.8)
     assert clip_gate(short, "t3")["pass"] is True
-    assert clip_gate(short, "t1")["pass"] is False      # T1 clips are the 58 s trim
+    assert clip_gate(short, "t1")["pass"] is False      # T1 needs >= window end + min tail = 50 s (D-039)
+
+
+@pytest.mark.parametrize("dur,t,ok", [
+    (53.081, 54, True),     # BUG-030 regression: yct_0186 (P4 s4), T1 shorter than 58 s, kept by D-039
+    (56.2, 57, True),       # yct_0247-like
+    (50.0, 50, True),       # exactly window end + min tail
+    (49.9, 50, False),      # below D-039 minimum
+    (53.081, 58, False),    # T inconsistent with duration
+    (58.0, 60, False),      # T > 59
+])
+def test_t1_short_source_clip_gated_on_d039_minimum(dur, t, ok):
+    m = _bad(duration_s=dur, shape=[t, 20484], pred_shape=[t, 20484], expected_T=dur)
+    assert clip_gate(m, "t1")["pass"] is ok, clip_gate(m, "t1")
+
+
+def test_t1_min_matches_frozen_config():
+    from yct.config import load_config
+    from yct.tribe_run.qc import T1_MIN_S, WORD_END_CLAMP
+    from yct.tribe_run.word_events import WORD_END_CLAMP as WEC
+    w = load_config()["window"]
+    assert T1_MIN_S == w["end_tr"] + w["min_tail_s"]
+    assert WORD_END_CLAMP == WEC
 
 
 def test_expectations_from_the_driver_are_enforced():
@@ -103,10 +129,12 @@ def test_gate_on_real_d062_records():
     runs = json.loads((Path(__file__).resolve().parents[1] / "outputs/runs/wave1p2b_20261118T002855Z"
                        / "child_metrics.json").read_text())["runs"]
     p4_only = {"gpu None != 'NVIDIA A100-SXM4-40GB' (one GPU type for all of P4)",
-               "bug018 word fix not on (one setting for all of P4)"}
+               "bug018 word fix not on (one setting for all of P4)",
+               "word-end clamp None != 'v1' (BUG-029)"}
     for vid in ("yct_0016", "yct_0034", "yct_0036", "yct_0016_rerun"):
         assert set(clip_gate(runs[vid], "t1")["failures"]) == p4_only, vid
-        fixed = {**runs[vid], "revisions": {"gpu": GPU_NAME, "bug018_word_fix": True}}
+        fixed = {**runs[vid], "revisions": {"gpu": GPU_NAME, "bug018_word_fix": True,
+                                            "bug018_word_end_clamp": "v1"}}
         assert clip_gate(fixed, "t1")["pass"] and clip_gate(fixed, "t3")["pass"]
     f = clip_gate(runs["long160"], "t3")["failures"]
     assert "Audio chunks = 3, need exactly 1" in f and "Video chunks = 3, need exactly 1" in f
