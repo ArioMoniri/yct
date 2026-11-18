@@ -75,8 +75,9 @@ def test_first_run_extracts_once_and_records_hashes(clip, store, tmp_path):
     m = fc.run_cached(clip, store, ex, pr, REV, tmp_path / "out" / "r1")
     assert ex.calls == 1 and pr.calls == 1
     assert m["cache_reused"] is False and m["input_sha256"] == _sha(clip)
-    assert m["transcript_sha256"] == _sha(clip.with_suffix(".tsv")) and m["cache_key"] == fc.cache_key(clip)
-    entry = store.entry_dir(fc.cache_key(clip))
+    assert (m["transcript_sha256"] == _sha(clip.with_suffix(".tsv"))
+            and m["cache_key"] == fc.cache_key(clip, revisions=REV))
+    entry = store.entry_dir(fc.cache_key(clip, revisions=REV))
     meta = json.loads((entry / fc.SIDECAR).read_text())
     assert meta["input_sha256"] == _sha(clip)
     assert meta["revisions"] == REV and meta["n_extractions"] == 1
@@ -129,7 +130,7 @@ def test_cache_is_keyed_by_content_not_name(clip, store, tmp_path):
 def test_tampered_tensor_fails_loudly(clip, store, tmp_path):
     ex = MockExtractor()
     fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1")
-    t = store.entry_dir(fc.cache_key(clip)) / "feat" / "audio.npy"
+    t = store.entry_dir(fc.cache_key(clip, revisions=REV)) / "feat" / "audio.npy"
     arr = np.load(t)
     arr[0, 0] += 1.0
     np.save(t, arr)
@@ -141,7 +142,7 @@ def test_tampered_tensor_fails_loudly(clip, store, tmp_path):
 def test_extra_or_missing_cached_file_fails(clip, store, tmp_path):
     ex = MockExtractor()
     fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1")
-    feat = store.entry_dir(fc.cache_key(clip)) / "feat"
+    feat = store.entry_dir(fc.cache_key(clip, revisions=REV)) / "feat"
     (feat / "stray.npy").write_bytes(b"x")
     with pytest.raises(fc.FeatureCacheError, match="stray"):
         fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o2")
@@ -202,7 +203,7 @@ def test_fresh_extraction_drift_is_reported_not_gated(clip, store, tmp_path):
     assert d["tensors"]["audio.npy"]["max_abs_diff"] > 0
     assert m2["pred_sha256"] == m1["pred_sha256"]  # drift never leaks into the reported predictions
     assert ex.calls == 2  # one cached extraction + one throw-away fresh one
-    meta = json.loads((store.entry_dir(fc.cache_key(clip)) / fc.SIDECAR).read_text())
+    meta = json.loads((store.entry_dir(fc.cache_key(clip, revisions=REV)) / fc.SIDECAR).read_text())
     assert meta["n_extractions"] == 1  # the throw-away extraction is not stored
     assert json.loads((tmp_path / "o2.json").read_text())["fresh_extraction_drift"] == d
 
@@ -239,7 +240,7 @@ def test_input_copy_and_transcript_are_cached_and_hashed(clip, store, tmp_path):
         MockExtractor()(video, feat_dir)
 
     fc.run_cached(clip, store, ex, MockPredictor(), REV, tmp_path / "o1")
-    entry = store.entry_dir(fc.cache_key(clip))
+    entry = store.entry_dir(fc.cache_key(clip, revisions=REV))
     assert seen["video"].parent == entry / "input" and seen["video"].name == clip.name
     meta = json.loads((entry / fc.SIDECAR).read_text())
     assert meta["input_files"][clip.name] == _sha(clip)

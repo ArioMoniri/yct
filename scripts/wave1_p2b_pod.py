@@ -58,7 +58,8 @@ def inputs(out: str) -> None:
         h = done.read_text().strip()
         r = json.loads((N / "records" / f"{h}.json").read_text())
         rows.append({"video_id": vid, "content_id": h, "t3_content_id": Path(r["t3"]["t3_path"]).stem if r.get("t3") else "",
-                     "wav_path": r["wav_path"], "t1_path": r["path"], "duration_s": r["out_duration_s"]})
+                     "wav_path": r["wav_path"], "t1_path": r["path"], "duration_s": r["out_duration_s"],
+                     "t3_path": r["t3"]["t3_path"] if r.get("t3") else ""})  # P4 driver (FIX-P4E)
     pd.DataFrame(rows).to_csv(out, index=False)
     print(json.dumps({"n": len(rows)}))
 

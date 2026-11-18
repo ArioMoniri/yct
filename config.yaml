@@ -23,6 +23,11 @@ window:                        # W, set in P4 from label-free mean time course; 
   default_start_tr: 5          # max(5, 4 + L + 1) once P0 latency L is measured
   default_len_tr: 40
   min_tail_s: 5                # exclude from T1 if trimmed duration < W_end + 5 s (D-039; was 2)
+  # D-063 B1 (Gate P4-entry, label-blind, before any analysis-set prediction exists): L and W FIXED and frozen
+  # (`frozen:` below). W rule: W may not move after any analysis-set prediction is W-averaged.
+  latency_l_tr: 0              # L = 0 TR (D-055: L <= 0, backward leakage 3-4 TR)
+  start_tr: 5                  # W = [start_tr, end_tr) TRs = [5, 45) = max(5, 4 + L + 1) + 40
+  end_tr: 45
 
 era_strata:                    # from the YC batch calendar, not the data (v2.md §1)
   E1: {last_batch: W2016}
@@ -149,6 +154,10 @@ transcribe:                    # P2b (v2.md §5 P2b; tribe_requirements §2.2)
     compute_type: float16
     batch_size: 16
     align_model: WAV2VEC2_ASR_LARGE_LV60K_960H
+  wer:                         # D-063 Q5: WER does not block P4; it blocks P5. Fixed before any WER is seen.
+    n_hand_checked: 5          # yct_0016, yct_0034, yct_0036, yct_0040, yct_0043 (first 5 sorted ids, D-062)
+    action_threshold: 0.25     # WER > 0.25 -> re-transcribe with a new D- entry before P5
+    rule: any_video            # strictest reading of "WER > 0.25 on the 5 hand-checked videos": any one of them
   tsv_columns: [text, start, duration, sequence_id, sentence]
   max_unmatched_ratio: 0.05    # TRIBE AddSentenceToWords tolerance; validator enforces the same
   end_tolerance_s: 0.5         # last word may end this far past the media duration
@@ -325,18 +334,23 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     # AUD = A4 ∪ A5 only: speech-preferring auditory association cortex. Not A1/belt (respond to any sound,
     # incl. the P0 flash-driven OOD response), not STS (overlaps the H2 composite -> circular).
     V1_V3: {areas: [V1, V2, V3], hemis: [L, R], n_vertices: 1148}
-    MT_plus: {areas: [MT, MST, FST, V4t], hemis: [L, R], n_vertices: 168}
-    # MT+ = Glasser's MT+ complex; pre-lock FALLBACK for the motion control if V1-V3 fails the ENH-002 dry run
-    # (TRIBE known issue #9: mean-pooled V-JEPA tokens weaken retinotopic cortex). Chosen only by a DECISIONS
-    # entry before P4b lock, never after.
+    MT_plus: {areas: [MT, MST, FST], hemis: [L, R], n_vertices: 139}
+    # D-063 Q4 (v2.7 P4E): the GATING low-level visual (motion) control ROI = HCP-MMP MT ∪ MST ∪ FST (MT 38,
+    # MST 45, FST 56 fs5 vertices). V4t (the paper's EBA proxy; would let body content pass a motion control)
+    # DROPPED (was [MT, MST, FST, V4t], 168). V1-V3 is descriptive only (TRIBE known issue #9); no
+    # luminance-only kernel. Frozen (`frozen:` below).
   regressors:                  # computed inside the central 256x256 V-JEPA2 crop where visual; 2 Hz -> 1 Hz mean
-    face: {source: confounds, column: face_area_crop_frac, roi: FFC}
-    motion: {source: confounds, column: motion_energy_crop, roi: V1_V3}
-    luminance_change: {source: derived, from: luminance_crop, op: abs_first_difference, roi: V1_V3}
+    # gating: true = a P4b (a) control that can STOP; false = partialled out / reported only (D-063 Q4)
+    face: {source: confounds, column: face_area_crop_frac, roi: FFC, gating: true}
+    motion: {source: confounds, column: motion_energy_crop, roi: MT_plus, gating: true}   # D-063 Q4 (was V1_V3)
+    luminance_change: {source: derived, from: luminance_crop, op: abs_first_difference, roi: V1_V3, gating: false}
     # D-039 (Referee P0 4a/b): luminance-change energy is partialled out of every within-video control,
     # because AUD responded to the black->white flash more than to speech in P0.
-    speech_envelope: {source: derived, from: audio16k, op: hilbert_broadband_envelope_mean, roi: AUD}
+    speech_envelope: {source: derived, from: audio16k, op: hilbert_broadband_envelope_mean, roi: AUD, gating: true}
     # speech envelope is not a yct.confounds column yet: implemented with the P4b controls code (ticket ENH-002)
+  descriptive:                 # D-063 Q4: reported beside the gating controls, never gate (V1-V3 non-retinotopic)
+    - {regressor: motion, roi: V1_V3}
+    - {regressor: luminance_change, roi: V1_V3}
   partial_out: [face, motion, luminance_change, speech_envelope]   # partial r controls for all other regressors
   kernel:                      # NO canonical HRF and NO separate shift by L (the kernel already holds the timing)
     type: measured_impulse_per_roi
@@ -357,6 +371,41 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     between_video: {r_gt: 0.3, perm_p_lt: 0.05}
     min_videos: 15             # fewer -> evaluated on the >= 5 reference naturalistic clips
     low_sd_percentile: 10      # regressor SD over W below this percentile of the reference clips -> excluded
+
+p4:                            # P4 TRIBE inference run sets + compute (D-063, ticket FIX-P4E; scripts/gpu_wave1_p4.py)
+  # Label-blind, fixed before any real-data P4 output. Output firewall (D-063 B2): P4 extracts features and
+  # predictions for these sets only; NO W-averaging, ROI/network readout, OOD or cross-video statistic runs on
+  # analysis-set predictions until the P4b design entry (kernels, ROIs, thresholds) is committed.
+  decision: D-063
+  analysis_excluded: {yct_0644: source_unavailable}   # Q2: unconditional, never re-admitted (BUG-013)
+  t1_excluded: {yct_0483: trimmed_duration_below_w_end_plus_min_tail}   # 42.8 s < 45 + 5 s (D-060)
+  run_set_t3: [                # analysis set (in_primary & qc_pass, 53) minus yct_0644 = 52
+      yct_0016, yct_0034, yct_0036, yct_0040, yct_0043, yct_0049, yct_0072, yct_0100,
+      yct_0104, yct_0105, yct_0128, yct_0138, yct_0159, yct_0160, yct_0175, yct_0186,
+      yct_0194, yct_0199, yct_0206, yct_0208, yct_0214, yct_0247, yct_0269, yct_0295,
+      yct_0304, yct_0310, yct_0346, yct_0420, yct_0422, yct_0442, yct_0444, yct_0463,
+      yct_0482, yct_0483, yct_0528, yct_0553, yct_0567, yct_0626, yct_0628, yct_0629,
+      yct_0630, yct_0631, yct_0632, yct_0633, yct_0634, yct_0635, yct_0636, yct_0637,
+      yct_0638, yct_0639, yct_0645, yct_0646]
+  run_set_t1: [                # run_set_t3 minus yct_0483 = 51 (T1 set frozen at 51, D-063 B1)
+      yct_0016, yct_0034, yct_0036, yct_0040, yct_0043, yct_0049, yct_0072, yct_0100,
+      yct_0104, yct_0105, yct_0128, yct_0138, yct_0159, yct_0160, yct_0175, yct_0186,
+      yct_0194, yct_0199, yct_0206, yct_0208, yct_0214, yct_0247, yct_0269, yct_0295,
+      yct_0304, yct_0310, yct_0346, yct_0420, yct_0422, yct_0442, yct_0444, yct_0463,
+      yct_0482, yct_0528, yct_0553, yct_0567, yct_0626, yct_0628, yct_0629, yct_0630,
+      yct_0631, yct_0632, yct_0633, yct_0634, yct_0635, yct_0636, yct_0637, yct_0638,
+      yct_0639, yct_0645, yct_0646]
+  flags:
+    low_fps_source:            # D-063 Q3: KEPT + flagged; S-LOWFPS = same W/M0/Q/seeds/blocks without them,
+      rule: "src_fps < stimulus.min_source_fps"   # outside Holm, T3 survive/fragile rule; disclosed beside M0
+      videos: [yct_0626]       # 12.54 fps (yct_0641, 14.99 fps, is not in the analysis set)
+      sensitivity: S-LOWFPS
+  d038_clips: [yct_0016, yct_0034, yct_0036]   # fresh re-extraction predictions saved (Gate 2 re-scored on M1)
+  gpu_type: gpu_1x_a100_sxm4   # one GPU type for all of P4 (v2.md §3); the cache key holds the GPU model
+  gpu_name: "NVIDIA A100-SXM4-40GB"
+  s3_prefix: s3://yct-research-235229001983/wave1/derived/p4
+  session_max_hours: 4         # <= budget.max_hours_per_instance; resumable across sessions
+  terminator_margin_s: 900     # D-063 Q7: driver-independent terminator fires at deadline + 15 min
 
 guards:                        # history exceptions for scripts/check_*.py; exact entries only. FROZEN by
   # scripts/check_guard_config.py: any change needs '[QA-approved guard change: <TICKET>]' in the commit

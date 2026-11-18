@@ -51,6 +51,17 @@ class Window(M):
     default_start_tr: PosInt
     default_len_tr: PosInt
     min_tail_s: NonNeg
+    latency_l_tr: Annotated[int, Field(ge=0)]    # D-063 B1
+    start_tr: PosInt
+    end_tr: PosInt
+
+    @model_validator(mode="after")
+    def _w_rule(self):
+        if self.start_tr != max(5, 4 + self.latency_l_tr + 1):
+            raise ValueError("window.start_tr must equal max(5, 4 + latency_l_tr + 1) (v2.md W rule)")
+        if self.end_tr - self.start_tr != self.default_len_tr:
+            raise ValueError("window.end_tr - start_tr must equal default_len_tr")
+        return self
 
 
 class Era(M):
@@ -267,8 +278,15 @@ class WhisperX(M):
     align_model: str
 
 
+class Wer(M):                         # D-063 Q5
+    n_hand_checked: PosInt
+    action_threshold: Frac
+    rule: Literal["any_video"]
+
+
 class Transcribe(M):
     whisperx: WhisperX
+    wer: Wer
     tsv_columns: list[str]
     max_unmatched_ratio: Frac
     end_tolerance_s: NonNeg
@@ -457,6 +475,12 @@ class Regressor(M):
     column: str | None = None
     from_: str | None = Field(default=None, alias="from")
     op: str | None = None
+    gating: bool                      # D-063 Q4: true = can STOP P4b; false = partialled out / reported only
+
+
+class Descriptive(M):
+    regressor: str
+    roi: str
 
 
 class Kernel(M):
@@ -505,14 +529,63 @@ class Controls(M):
     maps: list[Literal["spatially_standardised", "raw"]]
     dry_run: DryRun
     pass_: Pass = Field(alias="pass")
+    descriptive: list[Descriptive]
 
     @model_validator(mode="after")
     def _refs(self):
         for name, r in self.regressors.items():
             if r.roi not in self.rois:
                 raise ValueError(f"controls.regressors.{name}.roi {r.roi!r} is not a defined ROI")
+        for d in self.descriptive:
+            if d.regressor not in self.regressors or d.roi not in self.rois:
+                raise ValueError(f"controls.descriptive {d} names an undefined regressor or ROI")
         if not set(self.partial_out) <= set(self.regressors):
             raise ValueError("controls.partial_out names an undefined regressor")
+        return self
+
+
+# ---------------------------------------------------------------- P4 run sets (D-063)
+VideoId = Annotated[str, Field(pattern=r"^yct_\d{4}$")]
+
+
+class LowFps(M):
+    rule: str
+    videos: list[VideoId]
+    sensitivity: str
+
+
+class P4Flags(M):
+    low_fps_source: LowFps
+
+
+class P4(M):
+    decision: Literal["D-063"]
+    analysis_excluded: dict[VideoId, str]
+    t1_excluded: dict[VideoId, str]
+    run_set_t3: Annotated[list[VideoId], Field(min_length=1)]
+    run_set_t1: Annotated[list[VideoId], Field(min_length=1)]
+    flags: P4Flags
+    d038_clips: list[VideoId]
+    gpu_type: str
+    gpu_name: str
+    s3_prefix: Annotated[str, Field(pattern=r"^s3://yct-research-235229001983/")]
+    session_max_hours: Annotated[float, Field(gt=0, le=4)]
+    terminator_margin_s: PosInt
+
+    @model_validator(mode="after")
+    def _sets(self):
+        for name in ("run_set_t3", "run_set_t1"):
+            v = getattr(self, name)
+            if v != sorted(set(v)):
+                raise ValueError(f"p4.{name} must be sorted and unique")
+        if set(self.analysis_excluded) & set(self.run_set_t3):
+            raise ValueError("p4.run_set_t3 contains an excluded video")
+        if set(self.run_set_t1) != set(self.run_set_t3) - set(self.t1_excluded):
+            raise ValueError("p4.run_set_t1 must equal run_set_t3 minus t1_excluded")
+        if not set(self.d038_clips) <= set(self.run_set_t1):
+            raise ValueError("p4.d038_clips must be T1 run-set videos")
+        if not set(self.flags.low_fps_source.videos) <= set(self.run_set_t3):
+            raise ValueError("p4.flags.low_fps_source.videos must be run-set videos")
         return self
 
 
@@ -567,6 +640,7 @@ class Config(M):
     m0: M0
     localize: Localize
     controls: Controls
+    p4: P4
     guards: Guards
     owner: Owner
     frozen: list[Frozen]

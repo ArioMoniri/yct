@@ -5,9 +5,11 @@ feature extractors (fp16 backbones) are nondeterministic, while re-predicting fr
 bit-identical. So:
 
 * features are extracted EXACTLY ONCE per cache key = sha256(video sha256 + transcript sha256, or
-  "none" without a transcript) into ``<root>/<key>/`` (``input/`` holds the clip copy + transcript,
-  ``feat/`` the extractor's tensors), and a sidecar ``features.meta.json`` records the sha256 (and
-  shape/dtype for .npy) of every cached file plus the extractor revisions. A transcript added, removed
+  "none" without a transcript, + sha256 of the canonical extractor revisions: TRIBE commit, checkpoint,
+  backbone revisions, GPU model, package versions; v2.md P4, D-063) into ``<root>/<key>/``
+  (``input/`` holds the clip copy + transcript, ``feat/`` the extractor's tensors), and a sidecar
+  ``features.meta.json`` records the sha256 (and shape/dtype for .npy) of every cached file plus the
+  extractor revisions. A transcript added, removed
   or changed therefore gets its own entry (Biostat P0 P3: never reuse text-less features);
 * every prediction (reruns, ablations, controls) reads only the cache. The cache is re-hashed before
   and after each prediction; any change, missing or new file raises ``FeatureCacheError`` (so a
@@ -93,11 +95,21 @@ def transcript_sha256(video: str | Path) -> str | None:
     return sha256_file(tsv) if tsv.exists() else None
 
 
-def cache_key(video: str | Path, video_sha256: str | None = None) -> str:
-    """sha256 over the video sha256 and the transcript sha256 ("none" if there is no <stem>.tsv)."""
+def revisions_sha256(revisions: dict[str, Any]) -> str:
+    """sha256 of the canonical JSON of the extractor revisions (key order irrelevant)."""
+    return hashlib.sha256(json.dumps(revisions, sort_keys=True, separators=(",", ":"),
+                                     default=str).encode()).hexdigest()
+
+
+def cache_key(video: str | Path, video_sha256: str | None = None, *, revisions: dict[str, Any]) -> str:
+    """sha256 over the video sha256, the transcript sha256 ("none" if there is no <stem>.tsv) and the
+    revisions sha256 (backbone revisions + GPU model + stack; FIX-P4E, D-063). v3: v2 keys (video +
+    transcript only, D-062 archive) never collide with v3 keys."""
     vsha = video_sha256 or sha256_file(video)
     tsha = transcript_sha256(video) or "none"
-    return hashlib.sha256(f"yct-feature-cache-v2\nvideo:{vsha}\ntranscript:{tsha}\n".encode()).hexdigest()
+    rsha = revisions_sha256(revisions)
+    return hashlib.sha256(f"yct-feature-cache-v3\nvideo:{vsha}\ntranscript:{tsha}\nrevisions:{rsha}\n"
+                          .encode()).hexdigest()
 
 
 def _net(offline: bool):
@@ -150,13 +162,25 @@ class FeatureStore:
             raise FeatureCacheError(f"{verb} ({e}): " + "; ".join(problems))
         return meta
 
+    def _refuse_mixed_revisions(self, revisions: dict[str, Any]) -> None:
+        """One cache root = one revisions set (stack + GPU model): the executable form of "one GPU type for
+        all of P4" (v2.md §3; Referee P4-entry Q7). The key also holds the revisions, so a mismatch could
+        never be reused silently; this refuses to even mix them in one root."""
+        want = revisions_sha256(revisions)
+        for side in sorted(self.root.glob(f"*/{SIDECAR}")):
+            got = json.loads(side.read_text()).get("revisions")
+            if got is not None and revisions_sha256(got) != want:
+                raise FeatureCacheError(
+                    f"extractor revision mismatch: entry {side.parent.name} has {got} vs requested "
+                    f"{revisions}; never mix revisions (use a new cache root)")
+
     def ensure(self, video: str | Path, extract: Extractor, revisions: dict[str, Any],
                offline: bool = False) -> tuple[str, dict[str, Any], bool]:
         """Return (cache_key, meta, reused). Extracts only if no entry exists for the cache key
-        (video sha256 + transcript sha256)."""
+        (video sha256 + transcript sha256 + revisions sha256)."""
         video = Path(video)
         vsha = sha256_file(video)
-        sha = cache_key(video, vsha)
+        sha = cache_key(video, vsha, revisions=revisions)
         meta = self.meta(sha)
         if meta is not None:
             if meta["revisions"] != revisions:
@@ -170,6 +194,7 @@ class FeatureStore:
             if meta.get("input_sha256") != vsha:
                 raise FeatureCacheError(f"cache entry {sha} holds a different video")
             return sha, self.verify(sha), True
+        self._refuse_mixed_revisions(revisions)
         e = self.entry_dir(sha)
         (e / "input").mkdir(parents=True)
         (e / MARKER).write_text(json.dumps({"pid": os.getpid(), "t": time.time()}))
@@ -190,6 +215,7 @@ class FeatureStore:
             "cache_key": sha,
             "input_name": video.name,
             "revisions": revisions,
+            "revisions_sha256": revisions_sha256(revisions),
             "n_extractions": 1,
             "created_t": time.time(),
             "tensors": {k: _tensor_info(e / "feat" / k, v) for k, v in feat.items()},
@@ -360,9 +386,12 @@ def feature_reliability(cached_feat: Path, fresh_feat: Path) -> dict[str, Any]:
 
 def extraction_drift(store: FeatureStore, input_sha256: str, extract: Extractor, predict: Predictor,
                      cached_preds: np.ndarray, offline: bool = False,
-                     keep_fresh: str | Path | None = None) -> dict[str, Any]:
+                     keep_fresh: str | Path | None = None,
+                     fresh_preds_out: str | Path | None = None) -> dict[str, Any]:
     """Throw-away fresh extraction (never stored) vs the cache. The reported predictions are never
-    affected (``gated: False`` for them); ``feature_reliability`` carries the D-038 per-feature gate."""
+    affected (``gated: False`` for them); ``feature_reliability`` carries the D-038 per-feature gate.
+    ``fresh_preds_out``: also save the fresh predictions there (audit only, D-063: Gate 2 is re-scored on
+    M1/parcel features after P4); their sha256 is returned as ``fresh_pred_sha256``."""
     meta = store.verify(input_sha256)
     e = store.entry_dir(input_sha256)
     with tempfile.TemporaryDirectory(prefix="yct_drift_") as td:
@@ -393,7 +422,14 @@ def extraction_drift(store: FeatureStore, input_sha256: str, extract: Extractor,
             feat_rel["fresh_features_kept_at"] = str(keep_fresh)
     p = _compare(cached_preds, np.asarray(fresh_preds))
     store.verify(input_sha256, "after prediction")
-    return {"gated": False, "pred_max_abs_diff": p.get("max_abs_diff"), "pred_pearson_r": p.get("pearson_r"),
+    extra: dict[str, Any] = {}
+    if fresh_preds_out is not None:
+        fp = Path(fresh_preds_out)
+        fp.parent.mkdir(parents=True, exist_ok=True)
+        np.save(fp, np.asarray(fresh_preds))
+        extra = {"fresh_pred_path": str(fp), "fresh_pred_sha256": sha256_file(fp)}
+    return {**extra, "gated": False, "pred_max_abs_diff": p.get("max_abs_diff"),
+            "pred_pearson_r": p.get("pearson_r"),
             "pred_bit_identical": p.get("bit_identical", False), "pred_shape_match": p["shape_match"],
             "pred_reliability": p.get("reliability"), "tensors": tensors, "feature_reliability": feat_rel}
 
@@ -401,7 +437,8 @@ def extraction_drift(store: FeatureStore, input_sha256: str, extract: Extractor,
 def run_cached(video: str | Path, store: FeatureStore, extract: Extractor, predict: Predictor,
                revisions: dict[str, Any], out_prefix: str | Path,
                fresh_drift: bool = False, offline: bool = False,
-               keep_fresh: str | Path | None = None) -> dict[str, Any]:
+               keep_fresh: str | Path | None = None,
+               fresh_preds_out: str | Path | None = None) -> dict[str, Any]:
     """Extract-once + predict-from-cache. Writes <out_prefix>.npy and <out_prefix>.json (metrics).
 
     Returns the metrics dict plus ``aux`` (the predictor's auxiliary output, not serialised)."""
@@ -426,6 +463,6 @@ def run_cached(video: str | Path, store: FeatureStore, extract: Extractor, predi
     }
     if fresh_drift:
         m["fresh_extraction_drift"] = extraction_drift(store, sha, extract, predict, preds, offline=offline,
-                                                       keep_fresh=keep_fresh)
+                                                       keep_fresh=keep_fresh, fresh_preds_out=fresh_preds_out)
     Path(f"{out_prefix}.json").write_text(json.dumps(m, indent=1, sort_keys=True))
     return {**m, "aux": aux}

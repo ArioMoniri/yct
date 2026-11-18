@@ -40,5 +40,6 @@ select = ["E", "F", "W", "I", "B", "N", "UP"]
 "infra/lambda_gpu.py" = ["E501", "E702"]
 "scripts/gpu_p0_rerun.py" = ["E501"]   # long remote shell command strings
 "scripts/gpu_wave1_p2b.py" = ["E501"]  # long remote shell command strings
+"scripts/gpu_wave1_p4.py" = ["E501"]   # long remote shell command strings
 "scripts/wave1_p2b_pod.py" = ["E501"]   # summary-row dict literals
 "scripts/p0_rerun_report.py" = ["E501"]  # markdown table rows

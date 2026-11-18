@@ -55,8 +55,11 @@ def _version(pkg: str) -> str | None:
         return None
 
 
-def _revisions(weights: Path, tribev2_mod, torch, backbones: dict | None = None) -> dict:
-    """Everything that determines the extracted features; a mismatch refuses to reuse the cache."""
+def _revisions(weights: Path, tribev2_mod, torch, backbones: dict | None = None,
+               bug018_fix: bool = False) -> dict:
+    """Everything that determines the extracted features: part of the cache key (FIX-P4E, D-063) and
+    checked against the sidecar. Includes the backbone revisions, the GPU model (device class) and the
+    BUG-018 word-fix setting (QA P4-entry D11; P4 always runs with the fix on)."""
     from yct.tribe_run.feature_cache import sha256_file
 
     repo = Path(tribev2_mod.__file__).resolve().parents[1]
@@ -67,6 +70,7 @@ def _revisions(weights: Path, tribev2_mod, torch, backbones: dict | None = None)
         "ckpt_sha256": sha256_file(weights / "best.ckpt"),
         "backbones": backbones,
         "torch": torch.__version__, "cuda": torch.version.cuda, "gpu": torch.cuda.get_device_name(0),
+        "bug018_word_fix": bool(bug018_fix),
         **{p: _version(p) for p in ("transformers", "exca", "neuralset", "neuraltrain", "numpy",
                                     "x-transformers", "moviepy")},
     }
@@ -101,7 +105,11 @@ def build_parser() -> argparse.ArgumentParser:
     ap.add_argument("--weights", required=True)
     ap.add_argument("--fresh-drift", action="store_true", help="also report fresh-extraction drift")
     ap.add_argument("--keep-fresh", action="store_true",
-                    help="keep the throw-away fresh extraction in OUT.fresh_feat/ (D-038 gate audit)")
+                    help="keep the throw-away fresh extraction in OUT.fresh_feat/ and its predictions in "
+                         "OUT.fresh_pred.npy (D-038 gate audit; D-063: Gate 2 re-scored on M1 after P4)")
+    ap.add_argument("--qc-gate", choices=("t1", "t3"),
+                    help="fail the run unless the per-clip P4 gate passes (yct.tribe_run.qc.clip_gate: one "
+                         "Audio + one Video chunk, shape, T, finite, words; D-063)")
     ap.add_argument("--bug018-word-fix", action="store_true",
                     help="absolute-time Word events (BUG-018); required for clips > 60 s")
     return ap
@@ -166,10 +174,14 @@ def main() -> None:
     smi = subprocess.Popen(["nvidia-smi", "--query-gpu=memory.used", "--format=csv,noheader,nounits",
                             "-lms", "1000"], stdout=smi_log.open("w"))
     torch.cuda.reset_peak_memory_stats()
+    revisions = _revisions(weights, tribev2, torch, backbones)
+    revisions["bug018_word_fix"] = bool(a.bug018_word_fix)   # part of the cache key (QA P4-entry D11)
     try:
         res = run_cached(src, FeatureStore(a.feature_cache), extract, predict,
-                         _revisions(weights, tribev2, torch, backbones), a.out, fresh_drift=a.fresh_drift,
-                         offline=True, keep_fresh=(a.out + ".fresh_feat") if a.keep_fresh else None)
+                         revisions, a.out,
+                         fresh_drift=a.fresh_drift, offline=True,
+                         keep_fresh=(a.out + ".fresh_feat") if a.keep_fresh else None,
+                         fresh_preds_out=(a.out + ".fresh_pred.npy") if a.keep_fresh else None)
     finally:
         smi.terminate()
         smi.wait()
@@ -223,6 +235,12 @@ def main() -> None:
     print(json.dumps(m, default=str))
     if a.bug018_word_fix and not (word_check["ok"] and m["T_within_1"]):
         raise SystemExit(f"BUG-018 word/T check FAILED: {word_check}, T_within_1={m['T_within_1']}")
+    if a.qc_gate:
+        from yct.tribe_run.qc import clip_gate
+
+        g = clip_gate(m, a.qc_gate)
+        if not g["pass"]:
+            raise SystemExit(f"P4 clip gate ({a.qc_gate}) FAILED: {g['failures']}")
 
 
 if __name__ == "__main__":

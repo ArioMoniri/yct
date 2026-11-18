@@ -7,7 +7,9 @@ Usage:
   python infra/lambda_gpu.py list
   python infra/lambda_gpu.py terminate --id <instance_id>
   python infra/lambda_gpu.py reap            # terminate yct-* instances past their deadline
-  python infra/lambda_gpu.py sweep           # terminate ALL live yct-* instances (orphans; BUG-027)
+  python infra/lambda_gpu.py sweep [--force] # terminate live yct-* orphans (BUG-027); keeps a run whose box
+                                             # driver touch is fresh, or that is still booting (D-063 Q7)
+  python infra/lambda_gpu.py reap-deadline [--margin-s 900] [--id ID]   # ledger-free: name-encoded deadline
 
 Guards (watchdog rules W-COST):
   * API key only from env LAMBDA_API_KEY; never printed or logged.
@@ -28,6 +30,11 @@ Guards (watchdog rules W-COST):
     IDLE_GRACE_S - IDLE_WINDOW_S if the GPU was never busy (setup/downloads get 30 min). `watch` runs it
     every 60 s; `reap` also runs at session start, every gate and after every job.
   * Non-yct instances are reported (never terminated) so orphans are visible.
+  * D-063 Q7 (FIX-P4E): `launch(..., name_deadline=True)` names the instance <name>-t<launch>-dl<deadline>
+    (epochs), so `reap-deadline` needs no ledger (pod-side scheduled terminator infra/gpu_terminator.sh, a
+    one-shot scheduled session, any session start). `sweep` keeps an instance whose box driver touch
+    (~/yct_driver_touch) is <= DEADMAN_GRACE_S old (a concurrent live run) or that is booting (launched
+    < BOOT_GRACE_S ago per its name, no heartbeat yet); `--force` restores the old kill-all behaviour.
   * A10 is disallowed until the P0 smoke test records peak VRAM < 20 GB (A10_ALLOWED=1).
 """
 from __future__ import annotations
@@ -35,6 +42,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import sys
 import time
 import urllib.request
@@ -74,6 +82,11 @@ IDLE_WINDOW_S = 900.0        # ... for 15 min is killed
 IDLE_GRACE_S = 1800.0        # a never-busy instance is idle-killed 30 min after launch (setup + downloads)
 HB_LOG = "~/yct_heartbeat.log"
 HB_SSH_KEY = "/root/.ssh/yct_lambda"
+DEADMAN_GRACE_S = 1200.0     # box halts 20 min after the last driver touch (gpu_deadman.sh); sweep liveness
+BOOT_GRACE_S = 1800.0        # an instance launched < 30 min ago without touch/heartbeat is booting, not orphaned
+TOUCH_FILE = "~/yct_driver_touch"
+_NAME_TIMES = re.compile(r"-t(\d{10})-dl(\d{10})$")
+LAMBDA_KEY_PARAM = "/yct/lambda_api_key"   # SSM SecureString read POD-side at fire time (owner-created)
 
 
 def _req(method: str, path: str, body: dict | None = None) -> dict:
@@ -116,7 +129,14 @@ def types() -> dict:
             for k, v in d.items() if v["regions_with_capacity_available"]}
 
 
-def launch(itype: str, name: str, max_hours: float, ssh_key: str | None, region: str | None) -> dict:
+def name_times(name: str) -> tuple[int | None, int | None]:
+    """(launch epoch, deadline epoch) encoded in a yct instance name, else (None, None)."""
+    m = _NAME_TIMES.search(name or "")
+    return (int(m.group(1)), int(m.group(2))) if m else (None, None)
+
+
+def launch(itype: str, name: str, max_hours: float, ssh_key: str | None, region: str | None,
+           name_deadline: bool = False) -> dict:
     if not name.startswith(PREFIX):
         raise SystemExit(f"name must start with {PREFIX}")
     if max_hours > BUDGET_MAX_HOURS:
@@ -134,11 +154,17 @@ def launch(itype: str, name: str, max_hours: float, ssh_key: str | None, region:
         print(f"WARNING budget >= {ALERT_FRACTION:.0%}: notify human", file=sys.stderr)
     keys = [k["name"] for k in _req("GET", "/ssh-keys")["data"]]
     ssh_key = ssh_key or os.environ.get("LAMBDA_SSH_KEY_NAME") or (keys[0] if keys else None)
+    t0 = time.time()
+    deadline = t0 + max_hours * 3600
+    if name_deadline:
+        name = f"{name}-t{int(t0)}-dl{int(deadline)}"
+        if len(name) > 64:
+            raise SystemExit(f"instance name {name!r} longer than 64 characters")
     body = {"region_name": region or avail[itype]["regions"][0], "instance_type_name": itype,
             "ssh_key_names": [ssh_key], "name": name, "quantity": 1}
     iid = _req("POST", "/instance-operations/launch", body)["data"]["instance_ids"][0]
     rec = {"event": "launch", "id": iid, "name": name, "type": itype, "usd_per_hour": price,
-           "t": time.time(), "deadline": time.time() + max_hours * 3600}
+           "t": t0, "deadline": float(int(deadline)) if name_deadline else deadline}
     _append(rec)
     return rec
 
@@ -259,7 +285,14 @@ def reap() -> list[str]:
     killed = []
     for i in _live(list_ours()):
         now = time.time()
-        if now > deadlines.get(i["id"], 0):  # unknown instance => past deadline
+        if i["id"] not in deadlines:
+            # not launched by this ledger (e.g. a concurrent run from another container, D-063 Q7): only its
+            # name-encoded deadline applies; unknown without a name deadline => past deadline (as before)
+            _, dl = name_times(i.get("name", ""))
+            if dl is not None and now <= dl:
+                continue
+            reason = "deadline"
+        elif now > deadlines[i["id"]]:
             reason = "deadline"
         elif now - seen.get(i["id"], 0.0) > HEARTBEAT_TIMEOUT_S:
             reason = "heartbeat"
@@ -272,32 +305,104 @@ def reap() -> list[str]:
     return killed
 
 
-def sweep(keep: tuple[str, ...] | list[str] = ()) -> list[str]:
-    """Orphan sweep (BUG-027): terminate EVERY live yct-* instance not in `keep`, whatever its deadline or
-    heartbeat. Run at driver start (one instance at a time is the rule, so any live yct-* instance then is an
-    orphan of a driver/reaper that died, e.g. on a container restart) and by any session that finds the
-    driver gone. Non-yct instances are never touched (terminate() refuses them too)."""
+def fetch_touch_age(inst: dict) -> float | None:
+    """Age in s of the box's driver touch file (ssh, directly or via the pod), None if unknown/unreachable."""
+    import subprocess
+
+    ip = inst.get("ip")
+    if not ip:
+        return None
+    ssh = (f"ssh -i {os.environ.get('YCT_HB_SSH_KEY', HB_SSH_KEY)} -o BatchMode=yes -o ConnectTimeout=15 "
+           f"-o StrictHostKeyChecking=accept-new ubuntu@{ip} "
+           f"'echo $(( $(date +%s) - $(stat -c %Y {TOUCH_FILE}) ))'")
+    cmd = ([str(Path(__file__).resolve().parent / "pod_exec.sh"), ssh, "120"]
+           if os.environ.get("YCT_HB_VIA_POD") == "1" else ["bash", "-c", ssh])
+    try:
+        out = subprocess.run(cmd, capture_output=True, text=True, timeout=180).stdout.split()
+        return float(out[-1]) if out else None
+    except (subprocess.SubprocessError, ValueError, OSError):
+        return None
+
+
+def sweep(keep: tuple[str, ...] | list[str] = (), touch_age=None, force: bool = False) -> list[str]:
+    """Orphan sweep (BUG-027): terminate live yct-* instances not in `keep` whose driver is gone. Run at
+    every driver start and by any session that finds the driver gone. Non-yct instances are never touched
+    (terminate() refuses them too). D-063 Q7: a concurrent run is kept when its box driver touch is
+    <= DEADMAN_GRACE_S old, or when it is booting (name says launched < BOOT_GRACE_S ago, no instance
+    heartbeat in our ledger) and its touch age is unknown. force=True kills every live yct-* instance."""
+    touch_age = touch_age or fetch_touch_age
+    led = _ledger()
+    hb = {r["id"] for r in led if r["event"] == "heartbeat"}
     killed = []
     for i in _live(list_ours()):
         if i["id"] in keep:
             continue
+        if not force:
+            age = touch_age(i)
+            if age is not None and age <= DEADMAN_GRACE_S:
+                print(f"sweep: keeping {i['id']} (driver touch {age:.0f} s old: live run)", file=sys.stderr)
+                continue
+            t0, _ = name_times(i.get("name", ""))
+            if age is None and t0 is not None and time.time() - t0 < BOOT_GRACE_S and i["id"] not in hb:
+                print(f"sweep: keeping {i['id']} (booting, launched {time.time() - t0:.0f} s ago)", file=sys.stderr)
+                continue
         terminate(i["id"], "orphan_sweep")
         killed.append(i["id"])
     return killed
 
 
+def reap_deadline(margin_s: float = 900.0, ids: list[str] | tuple[str, ...] | None = None) -> list[str]:
+    """Ledger-free reaper (D-063 Q7): terminate live yct-* instances whose NAME deadline + margin_s has
+    passed (optionally only `ids`). Instances without a name deadline are left to reap/sweep."""
+    killed = []
+    for i in _live(list_ours()):
+        if ids is not None and i["id"] not in ids:
+            continue
+        _, dl = name_times(i.get("name", ""))
+        if dl is not None and time.time() > dl + margin_s:
+            terminate(i["id"], "name_deadline")
+            killed.append(i["id"])
+    return killed
+
+
+def pod_terminator_script(iid: str, fire_at: float, now: float, run_id: str, repo: str,
+                          margin_s: int = 300, param: str = LAMBDA_KEY_PARAM) -> str:
+    """Bash for the EC2 pod: schedule a systemd-run timer at fire_at that runs infra/gpu_terminator.sh
+    (key from SSM `param` at fire time, into the reaper's environment only) -> reap-deadline --id iid.
+    Independent of this container and of the driver. Fails (non-zero) if systemd-run is missing or the
+    pod cannot read the key parameter (probe prints only its version)."""
+    delay = int(fire_at - now)
+    if delay < 60:
+        raise ValueError(f"terminator fire time must be >= 60 s ahead, got {delay} s")
+    d = f"/work/yct/p4/terminator/{run_id}"
+    unit = f"yct-term-{iid[:12]}"
+    return (f"set -euo pipefail\nmkdir -p {d} && rm -rf {d}/infra && cp -r {repo}/infra {d}/infra\n"
+            "command -v systemd-run >/dev/null\n"
+            f"aws ssm get-parameter --region eu-central-1 --name {param} --with-decryption "
+            "--query Parameter.Version --output text >/dev/null\n"
+            f"systemd-run --unit {unit} --on-active={delay}s --timer-property=AccuracySec=30s "
+            f"/bin/bash {d}/infra/gpu_terminator.sh {iid} {margin_s} {d}/infra\n"
+            f"systemctl list-timers --all --no-pager | grep -c {unit}\n")
+
+
 def main(argv: list[str]) -> None:
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("types"); sub.add_parser("list"); sub.add_parser("reap"); sub.add_parser("spent"); sub.add_parser("foreign"); sub.add_parser("watch"); sub.add_parser("sweep")
+    sub.add_parser("types"); sub.add_parser("list"); sub.add_parser("reap"); sub.add_parser("spent"); sub.add_parser("foreign"); sub.add_parser("watch")
+    sw = sub.add_parser("sweep"); sw.add_argument("--force", action="store_true", help="ignore driver touch / booting")
+    rd = sub.add_parser("reap-deadline"); rd.add_argument("--margin-s", type=float, default=900.0); rd.add_argument("--id", action="append")
     lp = sub.add_parser("launch")
     lp.add_argument("--type", default="gpu_1x_a100_sxm4"); lp.add_argument("--name", required=True)
     lp.add_argument("--max-hours", type=float, required=True)
     lp.add_argument("--ssh-key"); lp.add_argument("--region")
     tp = sub.add_parser("terminate"); tp.add_argument("--id", required=True)
     a = p.parse_args(argv)
-    out = {"types": types, "list": list_ours, "reap": reap, "spent": spent_usd, "foreign": foreign, "watch": watch, "sweep": sweep}.get(a.cmd)
-    if out:
+    out = {"types": types, "list": list_ours, "reap": reap, "spent": spent_usd, "foreign": foreign, "watch": watch}.get(a.cmd)
+    if a.cmd == "sweep":
+        print(json.dumps(sweep(force=a.force), indent=1))
+    elif a.cmd == "reap-deadline":
+        print(json.dumps(reap_deadline(a.margin_s, a.id), indent=1))
+    elif out:
         print(json.dumps(out(), indent=1))
     elif a.cmd == "launch":
         print(json.dumps(launch(a.type, a.name, a.max_hours, a.ssh_key, a.region), indent=1))
