@@ -1,0 +1,5 @@
+# Council cycle 2 — Gate P4-entry (verify FIX-P4E)
+Cycle-1 reviews: reviews/phase_p4entry/{watchdog,strict_referee,biostatistician,neuroscientist,qa}.md. Ruling: DECISIONS D-063. Implementation: D-064, commits c616a9d, 11bc34d (CI green: runs 44228853587, 44229884476).
+Key files: scripts/gpu_wave1_p4.py, src/yct/tribe_run/{qc,cache_archive,feature_cache,run_clip}.py, infra/{lambda_gpu.py,gpu_deadman.sh,gpu_terminator.sh}, config.yaml (p4:, window, controls, transcribe.wer), docs/prompts/v2.md (v2.7 P4E), tests/test_{gpu_wave1_p4,infra_terminator,tribe_p4_cache,tribe_qc_gate,p4_config}.py.
+Known residual: driver-independent terminator needs owner SSM /yct/lambda_api_key (pod-readable); else orchestrator schedules an external one-shot terminator session per launch. PodBackend untested on real GPU (dry run only). Ablations out of scope.
+Question: is each of YOUR cycle-1 blockers closed? GO / FIX / STOP for launching full-model T1+T3 P4 extraction (no ablations, firewall in force). New defects only if they block launch.
