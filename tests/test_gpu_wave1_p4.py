@@ -279,3 +279,136 @@ def test_cli_dry_run_loads_no_analysis_module(tmp_path):
                                            "PYTHONPATH": str(ROOT / "src")})
     assert "RC 75 BAD []" in res.stdout or "RC 0 BAD []" in res.stdout, res.stdout + res.stderr
     assert (tmp_path / "run" / "child_metrics.json").exists()
+
+
+# ---------------------------------------------------------------- cycle-2 QA N1: the D-038 STOP is latched
+def _decisions(tmp, text):
+    p = tmp / "DECISIONS.md"
+    p.write_text("# DECISIONS\n" + text)
+    return p
+
+
+def test_d038_stop_is_latched_until_cleared_by_a_decisions_entry(env):
+    """QA c2 N1 (reproduced in the dry run): STOP -> plain re-run must refuse (no launch), not retry."""
+    b, lg = env["backend"], env["lg"]
+    b.faults["yct_0016.t1"] = "rerun_differs"
+    rc, res = _run(env, "p4_a")
+    assert rc == 1 and res["stop"]
+    assert "stops/p4_a.json" in b.s3_list("stops/")
+    b.faults.clear()                                       # a passing retry must not be reachable
+    with pytest.raises(SystemExit, match="STOP"):
+        _run(env, "p4_b")
+    assert len(lg.launched) == 1
+    dec = _decisions(env["tmp"], "- D-901 something else entirely\n")
+    with pytest.raises(SystemExit, match="D-999"):         # unknown decision id
+        _run(env, "p4_c", clear_stop="D-999", decisions_path=dec)
+    with pytest.raises(SystemExit, match="p4_a"):          # entry exists but does not name the stopped run
+        _run(env, "p4_c", clear_stop="D-901", decisions_path=dec)
+    assert len(lg.launched) == 1
+    dec = _decisions(env["tmp"], "- D-901 D-038 STOP of run p4_a reviewed: rerun allowed (human).\n")
+    rc, res = _run(env, "p4_d", clear_stop="D-901", decisions_path=dec)
+    assert rc == 0 and res["stop_cleared"] == {"p4_a": "D-901"}
+    clr = json.loads(b.s3_get_text("stops_cleared/p4_a.json"))
+    assert clr["decision"] == "D-901" and clr["cleared_by_run"] == "p4_d"
+    assert b.s3_get_text("stops/p4_a.json")                # the marker itself is immutable, never deleted
+    assert _run(env, "p4_e")[0] == 0                       # cleared once; later runs need no flag
+
+
+def test_failed_d038_row_latches_even_without_the_marker(env):
+    """A crash between the failing manifest row and the STOP marker must still latch."""
+    b = env["backend"]
+    b.faults["yct_0016.t1"] = "rerun_differs"
+    _run(env, "p4_a")
+    (b.s3 / "stops" / "p4_a.json").unlink()
+    (b.s3 / "stops" / "p4_a.json.sha256").unlink(missing_ok=True)
+    b.faults.clear()
+    with pytest.raises(SystemExit, match="STOP"):
+        _run(env, "p4_b")
+
+
+def test_clear_stop_without_a_stop_is_refused(env):
+    dec = _decisions(env["tmp"], "- D-901 p4_x\n")
+    with pytest.raises(SystemExit, match="no latched"):
+        _run(env, clear_stop="D-901", decisions_path=dec)
+
+
+def test_docstring_says_exit_1_needs_a_human():
+    doc = DRIVER.read_text().split('"""')[1]
+    assert "re-run until it exits 0" not in doc
+    assert "re-run while it exits 75" in doc and "exit 1 needs a human" in doc
+
+
+# ---------------------------------------------------------------- cycle-2 QA N2: S3 read errors fail closed
+class _CP:
+    def __init__(self, rc, out="", err=""):
+        self.returncode, self.stdout, self.stderr = rc, out, err
+
+
+def _pod_backend(monkeypatch, result):
+    pb = p4.PodBackend(load_config(), "p4_t", Path("/nonexistent"))
+    calls = []
+
+    def fake_aws(*args, inp=None, check=True):
+        calls.append(args)
+        r = result(args) if callable(result) else result
+        if check and r.returncode:
+            raise subprocess.CalledProcessError(r.returncode, args, r.stdout, r.stderr)
+        return r
+
+    monkeypatch.setattr(pb, "_aws", fake_aws)
+    return pb, calls
+
+
+@pytest.mark.parametrize("err", ["An error occurred (403) when calling the HeadObject operation: Forbidden",
+                                 "Could not connect to the endpoint URL",
+                                 "An error occurred (SlowDown) when calling the GetObject operation",
+                                 "An error occurred (500) when calling the HeadObject operation",
+                                 "Unable to locate credentials", ""])
+def test_s3_get_text_raises_on_anything_but_not_found(monkeypatch, err):
+    pb, _ = _pod_backend(monkeypatch, _CP(1, "", err))
+    with pytest.raises(p4.S3ReadError):
+        pb.s3_get_text("manifest.jsonl")
+
+
+@pytest.mark.parametrize("err", ["fatal error: An error occurred (404) when calling the HeadObject "
+                                 "operation: Key \"x\" does not exist",
+                                 "An error occurred (NoSuchKey) when calling the GetObject operation"])
+def test_s3_get_text_none_only_for_not_found(monkeypatch, err):
+    pb, _ = _pod_backend(monkeypatch, _CP(1, "", err))
+    assert pb.s3_get_text("x") is None
+    pb, _ = _pod_backend(monkeypatch, _CP(0, "content\n", ""))
+    assert pb.s3_get_text("x") == "content\n"
+
+
+def test_transient_read_error_never_truncates_manifest_or_overwrites(env):
+    """QA c2 N2: both manifest reads failing transiently used to replace the manifest by one row."""
+    b = env["backend"]
+    assert _run(env, "p4_a")[0] == 0
+    before = b.s3_get_text("manifest.jsonl")
+    store = p4.Store(b)
+    real = b.s3_get_text
+
+    def flaky(key):
+        if key == "manifest.jsonl" or key.endswith(".sha256"):
+            raise p4.S3ReadError(f"transient read error on {key}")
+        return real(key)
+
+    b.s3_get_text = flaky
+    with pytest.raises(p4.S3ReadError):
+        store.append_rows([{"job": "x", "gate_pass": True}], "p4_z")
+    with pytest.raises(p4.S3ReadError):
+        store.put_file(str(b.s3 / "manifest.jsonl"), "pred/t1/yct_0016.npy", "0" * 64)
+    b.s3_get_text = real
+    assert b.s3_get_text("manifest.jsonl") == before and "rows/p4_z/x.json" not in b.s3_list("rows/")
+
+
+def test_missing_manifest_with_existing_rows_refuses(env):
+    """A manifest that reads as absent while immutable rows exist is inconsistent: refuse, never rewrite."""
+    b = env["backend"]
+    assert _run(env, "p4_a")[0] == 0
+    (b.s3 / "manifest.jsonl").unlink()
+    with pytest.raises(SystemExit, match="manifest"):
+        _run(env, "p4_b")
+    assert len(env["lg"].launched) == 1
+    with pytest.raises(p4.ManifestConflictError):
+        p4.Store(b).append_rows([{"job": "x"}], "p4_c")

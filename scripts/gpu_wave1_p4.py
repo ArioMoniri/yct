@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
 """Wave-1 P4: resumable batch TRIBE driver, full model, T1 + T3, frozen run sets (D-063; ticket FIX-P4E).
 
-Run under provenance (one Lambda session per invocation; re-run until it exits 0):
+Run under provenance (one Lambda session per invocation; re-run while it exits 75; exit 1 needs a human):
     python scripts/run_with_provenance.py --run-id p4_<UTC> -- python scripts/gpu_wave1_p4.py \
         [--max-hours 3.75] [--usd-limit 10] [--external-terminator-at <epoch|ISO>]
 Dry run (no network, no GPU; in-memory Lambda, local-directory pod/box/S3):
     python scripts/gpu_wave1_p4.py --dry-run [--dry-run-root DIR] [--limit N]
 
 Exit codes: 0 = every job of the frozen run sets is synced and passed; 75 = this session ended cleanly with
-jobs left (re-run); 1 = any gate failure, error, D-038 STOP or instance alive after teardown.
+jobs left (re-run while it exits 75); 1 = any gate failure, error, D-038 STOP or instance alive after
+teardown: exit 1 needs a human, never an automatic retry loop.
+D-038 STOP latch (QA cycle-2 N1): a D-038 Gate 1/2 failure writes the immutable marker p4/stops/<run>.json
+(and its manifest row); while any stop (marker or failing D-038 row) has no p4/stops_cleared/<run>.json,
+every later invocation refuses before launching. Only `--clear-stop D-NNN` clears it, and only if
+DECISIONS.md has an entry D-NNN that names every stopped run id (a human/orchestrator decision first).
+S3 reads (QA cycle-2 N2): only a 404/NoSuchKey reads as "absent"; any other error raises S3ReadError and
+the run fails closed (no manifest rewrite, no upload over an immutable object); a manifest that reads as
+absent while rows/ exist is refused.
 
 Jobs (plan_jobs): config p4.run_set_t1 x T1 (51) + p4.run_set_t3 x T3 (52), the 3 D-038 clips first. Per job
 the box runs src/yct/tribe_run/run_clip.py --bug018-word-fix --qc-gate <track> (one setting for all of P4,
@@ -54,6 +62,7 @@ import hashlib
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -92,6 +101,13 @@ class OverwriteRefusedError(RuntimeError):
     """An immutable S3 object already exists with different content."""
 
 
+class S3ReadError(RuntimeError):
+    """An S3 read failed for any reason other than "object not found" (fail closed, QA c2 N2)."""
+
+
+_NOT_FOUND = re.compile(r"\((?:404|NoSuchKey)\)")
+
+
 @dataclass(frozen=True)
 class Job:
     video_id: str
@@ -110,6 +126,8 @@ class SessionArgs:
     external_terminator_at: float | None
     run_id: str
     limit: int | None = None
+    clear_stop: str | None = None
+    decisions_path: Path | None = None
 
 
 def plan_jobs(cfg: dict) -> list[Job]:
@@ -165,7 +183,10 @@ class Store:
         return True
 
     def append_rows(self, rows: list[dict], run_id: str) -> None:
-        old = self.b.s3_get_text("manifest.jsonl") or ""
+        old = self.b.s3_get_text("manifest.jsonl")
+        if old is None and self.b.s3_list("rows/"):
+            raise ManifestConflictError("manifest.jsonl reads as absent while rows/ exist; refusing to rewrite it")
+        old = old or ""
         new = append_manifest(old, rows)
         check_append(old, self.b.s3_get_text("manifest.jsonl") or "")
         self.b.s3_put_text("manifest.jsonl", new)
@@ -191,14 +212,40 @@ class State:
 
 
 def load_state(backend) -> State:
-    text = backend.s3_get_text("manifest.jsonl") or ""
-    rows = [json.loads(x) for x in text.splitlines() if x.strip()]
+    text = backend.s3_get_text("manifest.jsonl")
     keys = set(backend.s3_list(""))
+    if text is None and any(k.startswith("rows/") for k in keys):
+        raise SystemExit("S3 manifest.jsonl is absent while rows/ exist: inconsistent store, refusing (repair "
+                         "from rows/ by hand; never rewritten automatically)")
+    rows = [json.loads(x) for x in (text or "").splitlines() if x.strip()]
     entries = {}
     for k in sorted(x for x in keys if x.startswith("entries/") and x.endswith(".json")):
         e = json.loads(backend.s3_get_text(k))
         entries[e["job"]] = e
     return State(rows, entries, keys)
+
+
+def latched_stops(st: State) -> list[str]:
+    """Run ids with a D-038 STOP (marker or failing D-038 manifest row) and no clearance (QA c2 N1)."""
+    stops = {k[len("stops/"):-len(".json")] for k in st.keys if k.startswith("stops/") and k.endswith(".json")}
+    stops |= {r["run_id"] for r in st.rows if r.get("d038") is not None and r.get("gate_pass") is False}
+    cleared = {k[len("stops_cleared/"):-len(".json")] for k in st.keys
+               if k.startswith("stops_cleared/") and k.endswith(".json")}
+    return sorted(stops - cleared)
+
+
+def decision_entry(decisions: str, dec_id: str) -> str | None:
+    """Text of the DECISIONS.md bullet `- <dec_id> ...` up to the next decision bullet or section."""
+    lines = decisions.splitlines()
+    for i, ln in enumerate(lines):
+        if re.match(rf"^\s*- {re.escape(dec_id)}\b", ln):
+            out = [ln]
+            for nxt in lines[i + 1:]:
+                if re.match(r"^\s*- D-\d{3}", nxt) or nxt.startswith("## "):
+                    break
+                out.append(nxt)
+            return "\n".join(out)
+    return None
 
 
 def is_done(job: Job, st: State) -> bool:
@@ -279,6 +326,10 @@ def do_job(job: Job, ctx: dict) -> str:
         res["gate_failures"][job.id] = gate["failures"]
         return "gate_fail"
     if d038 is not None and not d038["pass"]:
+        store.put_text(f"stops/{a.run_id}.json", json.dumps(
+            {"job": job.id, "run_id": a.run_id, "d038": d038, "t": ctx["clock"](),
+             "rule": "v2.md P4: a D-038 Gate 1/2 failure is a STOP; cleared only by --clear-stop D-NNN"},
+            sort_keys=True, indent=1))
         store.append_rows([row], a.run_id)
         res["gate_failures"][job.id] = [f"D-038 gate: {d038}"]
         return "stop"
@@ -336,6 +387,26 @@ def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) ->
     if lg._live(lg.list_ours()):
         raise SystemExit("a yct-* instance is still alive after the orphan sweep (a concurrent live run "
                          "with a fresh touch, or booting); one instance at a time")
+    # QA c2 N1: a D-038 STOP is latched (orphan cleanup above still runs: it only terminates)
+    stops = latched_stops(st)
+    if a.clear_stop and not stops:
+        raise SystemExit(f"--clear-stop {a.clear_stop}: there is no latched D-038 STOP to clear")
+    if stops and not a.clear_stop:
+        raise SystemExit(f"D-038 STOP latched by run(s) {stops} (v2.md P4: a STOP). A human decision is "
+                         "needed: add a DECISIONS.md entry naming these run ids, then pass --clear-stop D-NNN")
+    if stops:
+        dec_path = Path(a.decisions_path or ROOT / "DECISIONS.md")
+        entry = decision_entry(dec_path.read_text(), a.clear_stop)
+        if entry is None:
+            raise SystemExit(f"--clear-stop {a.clear_stop}: no such entry in {dec_path.name}")
+        missing = [r for r in stops if r not in entry]
+        if missing:
+            raise SystemExit(f"--clear-stop {a.clear_stop}: the entry does not name the stopped run(s) {missing}")
+        for r in stops:
+            store.put_text(f"stops_cleared/{r}.json", json.dumps(
+                {"run_id": r, "decision": a.clear_stop, "cleared_by_run": a.run_id, "t": clock(),
+                 "decision_entry_sha256": sha256_text(entry)}, sort_keys=True, indent=1))
+        res["stop_cleared"] = {r: a.clear_stop for r in stops}
     if not pending:
         res["status"] = "complete"
         return _finish(res, run_dir, backend, store, jobs)
@@ -759,8 +830,14 @@ class PodBackend:
         return {k[len(root) + 1:]: int(s) for k, s in rows}
 
     def s3_get_text(self, key: str) -> str | None:
-        r = self._aws("s3", "cp", f"{self.s3root}/{key}", "-", "--quiet", check=False)
-        return r.stdout if r.returncode == 0 else None
+        """Object text; None ONLY for 404/NoSuchKey. Anything else (403, throttling, network, 5xx, missing
+        credentials, unknown) raises S3ReadError: the run fails closed (QA c2 N2)."""
+        r = self._aws("s3", "cp", f"{self.s3root}/{key}", "-", check=False)
+        if r.returncode == 0:
+            return r.stdout
+        if _NOT_FOUND.search(r.stderr or ""):
+            return None
+        raise S3ReadError(f"S3 read of {key} failed (rc {r.returncode}): {(r.stderr or '').strip()[-300:]}")
 
     def s3_put_text(self, key: str, text: str) -> None:
         self._aws("s3", "cp", "-", f"{self.s3root}/{key}", "--quiet", inp=text)
@@ -978,12 +1055,15 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--external-terminator-at", help="epoch or ISO time of a one-shot scheduled session that "
                     "runs `lambda_gpu.py reap-deadline --margin-s 0` (D-063 Q7), if the pod cannot")
     ap.add_argument("--limit", type=int, help="at most this many jobs in this session")
+    ap.add_argument("--clear-stop", metavar="D-NNN", help="clear a latched D-038 STOP; the DECISIONS.md entry "
+                    "D-NNN must exist and name every stopped run id")
     ap.add_argument("--dry-run", action="store_true", help="no network/GPU: fake Lambda, local pod/box/S3")
     ap.add_argument("--dry-run-root", help="directory for the dry-run pod/box/S3 (default: a temp dir)")
     a = ap.parse_args(argv)
     run_dir = Path(os.environ.get("YCT_RUN_DIR") or ROOT / "outputs" / "runs" / f"p4_{int(time.time())}")
     cfg = load_config()
-    args = SessionArgs(a.max_hours, a.usd_limit, _parse_when(a.external_terminator_at), run_dir.name, a.limit)
+    args = SessionArgs(a.max_hours, a.usd_limit, _parse_when(a.external_terminator_at), run_dir.name, a.limit,
+                       a.clear_stop)
     if a.dry_run:
         root = Path(a.dry_run_root or tempfile.mkdtemp(prefix="yct_p4_dry_"))
         clock = FakeClock(time.time())
