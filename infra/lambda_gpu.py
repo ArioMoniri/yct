@@ -7,6 +7,7 @@ Usage:
   python infra/lambda_gpu.py list
   python infra/lambda_gpu.py terminate --id <instance_id>
   python infra/lambda_gpu.py reap            # terminate yct-* instances past their deadline
+  python infra/lambda_gpu.py sweep           # terminate ALL live yct-* instances (orphans; BUG-027)
 
 Guards (watchdog rules W-COST):
   * API key only from env LAMBDA_API_KEY; never printed or logged.
@@ -271,17 +272,31 @@ def reap() -> list[str]:
     return killed
 
 
+def sweep(keep: tuple[str, ...] | list[str] = ()) -> list[str]:
+    """Orphan sweep (BUG-027): terminate EVERY live yct-* instance not in `keep`, whatever its deadline or
+    heartbeat. Run at driver start (one instance at a time is the rule, so any live yct-* instance then is an
+    orphan of a driver/reaper that died, e.g. on a container restart) and by any session that finds the
+    driver gone. Non-yct instances are never touched (terminate() refuses them too)."""
+    killed = []
+    for i in _live(list_ours()):
+        if i["id"] in keep:
+            continue
+        terminate(i["id"], "orphan_sweep")
+        killed.append(i["id"])
+    return killed
+
+
 def main(argv: list[str]) -> None:
     p = argparse.ArgumentParser()
     sub = p.add_subparsers(dest="cmd", required=True)
-    sub.add_parser("types"); sub.add_parser("list"); sub.add_parser("reap"); sub.add_parser("spent"); sub.add_parser("foreign"); sub.add_parser("watch")
+    sub.add_parser("types"); sub.add_parser("list"); sub.add_parser("reap"); sub.add_parser("spent"); sub.add_parser("foreign"); sub.add_parser("watch"); sub.add_parser("sweep")
     lp = sub.add_parser("launch")
     lp.add_argument("--type", default="gpu_1x_a100_sxm4"); lp.add_argument("--name", required=True)
     lp.add_argument("--max-hours", type=float, required=True)
     lp.add_argument("--ssh-key"); lp.add_argument("--region")
     tp = sub.add_parser("terminate"); tp.add_argument("--id", required=True)
     a = p.parse_args(argv)
-    out = {"types": types, "list": list_ours, "reap": reap, "spent": spent_usd, "foreign": foreign, "watch": watch}.get(a.cmd)
+    out = {"types": types, "list": list_ours, "reap": reap, "spent": spent_usd, "foreign": foreign, "watch": watch, "sweep": sweep}.get(a.cmd)
     if out:
         print(json.dumps(out(), indent=1))
     elif a.cmd == "launch":

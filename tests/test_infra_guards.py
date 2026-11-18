@@ -270,3 +270,50 @@ def test_budget_is_min_of_file_and_owner(lg, monkeypatch):
         lg.launch("gpu_1x_a100", "yct-x", 2, None, None)  # 2 h * 1.99 > 3
     monkeypatch.setattr(lg, "_ssm_budget", lambda: 10_000.0)  # owner value can never exceed the file
     assert lg.budget_cap() == lg.BUDGET_USD == 200.0
+
+
+def test_sweep_terminates_every_live_yct_instance_except_keep(lg, monkeypatch):
+    """BUG-027: a container restart killed driver + reaper; the next driver start sweeps orphans regardless
+    of deadline/heartbeat (a fresh-heartbeat orphan is still an orphan), never non-yct instances."""
+    import time
+
+    now = time.time()
+    api = FakeLambda([{"id": "orphan", "name": "yct-wave1p2b", "status": "active"},
+                      {"id": "mine", "name": "yct-current", "status": "active"},
+                      {"id": "gone", "name": "yct-old", "status": "terminated"},
+                      {"id": "other", "name": "someone-else", "status": "active"}])
+    monkeypatch.setattr(lg, "_req", api)
+    for iid in ("orphan", "mine"):
+        _launch_rec(lg, iid, now - 600)
+        lg._append({"event": "heartbeat", "id": iid, "t": now - 10})
+    assert lg.reap() == []  # the ordinary reaper would keep it alive
+    assert lg.sweep(keep=["mine"]) == ["orphan"]
+    assert api.terminated == ["orphan"]
+    assert [r["reason"] for r in _events(lg, "terminate")] == ["orphan_sweep"]
+
+
+def test_deadman_switch_halts_without_driver_touch(tmp_path):
+    """BUG-027 box-side dead-man switch: no touch for GRACE_S -> shutdown command; touched -> keeps running."""
+    import os
+    import subprocess
+    import time
+    from pathlib import Path
+
+    script = Path(__file__).resolve().parents[1] / "infra" / "gpu_deadman.sh"
+    marker = tmp_path / "halted"
+    env = {**os.environ, "SHUTDOWN_CMD": f"touch {marker}", "CHECK_S": "1",
+           "DEADMAN_LOG": str(tmp_path / "log")}
+    touch = tmp_path / "touch"
+    p = subprocess.Popen(["bash", str(script), str(touch), "3", "3600"], env=env)
+    try:
+        for _ in range(3):  # driver alive: touches keep it up
+            time.sleep(1)
+            touch.touch()
+        assert not marker.exists() and p.poll() is None
+        p.wait(timeout=15)  # driver gone: halts after the grace period
+    finally:
+        p.kill()
+    assert marker.exists() and "no driver touch" in (tmp_path / "log").read_text()
+    marker.unlink()
+    p2 = subprocess.run(["bash", str(script), str(tmp_path / "t2"), "3600", "2"], env=env, timeout=15)
+    assert p2.returncode == 0 and marker.exists() and "hard cap" in (tmp_path / "log").read_text()

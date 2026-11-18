@@ -33,13 +33,20 @@ import os
 import re
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "scripts"))
+import gpu_p0_rerun  # noqa: E402
 from gpu_p0_rerun import B, Box, log, pod, pod_file, ship_code  # noqa: E402
+
+gpu_p0_rerun.SHIP.append("infra/gpu_deadman.sh")  # BUG-027 box-side dead-man switch
+DEADMAN_GRACE_S = 1200   # box halts 20 min after the last driver touch (driver/container died)
+TOUCH_EVERY_S = 60
+TOUCH = "~/yct_driver_touch"
 
 ITYPE = "gpu_1x_a100_sxm4"
 S3 = "s3://yct-research-235229001983/wave1/derived"
@@ -162,8 +169,12 @@ def main() -> int:
     price = lg.types()[ITYPE]["usd_per_hour"]
     if price * a.max_hours > a.usd_limit:
         raise SystemExit(f"{price}*{a.max_hours} h exceeds the task limit ${a.usd_limit}")
+    # BUG-027: any live yct-* instance now is an orphan of a dead driver (one instance at a time) -> terminate.
+    reaped, swept = lg.reap(), lg.sweep()
+    if reaped or swept:
+        log(f"orphans terminated at start: reap={reaped} sweep={swept}")
     if lg._live(lg.list_ours()):
-        raise SystemExit("a yct-* instance is already alive; one instance at a time")
+        raise SystemExit("a yct-* instance is still alive after the orphan sweep; one instance at a time")
     # Pod repo at this commit (pod-side scripts + code), inputs table.
     pod(f"cd {REPO} && git fetch -q origin && git checkout -q {sha} && git rev-parse HEAD && mkdir -p {P2B} {pod_dir}", 300)
     pod(f"cd {REPO} && {PY} scripts/wave1_p2b_pod.py inputs {P2B}/inputs.csv", 300)
@@ -176,6 +187,8 @@ def main() -> int:
     log(f"instance {iid} launched")
     watcher = None
     labels: dict[str, str] = {}
+    stop_touch = threading.Event()
+    result["orphans_swept_at_start"] = {"reap": reaped, "sweep": swept}
     try:
         ip = None
         for _ in range(60):
@@ -195,6 +208,19 @@ def main() -> int:
         ship_code(box, pod_dir)
         box.run(f"pgrep -f gpu_heartbeat.sh >/dev/null || (nohup bash {B}/infra/gpu_heartbeat.sh >/dev/null 2>&1 "
                 "</dev/null &); sleep 2; tail -1 ~/yct_heartbeat.log")
+        # BUG-027 dead-man switch: the box halts itself when this driver stops touching it (or at the hard cap)
+        box.run(f"touch {TOUCH}; pgrep -f gpu_deadman.sh >/dev/null || (nohup bash {B}/infra/gpu_deadman.sh "
+                f"{TOUCH} {DEADMAN_GRACE_S} {int(a.max_hours * 3600)} >/dev/null 2>&1 </dev/null &); sleep 1; "
+                "pgrep -f gpu_deadman.sh >/dev/null && echo deadman_up")
+
+        def _toucher() -> None:
+            while not stop_touch.wait(TOUCH_EVERY_S):
+                try:
+                    pod(f"{box.ssh} 'touch {TOUCH}'", 120, check=False)
+                except Exception:  # noqa: BLE001 - a missed touch is covered by the grace period
+                    pass
+
+        threading.Thread(target=_toucher, daemon=True).start()
         watcher = subprocess.Popen([sys.executable, str(ROOT / "infra" / "lambda_gpu.py"), "watch"],
                                    env={**os.environ, "YCT_HB_VIA_POD": "1"},
                                    stdout=open(run_dir / "watch.log", "w"), stderr=subprocess.STDOUT)
@@ -326,6 +352,7 @@ python -m yct.transcribe --out-dir asr/json --record asr/whisperx_run.json audio
         result["error"] = f"{type(exc).__name__}: {exc}"[-4000:]
         log(f"ERROR {result['error'][:500]}")
     finally:
+        stop_touch.set()
         try:
             lg.terminate(iid, "job_done")
         except Exception as exc:  # noqa: BLE001
