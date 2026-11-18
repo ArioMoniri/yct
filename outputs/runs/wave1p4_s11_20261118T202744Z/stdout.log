@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/home/user/yct/scripts/gpu_wave1_p4.py", line 1102, in <module>
+    sys.exit(main())
+             ~~~~^^
+  File "/home/user/yct/scripts/gpu_wave1_p4.py", line 1095, in main
+    rc, res = run_session(args, cfg, lg, PodBackend(cfg, run_dir.name, run_dir), time.time, run_dir)
+              ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/user/yct/scripts/gpu_wave1_p4.py", line 430, in run_session
+    price = lg.types()[itype]["usd_per_hour"]
+            ~~~~~~~~~~^^^^^^^
+KeyError: 'gpu_1x_a100_sxm4'
