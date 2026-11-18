@@ -205,3 +205,29 @@
 {"event": "heartbeat", "id": "e08f4bc1dfb840d4a786ff531bf3da61", "t": 1794960191.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
 {"event": "heartbeat", "id": "e08f4bc1dfb840d4a786ff531bf3da61", "t": 1794960221.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
 {"event": "terminate", "id": "e08f4bc1dfb840d4a786ff531bf3da61", "t": 1794960290.544389, "reason": "job_done"}
+{"event": "launch", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "name": "yct-wave1p2b", "type": "gpu_1x_a100_sxm4", "usd_per_hour": 1.99, "t": 1794960398.936988, "deadline": 1794972998.9369884}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794960753.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794960783.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794960813.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794960843.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794960873.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794960903.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794960933.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794960963.0, "gpu_util": 0.0, "mem_mib": 4.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794960993.0, "gpu_util": 35.0, "mem_mib": 8097.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961023.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961053.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961083.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961113.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961143.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961173.0, "gpu_util": 59.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961203.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961233.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961264.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961294.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961324.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961354.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961384.0, "gpu_util": 93.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961414.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961444.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "terminate", "id": "e713f2bc6aa944c491cfc9b01b209e0a", "t": 1794961561.09866, "reason": "manual"}
