@@ -222,3 +222,16 @@ def test_clamp_durations_unit():
     assert list(out) == pytest.approx([0.5, 0.5, 0.0])
     assert we.n_words_past_end(pd.DataFrame({"start": st, "duration": du}), 58.0) == 2
     assert we.n_words_past_end(pd.DataFrame(), 58.0) == 0
+
+
+def test_bug029_clamp_to_video_end_when_video_shorter(tmp_path):
+    """Neuro FIX-P4G #3: yct_0186-like, audio 53.081 s, video 53.0667 s -> cap at the video end."""
+    wav, tr = _tsv_rows(tmp_path, [(10.0, 0.3), (52.9, 0.2)])
+    ev = chunked_events(wav, [(0.0, 53.081)])
+    ev.loc[ev.type == "Video", "duration"] = 53.0667
+    et = fake_et()
+    we.install(et)
+    w = et.ExtractWordsFromAudio()._run(ev)
+    w = w[w.type == "Word"].sort_values("start").reset_index(drop=True)
+    assert len(w) == 2 and w.duration[0] == pytest.approx(0.3)
+    assert w.start[1] + w.duration[1] == pytest.approx(53.0667 - we.END_GUARD_S)

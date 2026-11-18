@@ -52,8 +52,10 @@ def _offset(ev: Any) -> float:
 
 
 def absolute_word_events(audio_events: pd.DataFrame, transcripts: dict[str, pd.DataFrame],
-                         language: str) -> list[pd.DataFrame]:
-    """Word event frames (one per Audio event/chunk) with absolute, non-duplicated word times."""
+                         language: str, end_cap: float | None = None) -> list[pd.DataFrame]:
+    """Word event frames (one per Audio event/chunk) with absolute, non-duplicated word times. Word ends are
+    clamped to min(file audio end, ``end_cap``) - END_GUARD_S (BUG-029; end_cap = absolute end of the Video
+    events, which can be a frame shorter than the audio, Neuro FIX-P4G finding 3)."""
     out: list[pd.DataFrame] = []
     spans: dict[str, tuple[float, float]] = {}
     for ev in audio_events.itertuples():
@@ -80,7 +82,10 @@ def absolute_word_events(audio_events: pd.DataFrame, transcripts: dict[str, pd.D
         w["language"] = language
         w["start"] = float(ev.start) - o + w["start"].astype(float)
         if "duration" in w:
-            end_abs = float(ev.start) - o + last - END_GUARD_S
+            end_abs = float(ev.start) - o + last
+            if end_cap is not None and end_cap < end_abs:
+                end_abs = end_cap
+            end_abs -= END_GUARD_S
             w["duration"] = clamp_durations(w["start"], w["duration"], end_abs)
         out.append(w)
     return out
@@ -117,7 +122,9 @@ def patched_run(self, events: pd.DataFrame) -> pd.DataFrame:
         if not tsv.exists():
             raise RuntimeError(f"BUG-018 word fix: transcript {tsv} missing (ASR is never run)")
         transcripts[fp] = _read_tsv(tsv)
-    words = absolute_word_events(audio, transcripts, getattr(self, "language", "english"))
+    video = events.loc[events.type == "Video"]
+    end_cap = float((video.start.astype(float) + video.duration.astype(float)).max()) if len(video) else None
+    words = absolute_word_events(audio, transcripts, getattr(self, "language", "english"), end_cap)
     if words:
         events = pd.concat([events, pd.concat(words)], ignore_index=True)
     return events
