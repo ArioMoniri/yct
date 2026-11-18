@@ -1,0 +1,135 @@
+type,start,duration,stop,text,sequence_id
+Audio,0.0,58.0,58.0,,
+Video,0.0,58.0,58.0,,
+Sentence,0.999999,5.243002000000001,6.2430010000000005,Our product helps small teams ship software faster and with fewer mistakes. ,
+Text,1.0,53.644999999999996,54.644999999999996,Our product helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands of happy customers. The market is large and growing quickly every single month. Our team has built similar systems at large companies before. Customers tell us they save hours every week using our tool. Our product helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands of happy customers. The market is large and growing quickly every single month. Our team has built similar systems at large companies before. Customers tell us they save hours every week using our tool. Our product helps small teams ship software faster and with fewer mistakes,0.0
+Word,1.0,0.397,1.397,Our,0.0
+Word,1.441,0.397,1.838,product,0.0
+Word,1.881,0.397,2.278,helps,0.0
+Word,2.322,0.397,2.7190000000000003,small,0.0
+Word,2.762,0.397,3.159,teams,0.0
+Word,3.203,0.397,3.5999999999999996,ship,0.0
+Word,3.643,0.397,4.04,software,0.0
+Word,4.084,0.397,4.481,faster,0.0
+Word,4.525,0.397,4.922000000000001,and,0.0
+Word,4.965,0.397,5.362,with,0.0
+Word,5.406,0.397,5.803,fewer,0.0
+Word,5.846,0.397,6.243,mistakes.,0.0
+Sentence,6.886998999999999,4.199002000000001,11.086001,We started last year and already have thousands of happy customers. ,
+Word,6.887,0.347,7.234,We,1.0
+Word,7.272,0.347,7.619,started,1.0
+Word,7.657,0.347,8.004,last,1.0
+Word,8.043,0.347,8.389999999999999,year,1.0
+Word,8.428,0.347,8.775,and,1.0
+Word,8.813,0.347,9.16,already,1.0
+Word,9.198,0.347,9.545,have,1.0
+Word,9.583,0.347,9.93,thousands,1.0
+Word,9.968,0.347,10.315,of,1.0
+Word,10.354,0.347,10.700999999999999,happy,1.0
+Word,10.739,0.347,11.086,customers.,1.0
+Sentence,11.723999000000001,3.816001999999999,15.540001,The market is large and growing quickly every single month. ,
+Word,11.724,0.347,12.071,The,2.0
+Word,12.109,0.347,12.456,market,2.0
+Word,12.495,0.347,12.841999999999999,is,2.0
+Word,12.88,0.347,13.227,large,2.0
+Word,13.266,0.347,13.613,and,2.0
+Word,13.651,0.347,13.998,growing,2.0
+Word,14.037,0.347,14.384,quickly,2.0
+Word,14.422,0.347,14.769,every,2.0
+Word,14.808,0.347,15.155,single,2.0
+Word,15.193,0.347,15.54,month.,2.0
+Sentence,16.178998999999997,3.981001999999998,20.160000999999994,Our team has built similar systems at large companies before. ,
+Word,16.179,0.362,16.540999999999997,Our,3.0
+Word,16.581,0.362,16.942999999999998,team,3.0
+Word,16.983,0.362,17.345,has,3.0
+Word,17.385,0.362,17.747,built,3.0
+Word,17.787,0.362,18.148999999999997,similar,3.0
+Word,18.189,0.362,18.551,systems,3.0
+Word,18.592,0.362,18.953999999999997,at,3.0
+Word,18.994,0.362,19.355999999999998,large,3.0
+Word,19.396,0.362,19.758,companies,3.0
+Word,19.798,0.362,20.159999999999997,before.,3.0
+Sentence,20.799999,3.766001999999998,24.566000999999996,Customers tell us they save hours every week using our tool. ,
+Word,20.8,0.311,21.111,Customers,4.0
+Word,21.146,0.311,21.457,tell,4.0
+Word,21.491,0.311,21.802,us,4.0
+Word,21.837,0.311,22.148,they,4.0
+Word,22.182,0.311,22.493,save,4.0
+Word,22.528,0.311,22.839,hours,4.0
+Word,22.873,0.311,23.184,every,4.0
+Word,23.219,0.311,23.53,week,4.0
+Word,23.564,0.311,23.875,using,4.0
+Word,23.91,0.311,24.221,our,4.0
+Word,24.255,0.311,24.566,tool.,4.0
+Sentence,25.200999,5.243001999999999,30.444001,Our product helps small teams ship software faster and with fewer mistakes. ,
+Word,25.201,0.397,25.598,Our,5.0
+Word,25.642,0.397,26.038999999999998,product,5.0
+Word,26.082,0.397,26.479,helps,5.0
+Word,26.523,0.397,26.919999999999998,small,5.0
+Word,26.963,0.397,27.36,teams,5.0
+Word,27.404,0.397,27.801,ship,5.0
+Word,27.844,0.397,28.241,software,5.0
+Word,28.285,0.397,28.682,faster,5.0
+Word,28.726,0.397,29.122999999999998,and,5.0
+Word,29.166,0.397,29.563,with,5.0
+Word,29.607,0.397,30.003999999999998,fewer,5.0
+Word,30.047,0.397,30.444,mistakes.,5.0
+Sentence,31.087999,4.199001999999998,35.287001,We started last year and already have thousands of happy customers. ,
+Word,31.088,0.347,31.435000000000002,We,6.0
+Word,31.473,0.347,31.82,started,6.0
+Word,31.858,0.347,32.205,last,6.0
+Word,32.244,0.347,32.591,year,6.0
+Word,32.629,0.347,32.976,and,6.0
+Word,33.014,0.347,33.361000000000004,already,6.0
+Word,33.399,0.347,33.746,have,6.0
+Word,33.784,0.347,34.131,thousands,6.0
+Word,34.169,0.347,34.516,of,6.0
+Word,34.555,0.347,34.902,happy,6.0
+Word,34.94,0.347,35.287,customers.,6.0
+Sentence,35.924999,3.8160020000000023,39.741001000000004,The market is large and growing quickly every single month. ,
+Word,35.925,0.347,36.272,The,7.0
+Word,36.31,0.347,36.657000000000004,market,7.0
+Word,36.696,0.347,37.043,is,7.0
+Word,37.081,0.347,37.428000000000004,large,7.0
+Word,37.467,0.347,37.814,and,7.0
+Word,37.852,0.347,38.199,growing,7.0
+Word,38.238,0.347,38.585,quickly,7.0
+Word,38.623,0.347,38.97,every,7.0
+Word,39.009,0.347,39.356,single,7.0
+Word,39.394,0.347,39.741,month.,7.0
+Sentence,40.379999000000005,3.9810020000000015,44.36100100000001,Our team has built similar systems at large companies before. ,
+Word,40.38,0.362,40.742000000000004,Our,8.0
+Word,40.782,0.362,41.144,team,8.0
+Word,41.184,0.362,41.546,has,8.0
+Word,41.586,0.362,41.948,built,8.0
+Word,41.988,0.362,42.35,similar,8.0
+Word,42.39,0.362,42.752,systems,8.0
+Word,42.793,0.362,43.155,at,8.0
+Word,43.195,0.362,43.557,large,8.0
+Word,43.597,0.362,43.959,companies,8.0
+Word,43.999,0.362,44.361000000000004,before.,8.0
+Sentence,45.000999,3.766002000000005,48.76700100000001,Customers tell us they save hours every week using our tool. ,
+Word,45.001,0.311,45.312,Customers,9.0
+Word,45.347,0.311,45.658,tell,9.0
+Word,45.692,0.311,46.003,us,9.0
+Word,46.038,0.311,46.349,they,9.0
+Word,46.383,0.311,46.694,save,9.0
+Word,46.729,0.311,47.04,hours,9.0
+Word,47.074,0.311,47.385,every,9.0
+Word,47.42,0.311,47.731,week,9.0
+Word,47.765,0.311,48.076,using,9.0
+Word,48.111,0.311,48.422,our,9.0
+Word,48.456,0.311,48.767,tool.,9.0
+Sentence,49.401999,5.243001999999995,54.645001,Our product helps small teams ship software faster and with fewer mistakes,
+Word,49.402,0.397,49.799,Our,10.0
+Word,49.843,0.397,50.24,product,10.0
+Word,50.283,0.397,50.68,helps,10.0
+Word,50.724,0.397,51.120999999999995,small,10.0
+Word,51.164,0.397,51.561,teams,10.0
+Word,51.605,0.397,52.001999999999995,ship,10.0
+Word,52.046,0.397,52.443,software,10.0
+Word,52.486,0.397,52.882999999999996,faster,10.0
+Word,52.927,0.397,53.324,and,10.0
+Word,53.367,0.397,53.763999999999996,with,10.0
+Word,53.808,0.397,54.205,fewer,10.0
+Word,54.248,0.397,54.644999999999996,mistakes.,10.0

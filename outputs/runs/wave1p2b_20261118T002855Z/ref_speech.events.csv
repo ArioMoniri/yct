@@ -1,0 +1,65 @@
+type,start,duration,stop,text,sequence_id
+Audio,0.0,60.0,60.0,,
+Video,0.0,60.0,60.0,,
+Sentence,14.999999,5.243001999999999,20.243001,Our product helps small teams ship software faster and with fewer mistakes. ,
+Text,15.0,105.0,120.0,Our product helps small teams ship software faster and with fewer mistakes. We started last year and already have thousands of happy customers. The market is large and growing quickly every single month. Our team has built similar systems at large companies before. Customers tell us they save hours every week using our tool,0.0
+Word,15.0,0.397,15.397,Our,0.0
+Word,15.441,0.397,15.838000000000001,product,0.0
+Word,15.881,0.397,16.278,helps,0.0
+Word,16.322,0.397,16.718999999999998,small,0.0
+Word,16.762,0.397,17.159,teams,0.0
+Word,17.203,0.397,17.599999999999998,ship,0.0
+Word,17.643,0.397,18.04,software,0.0
+Word,18.084,0.397,18.480999999999998,faster,0.0
+Word,18.525,0.397,18.921999999999997,and,0.0
+Word,18.965,0.397,19.362,with,0.0
+Word,19.406,0.397,19.802999999999997,fewer,0.0
+Word,19.846,0.397,20.243,mistakes.,0.0
+Sentence,34.999999,4.199001999999998,39.199001,We started last year and already have thousands of happy customers. ,
+Word,35.0,0.347,35.347,We,1.0
+Word,35.385,0.347,35.732,started,1.0
+Word,35.77,0.347,36.117000000000004,last,1.0
+Word,36.156,0.347,36.503,year,1.0
+Word,36.541,0.347,36.888,and,1.0
+Word,36.926,0.347,37.273,already,1.0
+Word,37.311,0.347,37.658,have,1.0
+Word,37.696,0.347,38.043,thousands,1.0
+Word,38.081,0.347,38.428000000000004,of,1.0
+Word,38.467,0.347,38.814,happy,1.0
+Word,38.852,0.347,39.199,customers.,1.0
+Sentence,54.999999,3.817002,58.817001000000005,The market is large and growing quickly every single month. ,
+Word,55.0,0.347,55.347,The,2.0
+Word,55.386,0.347,55.733000000000004,market,2.0
+Word,55.771,0.347,56.118,is,2.0
+Word,56.157,0.347,56.504,large,2.0
+Word,56.542,0.347,56.889,and,2.0
+Word,56.928,0.347,57.275,growing,2.0
+Word,57.313,0.347,57.660000000000004,quickly,2.0
+Word,57.699,0.347,58.046,every,2.0
+Word,58.084,0.347,58.431000000000004,single,2.0
+Word,58.47,0.347,58.817,month.,2.0
+Audio,60.0,60.0,120.0,,
+Video,60.0,60.0,120.0,,
+Sentence,74.999999,3.9810019999999944,78.98100099999999,Our team has built similar systems at large companies before. ,
+Word,75.0,0.362,75.362,Our,3.0
+Word,75.402,0.362,75.764,team,3.0
+Word,75.804,0.362,76.166,has,3.0
+Word,76.206,0.362,76.568,built,3.0
+Word,76.608,0.362,76.97,similar,3.0
+Word,77.01,0.362,77.372,systems,3.0
+Word,77.413,0.362,77.77499999999999,at,3.0
+Word,77.815,0.362,78.17699999999999,large,3.0
+Word,78.217,0.362,78.579,companies,3.0
+Word,78.619,0.362,78.981,before.,3.0
+Sentence,94.999999,3.766002000000005,98.766001,Customers tell us they save hours every week using our tool,
+Word,95.0,0.311,95.311,Customers,4.0
+Word,95.346,0.311,95.65700000000001,tell,4.0
+Word,95.691,0.311,96.00200000000001,us,4.0
+Word,96.037,0.311,96.34800000000001,they,4.0
+Word,96.382,0.311,96.69300000000001,save,4.0
+Word,96.728,0.311,97.039,hours,4.0
+Word,97.073,0.311,97.384,every,4.0
+Word,97.419,0.311,97.73,week,4.0
+Word,97.764,0.311,98.075,using,4.0
+Word,98.11,0.311,98.421,our,4.0
+Word,98.455,0.311,98.766,tool.,4.0

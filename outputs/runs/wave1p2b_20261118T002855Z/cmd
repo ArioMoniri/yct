@@ -1,0 +1,1 @@
+["python", "scripts/gpu_wave1_p2b.py", "--max-hours", "3.5", "--usd-limit", "25", "--steps", "bug018,real,enh002"]

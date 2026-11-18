@@ -1,0 +1,5 @@
+type,start,duration,stop
+Audio,0.0,60.0,60.0
+Video,0.0,60.0,60.0
+Audio,60.0,60.0,120.0
+Video,60.0,60.0,120.0
