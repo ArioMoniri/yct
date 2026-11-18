@@ -113,3 +113,39 @@ Fix: tell 404 apart from other errors. For example, use `aws s3api head-object` 
 - **GPU name.** The `"NVIDIA A100-SXM4-40GB"` string matches the 136 earlier records.
 - **Instance names.** Names stay ≤ 64 characters, and `pod_terminator_script` fails non-zero when the timer is not listed.
 - **Teardown.** It always terminates, including on SystemExit raised inside the try, through `finally`.
+
+## Cycle 3 verification (a07f421, D-065)
+
+This section covers commit a07f421, pulled at a fast-forward. Checks:
+- CI run 44232612904 passed on a07f421.
+- The 78 tests in the P4 driver, terminator, cache and qc suites passed.
+- `ruff check .` is clean.
+- I re-ran my own N1 and N2 reproductions; both now pass (details below).
+
+**N1: CLOSED.**
+- I re-ran my cycle-2 reproduction: a `rerun_differs` fault on yct_0016.t1, then the fault cleared.
+- Session 1 returns rc 1, writes `stops/s1.json` and records a failing D-038 row.
+- Session 2 now raises SystemExit with "D-038 STOP latched by run(s) ['s1']…". It launches no instance (`FakeLG.launched` stays at 1).
+- The latch works from either the marker or the failing manifest row, so it survives a missing marker.
+- The only way to clear it is `--clear-stop D-NNN`, and that requires a DECISIONS.md entry naming every stopped run id. Tests cover the latch, the clear, and `--clear-stop` refusing when no STOP exists.
+- The docstring now says exit 1 needs a human.
+
+**Running the orphan sweep before the STOP refusal is acceptable, and better than the reverse.**
+- reap, reap-deadline and the liveness-aware sweep can only terminate instances: they never launch, extract or write P4 data.
+- An orphan left over from the stopped session is exactly what should still be cleaned up.
+- The refusal still happens before the budget check, before preflight and before `launch`.
+
+**N2: CLOSED.**
+- `s3_get_text` returns None only on `(404)` or `(NoSuchKey)`.
+- With fake `_aws` results, 403, connection failure, SlowDown and an empty stderr all raise S3ReadError.
+- Dropping `--quiet` was necessary, because it suppressed the stderr that the 404 match reads.
+- A manifest that reads as absent while `rows/` exist is now refused by both `load_state` (SystemExit) and `append_rows` (ManifestConflictError). This closes the truncation path.
+- Every immutable `put_*` now fails closed on read errors.
+
+Residual (Low, not blocking): the STOP marker is written before the manifest row. If that marker's own S3 read or write fails, the run exits 1 through the generic error path with no latch. Exit 1 still requires a human, so this is acceptable.
+
+**Final verdict: GO** for launching full-model T1+T3 P4 extraction, conditional on two operator checks for each session:
+- the external terminator is set up (a scheduled session with `LAMBDA_API_KEY`, and `--external-terminator-at` set past now + max_hours + about 30 min);
+- the session is restarted only while the driver exits 75.
+
+Strongly recommended for session 1: a deliberate restore-on-GPU smoke test (risk 1 above). The open Low defects (D7, D10, D12 flake, D13, D14) should be ticketed before P4b.
