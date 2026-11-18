@@ -1,0 +1,152 @@
+diff --git a/infra/gpu_ledger.jsonl b/infra/gpu_ledger.jsonl
+index 4fe1d5b..0bbc199 100644
+--- a/infra/gpu_ledger.jsonl
++++ b/infra/gpu_ledger.jsonl
+@@ -1593,3 +1593,78 @@
+ {"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018303.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+ {"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018333.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+ {"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018363.0, "gpu_util": 0.0, "mem_mib": 4.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018393.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018423.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018453.0, "gpu_util": 18.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018483.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018513.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018543.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018574.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018604.0, "gpu_util": 5.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018634.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018664.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018694.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018724.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018754.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018784.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018814.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018844.0, "gpu_util": 1.0, "mem_mib": 7483.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018874.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018904.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018934.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018964.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795018994.0, "gpu_util": 0.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019024.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019054.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019084.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019114.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019144.0, "gpu_util": 0.0, "mem_mib": 1357.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019174.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019204.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019234.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019264.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019294.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019324.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019354.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019384.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019414.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019444.0, "gpu_util": 0.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019475.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019505.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019535.0, "gpu_util": 53.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019565.0, "gpu_util": 15.0, "mem_mib": 2055.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019595.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019625.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019655.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019685.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019715.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019745.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019775.0, "gpu_util": 58.0, "mem_mib": 7791.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019805.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019835.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019865.0, "gpu_util": 23.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019895.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019925.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019955.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795019985.0, "gpu_util": 0.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020015.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020045.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020075.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020105.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020135.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020165.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020195.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020225.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020255.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020285.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020315.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020345.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020375.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020406.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020436.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020466.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020496.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020526.0, "gpu_util": 54.0, "mem_mib": 12889.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020556.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "heartbeat", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020586.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
++{"event": "terminate", "id": "66ec2a8950bd4211a2d6f0ddd06b8bb1", "t": 1795020677.6691933, "reason": "job_done"}
+diff --git a/outputs/runs/wave1p4_s6_20261118T152033Z/stdout.log b/outputs/runs/wave1p4_s6_20261118T152033Z/stdout.log
+index e69de29..25238e8 100644
+--- a/outputs/runs/wave1p4_s6_20261118T152033Z/stdout.log
++++ b/outputs/runs/wave1p4_s6_20261118T152033Z/stdout.log
+@@ -0,0 +1,64 @@
++[15:30:21]   setup: running (8 s) ''
++[15:31:14]   setup: running (61 s) ''
++[15:32:07]   setup: running (115 s) 'ing Python 3.11.18 environment at: venv\n\nFetching 3 files:   0%|          | 0/3 [00:00<?, ?it/s]\nFetching 3 files:  33%|███▎      | 1/3 [00:00<00:00,  3.43it/s]'
++[15:33:55]   yct_0346_t1: running (8 s) ''
++[15:34:48]   yct_0346_t1: running (61 s) ''
++[15:35:41]   yct_0346_t1: running (115 s) ''
++[15:36:35]   yct_0346_t1: running (168 s) ''
++[15:37:28]   yct_0346_t1: running (221 s) ''
++[15:38:21]   yct_0346_t1: running (274 s) ''
++[15:41:39]   yct_0420_t1: running (8 s) ''
++[15:42:32]   yct_0420_t1: running (61 s) ''
++[15:43:25]   yct_0420_t1: running (114 s) ''
++[15:44:18]   yct_0420_t1: running (167 s) ''
++[15:45:11]   yct_0420_t1: running (220 s) ''
++[15:46:05]   yct_0420_t1: running (274 s) ''
++[15:49:22]   yct_0422_t1: running (8 s) ''
++[15:50:15]   yct_0422_t1: running (62 s) ''
++[15:51:08]   yct_0422_t1: running (115 s) ''
++[15:52:02]   yct_0422_t1: running (168 s) ''
++[15:52:55]   yct_0422_t1: running (222 s) ''
++[15:53:48]   yct_0422_t1: running (275 s) ''
++[15:57:08]   yct_0442_t1: running (8 s) ''
++[15:58:02]   yct_0442_t1: running (61 s) ''
++[15:58:55]   yct_0442_t1: running (114 s) ''
++[15:59:48]   yct_0442_t1: running (168 s) ''
++[16:00:42]   yct_0442_t1: running (221 s) ''
++[16:01:35]   yct_0442_t1: running (274 s) ''
++[16:04:56]   yct_0444_t1: running (8 s) ''
++[16:05:49]   yct_0444_t1: running (61 s) ''
++[16:06:42]   yct_0444_t1: running (114 s) ''
++[16:07:36]   yct_0444_t1: running (167 s) ''
++[16:08:29]   yct_0444_t1: running (221 s) ''
++[16:09:22]   yct_0444_t1: running (274 s) ''
++[16:12:51]   yct_0463_t1: running (8 s) ''
++[16:13:44]   yct_0463_t1: running (62 s) ''
++[16:14:38]   yct_0463_t1: running (115 s) ''
++[16:15:31]   yct_0463_t1: running (169 s) ''
++[16:16:25]   yct_0463_t1: running (223 s) ''
++[16:17:19]   yct_0463_t1: running (276 s) ''
++[16:20:42]   yct_0482_t1: running (8 s) ''
++[16:21:36]   yct_0482_t1: running (61 s) ''
++[16:22:29]   yct_0482_t1: running (115 s) ''
++[16:23:22]   yct_0482_t1: running (168 s) ''
++[16:24:16]   yct_0482_t1: running (221 s) ''
++[16:25:10]   yct_0482_t1: running (275 s) ''
++[16:28:26]   yct_0528_t1: running (8 s) ''
++[16:29:19]   yct_0528_t1: running (61 s) ''
++[16:30:12]   yct_0528_t1: running (114 s) ''
++[16:31:05]   yct_0528_t1: running (167 s) ''
++[16:31:59]   yct_0528_t1: running (221 s) ''
++[16:32:52]   yct_0528_t1: running (274 s) ''
++[16:36:08]   yct_0553_t1: running (8 s) ''
++[16:37:02]   yct_0553_t1: running (61 s) ''
++[16:37:55]   yct_0553_t1: running (114 s) ''
++[16:38:48]   yct_0553_t1: running (167 s) ''
++[16:39:41]   yct_0553_t1: running (221 s) ''
++[16:40:35]   yct_0553_t1: running (274 s) ''
++[16:43:56]   yct_0567_t1: running (8 s) ''
++[16:44:49]   yct_0567_t1: running (61 s) ''
++[16:45:42]   yct_0567_t1: running (114 s) ''
++[16:46:36]   yct_0567_t1: running (168 s) ''
++[16:47:30]   yct_0567_t1: running (222 s) ''
++[16:48:23]   yct_0567_t1: running (275 s) ''
++{"status": "incomplete", "exit_code": 75, "n_done": 36, "n_jobs": 103, "jobs_run": ["yct_0346.t1", "yct_0420.t1", "yct_0422.t1", "yct_0442.t1", "yct_0444.t1", "yct_0463.t1", "yct_0482.t1", "yct_0528.t1", "yct_0553.t1", "yct_0567.t1"], "error": null, "stop": null, "gate_failures": {}, "errors": {}}
