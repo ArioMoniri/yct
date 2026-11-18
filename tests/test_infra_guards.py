@@ -293,7 +293,7 @@ def test_sweep_terminates_every_live_yct_instance_except_keep(lg, monkeypatch):
 
 
 def test_deadman_switch_halts_without_driver_touch(tmp_path):
-    """BUG-027 box-side dead-man switch: no touch for GRACE_S -> shutdown command; touched -> keeps running."""
+    """BUG-027 box-side dead-man switch: no touch for GRACE_S -> shutdown; touched -> keeps running."""
     import os
     import subprocess
     import time

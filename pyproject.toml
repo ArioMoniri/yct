@@ -30,7 +30,8 @@ line-length = 110
 # analysis/sims_c2/: Biostat cycle-2 simulation scripts (commit b834dff), archived evidence, kept byte-identical.
 # analysis/neuro_checks/: Neuro G-D032 condition-verification scripts (commit cfeac3d), archived evidence,
 # lint-exempt (committed lint-red, so `ruff check .` failed at cfeac3d); only -nostdin added (test_ffmpeg_nostdin).
-extend-exclude = ["analysis/power", "analysis/sims_c2", "analysis/neuro_checks"]
+# outputs/runs/: provenance copies of the scripts that produced each run, kept byte-identical (QA P4-entry D2).
+extend-exclude = ["analysis/power", "analysis/sims_c2", "analysis/neuro_checks", "outputs/runs"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "N", "UP"]
