@@ -104,7 +104,9 @@ D071_FROZEN = [("p4.launcher_max_hours", "ca63a9d57857b68cf5c0f9dc7a51ce6d53882d
                             "controls.pass", "controls.rois_per_hemi", "controls.mw_removed_frac",
                             "controls.refclips"]]
 D074_SHA = "698b64a0e6c3cbc98ac6490fd10bc202a1647733"   # T-D074 commit 1 (D-074 key)
-D074_FROZEN = [("controls.refclips_d074", D074_SHA)]
+D074_FROZEN = [("controls.refclips_d074", D074_SHA),
+               ("controls.refclips_artifacts.image_snapshot_sha256",
+                "3ca6b2e7fa32bb7e56ad05592c76ab44788c0221")]   # D-074 snapshot commit
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
