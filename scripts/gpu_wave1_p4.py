@@ -138,6 +138,53 @@ class SessionArgs:
     decisions_path: Path | None = None
 
 
+@dataclass
+class Campaign:
+    """What one driver session runs (T-REFRUN refactor, D-071). The defaults ARE the P4 campaign (D-063):
+    scripts/gpu_p4b_ref.py builds a reference-clip campaign from the same code path.
+
+    name         Lambda instance base name (ledger prefix; the cost scope of a campaign cap)
+    plan         cfg -> ordered jobs
+    gate_track   job -> the yct.tribe_run.qc.clip_gate track rules ("t1"/"t3")
+    expected     job, pod input -> extra fields the per-clip gate requires (e.g. a frozen clip sha256)
+    seed_rev_sha revisions sha256 the first job must match when the store has none yet (None: first wins)
+    pre_launch   (price_usd_per_hour, max_hours) -> dict recorded in res["pre_launch"]; raises to refuse
+    """
+    name: str = "yct-p4"
+    pred_prefix_: str | None = None       # None: the module constants, read at use time (P4)
+    entry_prefix_: str | None = None
+    d038_prefix_: str | None = None
+    plan: Any = None
+    gate_track: Any = None
+    expected: Any = None
+    seed_rev_sha: str | None = None
+    pre_launch: Any = None
+
+    @property
+    def pred_prefix(self) -> str:
+        return self.pred_prefix_ or PRED_PREFIX
+
+    @property
+    def entry_prefix(self) -> str:
+        return self.entry_prefix_ or ENTRY_PREFIX
+
+    @property
+    def d038_prefix(self) -> str:
+        return self.d038_prefix_ or D038_PREFIX
+
+    def jobs(self, cfg: dict) -> list[Job]:
+        return (self.plan or plan_jobs)(cfg)
+
+    def track_for_gate(self, job: Job) -> str:
+        return self.gate_track(job) if self.gate_track else job.track
+
+    def expected_for(self, job: Job, inp: dict) -> dict:
+        return dict(self.expected(job, inp)) if self.expected else {}
+
+
+P4_CAMPAIGN = Campaign()
+
+
 def plan_jobs(cfg: dict) -> list[Job]:
     """Frozen run sets (config p4, D-063): D-038 clips first (T1), then T1, then T3, by video_id."""
     p = cfg["p4"]
@@ -219,11 +266,12 @@ class State:
         return shas.pop() if shas else None
 
 
-def load_state(backend, superseded: tuple[str, ...] | list[str] = ()) -> State:
+def load_state(backend, superseded: tuple[str, ...] | list[str] = (), entry_prefix: str | None = None) -> State:
     """Manifest rows + entries. Rows/entries of ``superseded`` runs (config p4.superseded_run_ids, BUG-029: made
     before the word-end clamp) are ignored for done/restore/revisions; their S3 objects stay (append-only).
     D-038 STOP markers are never ignored."""
     sup = set(superseded)
+    entry_prefix = entry_prefix or ENTRY_PREFIX
     text = backend.s3_get_text("manifest.jsonl")
     keys = set(backend.s3_list(""))
     if text is None and any(k.startswith("rows/") for k in keys):
@@ -233,7 +281,7 @@ def load_state(backend, superseded: tuple[str, ...] | list[str] = ()) -> State:
     stop_rows = [r for r in rows if r.get("d038") is not None and r.get("gate_pass") is False]
     rows = [r for r in rows if r.get("run_id") not in sup] + [r for r in stop_rows if r.get("run_id") in sup]
     entries = {}
-    for k in sorted(x for x in keys if x.startswith(("entries/", ENTRY_PREFIX + "/")) and x.endswith(".json")):
+    for k in sorted(x for x in keys if x.startswith(("entries/", entry_prefix + "/")) and x.endswith(".json")):
         e = json.loads(backend.s3_get_text(k))
         if e.get("run_id") in sup:
             continue
@@ -300,6 +348,8 @@ def _d038_gate(rec: dict, rerun: dict | None) -> dict:
 def do_job(job: Job, ctx: dict) -> str:
     """Run, gate, sync one job. Returns "pass", "gate_fail" or "stop"; raises on infrastructure errors."""
     b, store, st, res, a = ctx["backend"], ctx["store"], ctx["state"], ctx["res"], ctx["args"]
+    camp: Campaign = ctx.get("campaign") or P4_CAMPAIGN
+    gtrack = camp.track_for_gate(job)
     inp = ctx["inputs"][job.video_id][job.track]
     restore = restorable(job, st)
     b.stage(ctx["box"], job, inp, restore)
@@ -311,12 +361,13 @@ def do_job(job: Job, ctx: dict) -> str:
     rec = sanitize_metrics(raw)
     del raw
     expected = {"transcript_sha256": inp["tsv_sha256"], "input_sha256": inp["sha256"]}
+    expected.update(camp.expected_for(job, inp))
     if ctx["rev_sha"]:
         expected["revisions_sha256"] = ctx["rev_sha"]
     if restore:
         expected["cache_key"] = restore["cache_key"]
         expected["cache_reused"] = True
-    gate = clip_gate(rec, job.track, expected)
+    gate = clip_gate(rec, gtrack, expected)
     if rc != 0 and gate["pass"]:
         gate = {"pass": False, "failures": [f"run_clip exit code {rc}"]}
     d038 = None
@@ -325,7 +376,7 @@ def do_job(job: Job, ctx: dict) -> str:
         rerun = sanitize_metrics(raw2) if raw2 else None
         del raw2
         d038 = _d038_gate(rec, rerun)
-        if rc2 != 0 or rerun is None or not clip_gate(rerun, job.track, expected)["pass"]:
+        if rc2 != 0 or rerun is None or not clip_gate(rerun, gtrack, expected)["pass"]:
             d038["pass"] = False
     row = {"job": job.id, "video_id": job.video_id, "track": job.track, "run_id": a.run_id,
            "instance_id": ctx["iid"], "git_sha": ctx["git_sha"], "t": ctx["clock"](),
@@ -357,18 +408,18 @@ def do_job(job: Job, ctx: dict) -> str:
     store.put_file(files["entry_tar"][0], tar_key, files["entry_tar"][1])
     store.put_file(files["entry_sums"][0], sums_key, files["entry_sums"][1])
     if restore is None:
-        store.put_text(f"{ENTRY_PREFIX}/{job.id}.json", json.dumps(
+        store.put_text(f"{camp.entry_prefix}/{job.id}.json", json.dumps(
             {"job": job.id, "cache_key": key, "tar_key": tar_key, "sums_key": sums_key,
              "tar_sha256": files["entry_tar"][1], "sums_sha256": files["entry_sums"][1], "run_id": a.run_id,
              "instance_id": ctx["iid"], "revisions_sha256": rec.get("revisions_sha256"), "t": ctx["clock"]()},
             sort_keys=True, indent=1))
     b.after_entry_sync(job)          # dry-run fault injection point (crash between entry and predictions)
-    pred_key = f"{PRED_PREFIX}/{job.track}/{job.video_id}.npy"
+    pred_key = f"{camp.pred_prefix}/{job.track}/{job.video_id}.npy"
     store.put_file(files["pred"][0], pred_key, files["pred"][1])
-    store.put_file(files["segments"][0], f"{PRED_PREFIX}/{job.track}/{job.video_id}.segments.csv", files["segments"][1])
+    store.put_file(files["segments"][0], f"{camp.pred_prefix}/{job.track}/{job.video_id}.segments.csv", files["segments"][1])
     if d038 is not None:
-        store.put_file(files["fresh_pred"][0], f"{D038_PREFIX}/{job.video_id}.fresh_pred.npy", files["fresh_pred"][1])
-        store.put_file(files["fresh_feat"][0], f"{D038_PREFIX}/{job.video_id}.fresh_feat.tar", files["fresh_feat"][1])
+        store.put_file(files["fresh_pred"][0], f"{camp.d038_prefix}/{job.video_id}.fresh_pred.npy", files["fresh_pred"][1])
+        store.put_file(files["fresh_feat"][0], f"{camp.d038_prefix}/{job.video_id}.fresh_feat.tar", files["fresh_feat"][1])
         if files["fresh_pred"][1] != d038["fresh_pred_sha256"]:
             raise RuntimeError(f"fresh prediction sha256 mismatch for {job.id}")
     row.update({"pred_key": pred_key, "tar_sha256": files["entry_tar"][1], "sums_sha256": files["entry_sums"][1]})
@@ -379,7 +430,9 @@ def do_job(job: Job, ctx: dict) -> str:
 
 
 # ---------------------------------------------------------------- one session
-def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) -> tuple[int, dict]:
+def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path,
+                campaign: Campaign | None = None) -> tuple[int, dict]:
+    camp = campaign or P4_CAMPAIGN
     run_dir = Path(run_dir)
     run_dir.mkdir(parents=True, exist_ok=True)
     p = cfg["p4"]
@@ -393,8 +446,9 @@ def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) ->
     if p["gpu_name"] != GPU_NAME:
         raise SystemExit(f"config p4.gpu_name {p['gpu_name']!r} != qc.GPU_NAME {GPU_NAME!r}")
     store = Store(backend)
-    jobs = plan_jobs(cfg)
-    st = load_state(backend, p.get("superseded_run_ids") or [])
+    jobs = camp.jobs(cfg)
+    sup = (p.get("superseded_run_ids") or []) if camp is P4_CAMPAIGN else []
+    st = load_state(backend, sup, camp.entry_prefix)
     res: dict[str, Any] = {"run_id": a.run_id, "t_start": clock(), "git_sha": backend.git_sha(), "instance_type": itype,
                            "jobs_run": [], "restored": [], "gate_failures": {}, "errors": {},
                            "decision": "D-063", "firewall": "per-clip checks only (D-063 B2)"}
@@ -428,12 +482,12 @@ def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) ->
         res["stop_cleared"] = {r: a.clear_stop for r in stops}
     if not pending:
         res["status"] = "complete"
-        return _finish(res, run_dir, backend, store, jobs, p.get("superseded_run_ids") or [])
+        return _finish(res, run_dir, backend, store, jobs, sup, camp.entry_prefix)
     if a.limit:
         pending = pending[:a.limit]
     avail = lg.types()
     if itype not in avail:                                    # BUG-033: retry later, not KeyError
-        return _no_capacity(res, run_dir, backend, store, jobs, p, f"{itype} not in available types")
+        return _no_capacity(res, run_dir, backend, store, jobs, sup, camp, f"{itype} not in available types")
     price = avail[itype]["usd_per_hour"]
     if price * a.max_hours > a.usd_limit:
         raise SystemExit(f"{price}*{a.max_hours} h exceeds the task limit ${a.usd_limit}")
@@ -454,23 +508,26 @@ def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) ->
                          "(systemd-run or SSM /yct/lambda_api_key unavailable) and no --external-terminator-at "
                          "was given (create a one-shot scheduled session at deadline + 15 min running "
                          "`python infra/lambda_gpu.py reap-deadline --margin-s 0` first)")
+    if camp.pre_launch is not None:
+        res["pre_launch"] = camp.pre_launch(price, a.max_hours)
     spent0 = lg.spent_usd()
     try:
-        rec = lg.launch(itype, "yct-p4", a.max_hours, "yct-pod", None, name_deadline=True)
+        rec = lg.launch(itype, camp.name, a.max_hours, "yct-pod", None, name_deadline=True)
     except SystemExit as exc:                                 # BUG-033
         if "has no capacity" not in str(exc):
             raise
-        return _no_capacity(res, run_dir, backend, store, jobs, p, str(exc))
+        return _no_capacity(res, run_dir, backend, store, jobs, sup, camp, str(exc))
     except urllib.error.HTTPError as exc:                     # BUG-033: Lambda answers 400 on a capacity race
         if exc.code != 400:
             raise
         body = exc.read().decode(errors="replace")[:500]
-        return _no_capacity(res, run_dir, backend, store, jobs, p, f"HTTP 400: {body}")
+        return _no_capacity(res, run_dir, backend, store, jobs, sup, camp, f"HTTP 400: {body}")
     iid, deadline = rec["id"], float(rec["deadline"])
     res.update({"instance_id": iid, "instance_name": rec.get("name"), "deadline": deadline})
     box = None
     ctx = {"backend": backend, "store": store, "state": st, "res": res, "args": a, "inputs": inputs,
-           "iid": iid, "git_sha": res["git_sha"], "clock": clock, "rev_sha": st.revisions_sha256()}
+           "iid": iid, "git_sha": res["git_sha"], "clock": clock, "campaign": camp,
+           "rev_sha": st.revisions_sha256() or camp.seed_rev_sha}
     try:
         if ext is not None:
             if ext < deadline + margin:
@@ -527,7 +584,7 @@ def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) ->
             backend.mirror_ledger(a.run_id)
         except Exception as exc:  # noqa: BLE001
             res.setdefault("teardown_errors", []).append(f"ledger mirror: {exc}"[:300])
-    return _finish(res, run_dir, backend, store, jobs, p.get("superseded_run_ids") or [])
+    return _finish(res, run_dir, backend, store, jobs, sup, camp.entry_prefix)
 
 
 NONCAP_400_LIMIT = 3     # T-DRV (D-071): consecutive non-capacity HTTP-400 launch refusals before exit 1
@@ -556,7 +613,7 @@ def _noncap_400_streak(backend) -> int:
     return n
 
 
-def _no_capacity(res, run_dir, backend, store, jobs, p, why: str) -> tuple[int, dict]:
+def _no_capacity(res, run_dir, backend, store, jobs, sup, camp, why: str) -> tuple[int, dict]:
     """BUG-033: no instance was created, nothing billed; the session ends as 'retry later' (exit 75).
     T-DRV: the third consecutive HTTP 400 whose body does not mention capacity is exit 1 (a human looks)."""
     res["status"], res["capacity_miss"] = "no_capacity", why
@@ -567,14 +624,15 @@ def _no_capacity(res, run_dir, backend, store, jobs, p, why: str) -> tuple[int, 
             res["status"] = "failed"
             res["error"] = (f"{prior + 1} consecutive non-capacity HTTP 400 launch refusals ({why[:200]}); "
                             "not a capacity race: a human must look (T-DRV)")
-    rc, res = _finish(res, run_dir, backend, store, jobs, p.get("superseded_run_ids") or [])
+    rc, res = _finish(res, run_dir, backend, store, jobs, sup, camp.entry_prefix)
     if rc == EXIT_OK:
         return rc, res
     return (EXIT_INCOMPLETE, res) if rc != EXIT_FAIL else (rc, res)
 
 
-def _finish(res: dict, run_dir: Path, backend, store: Store, jobs: list[Job], superseded: list[str] = ()) -> tuple[int, dict]:
-    st = load_state(backend, superseded)
+def _finish(res: dict, run_dir: Path, backend, store: Store, jobs: list[Job], superseded: list[str] = (),
+            entry_prefix: str | None = None) -> tuple[int, dict]:
+    st = load_state(backend, superseded, entry_prefix)
     res["remaining"] = [j.id for j in jobs if not is_done(j, st)]
     res["n_done"] = len(jobs) - len(res["remaining"])
     res["n_jobs"] = len(jobs)
@@ -881,12 +939,12 @@ class PodBackend:
     """Pod via SSM (infra/pod_exec.sh), box via ssh from the pod (scripts/gpu_p0_rerun.Box); small S3 text
     objects from this container (aws CLI), big files pod -> S3. Never prints secrets or transcript text."""
 
-    def __init__(self, cfg: dict, run_id: str, run_dir: Path):
+    def __init__(self, cfg: dict, run_id: str, run_dir: Path, s3root: str | None = None):
         sys.path.insert(0, str(ROOT / "scripts"))
         import gpu_p0_rerun as g
 
         self.g, self.cfg, self.run_id, self.run_dir = g, cfg, run_id, run_dir
-        self.s3root = cfg["p4"]["s3_prefix"].rstrip("/")
+        self.s3root = (s3root or cfg["p4"]["s3_prefix"]).rstrip("/")
         self.pod_dir = f"{POD_P4}/runs/{run_id}"
         self._stop = threading.Event()
         self._watcher = None
