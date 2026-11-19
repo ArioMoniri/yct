@@ -112,7 +112,20 @@ def build_parser() -> argparse.ArgumentParser:
                          "Audio + one Video chunk, shape, T, finite, words; D-063)")
     ap.add_argument("--bug018-word-fix", action="store_true",
                     help="absolute-time Word events (BUG-018); required for clips > 60 s")
+    ap.add_argument("--condition", choices=tuple(CONDITION_FEATURES), default="full",
+                    help="T-ABL (D-071 Q1): predict from the cached features with only these modalities "
+                         "(audioonly = [audio], textonly = [text]; the dropped ones are zero-filled). The "
+                         "extraction (and so the cache key) is always the full model")
     return ap
+
+
+# T-ABL (D-071 Q1; tribe_requirements.md: config_update={"data.features_to_use": [...]})
+CONDITION_FEATURES: dict[str, list[str] | None] = {"full": None, "audioonly": ["audio"], "textonly": ["text"]}
+
+
+def condition_config_update(condition: str) -> dict:
+    feats = CONDITION_FEATURES[condition]
+    return {} if feats is None else {"data.features_to_use": list(feats)}
 
 
 def main() -> None:
@@ -147,14 +160,18 @@ def main() -> None:
     weights = Path(a.weights)
     timing: dict[str, float] = {}
 
-    def _model(feat_dir: Path):
+    def _model(feat_dir: Path, condition: str = "full"):
         t0 = time.time()
-        m = TribeModel.from_pretrained(str(weights), cache_folder=str(feat_dir), device="cuda")
+        upd = condition_config_update(condition)
+        m = TribeModel.from_pretrained(str(weights), cache_folder=str(feat_dir), device="cuda",
+                                       **({"config_update": upd} if upd else {}))
         timing["wall_load_s"] = round(time.time() - t0, 1)
         return m
 
     def extract(video: Path, feat_dir: Path) -> None:
         # Populates TRIBE's (exca) feature cache in feat_dir; these predictions are discarded.
+        if a.condition != "full":   # T-ABL: a condition run predicts from the full model's cache entry only
+            raise RuntimeError(f"--condition {a.condition}: no cache entry for {video.name}; run full first")
         t0 = time.time()
         m = _model(feat_dir)
         m.predict(events=m.get_events_dataframe(video_path=str(video)), verbose=False)
@@ -162,7 +179,7 @@ def main() -> None:
         timing["wall_extract_s"] = round(time.time() - t0, 1)
 
     def predict(video: Path, feat_dir: Path):
-        m = _model(feat_dir)
+        m = _model(feat_dir, a.condition)
         t1 = time.time()
         df = m.get_events_dataframe(video_path=str(video))
         preds, segments = m.predict(events=df, verbose=False)
@@ -235,6 +252,7 @@ def main() -> None:
         "pred_mean": float(preds.mean()), "pred_std": float(preds.std()),
         "uvx_on_path": shutil.which("uvx") is not None, "asr_called": False,
         "bug018_word_check": word_check,
+        "condition": a.condition,
     }
     Path(a.out + ".json").write_text(json.dumps(m, indent=1, default=str))
     print(json.dumps(m, default=str))

@@ -34,7 +34,8 @@ _KEEP = ("duration_s", "shape", "finite", "TR_s", "expected_T", "T_within_1", "n
          "words_after_duration", "wall_load_s", "wall_extract_s", "wall_events_predict_s",
          "peak_vram_smi_mib", "torch_max_allocated_mib", "gpu", "torch", "cuda", "uvx_on_path", "asr_called",
          "input_sha256", "transcript_sha256", "cache_key", "cache_reused", "pred_sha256", "pred_shape",
-         "pred_dtype", "offline", "revisions", "event_types")
+         "pred_dtype", "offline", "revisions", "event_types",
+         "condition")   # T-ABL (D-071 Q1): full | audioonly | textonly
 
 
 def _n_chunks(v: Any) -> int | None:

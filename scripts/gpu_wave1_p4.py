@@ -121,9 +121,18 @@ class Job:
     video_id: str
     track: str
     d038: bool = False
+    condition: str = "full"          # T-ABL (D-071 Q1): full | audioonly | textonly (predict from the cache)
+    qc_track: str | None = None      # clip_gate rules when the track name is not t1/t3 (P4b ref clips: t1)
+    gate1_rerun: bool = False        # T-ABL: cached rerun must be bit-identical (Gate 1), no fresh drift
 
     @property
     def id(self) -> str:
+        base = f"{self.video_id}.{self.track}"
+        return base if self.condition == "full" else f"{base}.{self.condition}"
+
+    @property
+    def base_id(self) -> str:
+        """The full-model job whose feature-cache entry a condition job predicts from."""
         return f"{self.video_id}.{self.track}"
 
 
@@ -176,7 +185,11 @@ class Campaign:
         return (self.plan or plan_jobs)(cfg)
 
     def track_for_gate(self, job: Job) -> str:
-        return self.gate_track(job) if self.gate_track else job.track
+        return self.gate_track(job) if self.gate_track else (job.qc_track or job.track)
+
+    def pred_prefix_for(self, job: Job) -> str:
+        """T-ABL: a condition job writes only under <condition>/ (never under the full-model prefix)."""
+        return self.pred_prefix if job.condition == "full" else job.condition
 
     def expected_for(self, job: Job, inp: dict) -> dict:
         return dict(self.expected(job, inp)) if self.expected else {}
@@ -283,6 +296,8 @@ def load_state(backend, superseded: tuple[str, ...] | list[str] = (), entry_pref
     entries = {}
     for k in sorted(x for x in keys if x.startswith(("entries/", entry_prefix + "/")) and x.endswith(".json")):
         e = json.loads(backend.s3_get_text(k))
+        if "job" not in e:          # not an entry index (e.g. the P4b ref campaign baseline, D-071 k)
+            continue
         if e.get("run_id") in sup:
             continue
         entries[e["job"]] = e
@@ -318,7 +333,7 @@ def is_done(job: Job, st: State) -> bool:
 
 
 def restorable(job: Job, st: State) -> dict | None:
-    e = st.entries.get(job.id)
+    e = st.entries.get(job.id) or (st.entries.get(job.base_id) if job.condition != "full" else None)
     if e and e.get("tar_key") in st.keys and e.get("sums_key") in st.keys and not is_done(job, st):
         return e
     return None
@@ -362,6 +377,12 @@ def do_job(job: Job, ctx: dict) -> str:
     del raw
     expected = {"transcript_sha256": inp["tsv_sha256"], "input_sha256": inp["sha256"]}
     expected.update(camp.expected_for(job, inp))
+    if job.condition != "full":
+        base = ctx.setdefault("cache_keys", {}).get(job.base_id) or (
+            (st.passed(Job(job.video_id, job.track)) or {}).get("cache_key"))
+        if base is None:
+            raise RuntimeError(f"{job.id}: no synced full-model cache entry for {job.base_id} (run it first)")
+        expected["cache_key"], expected["cache_reused"] = base, True
     if ctx["rev_sha"]:
         expected["revisions_sha256"] = ctx["rev_sha"]
     if restore:
@@ -370,6 +391,17 @@ def do_job(job: Job, ctx: dict) -> str:
     gate = clip_gate(rec, gtrack, expected)
     if rc != 0 and gate["pass"]:
         gate = {"pass": False, "failures": [f"run_clip exit code {rc}"]}
+    if job.condition != "full" and gate["pass"] and rec.get("condition") != job.condition:
+        gate = {"pass": False, "failures": [f"record condition {rec.get('condition')!r} != {job.condition!r}"]}
+    gate1 = None
+    if job.gate1_rerun and gate["pass"]:
+        rc1, raw1 = b.run_job(ctx["box"], job, inp, "rerun")
+        rer = sanitize_metrics(raw1) if raw1 else None
+        del raw1
+        gate1 = {"cached_rerun_bit_identical": bool(rer and rc1 == 0 and rer.get("cache_reused") is True
+                                                    and rer.get("pred_sha256") == rec.get("pred_sha256"))}
+        if not gate1["cached_rerun_bit_identical"]:
+            gate = {"pass": False, "failures": [f"Gate 1 cached rerun not bit-identical: {gate1}"]}
     d038 = None
     if job.d038 and gate["pass"]:
         rc2, raw2 = b.run_job(ctx["box"], job, inp, "rerun")
@@ -385,8 +417,10 @@ def do_job(job: Job, ctx: dict) -> str:
            "revisions_sha256": rec.get("revisions_sha256"), "gpu": (rec.get("revisions") or {}).get("gpu"),
            "pred_sha256": rec.get("pred_sha256"), "pred_shape": rec.get("pred_shape"),
            "gate_pass": gate["pass"] and (d038 is None or d038["pass"]), "gate_failures": gate["failures"],
-           "restored_from_s3": bool(restore), "d038": d038}
-    store.put_text(f"records/{job.track}/{job.video_id}.{a.run_id}.json",
+           "restored_from_s3": bool(restore), "d038": d038,
+           **({"condition": job.condition, "gate1": gate1} if job.condition != "full" or gate1 else {})}
+    cond_sfx = "" if job.condition == "full" else f".{job.condition}"
+    store.put_text(f"records/{job.track}/{job.video_id}{cond_sfx}.{a.run_id}.json",
                    json.dumps({"record": rec, "gate": gate, "d038": d038}, sort_keys=True, indent=1))
     if not gate["pass"]:
         store.append_rows([row], a.run_id)
@@ -407,16 +441,16 @@ def do_job(job: Job, ctx: dict) -> str:
     tar_key, sums_key = f"feature_cache/{key}.tar", f"feature_cache/{key}.FILES_SHA256SUMS"
     store.put_file(files["entry_tar"][0], tar_key, files["entry_tar"][1])
     store.put_file(files["entry_sums"][0], sums_key, files["entry_sums"][1])
-    if restore is None:
+    if restore is None and job.condition == "full":
         store.put_text(f"{camp.entry_prefix}/{job.id}.json", json.dumps(
             {"job": job.id, "cache_key": key, "tar_key": tar_key, "sums_key": sums_key,
              "tar_sha256": files["entry_tar"][1], "sums_sha256": files["entry_sums"][1], "run_id": a.run_id,
              "instance_id": ctx["iid"], "revisions_sha256": rec.get("revisions_sha256"), "t": ctx["clock"]()},
             sort_keys=True, indent=1))
     b.after_entry_sync(job)          # dry-run fault injection point (crash between entry and predictions)
-    pred_key = f"{camp.pred_prefix}/{job.track}/{job.video_id}.npy"
+    pred_key = f"{camp.pred_prefix_for(job)}/{job.track}/{job.video_id}.npy"
     store.put_file(files["pred"][0], pred_key, files["pred"][1])
-    store.put_file(files["segments"][0], f"{camp.pred_prefix}/{job.track}/{job.video_id}.segments.csv", files["segments"][1])
+    store.put_file(files["segments"][0], f"{camp.pred_prefix_for(job)}/{job.track}/{job.video_id}.segments.csv", files["segments"][1])
     if d038 is not None:
         store.put_file(files["fresh_pred"][0], f"{camp.d038_prefix}/{job.video_id}.fresh_pred.npy", files["fresh_pred"][1])
         store.put_file(files["fresh_feat"][0], f"{camp.d038_prefix}/{job.video_id}.fresh_feat.tar", files["fresh_feat"][1])
@@ -426,6 +460,8 @@ def do_job(job: Job, ctx: dict) -> str:
     store.append_rows([row], a.run_id)
     if ctx["rev_sha"] is None:
         ctx["rev_sha"] = rec.get("revisions_sha256")
+    if job.condition == "full":
+        ctx.setdefault("cache_keys", {})[job.id] = key
     return "pass"
 
 
@@ -888,7 +924,8 @@ class DryRunBackend:
         def predict(video: Path, feat: Path):
             self.clock.advance(self.T_PREDICT)
             a = np.load(feat / "audio.npy").astype(np.float32)
-            return np.repeat(a.mean(1, keepdims=True), 20484, axis=1).astype(np.float16), {}
+            scale = {"full": 1.0, "audioonly": 0.5, "textonly": 0.25}[job.condition]
+            return (scale * np.repeat(a.mean(1, keepdims=True), 20484, axis=1)).astype(np.float16), {}
 
         out = box["dir"] / "res" / (job.id + ("_rerun" if mode == "rerun" else ""))
         fresh = job.d038 and mode == "main"
@@ -906,6 +943,7 @@ class DryRunBackend:
                              "Video": [[0.0, inp["duration_s"]]]},
                   "bug018_word_check": {"ok": True, "n_words": 20, "n_tsv_rows": 20, "bug018_fix": True},
                   "asr_called": False, "uvx_on_path": False, "pred_mean": 0.0, "pred_std": 1.0})
+        m["condition"] = job.condition
         if mode == "main":
             self.box_pred_sha[job.id] = m["pred_sha256"]
         return 0, m
@@ -1117,7 +1155,7 @@ PY
         d = f"{bdir}/clips/{job.track}"
         g.pod(f"[ \"$(sha256sum {inp['tsv']} | cut -d' ' -f1)\" = {inp['tsv_sha256']} ] && "
               f"cd $(dirname {inp['path']}) && tar cf - $(basename {inp['path']}) | {box.ssh} 'mkdir -p {d} && "
-              f"tar xf - -C {d}' && cd /work/yct/transcripts && tar cf - {inp['stem']}.tsv | {box.ssh} "
+              f"tar xf - -C {d}' && cd $(dirname {inp['tsv']}) && tar cf - $(basename {inp['tsv']}) | {box.ssh} "
               f"'tar xf - -C {d}'", 900)
         if inp["path"].rsplit("/", 1)[-1] != f"{inp['stem']}.mp4":
             box.run(f"cd {d} && mv $(basename {inp['path']}) {inp['stem']}.mp4")
@@ -1140,10 +1178,13 @@ tar cf - -C {st} . | {box.ssh} 'mkdir -p {bdir}/stage/{restore['cache_key']} && 
         g, bdir = self.g, self.g.B
         name = job.id + ("_rerun" if mode == "rerun" else "")
         extra = " --fresh-drift --keep-fresh" if (job.d038 and mode == "main") else ""
+        if job.condition != "full":
+            extra += f" --condition {job.condition}"
         step = name.replace(".", "_")
         box.start(step, f"""cd {bdir}; source venv/bin/activate; export PYTHONPATH={bdir}/src; mkdir -p res
 python src/yct/tribe_run/run_clip.py --feature-cache fc --weights weights --out res/{name} \\
-  --video clips/{job.track}/{inp['stem']}.mp4 --bug018-word-fix --qc-gate {job.track}{extra} > res/{name}.log 2>&1
+  --video clips/{job.track}/{inp['stem']}.mp4 --bug018-word-fix --qc-gate {job.qc_track or job.track}{extra} \
+  > res/{name}.log 2>&1
 """)
         rc = box.wait(step, 3 * 3600)
         txt = g.pod(f"{box.ssh} 'cat {bdir}/res/{name}.json 2>/dev/null || true' > {self.pod_dir}/{name}.raw.json; "
