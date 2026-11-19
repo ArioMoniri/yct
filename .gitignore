@@ -17,3 +17,4 @@ data/sealed/*
 !data/sealed/*.age
 !data/sealed/*.age.sha256
 .tmp/
+.claude/worktrees/

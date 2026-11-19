@@ -395,7 +395,7 @@ def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) ->
     store = Store(backend)
     jobs = plan_jobs(cfg)
     st = load_state(backend, p.get("superseded_run_ids") or [])
-    res: dict[str, Any] = {"run_id": a.run_id, "git_sha": backend.git_sha(), "instance_type": itype,
+    res: dict[str, Any] = {"run_id": a.run_id, "t_start": clock(), "git_sha": backend.git_sha(), "instance_type": itype,
                            "jobs_run": [], "restored": [], "gate_failures": {}, "errors": {},
                            "decision": "D-063", "firewall": "per-clip checks only (D-063 B2)"}
     pending = [j for j in jobs if not is_done(j, st)]
@@ -530,9 +530,43 @@ def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) ->
     return _finish(res, run_dir, backend, store, jobs, p.get("superseded_run_ids") or [])
 
 
+NONCAP_400_LIMIT = 3     # T-DRV (D-071): consecutive non-capacity HTTP-400 launch refusals before exit 1
+
+
+def _is_noncap_400(why: str) -> bool:
+    return why.startswith("HTTP 400") and "capacit" not in why.lower()
+
+
+def _noncap_400_streak(backend) -> int:
+    """Consecutive most-recent session records (by t_start) that ended on a non-capacity HTTP 400."""
+    recs = []
+    for k in backend.s3_list("runs/"):
+        if k.endswith("/child_metrics.json"):
+            try:
+                r = json.loads(backend.s3_get_text(k) or "{}")
+            except ValueError:
+                continue
+            if r.get("t_start") is not None:
+                recs.append(r)
+    n = 0
+    for r in sorted(recs, key=lambda r: r["t_start"], reverse=True):
+        if r.get("capacity_miss_kind") != "http400_noncapacity":
+            break
+        n += 1
+    return n
+
+
 def _no_capacity(res, run_dir, backend, store, jobs, p, why: str) -> tuple[int, dict]:
-    """BUG-033: no instance was created, nothing billed; the session ends as 'retry later' (exit 75)."""
+    """BUG-033: no instance was created, nothing billed; the session ends as 'retry later' (exit 75).
+    T-DRV: the third consecutive HTTP 400 whose body does not mention capacity is exit 1 (a human looks)."""
     res["status"], res["capacity_miss"] = "no_capacity", why
+    res["capacity_miss_kind"] = "http400_noncapacity" if _is_noncap_400(why) else "capacity"
+    if res["capacity_miss_kind"] == "http400_noncapacity":
+        prior = _noncap_400_streak(backend)
+        if prior + 1 >= NONCAP_400_LIMIT:
+            res["status"] = "failed"
+            res["error"] = (f"{prior + 1} consecutive non-capacity HTTP 400 launch refusals ({why[:200]}); "
+                            "not a capacity race: a human must look (T-DRV)")
     rc, res = _finish(res, run_dir, backend, store, jobs, p.get("superseded_run_ids") or [])
     if rc == EXIT_OK:
         return rc, res
