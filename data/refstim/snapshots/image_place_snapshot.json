@@ -1,0 +1,15 @@
+{
+ "entries": [],
+ "header": {
+  "category": "place",
+  "filetype": "bitmap",
+  "kind": "image",
+  "limit": 2000,
+  "queries": [
+   "\"empty room interior photograph\"",
+   "\"empty street photograph\""
+  ],
+  "srnamespace": 6,
+  "utc_date": "2026-11-19"
+ }
+}

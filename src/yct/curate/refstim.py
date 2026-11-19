@@ -1,0 +1,332 @@
+"""T-LIC / T-NAT (D-071 b/c): label-free curation of the P4b localiser photographs and naturalistic clips.
+
+Snapshot first (full candidate list, committed by sha before any filter), then candidates are inspected in
+ascending sha256(title) order and every inspected one is logged as pass/reject with a fixed reason code,
+until exactly 20 pass per image category (NAT: 15). No YC/founder/analysis-company imagery; nothing here
+reads labels, data/sealed/ or predictions. The NAT disjointness check compares URL / video-id hashes only.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+import subprocess
+from collections.abc import Callable, Iterable
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[3]
+REFSTIM = ROOT / "data" / "refstim"
+LICENSES_MD = ROOT / "docs" / "stimuli" / "LICENSES.md"
+API = "https://commons.wikimedia.org/w/api.php"
+USER_AGENT = "yct-research-curator/0.1 (academic research; label-free stimulus curation)"
+LICENCE_FIELDS = ("file", "url", "pageid", "revid", "licence", "licence_template", "attribution", "sha256")
+PERSONALITY = "Template:Personality rights"
+
+
+def title_key(title: str) -> str:
+    return hashlib.sha256(title.encode("utf-8")).hexdigest()
+
+
+def canonical(obj) -> str:
+    return json.dumps(obj, sort_keys=True, indent=1, ensure_ascii=False) + "\n"
+
+
+def write_json(path: Path, obj) -> str:
+    text = canonical(obj)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def file_sha(path: Path) -> str:
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+# ---------------------------------------------------------------- snapshot
+def header_for(kind: str, cfg: dict, category: str | None, utc_date: str) -> dict:
+    r = cfg["controls"]["refclips"]
+    if kind == "image":
+        return {
+            "kind": "image",
+            "category": category,
+            "queries": list(r["image_queries"][category]),
+            "srnamespace": 6,
+            "filetype": "bitmap",
+            "limit": r["snapshot_limits"]["image"],
+            "utc_date": utc_date,
+        }
+    return {
+        "kind": "nat",
+        "category": "nat",
+        "queries": [r["nat_query"]],
+        "srnamespace": 6,
+        "filetype": "video",
+        "limit": r["snapshot_limits"]["nat"],
+        "utc_date": utc_date,
+    }
+
+
+def build_snapshot(header: dict, fetch: Callable[[str, int], list[dict]]) -> dict:
+    """fetch(srsearch, limit) -> [{title, pageid, revid}] in API order; queries unioned (first seen)."""
+    seen, entries = set(), []
+    for q in header["queries"]:
+        for e in fetch(f"{q} filetype:{header['filetype']}", header["limit"]):
+            if e["title"] not in seen:
+                seen.add(e["title"])
+                entries.append(
+                    {"title": e["title"], "pageid": int(e["pageid"]), "revid": int(e["revid"]), "query": q}
+                )
+    return {"header": header, "entries": entries}
+
+
+def ordered(snapshot: dict) -> list[dict]:
+    return sorted(snapshot["entries"], key=lambda e: title_key(e["title"]))
+
+
+# ---------------------------------------------------------------- licences
+def licence_of(templates: Iterable[str], ext_license: str | None) -> tuple[str | None, str | None]:
+    """(config licence label, template) from the file page's templates; None if not admissible.
+    CC0 = Template:Cc-zero; PD-* = any Template:PD-...; CC-BY-x = Template:Cc-by-x (never -sa, nc, nd)."""
+    t = list(templates)
+    if PERSONALITY in t:
+        return None, PERSONALITY
+    for name in t:
+        n = name.removeprefix("Template:")
+        low = n.lower()
+        if low == "cc-zero":
+            return "CC0", name
+        if n.startswith("PD-"):
+            return "PD-*", name
+        for v in ("2.0", "2.5", "3.0", "4.0"):
+            if low == f"cc-by-{v}":
+                return f"CC-BY-{v}", name
+    return None, None
+
+
+def attribution(artist_html: str, credit_html: str) -> str:
+    """Plain-text 'Author (credit)' from Commons extmetadata HTML; never empty."""
+    import html
+    import re
+
+    def plain(s: str) -> str:
+        return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", s or ""))).strip()
+
+    a, c = plain(artist_html), plain(credit_html)
+    return (f"{a} ({c})" if c and c != a else a) or c or "unknown author (see file page)"
+
+
+def admissible(label: str | None, allowed: list[str]) -> bool:
+    return label is not None and label in allowed
+
+
+# ---------------------------------------------------------------- checks (T4 a-g)
+class CurationError(RuntimeError):
+    pass
+
+
+def check_header(snapshot: dict, cfg: dict) -> None:
+    h = snapshot["header"]
+    want = header_for(h["kind"], cfg, h.get("category"), h["utc_date"])
+    if h != want:
+        raise CurationError(f"snapshot header {h} != config {want}")
+
+
+def check_log(log: list[dict], snapshot: dict, cfg: dict, n_pass: int) -> list[dict]:
+    """Log rows are the inspected candidates in ascending sha256(title) order, contiguous from the first,
+    stopping at the n_pass-th pass. Returns the passing rows."""
+    reasons = set(cfg["controls"]["refclips"]["reject_reasons"])
+    order = ordered(snapshot)
+    if len(log) > len(order):
+        raise CurationError("log longer than snapshot")
+    passes = []
+    for i, row in enumerate(log):
+        if row["title"] != order[i]["title"] or row["sha256_title"] != title_key(order[i]["title"]):
+            raise CurationError(f"log row {i} out of sha256(title) order or gap: {row['title']!r}")
+        if row["decision"] == "pass":
+            if row.get("reason"):
+                raise CurationError(f"pass row {i} carries a reason")
+            passes.append(row)
+        elif row["decision"] == "reject":
+            if row.get("reason") not in reasons:
+                raise CurationError(f"row {i} reason {row.get('reason')!r} not in reject_reasons")
+        else:
+            raise CurationError(f"row {i} decision {row['decision']!r}")
+        if len(passes) == n_pass and i != len(log) - 1:
+            raise CurationError("log continues after the last needed pass")
+    if len(passes) != n_pass:
+        raise CurationError(f"{len(passes)} passes, need exactly {n_pass}: the build does not start")
+    return passes
+
+
+def check_manifest(manifest: list[dict], cfg: dict, n_pass: int) -> None:
+    allowed = cfg["controls"]["refclips"]["image_licences"]
+    if len(manifest) != n_pass:
+        raise CurationError(f"manifest has {len(manifest)} entries, need exactly {n_pass}")
+    for m in manifest:
+        if not admissible(m["licence"], allowed):
+            raise CurationError(f"{m['file']}: licence {m['licence']!r} not admissible")
+        if m["licence_template"] == PERSONALITY or m.get("personality_rights"):
+            raise CurationError(f"{m['file']}: personality-rights template")
+        if m["licence"] == "PD-*" and not m["licence_template"].removeprefix("Template:").startswith("PD-"):
+            raise CurationError(f"{m['file']}: PD-* without a PD- template")
+    if len({m["sha256"] for m in manifest}) != len(manifest):
+        raise CurationError("duplicate sha256 in manifest")
+
+
+def check_licenses_md(text: str, manifest: list[dict]) -> None:
+    for m in manifest:
+        line = next((ln for ln in text.splitlines() if f"| {m['file']} |" in ln), None)
+        if line is None:
+            raise CurationError(f"LICENSES.md has no row for {m['file']}")
+        for f in LICENCE_FIELDS:
+            if str(m[f]) not in line or not str(m[f]).strip():
+                raise CurationError(f"LICENSES.md row for {m['file']} lacks {f}")
+
+
+def licenses_md(sections: dict[str, list[dict]]) -> str:
+    out = [
+        "# Reference-stimulus licences (D-071 b/c)",
+        "",
+        "Per file: URL, page id, revision id, licence (config label), licence template, author/attribution,"
+        " sha256 of the downloaded original. CC-BY files require the attribution shown.",
+        "",
+    ]
+    for name, rows in sections.items():
+        out += [
+            f"## {name}",
+            "",
+            "| " + " | ".join(LICENCE_FIELDS) + " |",
+            "|" + "---|" * len(LICENCE_FIELDS),
+        ]
+        for m in rows:
+            out.append("| " + " | ".join(str(m[f]).replace("|", "/") for f in LICENCE_FIELDS) + " |")
+        out.append("")
+    return "\n".join(out)
+
+
+def snapshot_precedes(repo: Path, snapshot_rel: str, later_rel: str) -> bool:
+    """T4(a): the commit that first added `later_rel` has a strict ancestor containing `snapshot_rel` with the
+    same blob as now."""
+
+    def git(*a):
+        return subprocess.run(["git", "-C", str(repo), *a], capture_output=True, text=True, check=True).stdout
+
+    blob = git("rev-parse", f"HEAD:{snapshot_rel}").strip()
+    adds = git("log", "--diff-filter=A", "--format=%H", "--", later_rel).split()
+    if not adds:
+        return False
+    later = adds[-1]
+    snap_adds = git("log", "--format=%H", f"{later}^", "--", snapshot_rel).split()
+    for c in snap_adds:
+        if git("rev-parse", f"{c}:{snapshot_rel}").strip() == blob:
+            return (
+                subprocess.run(
+                    ["git", "-C", str(repo), "merge-base", "--is-ancestor", c, f"{later}^"]
+                ).returncode
+                == 0
+            )
+    return False
+
+
+# ---------------------------------------------------------------- NAT disjointness (hashes only)
+def url_hash(url: str) -> str:
+    return hashlib.sha256(url.strip().encode("utf-8")).hexdigest()
+
+
+def nat_disjoint(nat_urls: Iterable[str], known_hashes: set[str]) -> bool:
+    return not ({url_hash(u) for u in nat_urls} & known_hashes)
+
+
+def known_url_hashes(paths: Iterable[Path]) -> set[str]:
+    """sha256 of the `url` column of the given CSVs; no other column is read or kept."""
+    import csv
+
+    out: set[str] = set()
+    for p in paths:
+        with open(p, newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                if row.get("url"):
+                    out.add(url_hash(row["url"]))
+    return out
+
+
+# ------------------------------------------------------------ Commons API (network; one request at a time)
+def _get(params: dict, pause: float = 5.0) -> dict:
+    import time
+    import urllib.parse
+    import urllib.request
+
+    q = {"format": "json", "formatversion": "2", "maxlag": "5", **params}
+    req = urllib.request.Request(API + "?" + urllib.parse.urlencode(q), headers={"User-Agent": USER_AGENT})
+    for attempt in range(6):
+        try:
+            with urllib.request.urlopen(req, timeout=60) as r:
+                d = json.loads(r.read())
+            if "error" in d:  # maxlag or any API error: never read as "zero results"
+                raise OSError(d["error"].get("code", "api_error"))
+            if "batchcomplete" not in d and "query" not in d and "continue" not in d:
+                raise OSError("unexpected response")
+            time.sleep(pause)
+            return d
+        except Exception:  # noqa: BLE001 - back off and retry; never switch IP or parallelise
+            time.sleep(min(300, 15 * 2**attempt))
+    raise CurationError(f"Commons API failed repeatedly for {params}")
+
+
+def fetch_commons(srsearch: str, limit: int) -> list[dict]:
+    """First `limit` search results in API (rank) order: title, pageid, revid (lastrevid)."""
+    out: list[dict] = []
+    offset = 0
+    while len(out) < limit:
+        d = _get(
+            {
+                "action": "query",
+                "generator": "search",
+                "gsrsearch": srsearch,
+                "gsrnamespace": "6",
+                "gsrlimit": str(min(500, limit - len(out))),
+                "gsroffset": str(offset),
+                "prop": "info",
+            }
+        )
+        pages = sorted(d.get("query", {}).get("pages", []), key=lambda p: p["index"])
+        out += [{"title": p["title"], "pageid": p["pageid"], "revid": p["lastrevid"]} for p in pages]
+        if "continue" not in d or not pages:
+            break
+        offset = int(d["continue"]["gsroffset"])
+    return out[:limit]
+
+
+def page_meta(titles: list[str]) -> dict[str, dict]:
+    """Templates (for the licence) + imageinfo (url, size, mime, sha1, artist/credit) per title."""
+    out: dict[str, dict] = {}
+    for i in range(0, len(titles), 50):
+        batch = titles[i : i + 50]
+        d = _get(
+            {
+                "action": "query",
+                "titles": "|".join(batch),
+                "prop": "templates|imageinfo",
+                "tlnamespace": "10",
+                "tllimit": "max",
+                "iiprop": "url|size|mime|sha1|extmetadata",
+                "iiextmetadatafilter": "Artist|Credit|LicenseShortName|AttributionRequired",
+            }
+        )
+        for p in d.get("query", {}).get("pages", []):
+            ii = (p.get("imageinfo") or [{}])[0]
+            em = ii.get("extmetadata", {})
+            out[p["title"]] = {
+                "templates": [t["title"] for t in p.get("templates", [])],
+                "url": ii.get("url"),
+                "descriptionurl": ii.get("descriptionurl"),
+                "width": ii.get("width"),
+                "height": ii.get("height"),
+                "mime": ii.get("mime"),
+                "duration": ii.get("duration"),
+                "commons_sha1": ii.get("sha1"),
+                "artist": em.get("Artist", {}).get("value", ""),
+                "credit": em.get("Credit", {}).get("value", ""),
+                "license_short": em.get("LicenseShortName", {}).get("value", ""),
+            }
+    return out
