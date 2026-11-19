@@ -425,7 +425,7 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     shine: {steps: [specMatch, lumMatch], iterations: 2, mean_luma: 128, rms_contrast: 32}   # all 60 images jointly
     job_order: [[d038], [GREY_CTRL, SPK, LOC, LOC_SCR, MOT, MOT_STAT, FLASH, NAT], [audioonly, textonly], [BURST, TALKFACE]]
   refclips_artifacts:          # D-071 (d): filled later, each frozen by its own row in the commit that sets it
-    image_snapshot_sha256: null
+    image_snapshot_sha256: e8a1d24379f005675487cb3e03fdf2e19ab788af8bfbf25bcc9c63d23663e4ee   # D-074: concat sha of image_{face,body,place}_d074_snapshot.json
     nat_snapshot_sha256: null
     image_manifest_sha256: null
     nat_manifest_sha256: null
