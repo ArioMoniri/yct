@@ -21,7 +21,8 @@
 
   (b) **Localiser images**
   - Licence: CC0, public domain, or CC-BY that permits derivatives, verified from the licence text. The URL, version/DOI and sha256 of the licence text are recorded in docs/stimuli/LICENSES.md.
-  - Selection: the first 20 images per category by sorted file name that pass the licence and content filters. The image sha256 manifest is frozen.
+  - Source (owner decision, 2026-11-19): Wikimedia Commons, CC0 / public domain / CC-BY only, per-file licence verified from the file page. A label-free curator selects them and records the URL, licence and sha256 only.
+  - Selection: the first 20 images per category (face, body, place, object) by sha256 of the Commons file title that pass the licence and content filters (single subject, photograph, no text or logos). The image sha256 manifest is frozen.
   - No YC, founder or analysis-company imagery.
   - If no verified set covers face, place and body, the build does not start. That goes to the owner, with no synthetic substitute.
 
@@ -62,9 +63,10 @@
   - Before launch, the frozen code is run on the ENH-002 summary courses and the result is disclosed.
 
   (g) **STOP versus descriptive**
-  - Gating kernels: FFC (LOC face), MT_plus (MOT incl. K6), AUD full model (SPK), AUD audio-only (SPK, audio-only condition).
+  - Gating kernels: FFC (LOC face), AUD full model (SPK), AUD audio-only (SPK, audio-only condition).
+  - MT_plus (MOT incl. K6), per owner decision 2026-11-19 (pre-registered demotion, Neuroscientist cycle-1 option): MT_plus gates if its kernel passes K1–K6. If it fails, the motion control is demoted to descriptive before any analysis-set read: it is reported with the failing criterion, the limitation is disclosed in the report, and the motion (a)/(c) controls do not gate. It is never replaced by a flash kernel, and this rule is fixed now and cannot be revisited after reference outputs exist.
   - Descriptive: PH, body, V1_V3, BURST, TALKFACE.
-  - Any gating FAIL or STOP_INVALID is a P4b STOP. There is no demotion path, and a motion kernel is never replaced by a flash kernel.
+  - Any other gating FAIL or STOP_INVALID is a P4b STOP.
 
   (h) **Redesign cap**
   - At most one versioned redesign (`p4b_ref/v2`), by a new DECISIONS entry, with v1 reported in full.
@@ -107,7 +109,7 @@
 
   (k) **Cost and launch**
   - Estimate: about 15 sessions, about 21 billed h, about $42.
-  - Hard campaign cap: $50 (owner to confirm). Reaching the cap means STOP and report.
+  - Hard campaign cap: $75 (owner decision, 2026-11-19). Reaching the cap means STOP and report.
   - Before launch: the ledger is reconciled agent-side (L4 tolerance max($0.50, 1%)), and the current spend and budget_cap() are recorded.
   - Session 1: `--limit 3` (GREY-CTRL s0, SPK_00, MOT_00, which are also the D-038 clips), watched, with a human check.
   - Every session: `--max-hours ≤ 1.4` (enforced in code), `--usd-limit 8`, external terminator, dead-man switch, exit 75/1 semantics, and launch only from a pushed CI-green commit. Driver fixes BUG-033 and BUG-028 must be merged first.

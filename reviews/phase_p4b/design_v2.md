@@ -375,3 +375,8 @@ The order is: entry committed → `p4_open` unlocks → the first analysis-set r
 - **Q6 motion failure:** Neuro offered a pre-registered demotion path; v2 makes it a hard STOP with no demotion.
 - **(d) rule:** v2 adds the bootstrap CI requirement in both hemispheres (Biostat N7), on top of the v2.md sign rule.
 - **No verified licensed images:** v2 does not fall back to synthetic stimuli; it stops for an owner decision.
+
+## Owner decisions (2026-11-19, after drafting; these override the text above where they conflict)
+- **Campaign cap:** a hard cap of $75 for the reference-clip campaign (it replaces the proposed $50 in §cost). Reaching the cap means STOP and report.
+- **Localiser images (Q2):** Wikimedia Commons CC0 / public domain / CC-BY photographs for faces, bodies, places and objects. Each file's licence is verified on its file page. A label-free curator selects 20 per category by sha256 of the file title and records only the URL, licence and sha256. fLoc, the London Set and THINGSplus are not used.
+- **MT+ failure (Q6):** pre-registered demotion, as the Neuroscientist proposed. If MT_plus fails K1–K6, the motion control becomes descriptive (reported, limitation disclosed, not gating). This is fixed before any reference output exists, and a motion kernel is never replaced by a flash kernel. This replaces the "no demotion path" text above for MT_plus only. FFC and AUD stay hard STOP.
