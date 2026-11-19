@@ -519,3 +519,14 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   - {key: controls.rois.MT_plus, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
   - {key: controls.regressors.motion, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
   - {key: controls.descriptive, frozen_at: c616a9d33b7eb861795aa9fb64f6314d95e379f8}
+  # D-071 (P4b pre-run freeze): frozen before any reference clip or reference prediction exists (T-D071)
+  - {key: p4.launcher_max_hours, frozen_at: ca63a9d57857b68cf5c0f9dc7a51ce6d53882db2}
+  - {key: seeds.controls_perm, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: seeds.controls_boot, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: seeds.refclips, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.kernel.acceptance, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.kernel.min_reference_clips, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.pass, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.rois_per_hemi, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.mw_removed_frac, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.refclips, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}

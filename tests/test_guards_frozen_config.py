@@ -97,13 +97,21 @@ D063_FROZEN = ["window.latency_l_tr", "window.start_tr", "window.end_tr", "windo
                "stimulus.min_source_fps", "p4.analysis_excluded", "p4.t1_excluded", "p4.run_set_t3",
                "p4.run_set_t1", "p4.flags", "p4.d038_clips", "transcribe.wer", "controls.rois.MT_plus",
                "controls.regressors.motion", "controls.descriptive"]
+D071_SHA = "976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542"   # T-D071 commit 1 (D-071 config keys)
+D071_FROZEN = [("p4.launcher_max_hours", "ca63a9d57857b68cf5c0f9dc7a51ce6d53882db2")] + [
+    (k, D071_SHA) for k in ["seeds.controls_perm", "seeds.controls_boot", "seeds.refclips",
+                            "controls.kernel.acceptance", "controls.kernel.min_reference_clips",
+                            "controls.pass", "controls.rois_per_hemi", "controls.mw_removed_frac",
+                            "controls.refclips"]]
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
-    """Nothing was frozen until Gate P4-entry; FIX-P4E froze exactly the D-063 rulings at c616a9d."""
+    """Nothing was frozen until Gate P4-entry; FIX-P4E froze exactly the D-063 rulings at c616a9d, then
+    T-D071 exactly the D-071 P4b keys (commit pair 976e8ab -> its child; launcher limit at ca63a9d)."""
     cfg = yaml.safe_load((ROOT / "config.yaml").read_text())
     sha = "c616a9d33b7eb861795aa9fb64f6314d95e379f8"
-    assert cfg["frozen"] == [{"key": k, "frozen_at": sha} for k in D063_FROZEN]
+    assert cfg["frozen"] == [{"key": k, "frozen_at": sha} for k in D063_FROZEN] + [
+        {"key": k, "frozen_at": s} for k, s in D071_FROZEN]
     assert cfg["tribe"]["tr_s"] == 1.0
     assert cfg["stimulus"]["t1_trim_s"] == 58.0
     assert cfg["stimulus"]["fps"] == 30
