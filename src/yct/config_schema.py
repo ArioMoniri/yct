@@ -108,6 +108,9 @@ class Budget(M):
 
 class Seeds(M):
     company_pick_salt: str
+    controls_perm: PosInt             # D-071
+    controls_boot: PosInt             # D-071
+    refclips: PosInt                  # D-071 (b)
 
 
 # ---------------------------------------------------------------- normalize (P2)
@@ -483,11 +486,82 @@ class Descriptive(M):
     roi: str
 
 
+Pair = Annotated[list[int], Field(min_length=2, max_length=2)]
+Gate = Literal["stop", "descriptive"]
+
+
+class K1(M):
+    alpha: Frac
+    sign_all_positive: bool
+    ffc_min_positive_frac: Frac
+
+
+class K1p(M):
+    min_frac_sigma_nat: Pos
+    min_abs: Pos
+
+
+class K2(M):
+    window: Pair
+    plateau_frac: Frac
+    crossing_window: Pair
+    crossing_frac: Frac
+    tail_lags: Pair
+    tail_frac: Frac
+
+
+class K3(M):
+    baseline_lags: Pair
+    min: Pos
+
+
+class K3p(M):
+    span: Pair
+    max_frac_peak: Frac
+    alpha_two_sided: Frac
+
+
+class K4a(M):
+    min_median_r: Annotated[float, Field(ge=-1, le=1)]
+
+
+class K4b(M):
+    min_r: Annotated[float, Field(ge=-1, le=1)]
+
+
+class K5(M):
+    lags: Pair
+    min_abs_frac_peak: Frac
+    max_lag_diff: Annotated[int, Field(ge=0)]
+
+
+class K6(M):
+    lags: Pair
+    roi: str
+
+
+class Acceptance(M):                  # D-071 (f)/(g)
+    peak: str
+    K1: K1
+    K1p: K1p
+    K2: K2
+    K3: K3
+    K3p: K3p
+    K4a: K4a
+    K4b: K4b
+    K5: K5
+    K6: K6
+    on_fail: dict[Literal["FFC", "AUD", "AUD_audioonly", "MT_plus"], Gate]
+    on_stop_invalid: Literal["stop"]
+    demotion_final: bool
+
+
 class Kernel(M):
     type: str
-    window_tr: Annotated[list[int], Field(min_length=2, max_length=2)]
+    window_tr: Pair
     min_reference_clips: PosInt
     shift_by_L: bool  # noqa: N815 - config key
+    acceptance: Acceptance
 
 
 class DryRun(M):
@@ -497,26 +571,75 @@ class DryRun(M):
     n_speech_bursts: PosInt
 
 
-class WithinVideo(M):
-    mean_fisher_z_gt: float
-    p_lt: Frac
-
-
-class Selectivity(M):
-    p_lt: Frac
-
-
-class BetweenVideo(M):
-    r_gt: float
-    perm_p_lt: Frac
-
-
-class Pass(M):
-    within_video: WithinVideo
-    selectivity: Selectivity
-    between_video: BetweenVideo
+class PassA(M):                       # D-071 (i)(a)
+    mean_z_min: float
+    alpha: Frac
+    z_clip: Annotated[float, Field(gt=0, lt=1)]
+    low_sd_pctile: Annotated[float, Field(ge=0, le=100)]
     min_videos: PosInt
-    low_sd_percentile: Annotated[float, Field(ge=0, le=100)]
+
+
+class PassB(M):
+    alpha: Frac
+
+
+class PassC(M):
+    r_min: float
+    alpha: Frac
+    n_perm: PosInt
+    route_blocks: Literal[False]
+
+
+class PassD(M):
+    n_boot: PosInt
+    ci: Frac
+
+
+class Pass(M):                        # D-071: replaces the v2.5 within_video/selectivity/between_video block
+    a: PassA
+    b: PassB
+    c: PassC
+    d: PassD
+
+
+class RefClips(M):                    # D-071 (a)-(e), (k)
+    version: str
+    s3_root: Annotated[str, Field(pattern=r"^s3://yct-research-235229001983/wave1/derived/p4b_ref/v\d+/$")]
+    campaign_cap_usd: Pos
+    campaign_warn_usd: Pos
+    ledger_name_prefix: Annotated[str, Field(pattern=r"^yct-p4b-ref")]
+    onsets_s: list[float]
+    shift_rule: str
+    families: dict[str, PosInt]
+    mot_directions_deg: list[int]
+    mot_direction_rule: str
+    mot_pattern_rule: str
+    loc_categories: list[Literal["face", "body", "place"]]
+    loc_latin_rule: str
+    loc_per_category: PosInt
+    nat_n: PosInt
+    image_licences: list[str]
+    image_queries: dict[Literal["face", "body", "place"], list[str]]
+    nat_query: str
+    snapshot_limits: dict[Literal["image", "nat"], PosInt]
+    reject_reasons: list[str]
+    greyscale: Literal["bt709_luma"]
+    shine: dict[str, Any]
+    job_order: list[list[str]]
+
+    @model_validator(mode="after")
+    def _cap(self):
+        if not self.campaign_warn_usd < self.campaign_cap_usd:
+            raise ValueError("controls.refclips.campaign_warn_usd must be below campaign_cap_usd")
+        return self
+
+
+class RefClipArtifacts(M):            # D-071 (d): null until set; frozen row per key once set
+    image_snapshot_sha256: Sha256 | None
+    nat_snapshot_sha256: Sha256 | None
+    image_manifest_sha256: Sha256 | None
+    nat_manifest_sha256: Sha256 | None
+    manifest_sha256: Sha256 | None
 
 
 class Controls(M):
@@ -530,6 +653,10 @@ class Controls(M):
     dry_run: DryRun
     pass_: Pass = Field(alias="pass")
     descriptive: list[Descriptive]
+    rois_per_hemi: dict[str, Pair]
+    mw_removed_frac: dict[str, Frac]
+    refclips: RefClips
+    refclips_artifacts: RefClipArtifacts
 
     @model_validator(mode="after")
     def _refs(self):
@@ -541,6 +668,13 @@ class Controls(M):
                 raise ValueError(f"controls.descriptive {d} names an undefined regressor or ROI")
         if not set(self.partial_out) <= set(self.regressors):
             raise ValueError("controls.partial_out names an undefined regressor")
+        for name, (left, right) in self.rois_per_hemi.items():
+            if name not in self.rois or left + right != self.rois[name].n_vertices:
+                raise ValueError(f"controls.rois_per_hemi.{name} must sum to controls.rois.{name}.n_vertices")
+        if set(self.mw_removed_frac) != set(self.rois_per_hemi):
+            raise ValueError("controls.mw_removed_frac must list the same ROIs as rois_per_hemi")
+        if self.kernel.acceptance.K6.roi not in self.rois:
+            raise ValueError("controls.kernel.acceptance.K6.roi is not a defined ROI")
         return self
 
 

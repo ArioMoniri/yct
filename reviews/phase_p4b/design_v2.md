@@ -380,3 +380,6 @@ The order is: entry committed → `p4_open` unlocks → the first analysis-set r
 - **Campaign cap:** a hard cap of $75 for the reference-clip campaign (it replaces the proposed $50 in §cost). Reaching the cap means STOP and report.
 - **Localiser images (Q2):** Wikimedia Commons CC0 / public domain / CC-BY photographs for faces, bodies, places and objects. Each file's licence is verified on its file page. A label-free curator selects 20 per category by sha256 of the file title and records only the URL, licence and sha256. fLoc, the London Set and THINGSplus are not used.
 - **MT+ failure (Q6):** pre-registered demotion, as the Neuroscientist proposed. If MT_plus fails K1–K6, the motion control becomes descriptive (reported, limitation disclosed, not gating). This is fixed before any reference output exists, and a motion kernel is never replaced by a flash kernel. This replaces the "no demotion path" text above for MT_plus only. FFC and AUD stay hard STOP.
+
+## Erratum (2026-11-19, D-071)
+- §4(b) "proposed D-072" and §9 "the D-072 run ids" refer to the audio-only analysis-set ablation entry, which is **D-073** (D-072 is Curator round 4). §4(d) vertex counts are superseded by D-071 (i). The §8 ticket cells are superseded by the ticket list in reviews/phase_p4b/d071_v3.md. D-071 is the only frozen P4b text; conflicting text in this file is void.

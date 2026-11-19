@@ -468,7 +468,8 @@ def test_http_400_at_launch_exits_75_and_logs_body(env):
     import urllib.error
 
     def bad(*a, **k):
-        raise urllib.error.HTTPError("u", 400, "Bad Request", {}, io.BytesIO(b'{"error":"insufficient capacity"}'))
+        body = io.BytesIO(b'{"error":"insufficient capacity"}')
+        raise urllib.error.HTTPError("u", 400, "Bad Request", {}, body)
     env["lg"].mod.launch = bad
     rc, res = _run(env)
     assert rc == p4.EXIT_INCOMPLETE and res["status"] == "no_capacity"

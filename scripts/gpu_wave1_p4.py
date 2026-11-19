@@ -61,7 +61,6 @@ import datetime as dt
 import hashlib
 import importlib.util
 import json
-import urllib.error
 import os
 import re
 import shutil
@@ -70,6 +69,7 @@ import sys
 import tempfile
 import threading
 import time
+import urllib.error
 from collections import Counter
 from dataclasses import dataclass
 from pathlib import Path

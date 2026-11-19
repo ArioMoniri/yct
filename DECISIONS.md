@@ -150,3 +150,234 @@ Append-only log. Format: date | phase | id | summary | evidence.
 - D-069 OWNER (chat 2026-11-18: "continue also video scrap when api available"): YouTube Data API reachable again (2026-11-18 14:5x UTC, 1-unit check), so Curator round 3 (separate sealed subagent, hypotheses withheld) builds a wave-2 CANDIDATE POOL now: data/wave2_pool/ (analyst columns only, wave=2, collected_after_lock=PENDING), labels/evidence only in data/sealed/sealed_w2pool_partN.tar.age (owner key). Companies disjoint from every data/manifest.csv company; wave-1 manifest and curation files untouched; no media download, no pipeline run on pool rows. OPEN conflict with D-044/D-046 and v2.md §waves ("wave 2 = collected after the prereg lock"): these rows are collected BEFORE the lock. Their confirmatory eligibility is decided by the owner + council before the lock (options: amend the rule to "untouched by any analysis before the lock" with the pool sha256 frozen now, or treat the pool as replication/descriptive and collect confirmatory rows after the lock). Until then no pool row is analysed.
 - D-070 Curator round 3 result (wave-2 candidate pool, D-069): 30 pool rows yct_0662–yct_0691, 30 companies, all disjoint from data/manifest.csv; 22 conf-A (one per company: 14 accepted / 8 rejected, Curator totals only) + 8 B. Sealed labels: data/sealed/sealed_w2pool_part1.tar.age (27 rows) + part2 (3 rows), sha256 sidecars verified, plaintext shredded. YouTube API ≈ 9,305 units of the daily 10,000; sources reached diminishing returns (YouTube search, applicant channels, Exa LinkedIn/X/blogs, HN). Below the D-046 wave-2 confirmatory floor (≥ 30 conf-A per group): more collection days are needed, and yield is low because wave 1 already holds most companies with a stated outcome. Open for owner + council: (1) 5 conf-A rows were labelled A from company-channel uploads (company identity + directory batch, uploader not a named founder) — a departure from the "≥ 1 founder matches" rule; strict reading makes them B. (2) D-069 pre-lock eligibility. Orchestrator edit: one exclusions.csv URL containing an outcome word (check_blinding) replaced by its sha256 prefix, unread.
 - D-072 Curator round 4 (wave-2 candidate pool, pre-lock, collected_after_lock=PENDING as D-069): 18 rows yct_0692–0709 from 18 companies disjoint from data/manifest.csv and earlier pool rows; 15 conf-A + 3 B under the strict founder rule (company-channel-only uploads are B). Sealed parts 3 (yct_0692–0699) and 4 (yct_0700–0709), checksums verified, bare file names (BUG-034); plaintext shredded (scratch dir empty, checked by file count only). ~9,400 YouTube API units, no quota error. A container restart ended the Curator before its final message, so this round's per-outcome split exists only inside the sealed parts. Pool total: 48 rows, 37 conf-A (22 + 15); the ≥30-per-group floor remains unconfirmed until the owner tallies the sealed parts. D-069 eligibility and the 5 round-3 company-channel A labels remain open for the owner and council.
+
+## 2026-11-19 | P4b pre-run freeze (council cycles 1–2 + Referee/QA sign-off; owner decisions) — NO reference clip built, NO reference or analysis-set prediction read
+- D-071 P4b pre-run freeze. Applies to the reference-clip campaign `p4b_ref/v1`.
+  - Sources: design reviews/phase_p4b/design_v2.md; council cycles 1 and 2 in reviews/phase_p4b/cycle{1,2}_*.md; Referee and QA sign-offs reviews/phase_p4b/signoff_d071_{referee,qa}.md, applied in reviews/phase_p4b/d071_v3.md; owner decisions of 2026-11-19 ($75 cap, Wikimedia CC0/CC-BY photographs, MT+ pre-registered demotion).
+  - The entry is label-free. It is appended after D-072; that numbering gap reflects commit order, not missing history.
+  - **This entry is the only frozen text for P4b.** Any design_v2 body text that conflicts with it or with the owner decisions is void. That covers §1.2 (fLoc, London, THINGSplus, "sorted file name"), §2 ($50, 1.4 h), §3.2, §3.4, §4(b) and §9 (D-072 → D-073), §4(d) (vertex counts are in (i)), §8 ticket cells superseded by the ticket list in reviews/phase_p4b/d071_v3.md, and §10 ("no demotion").
+  - It is committed in two consecutive commits, pushed together before any reference clip is built or any reference prediction exists (as 11bc34d did for c616a9d):
+    1. this entry, the config keys of the YAML block in reviews/phase_p4b/d071_v3.md, the src/yct/config_schema.py models for them, their tests, and the docs/prompts/v2.md §5 P4b v2.8 text;
+    2. the `frozen:` rows for those keys with `frozen_at` = commit (1), plus the test asserting the exact frozen list. `p4.launcher_max_hours` uses `frozen_at` ca63a9d57857b68cf5c0f9dc7a51ce6d53882db2, where it already holds 1.75.
+  - `controls.pass` is replaced wholesale by `{a, b, c, d}` (schema `Pass` rewritten; no code read the old fields). Lags, the (d) readout and the (c) era merge have one source each: `controls.kernel.window_tr`, `controls.readout_lag_tr` and `era_merge_min_videos`. `controls.kernel.min_reference_clips` and `controls.dry_run.reference_clips_min` become 16.
+  - Later-filled values (snapshot, manifest and clip-manifest shas) live outside every frozen subtree, in `controls.refclips_artifacts`. Each is frozen by its own `frozen:` row in the commit that sets it, before the upload that depends on it.
+  - It amends v2.md §5 P4b, which becomes **v2.8**:
+    - kernel source families SPK/LOC/MOT (not "flashes, speech bursts, a talking face");
+    - the NAT fallback is n = 15 instead of ≥ 5;
+    - the (c) era-block conjunction;
+    - the (d) twin-subtracted readout with a bootstrap CI;
+    - MT_plus demotion (g), which amends both "FAIL on any of them means STOP" and the D-063 Q4 ruling that MT+ gates.
+
+  (a) **Stimulus spec**
+  - Clips: 58.0 s, 640×360, at the P2 T1 output spec. Persistent mid-grey background (luma 128). Stimuli sit inside the central ≈316×316 px, which maps to the 256 crop.
+  - Events: 3 per clip at onsets [9, 29, 49] s + s.
+    - s = 0 if (i // 2) mod 2 = 0, else −1, where i is the 0-based clip index within the family. Each half (even/odd i) therefore holds both shifts, 5/5 for 20-clip families and 4/4 for 16.
+  - Audio:
+    - a seeded white-noise bed (SEED 20261117) at −23 LUFS integrated;
+    - speech replaces the bed at matched local RMS, so chunk SD is within ±1% of control;
+    - visual-only clips carry the control audio bit for bit.
+  - Families (120 clips):
+    | family | clips | content | control |
+    |---|---|---|---|
+    | LOC | 20 | face, place and body, one of each per clip, in a Latin-square row (i // 2) mod 3, so both halves split their rows 4/3/3. The intact greyscale photo replaces its phase-scrambled twin for 1 s per event. The scramble-exemplar switch happens at the same TR in both twins, outside every window [onset−4, onset+8]. | LOC-SCR twins (20) |
+    | MOT | 16 | Each clip has its own seeded pattern, static for the whole clip, which drifts coherently for 1 s per event. Pattern type is a dot field if (i // 4) mod 2 = 0, else a grating (8/8; per half, pattern × shift is 2/2/2/2). Event k ∈ {0,1,2} of clip i drifts in direction ((3·(i // 2) + k) mod 8) × 45°, so each of the 8 directions occurs exactly 3 times per half. The direction set is {0, 45, …, 315}° (8 directions). An exemplar is a (pattern, direction) pair, and all 48 are distinct. Temporal frequency ≤ 4 Hz, luminance and contrast constant within 1%, low CRF. | MOT-STAT twins (16): the same pattern, never moving |
+    | SPK | 20 | 1.0–1.5 s utterances, 60 distinct | GREY-CTRL (2) |
+    | BURST | 5 | 4–6 s utterances | GREY-CTRL |
+    | FLASH | 5 | 1 s full-frame white flash | GREY-CTRL |
+    | TALKFACE | 1 | synthetic talking face | GREY-CTRL |
+    | NAT | 15 | naturalistic clips, see (c) | none |
+  - Stimulus QC (design_v2 §1.5) must pass with the real yct.confounds code on the built clips before upload. That includes the face cascade firing on ≥ 90% of LOC face-event TRs and on no LOC body, place or scramble-period TR and no LOC-SCR TR (`face_area_crop_frac` = 0 there), and MOT motion_energy_crop ≥ 10× MOT-STAT.
+
+  (b) **Localiser images** (owner decision 2026-11-19: Wikimedia Commons)
+  - Admissible licences, from the file page's licence template: CC0; PD-* (any template whose name starts with `PD-`, matched by prefix); CC-BY 2.0/2.5/3.0/4.0.
+    - Excluded: CC-BY-SA, any NC or ND, GFDL-only, and any file with a personality-rights template.
+  - Candidate pools: Commons API `list=search`, `srnamespace=6`, `filetype:bitmap`. The query strings are frozen:
+    - face: `"frontal portrait photograph"`
+    - body: `"person seen from behind full body photograph"`
+    - place: `"empty room interior photograph"` OR `"empty street photograph"`
+    - Retrieval keeps the first 2,000 results per query, in API order, on one UTC date that is recorded.
+    - The curator writes the full candidate list (title, page id, revision id) and commits its sha256 **before** applying any filter.
+  - Ordering: ascending sha256(title) over the snapshot.
+    - Candidates are inspected strictly in that order until 20 pass per category.
+    - Every inspected candidate is logged as pass or reject, with a reason code from the fixed list `controls.refclips.reject_reasons`: licence, personality_rights, not_photo, multi_subject, face_not_frontal, face_detected (body or place), no_face_detected (face), text_or_logo, person_present (place), too_small, duplicate; and for NAT not_english, too_short, not_single_speaker, low_face_present, yc_link.
+  - Category filters:
+    - **face:** one real adult face, frontal within about ±20°, eyes visible, no occlusion, face height ≥ 40% of the square crop. haarcascade_frontalface_default (scaleFactor 1.1, minNeighbors 5, per config `confounds.face`) must detect it on the *processed* 256-px greyscale image.
+    - **body:** one person with no face visible, and the cascade negative on the processed image.
+    - **place:** an indoor or outdoor scene with no prominent person, the cascade negative, and no text.
+    - **objects:** not curated in v1.
+  - Processing:
+    - centre square crop around the subject, resized to fill the central ≈316 px, greyscale;
+    - SHINE luminance, RMS-contrast and amplitude-spectrum matching across all 60 images jointly (not within category);
+    - image mean luma 128, fixed RMS contrast;
+    - greyscale = BT.709 luma, Y' = 0.2126 R' + 0.7152 G' + 0.0722 B' on the gamma-encoded values (the P2 matrix; `controls.refclips.greyscale`);
+    - SHINE steps `specMatch` then `lumMatch`, 2 iterations, target mean luma 128 and RMS contrast 32 (`controls.refclips.shine`);
+    - phase scrambles keep the amplitude spectrum. Every random draw (scramble phases, MOT dot positions and grating phase, the noise bed of each clip) uses seed = int(sha256(f"{seeds.refclips}:{family}:{i}:{k}").hexdigest()[:8], 16), with k = 0 for per-clip draws;
+    - `refclips_manifest.json` records the git blob sha of every builder script.
+  - Record: docs/stimuli/LICENSES.md holds, per file, the URL, page and revision id, licence template and version, author or attribution string, and image sha256.
+  - No YC, founder or analysis-company imagery.
+  - If any of face, body or place cannot reach 20 passes within its snapshot, the build does not start. That goes to the owner, with no synthetic substitute.
+
+  (c) **Naturalistic clips (NAT)**
+  - Pool: Commons API `list=search`, `srnamespace=6`, `filetype:video`, query `lecture OR interview OR talk`, first 1,000 results on one recorded UTC date.
+    - The snapshot sha256 is committed before any filtering, and the ordering is sha256(title). The licence set and personality-rights exclusion are the same as (b).
+  - Filters, logged in order with reason codes:
+    - English;
+    - ≥ 58 s;
+    - single speaker;
+    - after P1/P2/P2b/P3 (identical to analysis T1), face_present_crop ≥ 0.5 over W from yct.confounds;
+    - no YC link.
+  - The first 15 that pass are used.
+  - A label-free curator records only URL, page and revision id, licence, attribution and sha256.
+  - Never wave-1 rows. The disjointness test compares URL and video-id hashes only, never any other data/wave2_pool/ field.
+
+  (d) **Clip manifest**
+  - Built once on the pod, with a pinned ffmpeg/x264/espeak-ng toolchain and bit-exact flags.
+  - `refclips_manifest.json` holds:
+    - the per-file sha256 of each mp4, wav and tsv;
+    - the toolchain;
+    - the source-image and NAT shas;
+    - the snapshot shas.
+  - Its sha256 is written to `controls.refclips_artifacts.manifest_sha256` and frozen by its own `frozen:` row before upload. The image and NAT snapshot and manifest shas go to the other `refclips_artifacts` keys the same way.
+  - The GPU box stages manifest objects only and gates input_sha256 and transcript_sha256 against the manifest. It never rebuilds.
+
+  (e) **S3 root**
+  - `s3://yct-research-235229001983/wave1/derived/p4b_ref/v1/`. This is a sibling of `.../p4/`, never inside it.
+  - Prediction prefixes: full/, audioonly/, textonly/.
+  - The sha256 of the P4 root manifest.jsonl must be unchanged after every reference session (tested).
+  - Kernel code cannot open pred_clampv1/ keys (tested).
+
+  (f) **Kernels** (gating map: spatially standardised; raw enters K5 only)
+  - Courses:
+    - d_j(lag) is the ROI mean of (clip j − matched control) at lags −4…+8, averaged over clip j's events.
+    - m_half is the mean of d_j over a half's clips. Halves: selection = even i, test = odd i.
+    - m_full is the mean over all clips.
+  - p* is the signed argmax of m_sel over −4…+8.
+  - **peak := m_full(p*)**, un-normalised, standardised. This one definition is used everywhere.
+    - If peak ≤ 0, the result is FAIL.
+    - The kernel is k = m_full / peak.
+  - Acceptance rules:
+    - **K1:** one-sided one-sample t over test-half clip values d_j(p*), p < .01, for every kernel. Sign check:
+      - for 3-event clips, every test-half d_j(p*) > 0;
+      - for FFC (1 face event per clip), ≥ 80% of test-half d_j(p*) > 0.
+    - **K1′:** peak ≥ 0.25·σ_nat AND peak ≥ 0.2.
+      - σ_nat is the median ROI temporal SD over W in the NAT clips, standardised.
+      - For the audio-only AUD kernel, σ_nat comes from the NAT audio-only predictions.
+    - **K2:** all three of:
+      - max over lags [−1, +4] of m_full ≥ 0.9 × max over −4…+8 of m_full (a late plateau is tolerated);
+      - the first rising crossing lies in [−4, +2], defined as the smallest integer lag ℓ in [−4, argmax m_full] with m_full(ℓ) ≥ 0.5·max m_full, with no interpolation;
+      - the mean of m_full over lags 0–3 ≥ 0.5·peak.
+    - **K3:** peak / √(mean over lags −4…−2 of Var_j d_j(lag) / n) ≥ 3.
+    - **K3′:** spans are [o_e + 12, o_{e+1} − 5] TR for e = 1, 2 of each clip, 8 TRs per clip, and none before the first or after the last event. K3′ FAILs only if both:
+      - |mean over clips of the per-clip span mean| > 0.10·peak; and
+      - a two-sided one-sample t over the per-clip span means gives p < .01.
+    - **K4a:** median leave-one-clip-out r(training kernel, held-out d_j) ≥ 0.5.
+    - **K4b:** split-half r(m_sel, m_test) ≥ 0.7.
+    - **K5:** sign(std) = sign(raw) at every lag 0–3 where |m_full,std| ≥ 0.2·peak, AND |p*_std − p*_raw| ≤ 1.
+    - **K6 (MT_plus only, standardised, un-normalised):** the mean over lags 0–3 of (MOT − MOT-STAT) must exceed the mean over lags 0–3 of (FLASH − GREY-CTRL). The clip-bootstrap 95% CI of the difference is reported.
+  - Fail closed: NaN, inf, zero SD, an all-zero course, a truncated window, a zero-filled TR, or a missing or incomplete family job gives STOP_INVALID.
+    - For K6, a STOP_INVALID FLASH makes MT_plus STOP_INVALID.
+    - Only PASS counts.
+  - Disclosed:
+    - the K2 window was chosen knowing ENH-002;
+    - TRIBE is deterministic, so K1's p measures consistency across exemplars, not sampling error;
+    - operating characteristics (two null models, AR and zero-mean jitter) are tested in T-KERNEL: per-rule null pass < 0.05 for K1, K3, K4a and K4b under AR, and a conjunction null < 0.01 under both.
+  - Before launch, the frozen kernel code is run on the ENH-002 summary courses, and its per-rule result is committed in a commit that precedes the session-1 launch commit.
+
+  (g) **STOP versus descriptive**, from frozen key `controls.kernel.acceptance.on_fail`
+  - Hard STOP: FFC (LOC face), AUD full model (SPK), and AUD audio-only (SPK, audio-only condition).
+  - MT_plus: pre-registered demotion (owner decision).
+    - **Trigger.** A valid K-rule FAIL (any of K1–K6) on a complete MOT, MOT-STAT and FLASH set whose §1.5 QC passed sets status `demoted`.
+    - **STOP_INVALID is not a demotion.** STOP_INVALID on MT_plus, or an incomplete motion run (including one cut short by the cap), is a P4b STOP: fix and re-run.
+    - **Kernel-only trigger.** If MT_plus passes K1–K6, it gates, and an analysis-set (a)-motion FAIL is a STOP like any gating control.
+    - **What is demoted.** Only the (a) pair MT_plus × motion_energy_crop and the MT_plus K table. On demotion:
+      - the pair is still computed with the failed kernel and reported as descriptive, labelled with the failing rule(s);
+      - motion_energy_crop stays in every partial-out set (it uses the target ROI's kernel);
+      - (b), (c) and (d) have no motion arm and are unchanged;
+      - a motion kernel is never taken from FLASH.
+    - **Finality.** Once MT_plus is demoted, it stays descriptive for the whole study. A `p4b_ref/v2` redesign carries MOT and MOT-STAT over unchanged, by manifest sha, and does not re-run them.
+    - The decision is written into kernels_v1.json before `p4_open` can unlock. `controls.regressors.motion` (frozen at c616a9d) is not edited; it is read together with `on_fail`.
+    - Frozen limitation sentence: "TRIBE v2's predicted MT+ (MT ∪ MST ∪ FST) did not show a valid impulse response to isolated coherent motion (rule Kx); the motion control is descriptive."
+  - Descriptive: the PH kernel, body, V1_V3, BURST, TALKFACE. PH's localiser contrasts in (i)(d) gate; only the PH kernel is descriptive.
+
+  (h) **Redesign cap**
+  - At most one versioned redesign (`p4b_ref/v2`), made through a new DECISIONS entry, with v1 reported in full. A redesign may change stimuli only; the K rules, thresholds and `on_fail` stay as frozen here.
+  - It needs its own owner-approved cost cap; the $75 below is not shared.
+  - A second failure is a STOP to the owner. No silent re-runs.
+
+  (i) **Controls**
+  - Gating set and map: T1 (51) on standardised maps. T3 and raw are reported. All tests are one-sided.
+  - ROI vertex counts on fs5 (union medial wall), L/R/total:
+    - FFC 46/58/104
+    - PH 62/51/113
+    - AUD 108/115/223
+    - MT_plus 74/65/139
+    - V1_V3 572/576/1148
+    - `mw_removed_frac` = 0.0 for all five (the union medial wall removes no ROI vertex; `controls.mw_removed_frac`).
+  - (a) Within-video partial r:
+    - pairs: FFC × face_area_crop_frac, AUD × speech_envelope, MT_plus × motion_energy_crop;
+    - each regressor is convolved with the target ROI kernel at lags −4…+8, zero-padded;
+    - partial out the other regressors and luminance_change, each convolved with the target kernel, plus an intercept, over W [5, 45);
+    - z = atanh(r) clipped at 0.999999; PASS = mean z > 0.2 and p < .001;
+    - low-SD exclusion is SD < P10 over NAT (numpy linear, ddof 1); if fewer than 15 videos remain, use NAT (n = 15). TALKFACE (a)-face is undefined.
+  - (b) Selectivity, paired, p < .01:
+    - face: FFC > V1_V3 on the full model;
+    - speech: AUD > FFC on the audio-only condition of T1 51 (run under the ablation entry in (j));
+    - both arms use the gating ROI's kernel.
+  - (c) Between-video correlation:
+    - pairs: W-averaged FFC × face fraction, and AUD × mean envelope;
+    - B = 10,000 permutations, seed `seeds.controls_perm`;
+    - PASS = r > 0.3 AND unrestricted p < .05 AND within-era_block p < .05;
+    - era blocks with < 6 gating videos merge into the adjacent later block (the last merges into the previous);
+    - route blocks are never used.
+  - (d) Localiser:
+    - readout: the mean over lags 0–3 of (intact − scrambled), per category and hemisphere;
+    - FFC: face − mean(place, body) > 0 and face − place > 0;
+    - PH: place − mean(face, body) > 0 and place − face > 0;
+    - PASS = sign-consistent in L and R AND a clip-bootstrap 95% CI (B = 10,000, seed `seeds.controls_boot`) that excludes 0 in each hemisphere.
+  - Negative controls:
+    - upload-date parity (expected null);
+    - source aspect ratio, only if ≥ 2 levels have ≥ 10 T1 videos each; otherwise it is recorded as untestable.
+
+  (j) **Q1–Q6**
+  - Q1: audio-only and text-only predictions come from the existing D-038 cache. The cache key is unchanged across conditions, because `features_to_use` is not in it. They are written under new prefixes, with a Gate-1 cached rerun and an extractor-not-called gate (ticket T-ABL).
+    - Reference conditions run in this campaign for SPK, GREY-CTRL and NAT.
+    - The analysis-set audio-only run gets its own ablation entry, **D-073**. The id is reserved for that entry and must not be used for anything else. That run follows D-073.
+  - Q2: Wikimedia photographs per (b), intact vs scrambled, on grey, 20 per category for face, body and place.
+  - Q3: NAT per (c).
+  - Q4: unrestricted AND era_block, never route.
+  - Q5: (f).
+  - Q6: pre-registered demotion for MT_plus only, per (g). FFC and both AUD kernels are hard STOP.
+
+  (k) **Cost and launch**
+  - Estimate: 120 full-model clip jobs at ≈ $0.45, plus ≈ 74 cached audio-only and text-only predictions (≈ $4), plus D-038 and retries (≈ $3), in about 14 sessions of ≤ 1.75 h. Total ≈ $61.
+  - Hard campaign cap: **$75** (owner decision), frozen as `controls.refclips.campaign_cap_usd`.
+    - **Counts toward the cap:** every `yct-p4b-ref` instance (by instance-name prefix in the ledger), including orphan minutes, failed launches, D-038 reruns and the reference ablation conditions.
+    - **Does not count:** the D-073 analysis-set run and any `p4b_ref/v2`, each of which carries its own cap.
+    - **Guard** (in the wrapper, with tests):
+      - **campaign spend** := the sum, over GPU-ledger launch records whose `name` starts with `controls.refclips.ledger_name_prefix`, of ((terminate t, else now) − launch t) × usd_per_hour (`spent_usd()` semantics restricted by prefix). Spend outside the prefix (D-073, P4) never counts;
+      - the baseline (global `spent_usd()`, the ledger line count and the sha256 of those lines) is written once to `entries/campaign_baseline.json` in the ref root before session 1. It is used for reconciliation and to prove the ledger is append-only and that no prefixed instance predates the campaign; it is never subtracted;
+      - a launch is refused with exit 1 (human) when campaign spend + price × max_hours > `campaign_cap_usd` (75), and when campaign spend ≥ `campaign_warn_usd` (60) without `--ack-cap-80`. The cap is read only from the frozen key (no CLI override). Code: src/yct/tribe_run/ref_campaign.py, tests/test_ref_campaign_cap.py.
+  - Before launch:
+    - the ledger is reconciled (L4, tolerance max($0.50, 1%));
+    - spend and budget_cap() are recorded;
+    - the ENH-002 K-run is committed;
+    - the image, NAT and clip manifests are frozen;
+    - the launch-blocking tickets are green in CI.
+  - Session 1: `--limit 3` (GREY-CTRL s0, SPK_00, MOT_00, which are also the D-038 clips), watched, with a human check.
+  - Job order (frozen):
+    1. D-038 ×3;
+    2. GREY-CTRL, SPK, LOC + LOC-SCR, MOT + MOT-STAT, FLASH, NAT;
+    3. the audio-only and text-only conditions;
+    4. BURST, then TALKFACE.
+
+    If the cap stops the campaign before step 4, BURST and TALKFACE are reported as not run. An incomplete step-2 family is STOP_INVALID.
+  - Every session:
+    - `--max-hours ≤ p4.launcher_max_hours` (1.75, frozen at ca63a9d, enforced in scripts/gpu_wave1_p4.py, tested at limit + 0.01);
+    - `--usd-limit 8`;
+    - an external terminator re-armed on every retry attempt;
+    - the dead-man switch;
+    - exit 75/1 semantics;
+    - launch only from a pushed, CI-green commit.
+  - T-DRV is complete only when its capacity-miss tests assert: no instance and no ledger line; `spent_usd()` and the store `manifest.jsonl` bytes unchanged; only the `runs/<id>/child_metrics.json` record (status `no_capacity`) is written.
+
+  (l) **No-revision rule.** After the post-run P4b design entry and the first analysis-set read through `p4_open`, no kernel, ROI, regressor, threshold, exclusion or fallback may change. Any (a)–(d) FAIL on a gating control is a STOP to the owner and the council.

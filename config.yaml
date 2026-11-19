@@ -61,6 +61,9 @@ budget:
 
 seeds:
   company_pick_salt: "yct-v2.1"  # random.Random(sha256(company_id + salt)).choice(sorted(video_ids))
+  controls_perm: 20261119       # D-071 (i)(c): P4b between-video permutations (frozen)
+  controls_boot: 20261120       # D-071 (i)(d): P4b localiser clip bootstrap (frozen)
+  refclips: 20261121            # D-071 (b): per-item seed = int(sha256(f"{refclips}:{family}:{i}:{k}")[:8], 16)
 
 normalize:                     # P2 (v2.md §5 P2; tribe_requirements §2.3-2.4). Consumed by src/yct/normalize.
   hash_len: 16                 # output names are <sha256(output mp4)[:hash_len]>.mp4 (cache hazard, §2.4)
@@ -355,22 +358,78 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
   kernel:                      # NO canonical HRF and NO separate shift by L (the kernel already holds the timing)
     type: measured_impulse_per_roi
     window_tr: [-4, 8]         # control-subtracted course over output lags -4..+8 TR, peak-normalised
-    min_reference_clips: 5     # derived on CPU from the reference-clip .npy files in the exact ROIs above
+    min_reference_clips: 16    # D-071: smallest gating family (MOT 16; LOC 20, SPK 20), derived on CPU in the ROIs above
     shift_by_L: false
+    acceptance:                # D-071 (f)/(g), frozen. Lags = kernel.window_tr; halves: selection = even i, test = odd i
+      peak: "m_full(p_star), unnormalised standardised; <= 0 -> FAIL"
+      K1: {alpha: 0.01, sign_all_positive: true, ffc_min_positive_frac: 0.8}
+      K1p: {min_frac_sigma_nat: 0.25, min_abs: 0.2}
+      K2: {window: [-1, 4], plateau_frac: 0.9, crossing_window: [-4, 2], crossing_frac: 0.5, tail_lags: [0, 3], tail_frac: 0.5}
+      K3: {baseline_lags: [-4, -2], min: 3}
+      K3p: {span: [12, -5], max_frac_peak: 0.10, alpha_two_sided: 0.01}
+      K4a: {min_median_r: 0.5}
+      K4b: {min_r: 0.7}
+      K5: {lags: [0, 3], min_abs_frac_peak: 0.2, max_lag_diff: 1}
+      K6: {lags: [0, 3], roi: MT_plus}
+      on_fail: {FFC: stop, AUD: stop, AUD_audioonly: stop, MT_plus: descriptive}   # MT_plus: owner 2026-11-19
+      on_stop_invalid: stop      # STOP_INVALID (or an incomplete motion run) is never a demotion
+      demotion_final: true       # a demoted MT_plus stays descriptive through any p4b_ref/v2
   aud_selectivity_run: audio_only   # (b) speech AUD > FFC is evaluated on the audio-only ablation run
   readout_lag_tr: [0, 3]       # (d) localiser readout = mean of output lags 0..3 TR after onset (inclusive)
   maps: [spatially_standardised, raw]   # dry run evaluates both; the hypotheses use the standardised maps
-  dry_run:                     # ENH-002, before P4b lock; changes only via a DECISIONS entry before the lock
-    reference_clips_min: 5
+  dry_run:                     # ENH-002 (P0, D-055) reference run; P4b reference counts are controls.refclips.families (D-071)
+    reference_clips_min: 16    # D-071: was 5
     talking_face_clip: true    # skipped in P0; required here (face + acoustic latency)
     n_flashes: 5
     n_speech_bursts: 5         # 4-6 s speech on a noise bed: audio-only, text-only, both
-  pass:
-    within_video: {mean_fisher_z_gt: 0.2, p_lt: 0.001}
-    selectivity: {p_lt: 0.01}
-    between_video: {r_gt: 0.3, perm_p_lt: 0.05}
-    min_videos: 15             # fewer -> evaluated on the >= 5 reference naturalistic clips
-    low_sd_percentile: 10      # regressor SD over W below this percentile of the reference clips -> excluded
+  pass:                        # D-071 (i): replaces the v2.5 pass block wholesale (frozen). (d) readout = readout_lag_tr;
+    # (c) era merge = era_merge_min_videos; (a) low-SD percentile over the NAT clips; < min_videos -> NAT (n = 15)
+    a: {mean_z_min: 0.2, alpha: 0.001, z_clip: 0.999999, low_sd_pctile: 10, min_videos: 15}
+    b: {alpha: 0.01}
+    c: {r_min: 0.3, alpha: 0.05, n_perm: 10000, route_blocks: false}
+    d: {n_boot: 10000, ci: 0.95}
+  rois_per_hemi:               # D-071 (i): fs5 vertex counts L, R on the union-medial-wall atlas (L + R = n_vertices)
+    FFC: [46, 58]
+    PH: [62, 51]
+    AUD: [108, 115]
+    MT_plus: [74, 65]
+    V1_V3: [572, 576]
+  mw_removed_frac: {FFC: 0.0, PH: 0.0, AUD: 0.0, MT_plus: 0.0, V1_V3: 0.0}   # union medial wall removes no ROI vertex
+  refclips:                    # D-071 (a)-(e), (k): P4b reference-clip campaign p4b_ref/v1 (frozen)
+    version: v1
+    s3_root: s3://yct-research-235229001983/wave1/derived/p4b_ref/v1/
+    campaign_cap_usd: 75       # owner 2026-11-19; scope = ledger launches named ledger_name_prefix*
+    campaign_warn_usd: 60      # >= this: the wrapper requires --ack-cap-80
+    ledger_name_prefix: yct-p4b-ref
+    onsets_s: [9, 29, 49]
+    shift_rule: "s = 0 if (i // 2) % 2 == 0 else -1"
+    families: {LOC: 20, LOC_SCR: 20, MOT: 16, MOT_STAT: 16, SPK: 20, BURST: 5, FLASH: 5, TALKFACE: 1, GREY_CTRL: 2, NAT: 15}
+    mot_directions_deg: [0, 45, 90, 135, 180, 225, 270, 315]
+    mot_direction_rule: "((3 * (i // 2) + k) % 8)"
+    mot_pattern_rule: "dot if (i // 4) % 2 == 0 else grating"
+    loc_categories: [face, body, place]          # objects not curated in v1
+    loc_latin_rule: "(i // 2) % 3"
+    loc_per_category: 20
+    nat_n: 15
+    image_licences: [CC0, PD-*, CC-BY-2.0, CC-BY-2.5, CC-BY-3.0, CC-BY-4.0]   # Commons licence template; PD-* = prefix
+    image_queries:
+      face: ['"frontal portrait photograph"']
+      body: ['"person seen from behind full body photograph"']
+      place: ['"empty room interior photograph"', '"empty street photograph"']
+    nat_query: "lecture OR interview OR talk"
+    snapshot_limits: {image: 2000, nat: 1000}
+    reject_reasons: [licence, personality_rights, not_photo, multi_subject, face_not_frontal, face_detected,
+                     no_face_detected, text_or_logo, person_present, too_small, duplicate, not_english,
+                     too_short, not_single_speaker, low_face_present, yc_link]
+    greyscale: bt709_luma      # Y' = 0.2126 R' + 0.7152 G' + 0.0722 B' on gamma-encoded values (BT.709 luma, the P2 matrix)
+    shine: {steps: [specMatch, lumMatch], iterations: 2, mean_luma: 128, rms_contrast: 32}   # all 60 images jointly
+    job_order: [[d038], [GREY_CTRL, SPK, LOC, LOC_SCR, MOT, MOT_STAT, FLASH, NAT], [audioonly, textonly], [BURST, TALKFACE]]
+  refclips_artifacts:          # D-071 (d): filled later, each frozen by its own row in the commit that sets it
+    image_snapshot_sha256: null
+    nat_snapshot_sha256: null
+    image_manifest_sha256: null
+    nat_manifest_sha256: null
+    manifest_sha256: null      # refclips_manifest.json, set by T-STIM before upload
 
 p4:                            # P4 TRIBE inference run sets + compute (D-063, ticket FIX-P4E; scripts/gpu_wave1_p4.py)
   # Label-blind, fixed before any real-data P4 output. Output firewall (D-063 B2): P4 extracts features and
