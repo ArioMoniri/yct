@@ -1,0 +1,189 @@
+{
+ "source": "outputs/runs/wave1p2b_20261118T002855Z/enh002_latency.json",
+ "note": "The ENH-002 design differs from p4b_ref/v1: one clip per family, so the 5 events stand in for clips (halves = even/odd event index); no NAT clips (K1' not computable), no inter-event spans (K3' not computable), no MOT (K6 not computable). Those rules get neutral placeholders and are reported as not_computable.",
+ "kernels": {
+  "ref_flash->V1_V3": {
+   "name": "V1_V3",
+   "rules": {
+    "K1": {
+     "result": "FAIL",
+     "t": 24.19309390015471,
+     "p_one_sided": 0.01314957048087242,
+     "sign_ok": true,
+     "n_test": 2
+    },
+    "K1p": {
+     "result": "not_computable"
+    },
+    "K2": {
+     "result": "FAIL",
+     "plateau_ok": true,
+     "crossing_lag": 2,
+     "crossing_ok": true,
+     "tail_ok": false
+    },
+    "K3": {
+     "result": "PASS",
+     "snr": 4.036630637208844
+    },
+    "K3p": {
+     "result": "not_computable"
+    },
+    "K4a": {
+     "result": "PASS",
+     "median_r": 0.9830241219319386
+    },
+    "K4b": {
+     "result": "PASS",
+     "r": 0.988080611305661
+    },
+    "K5": {
+     "result": "FAIL",
+     "p_star_raw": 2,
+     "sign_agree": true
+    }
+   },
+   "peak": 0.1659,
+   "p_star": 4,
+   "lags": [
+    -4,
+    -3,
+    -2,
+    -1,
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+   ],
+   "m_full": [
+    -0.34805,
+    -0.3259308,
+    -0.2379978,
+    -0.1113756,
+    -0.0004132,
+    0.0131926,
+    0.0958476,
+    0.1312184,
+    0.1659,
+    0.1117684,
+    0.0933066,
+    0.100456,
+    0.0734816
+   ],
+   "kernel": [
+    -2.09795057,
+    -1.96462206,
+    -1.4345859,
+    -0.67134177,
+    -0.00249066,
+    0.0795214,
+    0.57774322,
+    0.79094876,
+    1.0,
+    0.67370946,
+    0.56242676,
+    0.6055214,
+    0.44292706
+   ],
+   "n_clips": 5,
+   "status_computable_rules": "FAIL"
+  },
+  "ref_speech->AUD": {
+   "name": "AUD",
+   "rules": {
+    "K1": {
+     "result": "FAIL",
+     "t": 17.10138873207633,
+     "p_one_sided": 0.018591930435332256,
+     "sign_ok": true,
+     "n_test": 2
+    },
+    "K1p": {
+     "result": "not_computable"
+    },
+    "K2": {
+     "result": "PASS",
+     "plateau_ok": true,
+     "crossing_lag": -1,
+     "crossing_ok": true,
+     "tail_ok": true
+    },
+    "K3": {
+     "result": "PASS",
+     "snr": 24.090908736713107
+    },
+    "K3p": {
+     "result": "not_computable"
+    },
+    "K4a": {
+     "result": "PASS",
+     "median_r": 0.9779815156803311
+    },
+    "K4b": {
+     "result": "PASS",
+     "r": 0.977949094784801
+    },
+    "K5": {
+     "result": "PASS",
+     "p_star_raw": 0,
+     "sign_agree": true
+    }
+   },
+   "peak": 3.140973,
+   "p_star": 1,
+   "lags": [
+    -4,
+    -3,
+    -2,
+    -1,
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8
+   ],
+   "m_full": [
+    -0.688856,
+    0.1705,
+    1.5073514,
+    2.4752458,
+    3.1413108,
+    3.140973,
+    2.5790502,
+    1.7869892,
+    0.5379472,
+    -0.387524,
+    -0.8073756,
+    -0.9429768,
+    -1.0679244
+   ],
+   "kernel": [
+    -0.21931293,
+    0.05428254,
+    0.47989951,
+    0.78805065,
+    1.00010755,
+    1.0,
+    0.82109913,
+    0.56892855,
+    0.17126769,
+    -0.12337706,
+    -0.25704634,
+    -0.30021805,
+    -0.33999796
+   ],
+   "n_clips": 5,
+   "status_computable_rules": "FAIL"
+  }
+ },
+ "K6": "not_computable (no MOT family in ENH-002)"
+}
