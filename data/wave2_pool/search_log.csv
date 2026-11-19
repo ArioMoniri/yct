@@ -74,3 +74,156 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-18T15:16:00Z,youtube_data_api_v3(commentThreads),owner replies on candidate application videos (275 videos),275,4
 2026-11-18T15:17:00Z,youtube_data_api_v3(playlistItems),other uploads of 1166 applicant channels scanned for outcome statements,1166,0
 2026-11-18T15:18:00Z,ycombinator_directory,yc-oss companies dump + ycombinator.com/companies pages for batch/founder checks,6399,0
+2026-11-19T08:17:52Z,youtube_data_api_v3,Y Combinator founders video unlisted,43,38
+2026-11-19T08:18:06Z,youtube_data_api_v3,Y Combinator Winter 2021 application,50,29
+2026-11-19T08:18:07Z,youtube_data_api_v3,Y Combinator Summer 2021 application,50,27
+2026-11-19T08:18:08Z,youtube_data_api_v3,Y Combinator Winter 2022 application,50,39
+2026-11-19T08:18:09Z,youtube_data_api_v3,Y Combinator Summer 2022 application,50,24
+2026-11-19T08:18:10Z,youtube_data_api_v3,Y Combinator Winter 2020 application,50,40
+2026-11-19T08:18:10Z,youtube_data_api_v3,Y Combinator Summer 2020 application,50,29
+2026-11-19T08:18:11Z,youtube_data_api_v3,Y Combinator Summer 2019 application,50,33
+2026-11-19T08:18:12Z,youtube_data_api_v3,Y Combinator Winter 2019 application,50,15
+2026-11-19T08:18:13Z,youtube_data_api_v3,Y Combinator Winter 2023 application,50,37
+2026-11-19T08:18:13Z,youtube_data_api_v3,Y Combinator Summer 2023 application,50,23
+2026-11-19T08:18:14Z,youtube_data_api_v3,Y Combinator Winter 2024 application,50,27
+2026-11-19T08:18:15Z,youtube_data_api_v3,Y Combinator Summer 2024 application,50,26
+2026-11-19T08:19:05Z,youtube_data_api_v3,Y Combinator Summer 2018 application,50,28
+2026-11-19T08:19:06Z,youtube_data_api_v3,Y Combinator Winter 2018 application,50,19
+2026-11-19T08:19:07Z,youtube_data_api_v3,Y Combinator Summer 2017 application,50,25
+2026-11-19T08:19:08Z,youtube_data_api_v3,Y Combinator Winter 2017 application,50,19
+2026-11-19T08:19:08Z,youtube_data_api_v3,Y Combinator Summer 2016 application,50,30
+2026-11-19T08:19:09Z,youtube_data_api_v3,Y Combinator Winter 2016 application,50,18
+2026-11-19T08:19:10Z,youtube_data_api_v3,Y Combinator Winter 2025 application,50,27
+2026-11-19T08:19:11Z,youtube_data_api_v3,Y Combinator Summer 2025 application,50,21
+2026-11-19T08:19:12Z,youtube_data_api_v3,Y Combinator Spring 2026 application,50,16
+2026-11-19T08:19:12Z,youtube_data_api_v3,Y Combinator Winter 2026 application,50,16
+2026-11-19T08:19:13Z,youtube_data_api_v3,Y Combinator Fall 2026 application,50,23
+2026-11-19T08:19:14Z,youtube_data_api_v3,Y Combinator Winter 2027 application,50,23
+2026-11-19T08:19:15Z,youtube_data_api_v3,YC founders intro,50,22
+2026-11-19T08:19:15Z,youtube_data_api_v3,YC intro video founders,50,14
+2026-11-19T08:19:16Z,youtube_data_api_v3,YC video submission,0,0
+2026-11-19T08:19:17Z,youtube_data_api_v3,Y Combinator pitch 1 minute,50,21
+2026-11-19T08:19:17Z,youtube_data_api_v3,applying to Y Combinator video,50,8
+2026-11-19T08:19:18Z,youtube_data_api_v3,Ycombinator application,50,1
+2026-11-19T08:28:39Z,exa_search,LinkedIn post: this is the 1-minute video we sent with our YC application - we just got accepted,25,3
+2026-11-19T08:28:39Z,exa_search,LinkedIn post with video: founder sharing our YC founder video after being accepted (W25),25,0
+2026-11-19T08:28:39Z,exa_search,LinkedIn post: here's the founder video that got us into YC (S25/X25/F25/W26/S26),25,1
+2026-11-19T08:28:39Z,exa_search,LinkedIn post: we got rejected by Y Combinator - sharing the founder video we submitted,25,2
+2026-11-19T08:28:39Z,exa_search,LinkedIn post: we didn't make it into YC - this is the founder video we submitted,25,0
+2026-11-19T08:28:39Z,exa_search,LinkedIn post: throwback to the founder video from our Y Combinator application - now in YC,25,3
+2026-11-19T08:28:39Z,exa_search,LinkedIn post: YC said no - sharing our founder video from the application,25,2
+2026-11-19T08:28:39Z,exa_search,LinkedIn post: our founder video for YC application - not selected for an interview - video below,25,0
+2026-11-19T08:28:39Z,exa_search,Tanishq Saluja Glavior YC application video (follow-up),5,0
+2026-11-19T08:28:39Z,exa_search,people: Douglas Smith cofounder (company identification follow-up),5,0
+2026-11-19T08:35:10Z,hn_algolia(comment),our application video youtube,100,0
+2026-11-19T08:35:11Z,hn_algolia(story),our application video youtube,96,4
+2026-11-19T08:35:11Z,hn_algolia(comment),application video rejected youtu,33,0
+2026-11-19T08:35:12Z,hn_algolia(story),application video rejected youtu,6,0
+2026-11-19T08:35:13Z,hn_algolia(comment),here is our video yc,100,2
+2026-11-19T08:35:14Z,hn_algolia(story),here is our video yc,100,1
+2026-11-19T08:35:14Z,hn_algolia(comment),video we sent yc,100,1
+2026-11-19T08:35:15Z,hn_algolia(story),video we sent yc,100,1
+2026-11-19T08:35:15Z,hn_algolia(comment),yc application video youtube,36,1
+2026-11-19T08:35:16Z,hn_algolia(story),yc application video youtube,56,11
+2026-11-19T08:35:16Z,hn_algolia(comment),our yc video youtube,51,0
+2026-11-19T08:35:17Z,hn_algolia(story),our yc video youtube,100,3
+2026-11-19T08:35:18Z,hn_algolia(comment),didn't get in video youtube yc,95,4
+2026-11-19T08:35:19Z,hn_algolia(story),didn't get in video youtube yc,25,0
+2026-11-19T08:35:19Z,hn_algolia(comment),interview invites video,88,0
+2026-11-19T08:35:20Z,hn_algolia(story),interview invites video,20,0
+2026-11-19T08:36:53Z,exa_search,LinkedIn post: Y Combinator rejected us - here's our application video (2026),25,0
+2026-11-19T08:36:53Z,exa_search,LinkedIn post: rejected by YC - founder video attached - feedback welcome (2025),25,0
+2026-11-19T08:36:53Z,exa_search,LinkedIn post 2023: sharing the application video that got us into Y Combinator,25,0
+2026-11-19T08:36:53Z,exa_search,tweet: here's the YC application video that got us accepted (W24/S23/W23/S22),25,0
+2026-11-19T08:36:53Z,exa_search,x.com post: our YC application video - we didn't get in - video attached,25,0
+2026-11-19T08:36:53Z,exa_search,LinkedIn post: we got into YC - 60 second founder video we submitted (P26/F26/W27),25,0
+2026-11-19T08:36:53Z,exa_search,youtube.com: our Y Combinator application video (accepted) founders 1 minute,30,0
+2026-11-19T08:36:53Z,exa_search,youtube.com: YC application video - rejected - founder intro (description: not accepted),30,1
+2026-11-19T08:36:53Z,exa_search,LinkedIn post 2024: applied to Y Combinator and got rejected - our 1 minute founder video,25,1
+2026-11-19T08:36:53Z,exa_search,LinkedIn post: one year ago we recorded this video for our YC application - we got in - throwback,25,0
+2026-11-19T08:38:27Z,youtube_data_api_v3,YC top 10% application video,50,45
+2026-11-19T08:38:28Z,youtube_data_api_v3,YC application top 10 percent rejected founder video,50,43
+2026-11-19T08:38:29Z,youtube_data_api_v3,Y Combinator application video got interview,50,10
+2026-11-19T08:38:30Z,youtube_data_api_v3,YC founder video got an interview,50,11
+2026-11-19T08:38:30Z,youtube_data_api_v3,my YC application video rejected,50,8
+2026-11-19T08:38:31Z,youtube_data_api_v3,YC application video not selected for interview,50,9
+2026-11-19T08:38:32Z,youtube_data_api_v3,Y Combinator rejected me application video,50,14
+2026-11-19T08:38:33Z,youtube_data_api_v3,founder video YC we got in,50,3
+2026-11-19T08:38:34Z,youtube_data_api_v3,YC application video we got accepted,50,17
+2026-11-19T08:38:34Z,youtube_data_api_v3,Y Combinator founders video accepted batch,50,12
+2026-11-19T08:38:35Z,youtube_data_api_v3,YC application video early decision,50,15
+2026-11-19T08:38:36Z,youtube_data_api_v3,YC application waitlisted video,50,30
+2026-11-19T08:38:36Z,youtube_data_api_v3,our Y Combinator founder video,50,6
+2026-11-19T08:38:37Z,youtube_data_api_v3,YC intro video rejected,50,6
+2026-11-19T08:38:38Z,youtube_data_api_v3,YC pitch video rejected,50,8
+2026-11-19T08:43:35Z,exa_search,LinkedIn post: our YC W26 founder video - rejected - sharing,15,0
+2026-11-19T08:43:35Z,exa_search,LinkedIn post: F25 founder video YC not selected/rejected - video we submitted,15,0
+2026-11-19T08:43:35Z,exa_search,LinkedIn post: we're officially part of YC - founder video from our application,15,0
+2026-11-19T08:43:35Z,exa_search,follow-up outcome posts for applicants who shared founder videos (3 founder-name queries),15,0
+2026-11-19T08:43:35Z,exa_search,blog post: full YC application including founder video link - rejected,25,1
+2026-11-19T08:43:35Z,exa_search,github repository / blog: accepted YC application with founder video link,20,0
+2026-11-19T08:43:35Z,exa_search,LinkedIn post: this is the video we submitted to Y Combinator and we got accepted,20,0
+2026-11-19T08:43:35Z,websearch,"site:linkedin.com/posts ""application video"" ""got us into YC""",16,0
+2026-11-19T08:43:35Z,websearch,"site:linkedin.com/posts ""founder video"" YC rejected ""didn't get in""",17,0
+2026-11-19T08:43:35Z,webfetch,"founder blogs (keacher.com, thenextweb/YogaTrail, homoky.cz x2, maxprilutskiy.com, xergioalex.com, zactownsend, paragraph.com/oversaturation, sniply.io, indiehackers, medium)",12,1
+2026-11-19T08:43:35Z,linkedin_fetch,public LinkedIn post pages (VideoObject metadata) for Exa hits,95,6
+2026-11-19T08:43:35Z,youtube_data_api_v3(commentThreads),owner/viewer comments on new candidate application videos,611,0
+2026-11-19T08:43:35Z,youtube_data_api_v3(playlistItems),uploads of 564 applicant channels scanned for outcome statements,564,1
+2026-11-19T08:43:35Z,ycombinator_directory,yc-oss companies dump + ycombinator.com/companies founder pages,6402,0
+2026-11-19T08:43:35Z,vimeo_oembed,vimeo.com/api/oembed for founder-blog embedded video,1,1
+2026-11-19T08:50:55Z,youtube_data_api_v3,YC application video [2012-01-01..2016-01-01] order=viewCount,50,23
+2026-11-19T08:50:55Z,youtube_data_api_v3,Y Combinator application video [2012-01-01..2016-01-01] order=viewCount,50,15
+2026-11-19T08:50:56Z,youtube_data_api_v3,YC application video [2016-01-01..2019-01-01] order=viewCount,50,20
+2026-11-19T08:50:57Z,youtube_data_api_v3,Y Combinator application video [2016-01-01..2019-01-01] order=viewCount,50,16
+2026-11-19T08:50:58Z,youtube_data_api_v3,YC application video [2019-01-01..2021-01-01] order=viewCount,50,16
+2026-11-19T08:50:58Z,youtube_data_api_v3,Y Combinator application video [2019-01-01..2021-01-01] order=viewCount,50,14
+2026-11-19T08:50:59Z,youtube_data_api_v3,YC application video [2021-01-01..2023-01-01] order=viewCount,50,15
+2026-11-19T08:51:00Z,youtube_data_api_v3,Y Combinator application video [2021-01-01..2023-01-01] order=viewCount,50,12
+2026-11-19T08:51:00Z,youtube_data_api_v3,YC application video [2023-01-01..2025-01-01] order=viewCount,50,27
+2026-11-19T08:51:01Z,youtube_data_api_v3,Y Combinator application video [2023-01-01..2025-01-01] order=viewCount,50,13
+2026-11-19T08:51:02Z,youtube_data_api_v3,YC application video [2025-01-01..2026-11-19] order=viewCount,50,35
+2026-11-19T08:51:02Z,youtube_data_api_v3,Y Combinator application video [2025-01-01..2026-11-19] order=viewCount,50,22
+2026-11-19T08:51:52Z,youtube_data_api_v3,Y Combinator application [2010-01-01..2016-01-01] order=viewCount,50,28
+2026-11-19T08:51:53Z,youtube_data_api_v3,Y Combinator application [2016-01-01..2019-01-01] order=viewCount,50,24
+2026-11-19T08:51:54Z,youtube_data_api_v3,Y Combinator application [2019-01-01..2021-06-01] order=viewCount,50,19
+2026-11-19T08:51:54Z,youtube_data_api_v3,Y Combinator application [2021-06-01..2023-06-01] order=viewCount,50,21
+2026-11-19T08:51:55Z,youtube_data_api_v3,Y Combinator application [2023-06-01..2025-06-01] order=viewCount,50,16
+2026-11-19T08:51:56Z,youtube_data_api_v3,Y Combinator application [2025-06-01..2026-11-19] order=viewCount,50,18
+2026-11-19T08:51:56Z,youtube_data_api_v3,YC founder video [2010-01-01..2016-01-01] order=viewCount,48,22
+2026-11-19T08:51:57Z,youtube_data_api_v3,YC founder video [2016-01-01..2019-01-01] order=viewCount,50,15
+2026-11-19T08:51:58Z,youtube_data_api_v3,YC founder video [2019-01-01..2021-06-01] order=viewCount,50,14
+2026-11-19T08:51:58Z,youtube_data_api_v3,YC founder video [2021-06-01..2023-06-01] order=viewCount,50,10
+2026-11-19T08:51:59Z,youtube_data_api_v3,YC founder video [2023-06-01..2025-06-01] order=viewCount,50,11
+2026-11-19T08:51:59Z,youtube_data_api_v3,YC founder video [2025-06-01..2026-11-19] order=viewCount,50,15
+2026-11-19T08:52:00Z,youtube_data_api_v3,founders video for Y Combinator [2010-01-01..2016-01-01] order=viewCount,50,12
+2026-11-19T08:52:01Z,youtube_data_api_v3,founders video for Y Combinator [2016-01-01..2019-01-01] order=viewCount,50,9
+2026-11-19T08:52:01Z,youtube_data_api_v3,founders video for Y Combinator [2019-01-01..2021-06-01] order=viewCount,50,9
+2026-11-19T08:52:02Z,youtube_data_api_v3,founders video for Y Combinator [2021-06-01..2023-06-01] order=viewCount,50,9
+2026-11-19T08:52:03Z,youtube_data_api_v3,founders video for Y Combinator [2023-06-01..2025-06-01] order=viewCount,50,8
+2026-11-19T08:52:03Z,youtube_data_api_v3,founders video for Y Combinator [2025-06-01..2026-11-19] order=viewCount,50,13
+2026-11-19T08:57:50Z,exa_search,"LinkedIn post with video: our YC S23 application founder video, we got in",12,0
+2026-11-19T08:57:50Z,exa_search,"LinkedIn post with video: our YC W22 / S22 application video, sharing it now",12,1
+2026-11-19T08:57:50Z,exa_search,LinkedIn post: I found our old Y Combinator application video from 2019,12,1
+2026-11-19T08:57:50Z,exa_search,"LinkedIn post: today is the YC application deadline, sharing the founder video we submitted",25,1
+2026-11-19T08:57:50Z,exa_search,LinkedIn post: YC applications are due - our application video from last year to help you (YC founder),25,0
+2026-11-19T08:57:50Z,exa_search,LinkedIn post by YC founder: here's the video that got us into YC - applications close tonight,25,0
+2026-11-19T08:57:50Z,exa_search,LinkedIn post: our YC application video W24/S24/F24 founders sharing on deadline day,25,3
+2026-11-19T08:57:50Z,exa_search,LinkedIn post: our original YC application video from 2021 - founders throwback,20,1
+2026-11-19T08:57:50Z,exa_search,LinkedIn post: rewatching the founder video we sent to Y Combinator before we got in,20,0
+2026-11-19T08:57:50Z,exa_search,blog: the application that got us into Y Combinator - full application incl. founder video link,25,0
+2026-11-19T08:57:50Z,exa_search,LinkedIn post: YC passed on us - sharing the 1-minute founder video we submitted,20,0
+2026-11-19T08:57:50Z,exa_search,LinkedIn post: no YC interview this time - posting the founder video anyway,20,0
+2026-11-19T08:57:50Z,exa_search,LinkedIn post by YC W25 founder: founder video from our application that got us in,20,0
+2026-11-19T08:57:50Z,exa_search,LinkedIn post by YC S24/F24 founder: sharing our YC application video,20,0
+2026-11-19T08:57:50Z,exa_search,"24vids (X video mirror): here's our YC application video, we got into Y Combinator",25,0
+2026-11-19T08:57:50Z,exa_search,"tweet video: our YC founder video, we got rejected, posting it anyway",25,0
+2026-11-19T08:57:50Z,exa_search,nitter/xcancel: didn't get into YC - here's our application video,25,0
+2026-11-19T08:57:50Z,exa_search,reddit r/ycombinator: rejected - here is my YC application video (via Exa),25,0
+2026-11-19T08:57:50Z,exa_search,tiktok.com: my YC application video - rejected from Y Combinator,25,0
+2026-11-19T08:57:50Z,exa_search,LinkedIn post with video: this was our YC video - no interview for X25/S25/F25,20,0
+2026-11-19T08:57:50Z,webfetch,"founder blogs round 2 (dashibase, relate.so, directededge, medium x3, basedash, getlago, jasonscui, zyner, flowjam, nomarketneed, clearly-ai)",13,0
+2026-11-19T08:57:50Z,linkedin_fetch,public LinkedIn post pages (VideoObject metadata) round 2,30,6
+2026-11-19T08:57:50Z,lnkd.in_resolve,shortlink resolution for videos listed in founder posts,16,1
+2026-11-19T08:57:50Z,youtube_data_api_v3(playlistItems),uploads of 122 additional applicant channels,122,0
+2026-11-19T08:57:50Z,youtube_data_api_v3(commentThreads),comments on 134 additional candidate application videos,134,0
+2026-11-19T08:57:50Z,reddit_json,"r/ycombinator search.json (HTTP 403, not retried)",0,0

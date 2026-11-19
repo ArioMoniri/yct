@@ -36,3 +36,58 @@ One-per-company counts are identical (30 distinct companies; 22 conf-A).
 - LinkedIn rows have language UNKNOWN (no metadata). Some YouTube rows have language UNKNOWN (no defaultAudioLanguage).
 - A query to YC's live Algolia directory index was blocked by the session permission policy; the yc-oss dump and individual company pages were used instead.
 - Target (>= 30 conf-A per outcome) was not reached; sources above were worked to diminishing returns within the time budget.
+
+## Round 4 (2026-11-19, append-only)
+
+Data Curator, blind to study hypotheses. Appended 18 new pool rows `yct_0692`..`yct_0709` (wave=2, collected_after_lock=PENDING). Every company is disjoint from `data/manifest.csv` and from all earlier pool rows (checked by company_id, by fuzzy company-name match against all existing company_ids, and by video id / LinkedIn activity id). One wave-1 duplicate was found only through a manual check (the wave-1 company_id was a generic word, not the company name) and was dropped before writing. One video per company: 18 rows = 18 companies. No outcome breakdowns appear in this file. Labels and evidence are only in `data/sealed/sealed_w2pool_part3.tar.age` (yct_0692..0699) and `data/sealed/sealed_w2pool_part4.tar.age` (yct_0700..0709). The plaintext was shredded after encryption.
+
+### Counts by label confidence x era (round-4 rows, one per company)
+
+| confidence | E1 | E2 | E3 | UNKNOWN | total |
+|---|---|---|---|---|---|
+| A (in_primary=True) | 2 | 0 | 7 | 6 | 15 |
+| not A (B) | 0 | 0 | 3 | 0 | 3 |
+| total | 2 | 0 | 10 | 6 | 18 |
+
+The one-per-company counts are the same (18 distinct companies, 15 conf-A). claimed_batch is UNKNOWN whenever the uploader or founder stated no batch, even when the YC directory gives one. This produces 6 UNKNOWN-era rows.
+
+### Sources used
+- **YouTube Data API v3** (new phrasings only):
+  - search.list with season-word batch forms ("Y Combinator Winter 2021 application" and similar, 2016–2027), "YC founders intro", "top 10%", "waitlisted", "early decision" and "not selected for interview" phrasings.
+  - order=viewCount year slices for "YC application video", "Y Combinator application", "YC founder video" and "founders video for Y Combinator".
+  - videos.list for metadata.
+  - commentThreads.list on about 745 candidate videos.
+  - playlistItems.list on 686 applicant channels.
+- **Exa web search** (about 50 queries), aimed mainly at LinkedIn founder posts with native video:
+  - "shared on deadline day" posts by YC founders.
+  - "throwback / found our application video" posts.
+  - Rejection posts that attach the founder video.
+  - X/Twitter mirrors and TikTok.
+  - Founder blogs that publish their full application.
+- **Public LinkedIn post pages** (VideoObject JSON-LD: author, date, duration) and lnkd.in shortlink resolution.
+- **YC directory**: the yc-oss companies dump (batch, former names) and ycombinator.com/companies founder lists.
+- **Other**: Vimeo oEmbed for one founder-blog video, and Hacker News Algolia (16 new phrasings, comment and story).
+- **Strict founder rule applied**: rows uploaded or posted only by a company account with no founder post claiming them are B, or were skipped.
+
+### YouTube API units
+About 9,400 units used of the daily ~10,000. No 403 quotaExceeded was hit, and searching stopped with about 600 units left. About 110 search.list calls were made, plus videos.list, commentThreads.list, playlistItems.list and channels.list calls.
+
+### Exclusions
+1,321 reviewed candidates were appended to `exclusions.csv`, with reason categories only. URLs whose text contains an outcome word are written as `sha256:` prefixes. The main reasons were:
+- no stated outcome (C)
+- not an application video
+- over 3 min
+- YC-channel uploads
+- non-English metadata
+- LinkedIn posts without native video
+- company already in a manifest
+- video unavailable
+
+One LinkedIn post (Panta) was appended as an exclusion (C) early in this round, before the directory cross-check. It is superseded by pool row yct_0701, and the exclusion row was left in place under the append-only rule.
+
+### Blockers / caveats
+- **Low yield**: the obvious YouTube and LinkedIn phrasings were largely harvested by wave 1 and round 3. Many Exa hits were companies or URLs already in the manifests. Most new applicant videos and posts state no outcome, and most rejection posts carry no video.
+- **Target not reached**: ≥ 25 conf-A per outcome was not reached.
+- **Reddit**: the reddit.com JSON search returned HTTP 403. It was not retried or worked around.
+- **LinkedIn metadata**: LinkedIn rows have language UNKNOWN. One conf-A LinkedIn video is a 33 s clip that the founder presents as the application video.
+- **Wave-1 company_id quality**: some wave-1 company_ids are generic words, not company names. Disjointness by company_id alone is therefore not fully reliable, and future rounds should also match on founder name and video duration.
