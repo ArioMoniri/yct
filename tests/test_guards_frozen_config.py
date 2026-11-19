@@ -103,6 +103,8 @@ D071_FROZEN = [("p4.launcher_max_hours", "ca63a9d57857b68cf5c0f9dc7a51ce6d53882d
                             "controls.kernel.acceptance", "controls.kernel.min_reference_clips",
                             "controls.pass", "controls.rois_per_hemi", "controls.mw_removed_frac",
                             "controls.refclips"]]
+D074_SHA = "698b64a0e6c3cbc98ac6490fd10bc202a1647733"   # T-D074 commit 1 (D-074 key)
+D074_FROZEN = [("controls.refclips_d074", D074_SHA)]
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
@@ -111,7 +113,7 @@ def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
     cfg = yaml.safe_load((ROOT / "config.yaml").read_text())
     sha = "c616a9d33b7eb861795aa9fb64f6314d95e379f8"
     assert cfg["frozen"] == [{"key": k, "frozen_at": sha} for k in D063_FROZEN] + [
-        {"key": k, "frozen_at": s} for k, s in D071_FROZEN]
+        {"key": k, "frozen_at": s} for k, s in D071_FROZEN + D074_FROZEN]
     assert cfg["tribe"]["tr_s"] == 1.0
     assert cfg["stimulus"]["t1_trim_s"] == 58.0
     assert cfg["stimulus"]["fps"] == 30

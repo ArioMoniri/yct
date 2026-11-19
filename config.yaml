@@ -542,3 +542,5 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   - {key: controls.rois_per_hemi, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
   - {key: controls.mw_removed_frac, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
   - {key: controls.refclips, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  # D-074 (owner-approved image candidate source): frozen in the commit after the key (two-commit freeze)
+  - {key: controls.refclips_d074, frozen_at: 698b64a0e6c3cbc98ac6490fd10bc202a1647733}
