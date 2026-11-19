@@ -79,6 +79,74 @@ def build_snapshot(header: dict, fetch: Callable[[str, int], list[dict]]) -> dic
     return {"header": header, "entries": entries}
 
 
+# ---------------------------------------------------------------- D-074 category snapshot (images)
+D074_FIELDS = ("title", "pageid", "revid", "mime", "mediatype", "sha1", "width", "height")
+
+
+def snapshot_name_d074(category: str, cfg: dict) -> str:
+    return f"image_{category}{cfg['controls']['refclips_d074']['snapshot_file_suffix']}_snapshot.json"
+
+
+def header_for_d074(cfg: dict, category: str, utc_date: str) -> dict:
+    d = cfg["controls"]["refclips_d074"]
+    return {
+        "kind": "image",
+        "decision": d["decision"],
+        "category": category,
+        "sources": [dict(x) for x in d["image_sources"][category]],
+        "namespace": d["namespace"],
+        "api": d["api"],
+        "limit": d["image_snapshot_limit"],
+        "utc_date": utc_date,
+    }
+
+
+def build_category_snapshot(header: dict, fetch_members: Callable[[str, int, int], dict]) -> dict:
+    """fetch_members(category, namespace, limit) -> {"complete": bool, "entries": [...D074_FIELDS]}.
+    Every source must be complete and within the limit, else CurationError (nothing truncated). Sources are
+    unioned, deduplicated by title (first source wins)."""
+    seen, entries = set(), []
+    for src in header["sources"]:
+        r = fetch_members(src["category"], header["namespace"], header["limit"])
+        if r.get("complete") is not True:
+            raise CurationError(f"incomplete enumeration of Category:{src['category']}")
+        if len(r["entries"]) > header["limit"]:
+            raise CurationError(f"Category:{src['category']} has more than {header['limit']} files")
+        for e in r["entries"]:
+            missing = [f for f in D074_FIELDS if f not in e]
+            if missing:
+                raise CurationError(f"entry {e.get('title')!r} lacks {missing}")
+            if e["title"] in seen:
+                continue
+            seen.add(e["title"])
+            entries.append({**{f: e[f] for f in D074_FIELDS}, "source": src["category"]})
+    return {"header": {**header, "complete": True, "n_members": len(entries)}, "entries": entries}
+
+
+def check_header_d074(snapshot: dict, cfg: dict) -> None:
+    h = snapshot["header"]
+    want = {**header_for_d074(cfg, h.get("category"), h["utc_date"]), "complete": True,
+            "n_members": len(snapshot["entries"])}
+    if h != want:
+        raise CurationError(f"D-074 snapshot header {h} != config {want}")
+
+
+def pre_reason_d074(entry: dict, cfg: dict) -> str | None:
+    """Reason fixed by the snapshot itself: a non-BITMAP entry is `not_photo` (= D-071 filetype:bitmap)."""
+    if entry.get("mediatype") != cfg["controls"]["refclips_d074"]["bitmap_mediatype"]:
+        return "not_photo"
+    return None
+
+
+def image_snapshot_sha_d074(snapshot_dir: Path, cfg: dict) -> str:
+    """controls.refclips_artifacts.image_snapshot_sha256: sha256 of the concatenated bytes of the D-074
+    face, body, place snapshot files in loc_categories order."""
+    h = hashlib.sha256()
+    for cat in cfg["controls"]["refclips"]["loc_categories"]:
+        h.update((Path(snapshot_dir) / snapshot_name_d074(cat, cfg)).read_bytes())
+    return h.hexdigest()
+
+
 def ordered(snapshot: dict) -> list[dict]:
     return sorted(snapshot["entries"], key=lambda e: title_key(e["title"]))
 
@@ -330,3 +398,40 @@ def page_meta(titles: list[str]) -> dict[str, dict]:
                 "license_short": em.get("LicenseShortName", {}).get("value", ""),
             }
     return out
+
+
+def fetch_category(category: str, namespace: int, limit: int) -> dict:
+    """D-074: every direct file member of Category:<category> (depth 0) with info + imageinfo. Follows every
+    continue key (gcmcontinue and iicontinue) to batchcomplete; refuses beyond `limit`."""
+    params = {
+        "action": "query",
+        "generator": "categorymembers",
+        "gcmtitle": f"Category:{category}",
+        "gcmtype": "file",
+        "gcmnamespace": str(namespace),
+        "gcmlimit": "500",
+        "prop": "info|imageinfo",
+        "iiprop": "mime|mediatype|sha1|size",
+    }
+    pages: dict[int, dict] = {}
+    cont: dict = {}
+    while True:
+        d = _get({**params, **cont})
+        for p in d.get("query", {}).get("pages", []):
+            cur = pages.setdefault(p["pageid"], {"title": p["title"], "pageid": p["pageid"],
+                                                 "revid": p.get("lastrevid")})
+            ii = (p.get("imageinfo") or [None])[0]
+            if ii:
+                cur.update({"mime": ii.get("mime"), "mediatype": ii.get("mediatype"), "sha1": ii.get("sha1"),
+                            "width": ii.get("width"), "height": ii.get("height")})
+            if p.get("lastrevid"):
+                cur["revid"] = p["lastrevid"]
+        if len(pages) > limit:
+            raise CurationError(f"Category:{category} has more than {limit} files")
+        if "continue" in d:
+            cont = d["continue"]
+            continue
+        if "batchcomplete" not in d:
+            raise CurationError(f"Category:{category}: no batchcomplete and no continue")
+        break
+    return {"complete": True, "entries": sorted(pages.values(), key=lambda e: e["pageid"])}

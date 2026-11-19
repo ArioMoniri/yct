@@ -642,6 +642,23 @@ class RefClipArtifacts(M):            # D-071 (d): null until set; frozen row pe
     manifest_sha256: Sha256 | None
 
 
+class D074Source(M):                  # D-074
+    category: Annotated[str, Field(min_length=1)]
+    depth: Literal[0]
+
+
+class RefClipsD074(M):                # D-074: Commons category candidate source for localiser images
+    decision: Literal["D-074"]
+    image_sources: dict[Literal["face", "body", "place"], Annotated[list[D074Source], Field(min_length=1)]]
+    namespace: Literal[6]
+    api: Literal["generator=categorymembers&gcmtype=file&gcmnamespace=6&prop=info|imageinfo"
+                 "&iiprop=mime|mediatype|sha1|size"]
+    bitmap_mediatype: Literal["BITMAP"]
+    image_snapshot_limit: PosInt
+    require_complete: Literal[True]
+    snapshot_file_suffix: Literal["_d074"]
+
+
 class Controls(M):
     rois: dict[str, Roi]
     regressors: dict[str, Regressor]
@@ -657,6 +674,7 @@ class Controls(M):
     mw_removed_frac: dict[str, Frac]
     refclips: RefClips
     refclips_artifacts: RefClipArtifacts
+    refclips_d074: RefClipsD074
 
     @model_validator(mode="after")
     def _refs(self):
@@ -675,6 +693,9 @@ class Controls(M):
             raise ValueError("controls.mw_removed_frac must list the same ROIs as rois_per_hemi")
         if self.kernel.acceptance.K6.roi not in self.rois:
             raise ValueError("controls.kernel.acceptance.K6.roi is not a defined ROI")
+        if set(self.refclips_d074.image_sources) != set(self.refclips.loc_categories):
+            raise ValueError("controls.refclips_d074.image_sources must cover exactly "
+                             "refclips.loc_categories")
         return self
 
 

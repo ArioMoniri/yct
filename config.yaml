@@ -430,6 +430,18 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     image_manifest_sha256: null
     nat_manifest_sha256: null
     manifest_sha256: null      # refclips_manifest.json, set by T-STIM before upload
+  refclips_d074:               # D-074 (owner-approved 2026-11-19): image candidate source; replaces refclips.image_queries for images
+    decision: D-074
+    image_sources:
+      face:  [{category: "Portrait photographs", depth: 0}]
+      body:  [{category: "Rear views of people", depth: 0}]
+      place: [{category: "Empty rooms", depth: 0}, {category: "Empty streets", depth: 0}]
+    namespace: 6
+    api: "generator=categorymembers&gcmtype=file&gcmnamespace=6&prop=info|imageinfo&iiprop=mime|mediatype|sha1|size"
+    bitmap_mediatype: BITMAP   # mediatype != BITMAP stays in the snapshot, logged not_photo when reached
+    image_snapshot_limit: 6000 # per source; more refuses the snapshot (complete enumeration, nothing truncated)
+    require_complete: true
+    snapshot_file_suffix: "_d074"   # data/refstim/snapshots/image_<cat>_d074_snapshot.json
 
 p4:                            # P4 TRIBE inference run sets + compute (D-063, ticket FIX-P4E; scripts/gpu_wave1_p4.py)
   # Label-blind, fixed before any real-data P4 output. Output firewall (D-063 B2): P4 extracts features and

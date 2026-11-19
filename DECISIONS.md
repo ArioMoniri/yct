@@ -381,3 +381,20 @@ Append-only log. Format: date | phase | id | summary | evidence.
   - T-DRV is complete only when its capacity-miss tests assert: no instance and no ledger line; `spent_usd()` and the store `manifest.jsonl` bytes unchanged; only the `runs/<id>/child_metrics.json` record (status `no_capacity`) is written.
 
   (l) **No-revision rule.** After the post-run P4b design entry and the first analysis-set read through `p4_open`, no kernel, ROI, regressor, threshold, exclusion or fallback may change. Any (a)–(d) FAIL on a gating control is a STOP to the owner and the council.
+- D-074 P4b localiser image candidate source, a pre-run correction of D-071 (b). The owner approved it on 2026-11-19 (in-session answer "Approve" to "Approve the D-074 category sources?"); this was recorded before this commit, as D-071 (b) requires when a category cannot reach 20.
+  - **Status:** no reference output exists, no image has been downloaded or viewed, and the D-071 (h) redesign is unused. Review record: reviews/phase_p4b/d074_draft.md, signoff_d074.md, d074_final.md (request record and selection rule).
+  - **Why:** the frozen `controls.refclips.image_queries` are double-quoted exact phrases and return 0 Commons candidates for face, body and place. The d7e9a6a snapshots `image_{face,body,place}_snapshot.json` are kept unchanged as the record.
+  - **New source:** Commons category membership, in the new sibling key `controls.refclips_d074`, frozen in its own row. `controls.refclips` is not edited.
+    - face: `Category:Portrait photographs` (4,445 files)
+    - body: `Category:Rear views of people` (568)
+    - place: `Category:Empty rooms` ∪ `Category:Empty streets` (276 + 47)
+    - Depth 0 (direct file members, no subcategories), namespace 6, via `generator=categorymembers&gcmtype=file&gcmnamespace=6&prop=info|imageinfo&iiprop=mime|mediatype|sha1|size`.
+    - Each entry records title, pageid, revid (= lastrevid), mime, mediatype, sha1, width and height. An entry whose `mediatype` ≠ `BITMAP` stays in the snapshot and is logged `not_photo` when reached (the exact equivalent of D-071's `filetype:bitmap`).
+  - **Complete enumeration:** a response with `batchcomplete` and no `continue` key of any kind (`gcmcontinue` and `iicontinue` both followed). More than `image_snapshot_limit` (6000) entries in a source, an incomplete enumeration, or any API error refuses the snapshot. Nothing is truncated or sampled.
+  - **Snapshots:** `data/refstim/snapshots/image_{face,body,place}_d074_snapshot.json`. Each header records categories, depth, namespace, API parameters, UTC date, `complete: true` and the member count; the place union is deduplicated by title.
+    - In the commit that adds them, `controls.refclips_artifacts.image_snapshot_sha256` = sha256 of the concatenated bytes of the face, body and place files in `loc_categories` order. Its `frozen:` row follows in the next commit, before any filter.
+    - The D-074 run writes image snapshots only. `nat_nat_snapshot.json` (d7e9a6a, sha aab68a55…) and the three D-071 image snapshots stay byte-identical.
+  - **Unchanged from D-071:** ordering by ascending sha256(file title); the first 20 passes per category; `image_licences`; every category filter and `reject_reasons`; processing (greyscale, SHINE); LICENSES.md with CC-BY attribution; the no-YC/founder/analysis-company imagery rule.
+  - **STOP:** fewer than 20 passes after a complete list is exhausted stops the build and goes to the owner (no substitute source, no relaxed filter).
+  - **Kept as it was:** `controls.refclips.image_queries` and `snapshot_limits.image` stay frozen as the record and are no longer read for images. `nat_query`, `snapshot_limits.nat` and the NAT snapshot are unchanged and still used. `controls.refclips.version` stays v1; `s3_root`, the $75 cap, the K rules and `on_fail` are unchanged.
+  - **Disclosure:** the v1 report discloses D-071 → D-074 and the zero snapshots of d7e9a6a. D-074 does not consume D-071 (h).
