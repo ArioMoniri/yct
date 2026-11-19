@@ -1,0 +1,34 @@
+{
+ "alive_after": [],
+ "deadline": 1795072579.0,
+ "decision": "D-063",
+ "errors": {},
+ "exit_code": 0,
+ "firewall": "per-clip checks only (D-063 B2)",
+ "gate_failures": {},
+ "git_sha": "2db244708b2bbb61170c4b71afa2ebb4fca440c1",
+ "instance_id": "b5d94f23a7724c64801aaa6c9a33871b",
+ "instance_name": "yct-p4-t1795067539-dl1795072579",
+ "instance_type": "gpu_1x_a100_sxm4",
+ "jobs_run": [
+  "yct_0646.t3"
+ ],
+ "n_done": 103,
+ "n_jobs": 103,
+ "orphans_at_start": {
+  "reap": [],
+  "reap_deadline": [],
+  "sweep": []
+ },
+ "pending_at_start": 1,
+ "remaining": [],
+ "restored": [],
+ "revisions_sha256": "74e75882c0135ee6702963d92c01fc488366144520618fee6c1f67741dc557d6",
+ "run_id": "wave1p4_s19_20261119T054933Z",
+ "status": "complete",
+ "terminator": {
+  "fire_at": 1795075800.0,
+  "kind": "external_scheduled_session"
+ },
+ "usd_spent_this_run": 0.5695
+}
