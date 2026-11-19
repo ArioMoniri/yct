@@ -1,0 +1,70 @@
+{
+ "alive_after": [],
+ "deadline": 1795053661.0,
+ "decision": "D-063",
+ "errors": {},
+ "exit_code": 75,
+ "firewall": "per-clip checks only (D-063 B2)",
+ "gate_failures": {},
+ "git_sha": "811f6297976ee92b26fcb10db543d99a91603510",
+ "instance_id": "bf82c98f283f4b3491473aee89f2c017",
+ "instance_name": "yct-p4-t1795048621-dl1795053661",
+ "instance_type": "gpu_1x_a100_sxm4",
+ "jobs_run": [
+  "yct_0214.t3",
+  "yct_0247.t3",
+  "yct_0269.t3",
+  "yct_0295.t3",
+  "yct_0304.t3",
+  "yct_0310.t3",
+  "yct_0346.t3"
+ ],
+ "n_done": 78,
+ "n_jobs": 103,
+ "orphans_at_start": {
+  "reap": [],
+  "reap_deadline": [],
+  "sweep": []
+ },
+ "pending_at_start": 32,
+ "remaining": [
+  "yct_0420.t3",
+  "yct_0422.t3",
+  "yct_0442.t3",
+  "yct_0444.t3",
+  "yct_0463.t3",
+  "yct_0482.t3",
+  "yct_0483.t3",
+  "yct_0528.t3",
+  "yct_0553.t3",
+  "yct_0567.t3",
+  "yct_0626.t3",
+  "yct_0628.t3",
+  "yct_0629.t3",
+  "yct_0630.t3",
+  "yct_0631.t3",
+  "yct_0632.t3",
+  "yct_0633.t3",
+  "yct_0634.t3",
+  "yct_0635.t3",
+  "yct_0636.t3",
+  "yct_0637.t3",
+  "yct_0638.t3",
+  "yct_0639.t3",
+  "yct_0645.t3",
+  "yct_0646.t3"
+ ],
+ "restored": [],
+ "revisions_sha256": "74e75882c0135ee6702963d92c01fc488366144520618fee6c1f67741dc557d6",
+ "run_id": "wave1p4_s15_20261119T003433Z",
+ "status": "incomplete",
+ "stopped_for_time": {
+  "at_job": "yct_0420.t3",
+  "left_s": 1063
+ },
+ "terminator": {
+  "fire_at": 1795056300.0,
+  "kind": "external_scheduled_session"
+ },
+ "usd_spent_this_run": 2.201
+}
