@@ -2239,3 +2239,22 @@
 {"event": "heartbeat", "id": "0fa55720a2f647de9b2771fec9754925", "t": 1795047120.0, "gpu_util": 0.0, "mem_mib": 1341.0, "source": "instance"}
 {"event": "heartbeat", "id": "0fa55720a2f647de9b2771fec9754925", "t": 1795047150.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
 {"event": "terminate", "id": "0fa55720a2f647de9b2771fec9754925", "t": 1795047245.9461176, "reason": "job_done"}
+{"event": "launch", "id": "c69a2d4331904deb89ee784db650ff23", "name": "yct-p4-t1795047511-dl1795052551", "type": "gpu_1x_a100_sxm4", "usd_per_hour": 1.99, "t": 1795047511.7739959, "deadline": 1795052551.0}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795047871.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795047901.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795047931.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795047961.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795047991.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795048021.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795048051.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795048081.0, "gpu_util": 100.0, "mem_mib": 7633.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795048111.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795048141.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795048171.0, "gpu_util": 41.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795048201.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795048231.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795048261.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795048291.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795048321.0, "gpu_util": 100.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "heartbeat", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795048351.0, "gpu_util": 38.0, "mem_mib": 12889.0, "source": "instance"}
+{"event": "terminate", "id": "c69a2d4331904deb89ee784db650ff23", "t": 1795048434.735045, "reason": "manual"}
