@@ -34,7 +34,7 @@ def _load():
 
 p4 = _load()
 
-SMALL = {"p4": {"run_set_t1": ["yct_0016", "yct_0040", "yct_0043"],
+SMALL = {"p4": {"launcher_max_hours": 4, "run_set_t1": ["yct_0016", "yct_0040", "yct_0043"],
                 "run_set_t3": ["yct_0016", "yct_0040", "yct_0043", "yct_0483"],
                 "t1_excluded": {"yct_0483": "short"}, "d038_clips": ["yct_0016"],
                 "flags": {"low_fps_source": {"rule": "r", "videos": [], "sensitivity": "S-LOWFPS"}}}}
@@ -445,3 +445,55 @@ def test_superseded_failed_d038_row_still_latches(env):
     env["backend"].s3_put_text("manifest.jsonl", "\n".join(json.dumps(r) for r in rows) + "\n")
     st = p4.load_state(env["backend"], ["old"])
     assert p4.latched_stops(st) == ["old"]
+
+
+# ---------------------------------------------------------------- BUG-033: capacity miss -> exit 75
+def test_no_capacity_at_price_lookup_exits_75_without_launch(env):
+    env["lg"].mod.types = lambda: {}
+    rc, res = _run(env)
+    assert rc == p4.EXIT_INCOMPLETE and res["status"] == "no_capacity"
+    assert env["lg"].launched == [] and not res.get("error")
+
+
+def test_no_capacity_at_launch_exits_75(env):
+    def gone(*a, **k):
+        raise SystemExit("gpu_1x_a100_sxm4 has no capacity now; available: []")
+    env["lg"].mod.launch = gone
+    rc, res = _run(env)
+    assert rc == p4.EXIT_INCOMPLETE and res["status"] == "no_capacity"
+
+
+def test_http_400_at_launch_exits_75_and_logs_body(env):
+    import io
+    import urllib.error
+
+    def bad(*a, **k):
+        raise urllib.error.HTTPError("u", 400, "Bad Request", {}, io.BytesIO(b'{"error":"insufficient capacity"}'))
+    env["lg"].mod.launch = bad
+    rc, res = _run(env)
+    assert rc == p4.EXIT_INCOMPLETE and res["status"] == "no_capacity"
+    assert "insufficient capacity" in res["capacity_miss"]
+
+
+def test_other_launch_errors_still_fail(env):
+    def boom(*a, **k):
+        raise SystemExit("budget cap: spent 199 + 7 > 200")
+    env["lg"].mod.launch = boom
+    with pytest.raises(SystemExit, match="budget cap"):
+        _run(env)
+
+
+# ---------------------------------------------------------------- BUG-028: launcher time limit
+def test_max_hours_above_launcher_limit_is_refused(env):
+    env["cfg"] = with_overrides(env["cfg"], {"p4": {"launcher_max_hours": 1.75}})
+    with pytest.raises(SystemExit, match="launcher"):
+        _run(env, max_hours=1.76)
+    rc, _ = _run(env, max_hours=1.75)
+    assert rc in (p4.EXIT_OK, p4.EXIT_INCOMPLETE)
+
+
+def test_cli_default_max_hours_within_launcher_limit():
+    src = DRIVER.read_text()
+    import re
+    d = float(re.search(r'"--max-hours", type=float, default=([0-9.]+)', src).group(1))
+    assert d <= float(load_config()["p4"]["launcher_max_hours"]) < 2.0

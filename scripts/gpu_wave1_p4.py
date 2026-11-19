@@ -3,7 +3,7 @@
 
 Run under provenance (one Lambda session per invocation; re-run while it exits 75; exit 1 needs a human):
     python scripts/run_with_provenance.py --run-id p4_<UTC> -- python scripts/gpu_wave1_p4.py \
-        [--max-hours 3.75] [--usd-limit 10] [--external-terminator-at <epoch|ISO>]
+        [--max-hours 1.75] [--usd-limit 10] [--external-terminator-at <epoch|ISO>]
 Dry run (no network, no GPU; in-memory Lambda, local-directory pod/box/S3):
     python scripts/gpu_wave1_p4.py --dry-run [--dry-run-root DIR] [--limit N]
 
@@ -61,6 +61,7 @@ import datetime as dt
 import hashlib
 import importlib.util
 import json
+import urllib.error
 import os
 import re
 import shutil
@@ -385,6 +386,9 @@ def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) ->
     cap = min(float(p["session_max_hours"]), float(cfg["budget"]["max_hours_per_instance"]), 4.0)
     if a.max_hours > cap:
         raise SystemExit(f"--max-hours {a.max_hours} exceeds the {cap:g} h session cap (<= 4 h)")
+    if a.max_hours > float(p["launcher_max_hours"]):   # BUG-028
+        raise SystemExit(f"--max-hours {a.max_hours} exceeds the launcher limit p4.launcher_max_hours "
+                         f"{p['launcher_max_hours']} h (the launching process would be killed first)")
     itype, margin = p["gpu_type"], float(p["terminator_margin_s"])
     if p["gpu_name"] != GPU_NAME:
         raise SystemExit(f"config p4.gpu_name {p['gpu_name']!r} != qc.GPU_NAME {GPU_NAME!r}")
@@ -427,7 +431,10 @@ def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) ->
         return _finish(res, run_dir, backend, store, jobs, p.get("superseded_run_ids") or [])
     if a.limit:
         pending = pending[:a.limit]
-    price = lg.types()[itype]["usd_per_hour"]
+    avail = lg.types()
+    if itype not in avail:                                    # BUG-033: retry later, not KeyError
+        return _no_capacity(res, run_dir, backend, store, jobs, p, f"{itype} not in available types")
+    price = avail[itype]["usd_per_hour"]
     if price * a.max_hours > a.usd_limit:
         raise SystemExit(f"{price}*{a.max_hours} h exceeds the task limit ${a.usd_limit}")
     backend.preflight(res["git_sha"])    # pod repo at this commit (pod-side scripts, terminator) before inputs
@@ -448,7 +455,17 @@ def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) ->
                          "was given (create a one-shot scheduled session at deadline + 15 min running "
                          "`python infra/lambda_gpu.py reap-deadline --margin-s 0` first)")
     spent0 = lg.spent_usd()
-    rec = lg.launch(itype, "yct-p4", a.max_hours, "yct-pod", None, name_deadline=True)
+    try:
+        rec = lg.launch(itype, "yct-p4", a.max_hours, "yct-pod", None, name_deadline=True)
+    except SystemExit as exc:                                 # BUG-033
+        if "has no capacity" not in str(exc):
+            raise
+        return _no_capacity(res, run_dir, backend, store, jobs, p, str(exc))
+    except urllib.error.HTTPError as exc:                     # BUG-033: Lambda answers 400 on a capacity race
+        if exc.code != 400:
+            raise
+        body = exc.read().decode(errors="replace")[:500]
+        return _no_capacity(res, run_dir, backend, store, jobs, p, f"HTTP 400: {body}")
     iid, deadline = rec["id"], float(rec["deadline"])
     res.update({"instance_id": iid, "instance_name": rec.get("name"), "deadline": deadline})
     box = None
@@ -511,6 +528,15 @@ def run_session(a: SessionArgs, cfg: dict, lg, backend, clock, run_dir: Path) ->
         except Exception as exc:  # noqa: BLE001
             res.setdefault("teardown_errors", []).append(f"ledger mirror: {exc}"[:300])
     return _finish(res, run_dir, backend, store, jobs, p.get("superseded_run_ids") or [])
+
+
+def _no_capacity(res, run_dir, backend, store, jobs, p, why: str) -> tuple[int, dict]:
+    """BUG-033: no instance was created, nothing billed; the session ends as 'retry later' (exit 75)."""
+    res["status"], res["capacity_miss"] = "no_capacity", why
+    rc, res = _finish(res, run_dir, backend, store, jobs, p.get("superseded_run_ids") or [])
+    if rc == EXIT_OK:
+        return rc, res
+    return (EXIT_INCOMPLETE, res) if rc != EXIT_FAIL else (rc, res)
 
 
 def _finish(res: dict, run_dir: Path, backend, store: Store, jobs: list[Job], superseded: list[str] = ()) -> tuple[int, dict]:
@@ -1067,7 +1093,7 @@ def main(argv: list[str] | None = None) -> int:
     from yct.config import load_config
 
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("--max-hours", type=float, default=3.75)
+    ap.add_argument("--max-hours", type=float, default=1.75)
     ap.add_argument("--usd-limit", type=float, default=10.0)
     ap.add_argument("--external-terminator-at", help="epoch or ISO time of a one-shot scheduled session that "
                     "runs `lambda_gpu.py reap-deadline --margin-s 0` (D-063 Q7), if the pod cannot")

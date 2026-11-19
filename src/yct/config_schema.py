@@ -571,6 +571,7 @@ class P4(M):
     s3_prefix: Annotated[str, Field(pattern=r"^s3://yct-research-235229001983/")]
     superseded_run_ids: list[Annotated[str, Field(pattern=r"^[A-Za-z0-9_]+$")]]   # BUG-029, D-067 (required)
     session_max_hours: Annotated[float, Field(gt=0, le=4)]
+    launcher_max_hours: Annotated[float, Field(gt=0, le=4)]   # BUG-028 (config value tested < 2)
     terminator_margin_s: PosInt
 
     @model_validator(mode="after")

@@ -409,6 +409,7 @@ p4:                            # P4 TRIBE inference run sets + compute (D-063, t
   superseded_run_ids: [wave1p4_s1_20261118T040434Z, wave1p4_s2_20261118T050059Z,
                        wave1p4_s3_20261118T070223Z, wave1p4_s4_20261118T075035Z]
   session_max_hours: 4         # <= budget.max_hours_per_instance; resumable across sessions
+  launcher_max_hours: 1.75     # BUG-028: below the agent harness's 2 h background-command limit
   terminator_margin_s: 900     # D-063 Q7: driver-independent terminator fires at deadline + 15 min
 
 guards:                        # history exceptions for scripts/check_*.py; exact entries only. FROZEN by
