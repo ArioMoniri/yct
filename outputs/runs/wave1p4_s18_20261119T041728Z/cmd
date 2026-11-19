@@ -1,0 +1,1 @@
+["python", "scripts/gpu_wave1_p4.py", "--max-hours", "1.4", "--usd-limit", "8", "--external-terminator-at", "2026-11-19T06:55:00Z"]

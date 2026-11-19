@@ -1,0 +1,47 @@
+{
+ "alive_after": [],
+ "deadline": 1795067040.0,
+ "decision": "D-063",
+ "errors": {},
+ "exit_code": 75,
+ "firewall": "per-clip checks only (D-063 B2)",
+ "gate_failures": {},
+ "git_sha": "a97127fc10dd4b13c1d4211e1c5d64201cd6948c",
+ "instance_id": "9c9a54c622244a43a5b15cf10638a09e",
+ "instance_name": "yct-p4-t1795062000-dl1795067040",
+ "instance_type": "gpu_1x_a100_sxm4",
+ "jobs_run": [
+  "yct_0633.t3",
+  "yct_0634.t3",
+  "yct_0635.t3",
+  "yct_0636.t3",
+  "yct_0637.t3",
+  "yct_0638.t3",
+  "yct_0639.t3",
+  "yct_0645.t3"
+ ],
+ "n_done": 102,
+ "n_jobs": 103,
+ "orphans_at_start": {
+  "reap": [],
+  "reap_deadline": [],
+  "sweep": []
+ },
+ "pending_at_start": 9,
+ "remaining": [
+  "yct_0646.t3"
+ ],
+ "restored": [],
+ "revisions_sha256": "74e75882c0135ee6702963d92c01fc488366144520618fee6c1f67741dc557d6",
+ "run_id": "wave1p4_s18_20261119T041728Z",
+ "status": "incomplete",
+ "stopped_for_time": {
+  "at_job": "yct_0646.t3",
+  "left_s": 676
+ },
+ "terminator": {
+  "fire_at": 1795071300.0,
+  "kind": "external_scheduled_session"
+ },
+ "usd_spent_this_run": 2.415
+}
