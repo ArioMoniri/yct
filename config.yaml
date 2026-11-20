@@ -442,6 +442,76 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     image_snapshot_limit: 6000 # per source; more refuses the snapshot (complete enumeration, nothing truncated)
     require_complete: true
     snapshot_file_suffix: "_d074"   # data/refstim/snapshots/image_<cat>_d074_snapshot.json
+  refclips_auto:               # D-075 (owner decisions 2026-11-20): frozen automatic image + NAT filters
+    decision: D-075
+    supersedes: "D-071 (b) human-judgement phrases; D-071 (c) English/single-speaker method"
+    env:                       # image filters run on the yct pod CPU only (infra/refstim_env.lock = full freeze)
+      where: yct_pod_cpu
+      python: "3.12.3"
+      lock: infra/refstim_env.lock
+      packages: {torch: 2.8.0+cpu, torchvision: 0.23.0+cpu, opencv-python-headless: 4.11.0.86,
+                 open_clip_torch: 3.3.0, pytesseract: 0.3.13, numpy: 2.5.5, pillow: 13.0.0}
+      tesseract: {binary: "5.3.4", apt: tesseract-ocr=5.3.4-1build5, lang_apt: "tesseract-ocr-eng=1:4.1.0-2",
+                  tessdata: tessdata_fast-4.1.0}
+    face_detector: {impl: cv2.FaceDetectorYN, repo: opencv/opencv_zoo, revision: f12e12798e8314f7c074a6656816c048dcc95b7a,
+                    file: models/face_detection_yunet/face_detection_yunet_2023mar.onnx, input_long_side: 640,
+                    score_threshold: 0.9, nms_threshold: 0.3, top_k: 5000, exclusion_score_threshold: 0.5}
+    eye_detector: {cascade: haarcascade_eye.xml, scale_factor: 1.1, min_neighbors: 5, min_count: 2,
+                   region: upper_half_of_yunet_box_original_image}
+    person_detector: {impl: torchvision.models.detection.fasterrcnn_resnet50_fpn_v2, weights: COCO_V1,
+                      url: "https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_v2_coco-dd69338a.pth",
+                      person_class: 1, score_threshold: 0.5, input_long_side: 1600}
+    ocr: {impl: tesseract, psm: 11, oem: 1, min_conf: 60, max_text_area_frac: 0.01, image_long_side: 1600}
+    clip: {model: ViT-B-32, pretrained: laion2b_s34b_b79k, hf_repo: laion/CLIP-ViT-B-32-laion2B-s34B-b79K,
+           revision: 1a25a446712ba5ee05982a381eed697ef9b435cf, file: open_clip_pytorch_model.bin,
+           photo_prompts: ["a photograph", "a drawing", "a painting", "a sculpture or statue", "a computer rendering",
+                           "a screenshot"],
+           adult_prompts: ["a photo of a child", "a photo of an adult"], decision: argmax}
+    headpose:                  # YuNet landmark order; mm; x right, y down, z away from the camera; frontal = 0
+      solver: SQPNP
+      landmark_order: [right_eye, left_eye, nose_tip, right_mouth_corner, left_mouth_corner]
+      model_points_mm: [[-31.5, 0.0, 0.0], [31.5, 0.0, 0.0], [0.0, 35.0, -30.0], [-25.0, 70.0, -5.0], [25.0, 70.0, -5.0]]
+      focal: image_width_640_long_side
+      max_abs_yaw_deg: 20
+      max_abs_pitch_deg: 20
+    face_rules: {min_face_height_frac_crop: 0.40, min_interocular_frac_box: 0.25}
+    body_rules: {min_person_area_frac: 0.15}
+    common: {mimes: [image/jpeg, image/png, image/tiff, image/webp], min_short_side_px: 316, dhash_bits: 64,
+             dhash_max_hamming: 4, metadata_terms: ["Y Combinator", "YCombinator", "Demo Day"],
+             metadata_regex: '\bYC ?[WSF]\d{2}\b', metadata_manifest: data/manifest.csv,
+             metadata_columns: [company_key, company_id]}
+    rule_reasons: {C0: not_photo, C1: [licence, personality_rights], C2: too_small, C3: duplicate, C4: text_or_logo,
+                   C5: not_photo, F1: [no_face_detected, multi_subject], F2: multi_subject, F6: no_face_detected,
+                   F3: [too_small, multi_subject], F4: face_not_frontal, F5: face_not_frontal, F5b: face_not_frontal,
+                   F7: personality_rights, F8: text_or_logo, B1: [not_photo, multi_subject], B2: too_small,
+                   B3: face_detected, B4: personality_rights, B5: text_or_logo, P1: person_present,
+                   P2: face_detected, P3: text_or_logo, N1: not_english, N2: not_single_speaker}
+    image_artifacts: [yunet_sha256, frcnn_sha256, clip_sha256, tessdata_eng_sha256, haar_face_sha256,
+                      haar_eye_sha256]
+    logs: {image: "data/refstim/image_<cat>_auto_log.jsonl", nat: data/refstim/nat_auto_log.jsonl}
+    nat:
+      cpu_buffer: 40
+      lang_id: {impl: faster_whisper.WhisperModel.detect_language, faster_whisper: "1.2.1", model: large-v3,
+                samples_s: [0, 30], audio: trimmed_t1, min_prob_en: 0.9}
+      diarization: {pipeline: pyannote/speaker-diarization-3.1, revision: 84fd25912480287da0247647c3d2b4853cb3ee5d,
+                    segmentation: pyannote/segmentation-3.0@e66f3d3b9eb0873085418a7b813d3b369bf160bb,
+                    embedding: pyannote/wespeaker-voxceleb-resnet34-LM@837717ddb9ff5507820346191109dc79c958d614,
+                    pyannote_audio: "4.1.0", audio: trimmed_t1, min_main_speaker_frac: 0.95,
+                    max_other_speaker_s: 3.0, zero_speech: not_single_speaker}
+      stage: session_0
+      counts_toward_cap: true
+      weights_mirror: models/   # under controls.refclips.s3_root; loaded with HF_HUB_OFFLINE=1
+    determinism: {torch_seed: 0, threads: 1}
+  refclips_auto_artifacts:     # D-075: set in commit k, frozen by its own row with frozen_at = k in commit k+1
+    yunet_sha256: null
+    frcnn_sha256: null
+    clip_sha256: null
+    tessdata_eng_sha256: null
+    haar_face_sha256: null
+    haar_eye_sha256: null
+    pyannote_diarization_sha256: null
+    pyannote_segmentation_sha256: null
+    pyannote_embedding_sha256: null
 
 p4:                            # P4 TRIBE inference run sets + compute (D-063, ticket FIX-P4E; scripts/gpu_wave1_p4.py)
   # Label-blind, fixed before any real-data P4 output. Output firewall (D-063 B2): P4 extracts features and

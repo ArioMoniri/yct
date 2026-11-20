@@ -17,6 +17,11 @@ APPEND_ONLY = [
     "CHANGELOG.md",
     "ENHANCEMENTS.md",
     "reviews/watchdog/audit_log.jsonl",
+    # D-075: automatic-filter logs (one row appended per evaluated candidate; never rewritten)
+    "data/refstim/image_face_auto_log.jsonl",
+    "data/refstim/image_body_auto_log.jsonl",
+    "data/refstim/image_place_auto_log.jsonl",
+    "data/refstim/nat_auto_log.jsonl",
 ]
 
 

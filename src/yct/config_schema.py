@@ -659,6 +659,143 @@ class RefClipsD074(M):                # D-074: Commons category candidate source
     snapshot_file_suffix: Literal["_d074"]
 
 
+class AutoEnv(M):                     # D-075
+    where: Literal["yct_pod_cpu"]
+    python: Literal["3.12.3"]
+    lock: Literal["infra/refstim_env.lock"]
+    packages: dict[str, str]
+    tesseract: dict[str, str]
+
+
+class AutoFaceDetector(M):
+    impl: Literal["cv2.FaceDetectorYN"]
+    repo: Literal["opencv/opencv_zoo"]
+    revision: Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
+    file: Literal["models/face_detection_yunet/face_detection_yunet_2023mar.onnx"]
+    input_long_side: Literal[640]
+    score_threshold: Literal[0.9]
+    nms_threshold: Literal[0.3]
+    top_k: Literal[5000]
+    exclusion_score_threshold: Literal[0.5]
+
+
+class AutoEyeDetector(M):
+    cascade: Literal["haarcascade_eye.xml"]
+    scale_factor: Literal[1.1]
+    min_neighbors: Literal[5]
+    min_count: Literal[2]
+    region: Literal["upper_half_of_yunet_box_original_image"]
+
+
+class AutoPersonDetector(M):
+    impl: Literal["torchvision.models.detection.fasterrcnn_resnet50_fpn_v2"]
+    weights: Literal["COCO_V1"]
+    url: Literal["https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_v2_coco-dd69338a.pth"]
+    person_class: Literal[1]
+    score_threshold: Literal[0.5]
+    input_long_side: Literal[1600]
+
+
+class AutoOcr(M):
+    impl: Literal["tesseract"]
+    psm: Literal[11]
+    oem: Literal[1]
+    min_conf: Literal[60]
+    max_text_area_frac: Literal[0.01]
+    image_long_side: Literal[1600]
+
+
+class AutoClip(M):
+    model: Literal["ViT-B-32"]
+    pretrained: Literal["laion2b_s34b_b79k"]
+    hf_repo: Literal["laion/CLIP-ViT-B-32-laion2B-s34B-b79K"]
+    revision: Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
+    file: Literal["open_clip_pytorch_model.bin"]
+    photo_prompts: list[str]
+    adult_prompts: list[str]
+    decision: Literal["argmax"]
+
+    @model_validator(mode="after")
+    def _prompts(self):
+        if self.photo_prompts[0] != "a photograph" or self.adult_prompts != ["a photo of a child",
+                                                                             "a photo of an adult"]:
+            raise ValueError("refclips_auto.clip prompts: photo first; adult = [child, adult]")
+        return self
+
+
+class AutoHeadpose(M):
+    solver: Literal["SQPNP"]
+    landmark_order: list[Literal["right_eye", "left_eye", "nose_tip", "right_mouth_corner",
+                                 "left_mouth_corner"]]
+    model_points_mm: Annotated[list[Annotated[list[float], Field(min_length=3, max_length=3)]],
+                               Field(min_length=5, max_length=5)]
+    focal: Literal["image_width_640_long_side"]
+    max_abs_yaw_deg: Literal[20]
+    max_abs_pitch_deg: Literal[20]
+
+
+class AutoNatLang(M):
+    impl: Literal["faster_whisper.WhisperModel.detect_language"]
+    faster_whisper: Literal["1.2.1"]
+    model: Literal["large-v3"]
+    samples_s: Annotated[list[int], Field(min_length=2, max_length=2)]
+    audio: Literal["trimmed_t1"]
+    min_prob_en: Literal[0.9]
+
+
+class AutoNatDiar(M):
+    pipeline: Literal["pyannote/speaker-diarization-3.1"]
+    revision: Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
+    segmentation: str
+    embedding: str
+    pyannote_audio: Literal["4.1.0"]
+    audio: Literal["trimmed_t1"]
+    min_main_speaker_frac: Literal[0.95]
+    max_other_speaker_s: Literal[3.0]
+    zero_speech: Literal["not_single_speaker"]
+
+
+class AutoNat(M):
+    cpu_buffer: Literal[40]
+    lang_id: AutoNatLang
+    diarization: AutoNatDiar
+    stage: Literal["session_0"]
+    counts_toward_cap: Literal[True]
+    weights_mirror: Literal["models/"]
+
+
+class RefClipsAuto(M):                # D-075: frozen automatic filters (owner decisions 2026-11-20)
+    decision: Literal["D-075"]
+    supersedes: str
+    env: AutoEnv
+    face_detector: AutoFaceDetector
+    eye_detector: AutoEyeDetector
+    person_detector: AutoPersonDetector
+    ocr: AutoOcr
+    clip: AutoClip
+    headpose: AutoHeadpose
+    face_rules: dict[Literal["min_face_height_frac_crop", "min_interocular_frac_box"], float]
+    body_rules: dict[Literal["min_person_area_frac"], float]
+    common: dict[str, Any]
+    rule_reasons: dict[str, str | list[str]]
+    image_artifacts: list[str]
+    logs: dict[Literal["image", "nat"], str]
+    nat: AutoNat
+    determinism: dict[Literal["torch_seed", "threads"], int]
+
+
+class RefClipsAutoArtifacts(M):       # D-075: null until set (commit k); frozen row at k+1
+    yunet_sha256: Sha256 | None
+    frcnn_sha256: Sha256 | None
+    clip_sha256: Sha256 | None
+    tessdata_eng_sha256: Sha256 | None
+    haar_face_sha256: Sha256 | None
+    haar_eye_sha256: Sha256 | None
+    pyannote_diarization_sha256: Sha256 | None
+    pyannote_segmentation_sha256: Sha256 | None
+    pyannote_embedding_sha256: Sha256 | None
+
+
 class Controls(M):
     rois: dict[str, Roi]
     regressors: dict[str, Regressor]
@@ -675,6 +812,8 @@ class Controls(M):
     refclips: RefClips
     refclips_artifacts: RefClipArtifacts
     refclips_d074: RefClipsD074
+    refclips_auto: RefClipsAuto
+    refclips_auto_artifacts: RefClipsAutoArtifacts
 
     @model_validator(mode="after")
     def _refs(self):
@@ -696,6 +835,15 @@ class Controls(M):
         if set(self.refclips_d074.image_sources) != set(self.refclips.loc_categories):
             raise ValueError("controls.refclips_d074.image_sources must cover exactly "
                              "refclips.loc_categories")
+        reasons = set(self.refclips.reject_reasons)
+        for rule, rs_ in self.refclips_auto.rule_reasons.items():
+            for r in (rs_ if isinstance(rs_, list) else [rs_]):
+                if r not in reasons:
+                    raise ValueError(f"controls.refclips_auto.rule_reasons.{rule}: {r!r} not in "
+                                     "reject_reasons")
+        arts = set(type(self.refclips_auto_artifacts).model_fields)
+        if not set(self.refclips_auto.image_artifacts) <= arts:
+            raise ValueError("controls.refclips_auto.image_artifacts names an undefined artifact key")
         return self
 
 
