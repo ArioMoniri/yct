@@ -784,6 +784,13 @@ class RefClipsAuto(M):                # D-075: frozen automatic filters (owner d
     determinism: dict[Literal["torch_seed", "threads"], int]
 
 
+class CurationHttp(M):               # owner decision 2026-11-20
+    user_agent: Annotated[str, Field(pattern=r"^yct-research/[0-9.]+ \(https://github\.com/ArioMoniri/yct\)$")]
+    min_interval_s: Annotated[float, Field(ge=1.0)]
+    backoff_base_s: Annotated[float, Field(gt=0)]
+    max_429_wait_s: Annotated[int, Field(gt=0, le=1800)]
+
+
 class RefClipsAutoArtifacts(M):       # D-075: null until set (commit k); frozen row at k+1
     yunet_sha256: Sha256 | None
     frcnn_sha256: Sha256 | None
@@ -812,6 +819,7 @@ class Controls(M):
     refclips: RefClips
     refclips_artifacts: RefClipArtifacts
     refclips_d074: RefClipsD074
+    curation_http: CurationHttp
     refclips_auto: RefClipsAuto
     refclips_auto_artifacts: RefClipsAutoArtifacts
 

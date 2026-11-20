@@ -13,8 +13,6 @@ import hashlib
 import json
 import os
 import sys
-import time
-import urllib.request
 from pathlib import Path
 
 import cv2
@@ -74,15 +72,7 @@ def processed(rgb: np.ndarray, box) -> np.ndarray:
 
 def download(url: str, dest: Path) -> Path:
     if not dest.exists():
-        req = urllib.request.Request(url, headers={"User-Agent": rs.USER_AGENT})
-        for attempt in range(5):
-            try:
-                with urllib.request.urlopen(req, timeout=120) as r:
-                    dest.write_bytes(r.read())
-                break
-            except Exception:  # noqa: BLE001
-                time.sleep(15 * 2**attempt)
-        time.sleep(1.0)
+        dest.write_bytes(rs.http_get(url, timeout=120))
     return dest
 
 

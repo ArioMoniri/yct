@@ -12,7 +12,6 @@ import hashlib
 import json
 import sys
 import time
-import urllib.request
 from importlib import metadata
 from pathlib import Path
 
@@ -26,15 +25,12 @@ from yct.curate import refstim_auto as ra  # noqa: E402
 
 
 def _dl(url: str, dest: Path) -> Path:
-    req = urllib.request.Request(url, headers={"User-Agent": rs.USER_AGENT})
-    for attempt in range(5):
-        try:
-            with urllib.request.urlopen(req, timeout=300) as r:
-                dest.write_bytes(r.read())
-            return dest
-        except Exception:  # noqa: BLE001 - back off, never switch IP
-            time.sleep(15 * 2**attempt)
-    raise ra.StopError(f"download failed: {url}")
+    """Owner-approved UA, >= 1 s per host, Retry-After, backoff; a 429 beyond the limit is a STOP."""
+    try:
+        dest.write_bytes(rs.http_get(url))
+    except rs.CurationError as exc:
+        raise ra.StopError(f"download failed: {url}: {exc}") from exc
+    return dest
 
 
 def artifact_paths(model_dir: Path) -> dict[str, Path]:

@@ -18,7 +18,61 @@ ROOT = Path(__file__).resolve().parents[3]
 REFSTIM = ROOT / "data" / "refstim"
 LICENSES_MD = ROOT / "docs" / "stimuli" / "LICENSES.md"
 API = "https://commons.wikimedia.org/w/api.php"
-USER_AGENT = "yct-research-curator/0.1 (academic research; label-free stimulus curation)"
+_LAST_REQUEST: dict[str, float] = {}
+
+
+def _http_cfg() -> dict:
+    from yct.config import load_config
+
+    return load_config()["controls"]["curation_http"]
+
+
+def user_agent() -> str:
+    """Owner-approved User-Agent (config controls.curation_http.user_agent); never a default or curl UA."""
+    return _http_cfg()["user_agent"]
+
+
+def http_get(url: str, timeout: int = 300, opener=None, clock=None) -> bytes:
+    """One polite GET: config UA, >= min_interval_s per host, Retry-After honoured, exponential backoff.
+    A host still answering 429 after max_429_wait_s -> CurationError (STOP). No other client, UA or IP."""
+    import time as _time
+    import urllib.error
+    import urllib.parse
+    import urllib.request
+
+    c = _http_cfg()
+    opener = opener or urllib.request.urlopen
+    clock = clock or _time
+    host = urllib.parse.urlsplit(url).netloc
+    req = urllib.request.Request(url, headers={"User-Agent": c["user_agent"]})
+    first_429, attempt = None, 0
+    while True:
+        gap = c["min_interval_s"] - (clock.time() - _LAST_REQUEST.get(host, -1e18))
+        if gap > 0:
+            clock.sleep(gap)
+        _LAST_REQUEST[host] = clock.time()
+        try:
+            with opener(req, timeout=timeout) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if e.code not in (429, 500, 502, 503, 504):
+                raise CurationError(f"HTTP {e.code} for {url}") from e
+            now = clock.time()
+            if e.code == 429:
+                first_429 = now if first_429 is None else first_429
+                if now - first_429 > c["max_429_wait_s"]:
+                    raise CurationError(f"HTTP 429 from {host} for > {c['max_429_wait_s']} s: STOP") from e
+            ra = e.headers.get("Retry-After") if e.headers else None
+            wait = float(ra) if ra and str(ra).strip().isdigit() else c["backoff_base_s"] * 2 ** attempt
+            attempt += 1
+            clock.sleep(wait)
+        except (urllib.error.URLError, TimeoutError, OSError) as e:
+            if attempt >= 6:
+                raise CurationError(f"network error for {url}: {e}") from e
+            clock.sleep(c["backoff_base_s"] * 2 ** attempt)
+            attempt += 1
+
+
 LICENCE_FIELDS = ("file", "url", "pageid", "revid", "licence", "licence_template", "attribution", "sha256")
 PERSONALITY = "Template:Personality rights"
 
@@ -322,22 +376,16 @@ def known_url_hashes(paths: Iterable[Path]) -> set[str]:
 def _get(params: dict, pause: float = 5.0) -> dict:
     import time
     import urllib.parse
-    import urllib.request
 
     q = {"format": "json", "formatversion": "2", "maxlag": "5", **params}
-    req = urllib.request.Request(API + "?" + urllib.parse.urlencode(q), headers={"User-Agent": USER_AGENT})
+    url = API + "?" + urllib.parse.urlencode(q)
     for attempt in range(6):
-        try:
-            with urllib.request.urlopen(req, timeout=60) as r:
-                d = json.loads(r.read())
-            if "error" in d:  # maxlag or any API error: never read as "zero results"
-                raise OSError(d["error"].get("code", "api_error"))
-            if "batchcomplete" not in d and "query" not in d and "continue" not in d:
-                raise OSError("unexpected response")
+        d = json.loads(http_get(url, timeout=60))   # config UA, Retry-After, 429 STOP limit
+        if "error" not in d and ("batchcomplete" in d or "query" in d or "continue" in d):
             time.sleep(pause)
             return d
-        except Exception:  # noqa: BLE001 - back off and retry; never switch IP or parallelise
-            time.sleep(min(300, 15 * 2**attempt))
+        # maxlag or any API error: never read as "zero results"; back off and retry, never switch IP
+        time.sleep(min(300, 15 * 2**attempt))
     raise CurationError(f"Commons API failed repeatedly for {params}")
 
 

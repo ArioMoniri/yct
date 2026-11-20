@@ -442,6 +442,11 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     image_snapshot_limit: 6000 # per source; more refuses the snapshot (complete enumeration, nothing truncated)
     require_complete: true
     snapshot_file_suffix: "_d074"   # data/refstim/snapshots/image_<cat>_d074_snapshot.json
+  curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
+    user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
+    min_interval_s: 1.0        # >= 1 s between requests to the same host
+    backoff_base_s: 15.0       # exponential backoff when no Retry-After is sent
+    max_429_wait_s: 1800       # a host still answering 429 after 30 min -> STOP (never evade a block)
   refclips_auto:               # D-075 (owner decisions 2026-11-20): frozen automatic image + NAT filters
     decision: D-075
     supersedes: "D-071 (b) human-judgement phrases; D-071 (c) English/single-speaker method"
