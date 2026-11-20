@@ -1,5 +1,6 @@
 # D-075 image-filter environment on the yct pod (python 3.12.3; venv /work/yct/venv_refstim).
 # torch/torchvision from https://download.pytorch.org/whl/cpu; apt: tesseract-ocr=5.3.4-1build5, tesseract-ocr-eng=1:4.1.0-2
+annotated-types==0.8.0
 anyio==4.16.0
 click==8.5.1
 filelock==4.2.4
@@ -21,6 +22,8 @@ opencv-python-headless==4.11.0.86
 packaging==26.3
 pillow==13.0.0
 pip==26.3
+pydantic==2.14.3
+pydantic_core==2.50.4
 pytesseract==0.3.13
 PyYAML==6.0.3
 regex==2026.11.19
@@ -32,5 +35,6 @@ torch==2.8.0+cpu
 torchvision==0.23.0+cpu
 tqdm==4.70.1
 truststore==0.10.5
+typing-inspection==0.4.5
 typing_extensions==4.16.0
 wcwidth==0.9.4

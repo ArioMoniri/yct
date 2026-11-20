@@ -426,7 +426,7 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     job_order: [[d038], [GREY_CTRL, SPK, LOC, LOC_SCR, MOT, MOT_STAT, FLASH, NAT], [audioonly, textonly], [BURST, TALKFACE]]
   refclips_artifacts:          # D-071 (d): filled later, each frozen by its own row in the commit that sets it
     image_snapshot_sha256: e8a1d24379f005675487cb3e03fdf2e19ab788af8bfbf25bcc9c63d23663e4ee   # D-074: concat sha of image_{face,body,place}_d074_snapshot.json
-    nat_snapshot_sha256: null
+    nat_snapshot_sha256: aab68a5535dafa679f3e3ef946ddd2e1d678b779387e05d5fc548711d2a01f72   # D-075 step 0: sha of nat_nat_snapshot.json (d7e9a6a)
     image_manifest_sha256: null
     nat_manifest_sha256: null
     manifest_sha256: null      # refclips_manifest.json, set by T-STIM before upload
@@ -503,12 +503,12 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
       weights_mirror: models/   # under controls.refclips.s3_root; loaded with HF_HUB_OFFLINE=1
     determinism: {torch_seed: 0, threads: 1}
   refclips_auto_artifacts:     # D-075: set in commit k, frozen by its own row with frozen_at = k in commit k+1
-    yunet_sha256: null
-    frcnn_sha256: null
-    clip_sha256: null
-    tessdata_eng_sha256: null
-    haar_face_sha256: null
-    haar_eye_sha256: null
+    yunet_sha256: 8f2383e4dd3cfbb4553ea8718107fc0423210dc964f9f4280604804ed2552fa4
+    frcnn_sha256: dd69338a24b8d7381807e247652bdc356325bcbaf1cd3e092e00e0a1a58706bf
+    clip_sha256: 1bd3c7172de5b207ceac554f5ab5266166f3b9baccc9af5989bc801016d080ad
+    tessdata_eng_sha256: 7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2
+    haar_face_sha256: 0f7d4527844eb514d4a4948e822da90fbb16a34a0bbbbc6adc6498747a5aafb0
+    haar_eye_sha256: 71cc64fc305a355dc60067880f6fbbd43dd155bd63ee3844661a1bda34b2fd8c
     pyannote_diarization_sha256: null
     pyannote_segmentation_sha256: null
     pyannote_embedding_sha256: null
