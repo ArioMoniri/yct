@@ -108,9 +108,11 @@ D074_FROZEN = [("controls.refclips_d074", D074_SHA),
                ("controls.refclips_artifacts.image_snapshot_sha256",
                 "3ca6b2e7fa32bb7e56ad05592c76ab44788c0221")]   # D-074 snapshot commit
 D075_FROZEN = [("controls.refclips_auto", "e835191e5e1661ded49d68380bfeb1950347928f")]   # D-075 commit 1
-D075_FROZEN += [(f"controls.refclips_auto_artifacts.{k}", "8cb678e9c6a9c6e73015a55ea34c2cc44c169a34") for k in (
-    "yunet_sha256", "frcnn_sha256", "clip_sha256", "tessdata_eng_sha256", "haar_face_sha256", "haar_eye_sha256")]
-D075_FROZEN += [("controls.refclips_artifacts.nat_snapshot_sha256", "8cb678e9c6a9c6e73015a55ea34c2cc44c169a34")]   # D-075 step 0
+D075_ART_SHA = "8cb678e9c6a9c6e73015a55ea34c2cc44c169a34"   # D-075 step 3
+D075_FROZEN += [(f"controls.refclips_auto_artifacts.{k}", D075_ART_SHA) for k in (
+    "yunet_sha256", "frcnn_sha256", "clip_sha256", "tessdata_eng_sha256", "haar_face_sha256",
+    "haar_eye_sha256")]
+D075_FROZEN += [("controls.refclips_artifacts.nat_snapshot_sha256", D075_ART_SHA)]   # D-075 step 0
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
