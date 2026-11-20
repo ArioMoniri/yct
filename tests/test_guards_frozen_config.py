@@ -107,6 +107,7 @@ D074_SHA = "698b64a0e6c3cbc98ac6490fd10bc202a1647733"   # T-D074 commit 1 (D-074
 D074_FROZEN = [("controls.refclips_d074", D074_SHA),
                ("controls.refclips_artifacts.image_snapshot_sha256",
                 "3ca6b2e7fa32bb7e56ad05592c76ab44788c0221")]   # D-074 snapshot commit
+D075_FROZEN = [("controls.refclips_auto", "e835191e5e1661ded49d68380bfeb1950347928f")]   # D-075 commit 1
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
@@ -115,7 +116,7 @@ def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
     cfg = yaml.safe_load((ROOT / "config.yaml").read_text())
     sha = "c616a9d33b7eb861795aa9fb64f6314d95e379f8"
     assert cfg["frozen"] == [{"key": k, "frozen_at": sha} for k in D063_FROZEN] + [
-        {"key": k, "frozen_at": s} for k, s in D071_FROZEN + D074_FROZEN]
+        {"key": k, "frozen_at": s} for k, s in D071_FROZEN + D074_FROZEN + D075_FROZEN]
     assert cfg["tribe"]["tr_s"] == 1.0
     assert cfg["stimulus"]["t1_trim_s"] == 58.0
     assert cfg["stimulus"]["fps"] == 30

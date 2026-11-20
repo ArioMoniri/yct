@@ -615,3 +615,5 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   # D-074 (owner-approved image candidate source): frozen in the commit after the key (two-commit freeze)
   - {key: controls.refclips_d074, frozen_at: 698b64a0e6c3cbc98ac6490fd10bc202a1647733}
   - {key: controls.refclips_artifacts.image_snapshot_sha256, frozen_at: 3ca6b2e7fa32bb7e56ad05592c76ab44788c0221}   # D-074, before any filter
+  # D-075 (frozen automatic filters): frozen in the commit after the key (two-commit freeze)
+  - {key: controls.refclips_auto, frozen_at: e835191e5e1661ded49d68380bfeb1950347928f}
