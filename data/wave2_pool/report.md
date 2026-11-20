@@ -91,3 +91,61 @@ One LinkedIn post (Panta) was appended as an exclusion (C) early in this round, 
 - **Reddit**: the reddit.com JSON search returned HTTP 403. It was not retried or worked around.
 - **LinkedIn metadata**: LinkedIn rows have language UNKNOWN. One conf-A LinkedIn video is a 33 s clip that the founder presents as the application video.
 - **Wave-1 company_id quality**: some wave-1 company_ids are generic words, not company names. Disjointness by company_id alone is therefore not fully reliable, and future rounds should also match on founder name and video duration.
+
+## Round 5 (2026-11-20, append-only)
+
+Data Curator, blind to study hypotheses. Appended 9 new pool rows `yct_0710`..`yct_0718` (wave=2, collected_after_lock=PENDING). Every company is disjoint from `data/manifest.csv` and from all earlier pool rows. Disjointness was checked by company_id, by fuzzy company-name match (including YC-directory former names), and by video id / Vimeo id / X status id / LinkedIn activity id against both manifests and `exclusions.csv`. One video per company: 9 rows = 9 companies. No outcome breakdowns appear in this file. Labels and evidence are only in `data/sealed/sealed_w2pool_part5.tar.age` (yct_0710..0716) and `data/sealed/sealed_w2pool_part6.tar.age` (yct_0717..0718). The plaintext was shredded after encryption.
+
+### Counts by label confidence x era (round-5 rows, one per company)
+
+| confidence | E1 | E2 | E3 | UNKNOWN | total |
+|---|---|---|---|---|---|
+| A (in_primary=True) | 2 | 1 | 2 | 2 | 7 |
+| not A (B) | 0 | 1 | 1 | 0 | 2 |
+| total | 2 | 2 | 3 | 2 | 9 |
+
+The one-per-company counts are the same (9 distinct companies, 7 conf-A). claimed_batch is UNKNOWN when the uploader or founder stated no batch, which gives the 2 UNKNOWN-era rows. New platform values this round: `x` (a native video in a founder's own X post, checked through the public tweet-embed endpoint) and `web` (an mp4 self-hosted on a founder's personal blog). Language is UNKNOWN for the non-YouTube rows.
+
+### Sources used
+- **YouTube Data API v3**:
+  - videos.list on about 480 YC-titled uploads that were left unreviewed in the round-4 applicant-channel upload lists. This needed no new searches.
+  - search.list with `type=playlist`, about 22 queries. playlistItems.list then read 54 curated application-video playlists made by third-party curators, but every video still had to come from a founder's own channel.
+  - playlists.list on the curator channels.
+  - search.list with new parameters only: `videoDuration=short` combined with order=date windows before application deadlines for 2016–2026, regionCode and relevanceLanguage variants, and about 15 new phrasings.
+  - channels.list and playlistItems.list on about 240 new applicant channels.
+- **Exa web search** (about 25 queries):
+  - Old-era founder blogs (tumblr, posterous, personal sites).
+  - Curated lists of application videos.
+  - threadreaderapp and nitter mirrors of X posts.
+  - New LinkedIn phrasings.
+  - Exa fetch for Medium pages.
+- **Founder blogs and curated lists via web fetch**: a GitHub founder-story README, personal founder blogs and guide pages that embed founder videos.
+- **Other**:
+  - The X public tweet-embed endpoint for author, date and native-video duration.
+  - Vimeo oEmbed.
+  - Hacker News Algolia: new phrasings, item threads and one author listing.
+  - The YC directory (yc-oss dump plus ycombinator.com company pages) for batch, founders and former names.
+- **Strict founder rule applied**: rows uploaded only by a company channel, with no founder post claiming them, are B. YC-hosted application videos (directory video URLs, YC channel) were not used.
+
+### YouTube API units
+About 7,700 units used of the daily ~10,000 (about 52 search.list calls, plus videos/playlistItems/playlists/channels/commentThreads calls). No 403 quotaExceeded was hit.
+
+### Exclusions
+833 reviewed candidates were appended to `exclusions.csv`, with reason categories only and no outcome words in any written URL. The main reasons were:
+- no stated outcome / no directory match (C)
+- non-English metadata
+- over 3 min
+- launch/demo videos
+- YC-channel uploads
+- posts without native video
+- unclear whether the clip is the submitted video
+
+Founder videos whose metadata declares a non-English audio language were excluded under the round-3/4 convention (3 such cases).
+
+### Blockers / caveats
+- **YouTube saturated**: standard and new phrasings return mostly already-seen videos. regionCode/relevanceLanguage variants returned almost no new results. Deadline-window searches yielded about 1 directory match per ~1,500 units.
+- **LinkedIn via Exa saturated**: nearly every relevant post had already been reviewed in earlier rounds.
+- **Dead links**: many old-era (2010–2015) curated application-video links are now private, deleted or on defunct hosts.
+- **web.archive.org**: requests timed out after the first success and were not retried.
+- **Blocked or unreadable sources**: one founder blog sits behind a JavaScript bot challenge and was skipped, not worked around. Medium and LinkedIn pages often hide embedded video ids.
+- **Unverified fields**: some non-YouTube rows have unverified audio language. One row's poster is a co-founder who is not in the directory's founder list. Details are in the sealed notes.
