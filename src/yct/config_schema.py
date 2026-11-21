@@ -681,6 +681,12 @@ class D079Audit(M):                   # D-079
     flip_file: Literal["data/refstim/bug036_c1_flips.json"]
 
 
+class D079StopResolution(M):          # D-079 re-check B1
+    identity_mismatch: Literal["reject_identity_changed_resume_next_rank"]
+    lastrevid_moved: Literal["retry_batch_once_then_stop_to_council"]
+    other_audit_stop: Literal["code_defect_bug_entry_v3_from_rank_1"]
+
+
 class RefClipsD079(M):                # D-079: v2 image logs after BUG-036 (amends D-074/D-075/D-078)
     decision: Literal["D-079"]
     amends: list[Literal["D-074", "D-075", "D-078"]]
@@ -690,7 +696,9 @@ class RefClipsD079(M):                # D-079: v2 image logs after BUG-036 (amen
     superseded_logs: dict[Literal["face", "body", "place"], list[str]]
     audit: D079Audit
     revid_rule: Literal["evaluate_current_log_both"]
-    identity_rule: Literal["stop"]
+    identity_rule: Literal["reject_identity_changed"]
+    extra_reject_reasons: list[Literal["identity_changed"]]
+    stop_resolution: D079StopResolution
     finality: Literal["v2_is_selection"]
 
 
@@ -898,6 +906,9 @@ class Controls(M):
         if set(d9.logs.values()) & {p for v in d9.superseded_logs.values() for p in v}:
             raise ValueError("controls.refclips_d079: a v2 log path is a superseded v1 log")
         reasons = set(self.refclips.reject_reasons)
+        if set(d9.extra_reject_reasons) & reasons:
+            raise ValueError("controls.refclips_d079.extra_reject_reasons repeats a frozen "
+                             "reject_reasons entry")
         for rule, rs_ in self.refclips_auto.rule_reasons.items():
             for r in (rs_ if isinstance(rs_, list) else [rs_]):
                 if r not in reasons:

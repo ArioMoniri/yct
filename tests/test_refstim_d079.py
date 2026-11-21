@@ -32,7 +32,7 @@ def test_config_key():
     assert D["audit"] == {"exempt_reasons": ["duplicate"], "c1_reasons": ["licence", "personality_rights"],
                           "flip_file": "data/refstim/bug036_c1_flips.json"}
     assert D["revid_rule"] == "evaluate_current_log_both"
-    assert D["identity_rule"] == "stop"
+    assert D["identity_rule"] == "reject_identity_changed"    # D-079 re-check B1 (was "stop" in v2 draft)
     assert D["finality"] == "v2_is_selection"
 
 
@@ -69,7 +69,7 @@ def test_runner_never_routes_to_v1_logs():
     src = (ROOT / "scripts" / "refstim_auto_run.py").read_text()
     assert "image_log_rel(" not in src and 'a["logs"]["image"]' not in src
     assert src.count("rs.image_log_v2(") >= 2          # run() and finalise()
-    assert "ra.check_frozen_d079(cfg)" in src and "ra.audit_v2(" in src and "ra.check_identity(" in src
+    assert "ra.check_frozen_d079(cfg)" in src and "ra.audit_v2(" in src and "ra.identity_ok(" in src
 
 
 # ------------------------------------------------------------------ freeze (fail-closed)
@@ -194,8 +194,8 @@ def test_audit_flip_list_is_keyed_by_sha256_title():
 
 # ------------------------------------------------------------------ C3 state from v2 logs only
 def test_preload_state_reads_only_v2_logs(tmp_path):
-    rows = [{"title": "a", "decision": "pass", "sha1": "s1", "values": {"dhash": "ff"}},
-            {"title": "b", "decision": "reject", "sha1": "s2", "values": {}}]
+    rows = [{"title": "a", "decision": "pass", "sha1": "s1", "values": {"dhash": "ff"}, "log_version": "v2"},
+            {"title": "b", "decision": "reject", "sha1": "s2", "values": {}, "log_version": "v2"}]
     (tmp_path / "data" / "refstim").mkdir(parents=True)
     (tmp_path / rs.image_log_v2("face", CFG)).write_text("\n".join(map(json.dumps, rows)) + "\n")
     for p in V1["face"]:

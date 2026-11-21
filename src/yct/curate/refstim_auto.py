@@ -473,14 +473,24 @@ def check_frozen_d079(cfg: dict) -> None:
         raise StopError("controls.refclips_d079_artifacts.flip_sha256 not set")
 
 
+IDENTITY_REASON = "identity_changed"
+DEFECT = ("treat as a code defect (D-079 stop_resolution.other_audit_stop): BUG entry, v3 from rank 1 "
+          "for every category")
+
+
 def audit_v2(row: dict, priors: list[tuple[str, dict[str, dict]]], flips: dict[str, set[str]],
              exempt: tuple[str, ...], c1: tuple[str, ...]) -> None:
     """D-079 determinism audit (non-selecting, fail-closed): the v2 row is compared with the row for the same
-    title in every superseded v1 log of its category. Equal (decision, reason), or either reason exempt
-    (C3 depends on the passes before it), or the title is in that log's committed BUG-036 flip list
-    (v1 C1 reject -> admissible now; the later rules are new evaluations). Anything else is a STOP. A listed
-    title that is not a v1 C1 reject, or is still a C1 reject in v2, contradicts the re-check: STOP."""
+    title in every superseded v1 log of its category. Equal (decision, reason), or one reason exempt
+    (C3 depends on the passes before it) while the other is not a C1 reason (re-check B2: C1 runs before C3,
+    so a duplicate means C1 was passed and a duplicate <-> C1 pair is an admissibility change), or the title
+    is in that log's committed BUG-036 flip list (v1 C1 reject -> admissible now; the later rules are new
+    evaluations). A v2 identity_changed reject is a different file from the one v1 judged: exempt. Anything
+    else is a STOP, resolved as a code defect. A listed title that is not a v1 C1 reject, or is still a C1
+    reject in v2, contradicts the re-check: STOP."""
     a = (row["decision"], row.get("reason") or None)
+    if a[1] == IDENTITY_REASON:
+        return
     for name, rows in priors:
         old = rows.get(row["title"])
         if old is None:
@@ -490,8 +500,26 @@ def audit_v2(row: dict, priors: list[tuple[str, dict[str, dict]]], flips: dict[s
             if b[1] not in c1 or a[1] in c1:
                 raise StopError(f"flip list contradiction for {row['title']!r}: v2 {a}, {name} {b}: STOP")
             continue
-        if a != b and not ({a[1], b[1]} & set(exempt)):
-            raise StopError(f"determinism audit: {row['title']!r} now {a}, {name} {b}: STOP to the owner")
+        dup_ok = (a[1] in exempt and b[1] not in c1) or (b[1] in exempt and a[1] not in c1)
+        if a != b and not dup_ok:
+            raise StopError(f"determinism audit: {row['title']!r} now {a}, {name} {b}: STOP; {DEFECT}")
+
+
+def identity_ok(snapshot_sha1: str | None, commons_sha1: str | None, data_sha1: str | None = None,
+                title: str = "?") -> bool:
+    """D-079 identity rule after the re-check (B1, identity_rule reject_identity_changed): True iff the
+    snapshot sha1 equals the current Commons imageinfo sha1 and, once downloaded, the sha1 of the bytes.
+    False = the file was re-uploaded since the snapshot: the row is a D1 identity_changed reject and the run
+    resumes at the next rank. A missing sha1 is not a mismatch but missing data: STOP."""
+    if not snapshot_sha1 or not commons_sha1:
+        raise StopError(f"file identity: {title!r} snapshot {snapshot_sha1} commons {commons_sha1}: "
+                        "sha1 missing: STOP to the owner")
+    return snapshot_sha1 == commons_sha1 and (data_sha1 is None or data_sha1 == snapshot_sha1)
+
+
+def identity_reject_row(cat: str, c: Candidate) -> dict:
+    return {"title": c.title, "sha256_title": c.sha256_title, "category": cat, "decision": "reject",
+            "rule": "D1", "reason": IDENTITY_REASON, "values": {}}
 
 
 def check_identity(snapshot_sha1: str | None, commons_sha1: str | None, data_sha1: str | None = None) -> None:
@@ -507,7 +535,7 @@ def revid_fields(entry: dict, meta: dict) -> dict:
     """D-079 revid rule (evaluate_current_log_both): templates are read at the current page revision; the
     snapshot revid and the read revid are both logged; revid (manifest, LICENSES.md) = the read revid."""
     if meta.get("read_revid") is None:
-        raise StopError("no read_revid from Commons (prop=info): STOP")
+        raise StopError(f"no read_revid from Commons (prop=info) for {entry.get('title')!r}: STOP")
     return {"snapshot_revid": entry["revid"], "read_revid": meta["read_revid"], "revid": meta["read_revid"],
             "revid_drift": entry["revid"] != meta["read_revid"]}
 
@@ -529,7 +557,7 @@ def preload_v2(st: State, cat: str, cfg: dict, root: Path, ran: list[str] | None
     p = Path(root) / rs.image_log_v2(cat, cfg)
     done = [json.loads(x) for x in p.read_text().splitlines() if x.strip()] if p.exists() else []
     for r in done:
-        if r.get("log_version", "v2") != "v2":
+        if r.get("log_version") != "v2":           # re-check QA B1: no default; real v1 rows carry no key
             raise StopError(f"{p.name}: row with log_version {r.get('log_version')!r}: STOP")
         if r["decision"] == "pass":
             st.pass_sha1.add(r["sha1"])

@@ -146,16 +146,8 @@ class RealDetectors:
 
 
 def page_meta_c4(titles: list[str]) -> dict[str, dict]:
-    """rs.page_meta + the description and category text needed by C4 (read only through the metadata rule)."""
-    out = rs.page_meta(titles)
-    extra = rs.query_pages(titles, {"prop": "imageinfo", "iiprop": "extmetadata",
-                                    "iiextmetadatafilter": "ImageDescription|Categories|ObjectName"})
-    for t, p in extra.items():   # BUG-036: paged to batchcomplete, every title present (fail-closed)
-        em = p["imageinfo"].get("extmetadata", {})
-        out[t].update(
-            description=" ".join(em.get(k, {}).get("value", "") for k in ("ImageDescription", "ObjectName")),
-            categories=em.get("Categories", {}).get("value", "").replace("|", " "))
-    return out
+    """The library reader (D-079 re-check: one-retry rule for a moving revision, C4 revision check)."""
+    return rs.page_meta_c4(titles)
 
 
 def installed() -> dict[str, str]:
@@ -226,32 +218,35 @@ def run(model_dir: Path, scratch: Path) -> None:
             raise ra.StopError(f"{log_path.name}: log is not a prefix of the sha256(title) order")
         while n_pass < need and i < len(order):
             batch = order[i:i + 50]
-            meta = page_meta_c4([e["title"] for e in batch])
+            meta = rs.page_meta_c4([e["title"] for e in batch])   # revid moving: one batch retry, then STOP
             for e in batch:
                 if n_pass >= need:
                     break
                 m = meta[e["title"]]   # BUG-036: never a silent empty-licence default
-                ra.check_identity(e.get("sha1"), m.get("commons_sha1"))      # D-079 identity rule (STOP)
                 lic, tpl = rs.licence_of(m["templates"], m.get("license_short"))
                 key = rs.title_key(e["title"])
 
                 def load(m=m, key=key, d=d, e=e):
                     if not m.get("url"):
-                        raise ra.StopError(f"no download url for {key}")
+                        raise ra.StopError(f"no download url for {e['title']!r} ({key})")
                     src = d / f"{key[:16]}{Path(m['url']).suffix.lower()}"
                     if not src.exists():
                         _dl(m["url"], src)
                         time.sleep(1.0)
-                    ra.check_identity(e.get("sha1"), m.get("commons_sha1"),
-                                      hashlib.sha1(src.read_bytes()).hexdigest())
+                    if not ra.identity_ok(e.get("sha1"), m.get("commons_sha1"),
+                                          hashlib.sha1(src.read_bytes()).hexdigest(), title=e["title"]):
+                        raise ra.RejectError("D1", ra.IDENTITY_REASON)   # bytes differ: D1 reject, next rank
                     bgr = cv2.imread(str(src), cv2.IMREAD_COLOR)
                     if bgr is None:
-                        raise ra.StopError(f"decode failed for BITMAP file {key}")
+                        raise ra.StopError(f"decode failed for BITMAP file {e['title']!r} ({key})")
                     return np.ascontiguousarray(bgr[..., ::-1])
 
                 adm = rs.admissible(lic, rc["image_licences"])
                 c = ra.Candidate(e["title"], key, e, m, lic, tpl, adm, load)
-                row = ra.evaluate_image(cat, c, det, cfg, st, keys, longest)
+                if ra.identity_ok(e.get("sha1"), m.get("commons_sha1"), title=e["title"]):
+                    row = ra.evaluate_image(cat, c, det, cfg, st, keys, longest)
+                else:                  # D-079 re-check B1: re-uploaded since the snapshot -> D1 reject
+                    row = ra.identity_reject_row(cat, c)
                 row.update(sha1=e.get("sha1"), commons_sha1=m.get("commons_sha1"), pageid=e["pageid"],
                            **ra.revid_fields(e, m), licence=lic, licence_template=tpl,
                            templates=m["templates"], templates_sha256=ra.templates_digest(m["templates"]),
@@ -294,7 +289,8 @@ def finalise(scratch: Path) -> None:
         snap = json.loads((rs.REFSTIM / "snapshots" / rs.snapshot_name_eff(cat, cfg)).read_text())
         log = [{"title": r["title"], "sha256_title": r["sha256_title"], "decision": r["decision"],
                 "reason": r["reason"] or ""} for r in rows]
-        rs.check_log(log, snap, cfg, need)
+        rs.check_log(log, snap, cfg, need,
+                     extra_reasons=cfg["controls"]["refclips_d079"]["extra_reject_reasons"])
         counts[cat] = source_counts(rows)
         man = []
         for r in rows:

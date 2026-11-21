@@ -360,6 +360,14 @@ class CurationError(RuntimeError):
     pass
 
 
+class RevidMovedError(CurationError):
+    """D-079: a file page's revision moved between the responses of one batch (paging or the C4 query)."""
+
+    def __init__(self, title: str, msg: str):
+        super().__init__(msg)
+        self.title = title
+
+
 def check_header(snapshot: dict, cfg: dict) -> None:
     h = snapshot["header"]
     want = header_for(h["kind"], cfg, h.get("category"), h["utc_date"])
@@ -367,10 +375,12 @@ def check_header(snapshot: dict, cfg: dict) -> None:
         raise CurationError(f"snapshot header {h} != config {want}")
 
 
-def check_log(log: list[dict], snapshot: dict, cfg: dict, n_pass: int) -> list[dict]:
+def check_log(log: list[dict], snapshot: dict, cfg: dict, n_pass: int,
+              extra_reasons: Iterable[str] = ()) -> list[dict]:
     """Log rows are the inspected candidates in ascending sha256(title) order, contiguous from the first,
-    stopping at the n_pass-th pass. Returns the passing rows."""
-    reasons = set(cfg["controls"]["refclips"]["reject_reasons"])
+    stopping at the n_pass-th pass. Returns the passing rows. `extra_reasons`: reasons added by a later
+    amendment (D-079 identity_changed) without editing the frozen reject_reasons list."""
+    reasons = set(cfg["controls"]["refclips"]["reject_reasons"]) | set(extra_reasons)
     order = ordered(snapshot)
     if len(log) > len(order):
         raise CurationError("log longer than snapshot")
@@ -554,7 +564,7 @@ def query_pages(titles: list[str], params: dict, get=None, batch: int = 50) -> d
                 merged[t]["templates"] += [x["title"] for x in p.get("templates", [])]
                 if p.get("lastrevid") is not None:   # D-079: one revision across every continuation
                     if merged[t]["lastrevid"] not in (None, p["lastrevid"]):
-                        raise CurationError(f"lastrevid of {t!r} changed during paging: STOP")
+                        raise RevidMovedError(t, f"lastrevid of {t!r} changed during paging")
                     merged[t]["lastrevid"] = p["lastrevid"]
                 if p.get("imageinfo") and merged[t]["imageinfo"] is None:
                     merged[t]["imageinfo"] = p["imageinfo"][0]
@@ -562,10 +572,11 @@ def query_pages(titles: list[str], params: dict, get=None, batch: int = 50) -> d
                 cont = {k: v for k, v in d["continue"].items()}
                 continue
             if not d.get("batchcomplete"):
-                raise CurationError("Commons response has neither continue nor batchcomplete")
+                raise CurationError(f"Commons response has neither continue nor batchcomplete "
+                                    f"(batch {chunk[0]!r}..{chunk[-1]!r})")
             break
         else:
-            raise CurationError("Commons continuation did not terminate")
+            raise CurationError(f"Commons continuation did not terminate (batch {chunk[0]!r}..{chunk[-1]!r})")
         for t, m in merged.items():
             if not m.get("seen"):
                 raise CurationError(f"Commons response missing title {t!r}")
@@ -617,6 +628,37 @@ def page_meta(titles: list[str], get=None, batch: int = 50) -> dict[str, dict]:
         }
     return out
 
+
+
+def _page_meta_c4_once(titles: list[str], get=None, batch: int = 50) -> dict[str, dict]:
+    out = page_meta(titles, get=get, batch=batch)
+    extra = query_pages(titles, {"prop": "imageinfo|info", "iiprop": "extmetadata",
+                                 "iiextmetadatafilter": "ImageDescription|Categories|ObjectName"},
+                        get=get, batch=batch)
+    for t, p in extra.items():   # BUG-036: paged to batchcomplete, every title present (fail-closed)
+        if p["lastrevid"] != out[t]["read_revid"]:   # D-079 re-check N3: C4 text from the judged revision
+            raise RevidMovedError(t, f"C4 extmetadata revision {p['lastrevid']} of {t!r} != read_revid "
+                                f"{out[t]['read_revid']}")
+        em = p["imageinfo"].get("extmetadata", {})
+        out[t].update(
+            description=" ".join(em.get(k, {}).get("value", "") for k in ("ImageDescription", "ObjectName")),
+            categories=em.get("Categories", {}).get("value", "").replace("|", " "))
+    return out
+
+
+def page_meta_c4(titles: list[str], get=None, batch: int = 50) -> dict[str, dict]:
+    """page_meta + the description and category text read by the C4 metadata rule. D-079 re-check B1
+    (stop_resolution.lastrevid_moved): a revision moving within the batch's responses (template paging, or
+    the C4 query against the read revision) retries the whole batch once; a second move is a STOP to the
+    council naming the title. Every other CurationError propagates at once (fail-closed)."""
+    try:
+        return _page_meta_c4_once(titles, get=get, batch=batch)
+    except RevidMovedError:
+        pass
+    try:
+        return _page_meta_c4_once(titles, get=get, batch=batch)
+    except RevidMovedError as exc:
+        raise CurationError(f"{exc} (after one retry): STOP to the council [{exc.title}]") from exc
 
 def fetch_category(category: str, namespace: int, limit: int) -> dict:
     """D-074: every direct file member of Category:<category> (depth 0) with info + imageinfo. Follows every

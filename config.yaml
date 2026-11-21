@@ -469,7 +469,12 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     audit: {exempt_reasons: [duplicate], c1_reasons: [licence, personality_rights],
             flip_file: data/refstim/bug036_c1_flips.json}   # committed BUG-036 re-check list (sha frozen)
     revid_rule: evaluate_current_log_both   # templates read at the current revision; snapshot + read revid logged
-    identity_rule: stop          # snapshot sha1 != Commons sha1 or != sha1(downloaded bytes) -> STOP to the owner
+    identity_rule: reject_identity_changed   # re-check B1: snapshot sha1 != Commons sha1 or != sha1(bytes) -> reject D1 identity_changed (missing sha1 = STOP)
+    extra_reject_reasons: [identity_changed]   # D-079 amendment; the frozen refclips.reject_reasons list is not edited
+    stop_resolution:             # re-check B1: every non-defect STOP resolved by a rule stated before the v2 run
+      identity_mismatch: reject_identity_changed_resume_next_rank
+      lastrevid_moved: retry_batch_once_then_stop_to_council
+      other_audit_stop: code_defect_bug_entry_v3_from_rank_1
     finality: v2_is_selection    # v3 only for a code defect (fail-closed check / BUG entry), from rank 1, disclosed
   refclips_d079_artifacts:       # D-079: set with the flip file, frozen in the next commit
     flip_sha256: e7ce5c2a517d5ff77c0c36cb0bb483caace466a2968d6e8024595badc01f2067   # data/refstim/bug036_c1_flips.json (3310383, pod)
