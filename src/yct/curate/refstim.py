@@ -486,38 +486,87 @@ def fetch_commons(srsearch: str, limit: int) -> list[dict]:
     return out[:limit]
 
 
-def page_meta(titles: list[str]) -> dict[str, dict]:
-    """Templates (for the licence) + imageinfo (url, size, mime, sha1, artist/credit) per title."""
+def query_pages(titles: list[str], params: dict, get=None, batch: int = 50) -> dict[str, dict]:
+    """BUG-036: one prop=... query over `titles`, every continue key followed until batchcomplete, pages
+    merged by requested title (templates concatenated in response order, imageinfo from the first response
+    that has it). Fails closed: a response without continue or batchcomplete, a requested title absent from
+    the pages, a page marked missing/invalid, or (when imageinfo is requested) no imageinfo raises
+    CurationError; it is never read as an empty licence."""
+    get = get or _get
     out: dict[str, dict] = {}
-    for i in range(0, len(titles), 50):
-        batch = titles[i : i + 50]
-        d = _get(
-            {
-                "action": "query",
-                "titles": "|".join(batch),
-                "prop": "templates|imageinfo",
-                "tlnamespace": "10",
-                "tllimit": "max",
-                "iiprop": "url|size|mime|sha1|extmetadata",
-                "iiextmetadatafilter": "Artist|Credit|LicenseShortName|AttributionRequired",
-            }
-        )
-        for p in d.get("query", {}).get("pages", []):
-            ii = (p.get("imageinfo") or [{}])[0]
-            em = ii.get("extmetadata", {})
-            out[p["title"]] = {
-                "templates": [t["title"] for t in p.get("templates", [])],
-                "url": ii.get("url"),
-                "descriptionurl": ii.get("descriptionurl"),
-                "width": ii.get("width"),
-                "height": ii.get("height"),
-                "mime": ii.get("mime"),
-                "duration": ii.get("duration"),
-                "commons_sha1": ii.get("sha1"),
-                "artist": em.get("Artist", {}).get("value", ""),
-                "credit": em.get("Credit", {}).get("value", ""),
-                "license_short": em.get("LicenseShortName", {}).get("value", ""),
-            }
+    want_ii = "imageinfo" in params.get("prop", "")
+    for i in range(0, len(titles), batch):
+        chunk = titles[i : i + batch]
+        merged: dict[str, dict] = {t: {"templates": [], "imageinfo": None} for t in chunk}
+        cont: dict = {}
+        for _ in range(10_000):
+            d = get({"action": "query", "titles": "|".join(chunk), **params, **cont})
+            q = d.get("query", {})
+            back = {n["to"]: n["from"] for n in q.get("normalized", [])}
+            for p in q.get("pages", []):
+                t = back.get(p["title"], p["title"])
+                if t not in merged:
+                    raise CurationError(f"Commons returned an unrequested page {p['title']!r}")
+                if p.get("missing") or p.get("invalid"):
+                    raise CurationError(f"Commons page missing/invalid: {t!r}")
+                merged[t]["seen"] = True
+                merged[t]["templates"] += [x["title"] for x in p.get("templates", [])]
+                if p.get("imageinfo") and merged[t]["imageinfo"] is None:
+                    merged[t]["imageinfo"] = p["imageinfo"][0]
+            if "continue" in d:
+                cont = {k: v for k, v in d["continue"].items()}
+                continue
+            if not d.get("batchcomplete"):
+                raise CurationError("Commons response has neither continue nor batchcomplete")
+            break
+        else:
+            raise CurationError("Commons continuation did not terminate")
+        for t, m in merged.items():
+            if not m.get("seen"):
+                raise CurationError(f"Commons response missing title {t!r}")
+            if want_ii and m["imageinfo"] is None:
+                raise CurationError(f"Commons returned no imageinfo for {t!r}")
+            m["templates"] = list(dict.fromkeys(m["templates"]))
+            m.pop("seen")
+            out[t] = m
+    return out
+
+
+def page_meta(titles: list[str], get=None, batch: int = 50) -> dict[str, dict]:
+    """Templates (for the licence) + imageinfo (url, size, mime, sha1, artist/credit) per title.
+    BUG-036: paged to batchcomplete through query_pages; a file page with no templates at all after
+    complete paging is refused (every Commons file page carries at least its licence template)."""
+    pages = query_pages(
+        titles,
+        {
+            "prop": "templates|imageinfo",
+            "tlnamespace": "10",
+            "tllimit": "max",
+            "iiprop": "url|size|mime|sha1|extmetadata",
+            "iiextmetadatafilter": "Artist|Credit|LicenseShortName|AttributionRequired",
+        },
+        get=get,
+        batch=batch,
+    )
+    out: dict[str, dict] = {}
+    for title, p in pages.items():
+        if not p["templates"]:
+            raise CurationError(f"no templates for {title!r} after complete paging")
+        ii = p["imageinfo"]
+        em = ii.get("extmetadata", {})
+        out[title] = {
+            "templates": p["templates"],
+            "url": ii.get("url"),
+            "descriptionurl": ii.get("descriptionurl"),
+            "width": ii.get("width"),
+            "height": ii.get("height"),
+            "mime": ii.get("mime"),
+            "duration": ii.get("duration"),
+            "commons_sha1": ii.get("sha1"),
+            "artist": em.get("Artist", {}).get("value", ""),
+            "credit": em.get("Credit", {}).get("value", ""),
+            "license_short": em.get("LicenseShortName", {}).get("value", ""),
+        }
     return out
 
 

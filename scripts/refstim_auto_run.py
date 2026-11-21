@@ -147,16 +147,13 @@ class RealDetectors:
 def page_meta_c4(titles: list[str]) -> dict[str, dict]:
     """rs.page_meta + the description and category text needed by C4 (read only through the metadata rule)."""
     out = rs.page_meta(titles)
-    for i in range(0, len(titles), 50):
-        d = rs._get({"action": "query", "titles": "|".join(titles[i:i + 50]), "prop": "imageinfo",
-                     "iiprop": "extmetadata",
-                     "iiextmetadatafilter": "ImageDescription|Categories|ObjectName"})
-        for p in d.get("query", {}).get("pages", []):
-            em = ((p.get("imageinfo") or [{}])[0]).get("extmetadata", {})
-            out.setdefault(p["title"], {}).update(
-                description=" ".join(em.get(k, {}).get("value", "")
-                                     for k in ("ImageDescription", "ObjectName")),
-                categories=em.get("Categories", {}).get("value", "").replace("|", " "))
+    extra = rs.query_pages(titles, {"prop": "imageinfo", "iiprop": "extmetadata",
+                                    "iiextmetadatafilter": "ImageDescription|Categories|ObjectName"})
+    for t, p in extra.items():   # BUG-036: paged to batchcomplete, every title present (fail-closed)
+        em = p["imageinfo"].get("extmetadata", {})
+        out[t].update(
+            description=" ".join(em.get(k, {}).get("value", "") for k in ("ImageDescription", "ObjectName")),
+            categories=em.get("Categories", {}).get("value", "").replace("|", " "))
     return out
 
 
@@ -219,7 +216,7 @@ def run(model_dir: Path, scratch: Path) -> None:
             for e in batch:
                 if n_pass >= need:
                     break
-                m = meta.get(e["title"], {})
+                m = meta[e["title"]]   # BUG-036: never a silent empty-licence default
                 lic, tpl = rs.licence_of(m.get("templates", []), m.get("license_short"))
                 key = rs.title_key(e["title"])
 

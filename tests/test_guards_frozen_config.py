@@ -113,6 +113,9 @@ D075_FROZEN += [(f"controls.refclips_auto_artifacts.{k}", D075_ART_SHA) for k in
     "yunet_sha256", "frcnn_sha256", "clip_sha256", "tessdata_eng_sha256", "haar_face_sha256",
     "haar_eye_sha256")]
 D075_FROZEN += [("controls.refclips_artifacts.nat_snapshot_sha256", D075_ART_SHA)]   # D-075 step 0
+D078_SHA = "a18b246f457f025713d43a4dcaa296bf71624e9e"   # D-078 step 1
+D075_FROZEN += [("controls.refclips_d078", D078_SHA),
+                ("controls.refclips_d078_artifacts.body_snapshot_sha256", D078_SHA)]   # D-078 step 2
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
