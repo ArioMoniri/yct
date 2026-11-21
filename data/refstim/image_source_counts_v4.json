@@ -1,0 +1,28 @@
+{
+ "body": {
+  "Rear views of men": {
+   "evaluated": 207,
+   "passes": 9
+  },
+  "Rear views of people": {
+   "evaluated": 326,
+   "passes": 11
+  }
+ },
+ "face": {
+  "Portrait photographs": {
+   "evaluated": 492,
+   "passes": 20
+  }
+ },
+ "place": {
+  "Empty rooms": {
+   "evaluated": 121,
+   "passes": 14
+  },
+  "Empty streets": {
+   "evaluated": 23,
+   "passes": 6
+  }
+ }
+}

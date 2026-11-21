@@ -427,7 +427,7 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
   refclips_artifacts:          # D-071 (d): filled later, each frozen by its own row in the commit that sets it
     image_snapshot_sha256: e8a1d24379f005675487cb3e03fdf2e19ab788af8bfbf25bcc9c63d23663e4ee   # D-074: concat sha of image_{face,body,place}_d074_snapshot.json
     nat_snapshot_sha256: aab68a5535dafa679f3e3ef946ddd2e1d678b779387e05d5fc548711d2a01f72   # D-075 step 0: sha of nat_nat_snapshot.json (d7e9a6a)
-    image_manifest_sha256: null
+    image_manifest_sha256: 322f8a4211b6b76b7a626c6a2a78acdb1629f479117ea2b8233faf04be02f425   # D-081 v4 finalise: concat sha of image_{face,body,place}_manifest.json
     nat_manifest_sha256: null
     manifest_sha256: null      # refclips_manifest.json, set by T-STIM before upload
   refclips_d074:               # D-074 (owner-approved 2026-11-19): image candidate source; replaces refclips.image_queries for images
