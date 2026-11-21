@@ -165,6 +165,8 @@ def _cfg_d081(frozen=True, sha="0" * 64):
     arts = cfg["controls"].setdefault("refclips_d081_artifacts", {})
     arts["reaudit_sha256"] = sha
     arts["dry_audit_sha256"] = "1" * 64
+    # the repo config carries the real D-081 freeze rows since 86be45a: drop them so frozen=False means it
+    cfg["frozen"] = [r for r in cfg.get("frozen") or [] if r["key"] not in ra.D081_FROZEN_KEYS]
     if frozen:
         cfg["frozen"] = list(cfg.get("frozen") or []) + [
             {"key": k, "frozen_at": "x"} for k in ra.D081_FROZEN_KEYS]
