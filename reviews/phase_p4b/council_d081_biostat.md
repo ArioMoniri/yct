@@ -24,3 +24,11 @@
 The cost of the face rerun is the price of the frozen finality rule. Do not trade it away.
 
 **Verdict:** REVISE on B1. APPROVE once B1 is fixed with its tests, the re-audit is regenerated and safeguard 3 is in code.
+
+## Re-sign-off (cycle 2, 1d67b4a + f9a4e56): APPROVE
+- B1 closed: `audit_pair` now STOPs when both rows are rejects and `a_c1 != b_c1`, before `equal`/exempt. Verified at HEAD: same-reason (personality_rights) C1 vs non-C1 STOPs in both directions, and same-class pairs stay `equal`. Tests cover both directions, the direct path, audit_v2 and dry_pair.
+- Diff-class count: `bug038_audit_v3.py` (pinned to D-080) and `post_download_reaudit` count these pairs, and both find 0. Rule-less rejects still fail closed through `is_c1_reject`.
+- Re-audit: recomputed from the committed logs, sha eeb292e8… equals the file and `reaudit_sha256`; 0 STOP and 0 diff-class in face and body. Dry audit: sha 3c858693… matches, and it was run at 1d67b4a.
+- Safeguard 3 is in code: `check_frozen_d081` (frozen keys, sha, 0 STOP and 0 pairs) runs in `run()` and `finalise()`, and the re-audit script is under `DRY_AUDIT_CODE_PATHS`.
+- Test edits are not weakening: test_refstim_d080*.py only drop `refclips_d081` from the module CFG so they keep pinning the v3 layer, and no assertion changed. `rule_for` is explicitly PINNED and raises KeyError on an unknown reason, which is stricter than before. d080/d080_council/d081: 74/74 pass.
+- Non-blocking: the runner's D-081 check is gated on `controls.refclips_d081` being present. The freeze commit should make sure a v4 run cannot start without it, for example by tying log_version v4 to that key.
