@@ -160,7 +160,7 @@ def test_runner_routes_through_d078_helpers():
     snapshot, header and freeze helpers stay in the runner."""
     src = (ROOT / "scripts" / "refstim_auto_run.py").read_text()
     for s in ("rs.image_log_v2(cat, cfg)", "rs.snapshot_name_eff(cat, cfg)", "ra.check_frozen_d078(cfg)",
-              "ra.audit_v2(row, priors, flips, exempt, c1)", "rs.check_header_d078(snap, cfg, snapdir)"):
+              "ra.audit_v2(row, priors, flips, exempt, c1,", "rs.check_header_d078(snap, cfg, snapdir)"):
         assert s in src, s
-    audit = "ra.audit_v2(row, priors, flips, exempt, c1)"
+    audit = "ra.audit_v2(row, priors, flips, exempt, c1,"
     assert src.index(audit) < src.index("ra.append_jsonl(log_path, row)")

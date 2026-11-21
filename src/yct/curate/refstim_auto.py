@@ -478,31 +478,113 @@ DEFECT = ("treat as a code defect (D-079 stop_resolution.other_audit_stop): BUG 
           "for every category")
 
 
+def audit_pair(a: tuple, b: tuple, flipped: bool, exempt: tuple[str, ...], c1: tuple[str, ...],
+               c1_equiv: bool = False, title: str = "?", name: str = "?") -> str:
+    """Classify one (v2 decision, reason) `a` against one superseded-log (decision, reason) `b`, or STOP.
+    Kinds: flip (title in that log's committed BUG-036 flip list), equal, duplicate_exempt (re-check B2), and
+    with D-080 c1_equiv: c1_equivalent = both rows are C1 rejects (licence <-> personality_rights, BUG-037):
+    the selection outcome is identical, both reasons are logged."""
+    if flipped:
+        if b[1] not in c1 or a[1] in c1:
+            raise StopError(f"flip list contradiction for {title!r}: v2 {a}, {name} {b}: STOP")
+        return "flip"
+    if a == b:
+        return "equal"
+    if (a[1] in exempt and b[1] not in c1) or (b[1] in exempt and a[1] not in c1):
+        return "duplicate_exempt"
+    if c1_equiv and a[0] == b[0] == "reject" and a[1] in c1 and b[1] in c1:
+        return "c1_equivalent"
+    raise StopError(f"determinism audit: {title!r} now {a}, {name} {b}: STOP; {DEFECT}")
+
+
 def audit_v2(row: dict, priors: list[tuple[str, dict[str, dict]]], flips: dict[str, set[str]],
-             exempt: tuple[str, ...], c1: tuple[str, ...]) -> None:
+             exempt: tuple[str, ...], c1: tuple[str, ...], c1_equiv: bool = False) -> list[tuple]:
     """D-079 determinism audit (non-selecting, fail-closed): the v2 row is compared with the row for the same
-    title in every superseded v1 log of its category. Equal (decision, reason), or one reason exempt
+    title in every superseded log of its category (audit_pair). Equal (decision, reason), or one reason exempt
     (C3 depends on the passes before it) while the other is not a C1 reason (re-check B2: C1 runs before C3,
     so a duplicate means C1 was passed and a duplicate <-> C1 pair is an admissibility change), or the title
     is in that log's committed BUG-036 flip list (v1 C1 reject -> admissible now; the later rules are new
-    evaluations). A v2 identity_changed reject is a different file from the one v1 judged: exempt. Anything
-    else is a STOP, resolved as a code defect. A listed title that is not a v1 C1 reject, or is still a C1
-    reject in v2, contradicts the re-check: STOP."""
+    evaluations), or (D-080, c1_equiv) both rows are C1 rejects. A v2 identity_changed reject is a different
+    file from the one v1 judged: exempt. Anything else is a STOP, resolved as a code defect. A listed title
+    that is not a v1 C1 reject, or is still a C1 reject in v2, contradicts the re-check: STOP.
+    Returns [(log name, kind, superseded reason if c1_equivalent/flip else None)]."""
     a = (row["decision"], row.get("reason") or None)
     if a[1] == IDENTITY_REASON:
-        return
+        return []
+    out = []
     for name, rows in priors:
         old = rows.get(row["title"])
         if old is None:
             continue
         b = (old["decision"], old.get("reason") or None)
-        if row["sha256_title"] in flips.get(name, set()):
-            if b[1] not in c1 or a[1] in c1:
-                raise StopError(f"flip list contradiction for {row['title']!r}: v2 {a}, {name} {b}: STOP")
-            continue
-        dup_ok = (a[1] in exempt and b[1] not in c1) or (b[1] in exempt and a[1] not in c1)
-        if a != b and not dup_ok:
-            raise StopError(f"determinism audit: {row['title']!r} now {a}, {name} {b}: STOP; {DEFECT}")
+        kind = audit_pair(a, b, row["sha256_title"] in flips.get(name, set()), exempt, c1, c1_equiv,
+                          row["title"], name)
+        out.append((name, kind, b[1] if kind in ("c1_equivalent", "flip") else None))
+    return out
+
+
+# ---------------------------------------------------------------- D-080 metadata-stage dry audit
+METADATA_RULES = ("C0", "C1", "C2", "C3", "C4")    # every rule evaluate_image runs before the download
+
+
+class _ReachedDownloadError(Exception):
+    pass
+
+
+class _NoDetectors:
+    def __getattr__(self, name):
+        raise _ReachedDownloadError
+
+
+def metadata_stage(cat: str, c: Candidate, cfg: dict, key_hashes: set[str], longest: int) -> tuple:
+    """The frozen evaluate_image itself, stopped at the download: ("reject", rule, reason) for a C0-C4
+    reject, else ("continue", None, None). C3 never fires (empty pass state): it depends on earlier passes."""
+    def stop():
+        raise _ReachedDownloadError
+
+    c = Candidate(c.title, c.sha256_title, c.entry, c.meta, c.licence, c.licence_template, c.admissible, stop)
+    try:
+        row = evaluate_image(cat, c, _NoDetectors(), cfg, State(), key_hashes, longest)
+    except _ReachedDownloadError:
+        return ("continue", None, None)
+    if row["decision"] != "reject" or row["rule"] not in METADATA_RULES:
+        raise StopError(f"metadata stage: {c.title!r} gave {row['decision']} at {row.get('rule')}")
+    return ("reject", row["rule"], row["reason"])
+
+
+def dry_pair(pred: tuple, v1: dict, flipped: bool, exempt: tuple[str, ...], c1: tuple[str, ...],
+             c1_equiv: bool = False) -> str:
+    """Metadata-stage prediction `pred` (metadata_stage, or the D1 identity reject) against a superseded
+    row. reaches_download: neither side rejects before the download (later rules are re-evaluated in the
+    run). would_stop: the v3 run would STOP on this title (admissibility before the download differs)."""
+    if pred[2] == IDENTITY_REASON:
+        return "identity_changed"
+    b = (v1["decision"], v1.get("reason") or None)
+    v1_meta = b[0] == "reject" and v1.get("rule") in METADATA_RULES
+    if pred[0] == "continue":
+        if flipped:
+            return "flip" if b[1] in c1 else "would_stop"
+        if not v1_meta or v1.get("rule") == "C3":
+            return "reaches_download"
+        return "would_stop"
+    a = ("reject", pred[2])
+    if not v1_meta and not flipped and b[1] not in exempt:
+        return "would_stop"                 # v1 got past the metadata rules, v3 would not
+    try:
+        return audit_pair(a, b, flipped, exempt, c1, c1_equiv, v1["title"], "v1")
+    except StopError:
+        return "would_stop"
+
+
+def check_frozen_d080(cfg: dict) -> None:
+    """The v3 run is refused unless controls.refclips_d080 and its dry-audit sha are frozen and set."""
+    rows = {r["key"] for r in cfg.get("frozen") or []}
+    need = ["controls.refclips_d080", "controls.refclips_d080_artifacts.dry_audit_sha256"]
+    missing = [k for k in need if k not in rows]
+    if missing:
+        raise StopError(f"not frozen: {missing}")
+    if not (cfg["controls"].get("refclips_d080_artifacts") or {}).get("dry_audit_sha256"):
+        raise StopError("controls.refclips_d080_artifacts.dry_audit_sha256 not set")
 
 
 def identity_ok(snapshot_sha1: str | None, commons_sha1: str | None, data_sha1: str | None = None,
@@ -583,13 +665,14 @@ def preload_v2(st: State, cat: str, cfg: dict, root: Path, ran: list[str] | None
     from yct.curate import refstim as rs
 
     order = cfg["controls"]["refclips_d079"]["category_order"]
+    want = cfg["controls"]["refclips_d079"]["log_version"]   # v2, or v3 via rs.effective_cfg (D-080)
     before = order[:order.index(cat)]
     if ran is not None and list(ran) != before:
         raise StopError(f"{cat}: category order {list(ran)} != {before}: STOP")
     p = Path(root) / rs.image_log_v2(cat, cfg)
     done = [json.loads(x) for x in p.read_text().splitlines() if x.strip()] if p.exists() else []
     for r in done:
-        if r.get("log_version") != "v2":           # re-check QA B1: no default; real v1 rows carry no key
+        if r.get("log_version") != want:           # re-check QA B1: no default; real v1 rows carry no key
             raise StopError(f"{p.name}: row with log_version {r.get('log_version')!r}: STOP")
         if r["decision"] == "pass":
             st.pass_sha1.add(r["sha1"])

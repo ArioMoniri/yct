@@ -170,11 +170,13 @@ def run(model_dir: Path, scratch: Path) -> None:
     the v2 logs. The superseded v1 logs are read only by the determinism audit (audit_v2)."""
     import cv2
 
-    cfg = load_config()
+    cfg = rs.effective_cfg(load_config())     # D-080: v3 routing when controls.refclips_d080 is present
     a, rc = cfg["controls"]["refclips_auto"], cfg["controls"]["refclips"]
     d9 = cfg["controls"]["refclips_d079"]
     ra.check_frozen(cfg)
     ra.check_frozen_d079(cfg)
+    if cfg["controls"].get("refclips_d080"):
+        ra.check_frozen_d080(cfg)
     rs.check_d079_routing(cfg)
     ra.check_env(cfg, installed())
     p = artifact_paths(model_dir)
@@ -191,7 +193,7 @@ def run(model_dir: Path, scratch: Path) -> None:
                 cfg["controls"]["refclips_d078_artifacts"]["body_snapshot_sha256"]:
             raise ra.StopError("D-078 snapshot differs from the frozen sha")
     flips = rs.load_flips(ROOT / d9["audit"]["flip_file"],
-                          cfg["controls"]["refclips_d079_artifacts"]["flip_sha256"], d9["superseded_logs"])
+                          cfg["controls"]["refclips_d079_artifacts"]["flip_sha256"], d9["flip_logs"])
     exempt, c1 = tuple(d9["audit"]["exempt_reasons"]), tuple(d9["audit"]["c1_reasons"])
     run_commit = _head()
     det = RealDetectors(cfg, model_dir)
@@ -258,7 +260,11 @@ def run(model_dir: Path, scratch: Path) -> None:
                     src = next(d.glob(f"{key[:16]}.*"))
                     row["source_sha256"] = hashlib.sha256(src.read_bytes()).hexdigest()
                     n_pass += 1
-                ra.audit_v2(row, priors, flips, exempt, c1)
+                notes = ra.audit_v2(row, priors, flips, exempt, c1,
+                                    c1_equiv=d9["audit"].get("c1_equivalence", False))
+                eq = {n: b for n, k, b in notes if k == "c1_equivalent"}
+                if eq:                         # D-080: both C1 reasons are logged
+                    row["audit_c1_equivalent"] = eq
                 ra.append_jsonl(log_path, row)
                 i += 1
             print(cat, "evaluated", i, "passes", n_pass, flush=True)
@@ -278,15 +284,18 @@ def source_counts(rows: list[dict]) -> dict[str, dict[str, int]]:
 
 
 def finalise(scratch: Path) -> None:
-    cfg = load_config()
+    cfg = rs.effective_cfg(load_config())     # D-080: v3 routing when controls.refclips_d080 is present
     rc = cfg["controls"]["refclips"]
     ra.check_frozen_d079(cfg)
+    if cfg["controls"].get("refclips_d080"):
+        ra.check_frozen_d080(cfg)
+    ver = cfg["controls"]["refclips_d079"]["log_version"]
     need, sections, counts, ident = rc["loc_per_category"], {}, {}, {}
     for cat in cfg["controls"]["refclips_d079"]["category_order"]:
         lp = ROOT / rs.image_log_v2(cat, cfg)
         rows = _read_jsonl(lp)
-        if any(r.get("log_version") != "v2" for r in rows):
-            raise ra.StopError(f"{lp.name}: a row without log_version v2")
+        if any(r.get("log_version") != ver for r in rows):
+            raise ra.StopError(f"{lp.name}: a row without log_version {ver}")
         snap = json.loads((rs.REFSTIM / "snapshots" / rs.snapshot_name_eff(cat, cfg)).read_text())
         log = [{"title": r["title"], "sha256_title": r["sha256_title"], "decision": r["decision"],
                 "reason": r["reason"] or ""} for r in rows]
@@ -309,8 +318,10 @@ def finalise(scratch: Path) -> None:
         rs.write_json(rs.REFSTIM / f"image_{cat}_manifest.json", man)
         src = "D-078" if cat in rs.d078_categories(cfg) else "D-074"
         sections[f"Localiser images: {cat} ({src} source, D-075 filters, D-079 v2 logs)"] = man
-    rs.write_json(rs.REFSTIM / "image_source_counts_v2.json", counts)
-    rs.write_json(rs.REFSTIM / "image_identity_changed_v2.json", ident)   # D-079 §A disclosure
+    names = {"v2": ("image_source_counts_v2.json", "image_identity_changed_v2.json"),
+             "v3": ("image_source_counts_v3.json", "image_identity_changed_v3.json")}[ver]
+    rs.write_json(rs.REFSTIM / names[0], counts)
+    rs.write_json(rs.REFSTIM / names[1], ident)   # D-079 §A disclosure
     text = rs.licenses_md(sections)
     for man in sections.values():
         rs.check_licenses_md(text, man)

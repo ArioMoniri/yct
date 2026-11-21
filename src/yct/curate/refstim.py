@@ -225,18 +225,40 @@ def image_log_rel(category: str, cfg: dict) -> str:
 
 # ---------------------------------------------------------------- D-079 (v2 logs after BUG-036)
 def check_d079_routing(cfg: dict) -> None:
-    """v2 routing: log_version v2, category order = loc_categories, every v2 path distinct from the
-    superseded v1 logs. Raises CurationError (KeyError when the D-079 key is absent)."""
+    """v2 routing (v3 via effective_cfg, D-080): log_version v2|v3, category order = loc_categories, every
+    log path ends in _<log_version>.jsonl and is distinct from the superseded logs. Raises CurationError
+    (KeyError when the D-079 key is absent)."""
     d = cfg["controls"]["refclips_d079"]
-    if d["log_version"] != "v2":
-        raise CurationError(f"refclips_d079.log_version {d['log_version']!r} != 'v2'")
+    ver = d["log_version"]
+    if ver not in ("v2", "v3"):
+        raise CurationError(f"refclips_d079.log_version {ver!r} not in ('v2', 'v3')")
     if d["category_order"] != cfg["controls"]["refclips"]["loc_categories"]:
         raise CurationError("refclips_d079.category_order != refclips.loc_categories")
     old = {p for v in d["superseded_logs"].values() for p in v}
     for cat in d["category_order"]:
         p = d["logs"][cat]
-        if p in old or not p.endswith("_v2.jsonl"):
-            raise CurationError(f"{cat}: {p} is not a v2 log path")
+        if p in old or not p.endswith(f"_{ver}.jsonl"):
+            raise CurationError(f"{cat}: {p} is not a {ver} log path")
+
+
+def effective_cfg(cfg: dict) -> dict:
+    """D-080 (BUG-037): without controls.refclips_d080 the config itself (D-079 v2). With it, a deep copy
+    whose refclips_d079 routes the v3 logs: log_version, logs and finality from D-080; superseded_logs =
+    D-079's plus D-080 superseded_logs_add (the v2 run-1 evidence log); audit.c1_equivalence from D-080;
+    flip_logs = the D-079 superseded logs the committed flip file lists. The input is never mutated."""
+    import copy
+
+    out = copy.deepcopy(cfg)
+    d9 = out["controls"]["refclips_d079"]
+    d9["flip_logs"] = copy.deepcopy(d9["superseded_logs"])
+    d8 = out["controls"].get("refclips_d080")
+    if not d8:
+        return out
+    d9.update(log_version=d8["log_version"], logs=copy.deepcopy(d8["logs"]), finality=d8["finality"])
+    d9["superseded_logs"] = {c: list(v) + list(d8["superseded_logs_add"].get(c, []))
+                             for c, v in d9["superseded_logs"].items()}
+    d9["audit"]["c1_equivalence"] = bool(d8["audit_c1_equivalence"])
+    return out
 
 
 def image_log_v2(category: str, cfg: dict) -> str:
