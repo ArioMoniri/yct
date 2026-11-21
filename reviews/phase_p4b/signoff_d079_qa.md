@@ -23,3 +23,11 @@ tests/test_refstim_d079.py tests/test_refstim_bug036.py`: 71 passed.
 ## Non-blocking
 - A bytes-only mismatch while Commons sha1 == snapshot sha1 is more likely a bad download than a re-upload. Treating it as a reject is acceptable because the rule is stated in advance, but the report should note how many such rows there are. Delete the cached file of a D1 row so a later resume cannot reuse it.
 - `ra.check_identity` is now dead code in the runner: remove it or mark it superseded. Still open: a fake-detector `run()` smoke test.
+
+## Re-sign-off (2026-11-21; read `git show 2277786`, d079_v3.md §H, d079_signoff_response.md)
+- Ran `pytest -q tests/test_refstim_d079_signoff.py tests/test_refstim_d079_recheck.py tests/test_refstim_d079.py`: 63 passed.
+- B1: resolved by a different route that I accept. identity_changed now exists only at the metadata stage. Rows carry `identity_stage: "metadata"` and `data_sha1: null`, and the runner adds `sha1`/`commons_sha1`. The byte stage produces no rows: `fetch_verified` re-downloads once, then STOPs and names the title. So there is no unrecorded bytes-stage row left to disclose.
+- §A disclosure: `finalise` writes `image_identity_changed_v2.json` (a list per category, or "none"). A row without stage or data sha1 STOPs it. This is tested.
+- My non-blocking items are covered as well: the bad cached file is deleted and re-fetched, and a bytes-only mismatch is now a STOP, not a reject, so no report count is needed.
+- Non-blocking, still open: `test_byte_identity_mismatch_in_load_becomes_a_reject_row` (recheck) describes the old byte-stage behaviour. Rename it to say the reject comes from load() in general. `ra.check_identity` is still dead code. A fake-detector `run()` smoke test is still missing.
+- **Verdict: APPROVE.**

@@ -23,3 +23,12 @@ Ran tests d079, d079_recheck, bug036: 71 passed. Did not read sealed data, label
    "none") into the report. Test it.
 
 - Not blocking: §B, §C, §D, §E, §F verified in code and tests; at freeze add the `flip_sha256` test.
+
+## Re-sign-off (2026-11-21; read `git show 2277786`, d079_v3.md §H, d079_signoff_response.md; 80 tests pass)
+**Verdict: APPROVE.**
+- B1 resolved: `ra.fetch_verified` deletes, re-downloads once, then STOPs naming the title; cached files are
+  checked too; the runner no longer raises an identity reject at the byte stage. Tested (4 + runner check).
+- B2 resolved: metadata rows carry `identity_stage`/`data_sha1`; the runner adds both sha1s via `row.update`;
+  `finalise` writes `image_identity_changed_v2.json` (list or "none"), STOP on a row missing the keys.
+- Not blocking: rename/retire `test_byte_identity_mismatch_in_load_becomes_a_reject_row` (recheck file), whose
+  name now contradicts §H; at freeze add the `flip_sha256` test as before.
