@@ -447,3 +447,16 @@ Append-only log. Format: date | phase | id | summary | evidence.
     - The D-078 notes: frozen and run before independent review; the suite was red from 598ca0e to e768363; the D-078 trigger was corrupted; the male-only skew.
     - Per-source body counts and the identity_changed list.
     - The cycle-2 contact-sheet check applies to the v2 sets.
+- D-080 P4b localiser images v3 after BUG-037. This is a pre-run amendment of D-079: v2 run 1 stopped at face rank 19 because 'File:Massimiliano M. Schiraldi.jpg' was v1 `licence` and is v2 `personality_rights`, with both rows C1 rejects. Per the frozen D-079 `other_audit_stop` rule this is a code defect, so: a BUG entry, then v3 from rank 1.
+  - **Full text:** reviews/phase_p4b/d080_draft.md, d080_v2.md.
+  - **Reviews:** council_d080_*.md (neuro and QA APPROVE; watchdog, referee and biostat REVISE, then their re-sign-offs APPROVE at 78c738a, 5/5). Response: d080_v2_response.md.
+  - **Audit change:** `audit_c1_equivalence`. When both rows are C1 rejects (`licence` ↔ `personality_rights`), the selection outcome is identical, so the pair is `c1_equivalent` and both reasons are logged. All other D-079 audit rules are unchanged: the flip list for inadmissible → admissible, admissible → inadmissible is a STOP, and the duplicate rule (B2).
+  - **Logs:** v3 logs are `_v3.jsonl` (config `controls.refclips_d080`), evaluated from rank 1 in the order face, body, place. The 18-row v2 run-1 face log (946d391) is superseded and is audit evidence only.
+  - **Launch rule in code (`ra.check_dry_audit`):** the run STOPs before rank 1 unless:
+    - the dry-audit file data/refstim/d080_dry_audit.json hashes to the frozen sha ca87244c…2b40 (pod run, c5ccdfb, metadata only);
+    - every category and every superseded log is covered;
+    - `would_stop` is empty for every category (it was 0 for both face and body);
+    - no file matching src/yct/curate/refstim*.py or scripts/refstim_d080_dry_audit.py changed between the dry audit's `code_commit` and the run commit.
+  - **Revid drift after the dry audit (`audit_revid_drift`):** when a v3 read revid differs from both the superseded-row revid and the dry-audit revid, the decision at the current revision stands. Both revids are logged, the run resumes at the next rank, and finalise discloses the case (image_revid_drift_v3.json). There is no v4 for this case.
+  - **Finality:** v3 is the selection. A v4 is allowed only for a code defect, from rank 1, and is disclosed.
+  - **Unchanged:** the filters, the order, the first-20 rule, the licences, the D-078 union and the D-079 identity and revision rules. No filter outcome was used to choose any rule.
