@@ -68,7 +68,17 @@ shared the batch. That is not a property of the file. Every C1 decision in the v
 makes metadata API calls only: no download, no detector, no log write. Counts are reported in the commit and
 fork report:
 
-- RECHECK_COUNTS_PLACEHOLDER
+Run on the pod at e768363 (exit 0; C0 rows excluded):
+
+| log | rows | inadmissible → admissible | admissible → inadmissible | v1 passes now inadmissible | revid changed |
+|---|---|---|---|---|---|
+| image_face_auto_log.jsonl | 948 | 260 | 0 | 0 / 20 | 2 |
+| image_body_auto_log.jsonl | 566 | 108 | 0 | 0 / 10 | 0 |
+| image_body_d078_auto_log.jsonl | 15 | 3 | 0 | 0 / 2 | 0 |
+
+Every change goes the same way: v1 under-admitted. Truncation only removed templates, and no admissible file
+lost admissibility. 371 files that v1 rejected under C1 are admissible, so v1's first-20 sets are not the
+first-20 sets under the frozen rule. This is why v2 must be evaluated from rank 1.
 
 ## Questions for the council
 
