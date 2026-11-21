@@ -1,0 +1,38 @@
+{
+ "categories": {
+  "body": {
+   "logs": {
+    "image_body_auto_log.jsonl": {
+     "c1_equivalent": 9,
+     "equal": 346,
+     "flip": 108,
+     "reaches_download": 105
+    },
+    "image_body_d078_auto_log.jsonl": {
+     "c1_equivalent": 1,
+     "equal": 9,
+     "flip": 3,
+     "reaches_download": 2
+    }
+   },
+   "would_stop": []
+  },
+  "face": {
+   "logs": {
+    "image_face_auto_log.jsonl": {
+     "c1_equivalent": 2,
+     "equal": 451,
+     "flip": 260,
+     "reaches_download": 235
+    },
+    "image_face_auto_log_v2.jsonl": {
+     "equal": 12,
+     "reaches_download": 6
+    }
+   },
+   "would_stop": []
+  }
+ },
+ "decision": "D-080",
+ "source": "scripts/refstim_d080_dry_audit.py (fixed client, metadata only)"
+}

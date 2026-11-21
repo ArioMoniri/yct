@@ -492,7 +492,7 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     dry_audit_file: data/refstim/d080_dry_audit.json   # metadata-stage dry audit (pod, read-only), sha below
     finality: v3_is_selection    # D-079 finality carried over: v4 only for a code defect, from rank 1, disclosed
   refclips_d080_artifacts:       # D-080: set with the dry-audit file, frozen in the freeze commit
-    dry_audit_sha256: null
+    dry_audit_sha256: 35bb0b9530e11dd1b1912c65cd3053d4c2571dc271edfac7b36880df3eed6fe7   # data/refstim/d080_dry_audit.json (pod, 8148366)
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host

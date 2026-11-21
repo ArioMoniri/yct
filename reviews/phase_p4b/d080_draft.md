@@ -84,6 +84,22 @@ Dry-audit counts: see §5, filled in from the pod run.
   information used is the identity of the STOP row and its two reasons.
 - v3 is the selection set.
 
-## 5. Dry-audit result
+## 5. Dry-audit result (pod, commit 8148366, exit 0)
 
-(filled in below after the pod run)
+`data/refstim/d080_dry_audit.json`, sha256 35bb0b9530e11dd1b1912c65cd3053d4c2571dc271edfac7b36880df3eed6fe7.
+The sha is set in `controls.refclips_d080_artifacts.dry_audit_sha256` but not yet frozen.
+
+| superseded log | equal | c1_equivalent | flip | reaches_download | would_stop |
+|---|---|---|---|---|---|
+| image_face_auto_log.jsonl (v1, 948) | 451 | 2 | 260 | 235 | 0 |
+| image_face_auto_log_v2.jsonl (v2 run 1, 18) | 12 | 0 | 0 | 6 | 0 |
+| image_body_auto_log.jsonl (v1, 568) | 346 | 9 | 108 | 105 | 0 |
+| image_body_d078_auto_log.jsonl (v1, 15) | 9 | 1 | 3 | 2 | 0 |
+
+- `would_stop` = 0, so the launch rule in §3 is met.
+- No `identity_changed`, no `duplicate_exempt` (C3 is inert in a dry run) and no missing sha1.
+- The 12 c1_equivalent pairs are the whole BUG-037 class. Under D-079 every one of them would have stopped
+  the run; the BUG-037 title is one of the 2 face pairs.
+- The flip counts equal the committed BUG-036 flip list (260 / 108 / 3).
+- The 2 face files whose Commons page was edited since the snapshot give no would_stop at the metadata stage.
+- The place category has no superseded log, so there is nothing to audit there.
