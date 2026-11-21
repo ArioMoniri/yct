@@ -223,6 +223,47 @@ def image_log_rel(category: str, cfg: dict) -> str:
     return cfg["controls"]["refclips_auto"]["logs"]["image"].replace("<cat>", tag)
 
 
+# ---------------------------------------------------------------- D-079 (v2 logs after BUG-036)
+def check_d079_routing(cfg: dict) -> None:
+    """v2 routing: log_version v2, category order = loc_categories, every v2 path distinct from the
+    superseded v1 logs. Raises CurationError (KeyError when the D-079 key is absent)."""
+    d = cfg["controls"]["refclips_d079"]
+    if d["log_version"] != "v2":
+        raise CurationError(f"refclips_d079.log_version {d['log_version']!r} != 'v2'")
+    if d["category_order"] != cfg["controls"]["refclips"]["loc_categories"]:
+        raise CurationError("refclips_d079.category_order != refclips.loc_categories")
+    old = {p for v in d["superseded_logs"].values() for p in v}
+    for cat in d["category_order"]:
+        p = d["logs"][cat]
+        if p in old or not p.endswith("_v2.jsonl"):
+            raise CurationError(f"{cat}: {p} is not a v2 log path")
+
+
+def image_log_v2(category: str, cfg: dict) -> str:
+    """The only image-log path the D-079 runner reads or appends to."""
+    check_d079_routing(cfg)
+    return cfg["controls"]["refclips_d079"]["logs"][category]
+
+
+def load_flips(path: Path, want_sha256: str, superseded: dict[str, list[str]]) -> dict[str, set[str]]:
+    """The committed BUG-036 re-check list: per v1 log name, the sha256(title) keys whose C1 reading went
+    inadmissible -> admissible under the fixed client. File sha must equal the frozen sha; every superseded
+    log must be listed; any admissible -> inadmissible entry is refused (v1 never over-admitted)."""
+    data = Path(path).read_bytes()
+    if hashlib.sha256(data).hexdigest() != want_sha256:
+        raise CurationError(f"{Path(path).name}: sha256 differs from refclips_d079_artifacts.flip_sha256")
+    doc = json.loads(data)
+    names = {Path(p).name for v in superseded.values() for p in v}
+    if set(doc.get("logs", {})) != names:
+        raise CurationError(f"flip file logs {sorted(doc.get('logs', {}))} != superseded {sorted(names)}")
+    out = {}
+    for name, v in doc["logs"].items():
+        if v.get("adm_to_inadm"):
+            raise CurationError(f"{name}: adm_to_inadm is not empty: STOP to the owner")
+        out[name] = set(v["inadm_to_adm"])
+    return out
+
+
 def header_for_d078(cfg: dict, category: str, utc_date: str, base_sha256: str) -> dict:
     d, d4 = cfg["controls"]["refclips_d078"], cfg["controls"]["refclips_d074"]
     return {
@@ -497,7 +538,7 @@ def query_pages(titles: list[str], params: dict, get=None, batch: int = 50) -> d
     want_ii = "imageinfo" in params.get("prop", "")
     for i in range(0, len(titles), batch):
         chunk = titles[i : i + batch]
-        merged: dict[str, dict] = {t: {"templates": [], "imageinfo": None} for t in chunk}
+        merged: dict[str, dict] = {t: {"templates": [], "imageinfo": None, "lastrevid": None} for t in chunk}
         cont: dict = {}
         for _ in range(10_000):
             d = get({"action": "query", "titles": "|".join(chunk), **params, **cont})
@@ -511,6 +552,10 @@ def query_pages(titles: list[str], params: dict, get=None, batch: int = 50) -> d
                     raise CurationError(f"Commons page missing/invalid: {t!r}")
                 merged[t]["seen"] = True
                 merged[t]["templates"] += [x["title"] for x in p.get("templates", [])]
+                if p.get("lastrevid") is not None:   # D-079: one revision across every continuation
+                    if merged[t]["lastrevid"] not in (None, p["lastrevid"]):
+                        raise CurationError(f"lastrevid of {t!r} changed during paging: STOP")
+                    merged[t]["lastrevid"] = p["lastrevid"]
                 if p.get("imageinfo") and merged[t]["imageinfo"] is None:
                     merged[t]["imageinfo"] = p["imageinfo"][0]
             if "continue" in d:
@@ -539,7 +584,7 @@ def page_meta(titles: list[str], get=None, batch: int = 50) -> dict[str, dict]:
     pages = query_pages(
         titles,
         {
-            "prop": "templates|imageinfo",
+            "prop": "templates|imageinfo|info",
             "tlnamespace": "10",
             "tllimit": "max",
             "iiprop": "url|size|mime|sha1|extmetadata",
@@ -552,6 +597,8 @@ def page_meta(titles: list[str], get=None, batch: int = 50) -> dict[str, dict]:
     for title, p in pages.items():
         if not p["templates"]:
             raise CurationError(f"no templates for {title!r} after complete paging")
+        if p["lastrevid"] is None:
+            raise CurationError(f"no lastrevid for {title!r} (prop=info)")
         ii = p["imageinfo"]
         em = ii.get("extmetadata", {})
         out[title] = {
@@ -563,6 +610,7 @@ def page_meta(titles: list[str], get=None, batch: int = 50) -> dict[str, dict]:
             "mime": ii.get("mime"),
             "duration": ii.get("duration"),
             "commons_sha1": ii.get("sha1"),
+            "read_revid": p["lastrevid"],
             "artist": em.get("Artist", {}).get("value", ""),
             "credit": em.get("Credit", {}).get("value", ""),
             "license_short": em.get("LicenseShortName", {}).get("value", ""),

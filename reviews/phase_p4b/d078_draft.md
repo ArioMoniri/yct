@@ -83,3 +83,10 @@
 - The run refuses unless `controls.refclips_d078` and `refclips_d078_artifacts.body_snapshot_sha256` are frozen.
 - Determinism audit: an equal pair passes. A duplicate-exempt pair passes. Any other mismatch is a StopError.
 - The D-074 body snapshot and log stay byte-identical to their committed versions.
+
+## Addendum (2026-11-21, append-only; council cycle council_d078_d079_*)
+
+- **§6 yield expectation withdrawn.** The 10/568 ≈ 1.8 % rate, and the "STOP is the pre-stated outcome" statement, were produced under BUG-036: 108 D-074 body C1 rejects were wrong. No new expectation is made.
+- **D-078 is kept.** On 2026-11-21 the owner re-decided "Keep it as frozen", by the outcome-blind principle that a frozen amendment is not revisited on later knowledge.
+- **§3 and §5 are proposed for amendment by D-079** (draft v2, `d079_v2.md`). The audit would compare against every v1 log of the category, with a committed BUG-036 flip list, and routing would go to the v2 logs.
+- **Sex skew:** the male-only addition can skew body towards male. Body enters the gated FFC contrast. The report gives per-source counts. Sex is never labelled.

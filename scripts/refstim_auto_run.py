@@ -1,8 +1,9 @@
 """D-075 runner (yct pod CPU only): fetch the pinned model artifacts, then run the frozen automatic image
-filters over the frozen D-074 snapshots and write the append-only logs, the manifests and LICENSES.md.
+filters over the frozen D-074/D-078 snapshots and write the append-only D-079 v2 logs, the manifests
+and LICENSES.md.
 
   artifacts MODEL_DIR          download the pinned artifacts; print their sha256 (refclips_auto_artifacts)
-  run MODEL_DIR SCRATCH        evaluate face, body, place in loc_categories order (resumes from the logs:
+  run MODEL_DIR SCRATCH        evaluate face, body, place in loc_categories order (resumes from the v2 logs:
                                a logged candidate is never re-evaluated)
   finalise SCRATCH             write data/refstim/image_<cat>_manifest.json + docs/stimuli/LICENSES.md
 Downloads stay out of the repo (SCRATCH, then S3 under controls.refclips.s3_root/sources/images/)."""
@@ -161,12 +162,28 @@ def installed() -> dict[str, str]:
     return {k: metadata.version(k) for k in load_config()["controls"]["refclips_auto"]["env"]["packages"]}
 
 
+def _read_jsonl(path: Path) -> list[dict]:
+    return [json.loads(x) for x in path.read_text().splitlines() if x.strip()] if path.exists() else []
+
+
+def _head() -> str:
+    import subprocess
+
+    return subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], check=True, capture_output=True,
+                          text=True).stdout.strip()
+
+
 def run(model_dir: Path, scratch: Path) -> None:
+    """D-079: evaluate face, body, place (category_order) into the v2 logs only, from rank 1, resuming from
+    the v2 logs. The superseded v1 logs are read only by the determinism audit (audit_v2)."""
     import cv2
 
     cfg = load_config()
     a, rc = cfg["controls"]["refclips_auto"], cfg["controls"]["refclips"]
+    d9 = cfg["controls"]["refclips_d079"]
     ra.check_frozen(cfg)
+    ra.check_frozen_d079(cfg)
+    rs.check_d079_routing(cfg)
     ra.check_env(cfg, installed())
     p = artifact_paths(model_dir)
     for k in a["image_artifacts"]:
@@ -176,28 +193,25 @@ def run(model_dir: Path, scratch: Path) -> None:
     if rs.image_snapshot_sha_d074(snapdir, cfg) != want_snap:
         raise ra.StopError("D-074 image snapshots differ from the frozen sha")
     d078 = rs.d078_categories(cfg)
-    if d078:
-        ra.check_frozen_d078(cfg)
-        for cat in d078:
-            if rs.file_sha(snapdir / rs.snapshot_name_d078(cat, cfg)) != \
-                    cfg["controls"]["refclips_d078_artifacts"]["body_snapshot_sha256"]:
-                raise ra.StopError("D-078 snapshot differs from the frozen sha")
-    exempt = tuple(cfg["controls"]["refclips_d078"]["audit_exempt_reasons"])
+    ra.check_frozen_d078(cfg)
+    for cat in d078:
+        if rs.file_sha(snapdir / rs.snapshot_name_d078(cat, cfg)) != \
+                cfg["controls"]["refclips_d078_artifacts"]["body_snapshot_sha256"]:
+            raise ra.StopError("D-078 snapshot differs from the frozen sha")
+    flips = rs.load_flips(ROOT / d9["audit"]["flip_file"],
+                          cfg["controls"]["refclips_d079_artifacts"]["flip_sha256"], d9["superseded_logs"])
+    exempt, c1 = tuple(d9["audit"]["exempt_reasons"]), tuple(d9["audit"]["c1_reasons"])
+    run_commit = _head()
     det = RealDetectors(cfg, model_dir)
     keys, longest = ra.manifest_key_hashes()
     st = ra.State()
     need = rc["loc_per_category"]
-    for cat in rc["loc_categories"]:
-        log_path = ROOT / rs.image_log_rel(cat, cfg)
-        prior = {}
-        if cat in d078:   # superseded D-074 log: never preloaded, used only for the determinism audit
-            old = ROOT / a["logs"]["image"].replace("<cat>", cat)
-            prior = {r["title"]: r for r in map(json.loads, old.read_text().splitlines())}
-        done = [json.loads(x) for x in log_path.read_text().splitlines()] if log_path.exists() else []
-        for r in done:
-            if r["decision"] == "pass":
-                st.pass_sha1.add(r["sha1"])
-                st.pass_dhash.append(int(r["values"]["dhash"], 16))
+    ran: list[str] = []
+    for cat in d9["category_order"]:
+        log_path = ROOT / rs.image_log_v2(cat, cfg)
+        priors = [(Path(q).name, {r["title"]: r for r in _read_jsonl(ROOT / q)})
+                  for q in d9["superseded_logs"][cat]]
+        done = ra.preload_v2(st, cat, cfg, ROOT, ran=ran)     # C3 state: v2 logs only, face -> body -> place
         n_pass = sum(r["decision"] == "pass" for r in done)
         snap = json.loads((snapdir / rs.snapshot_name_eff(cat, cfg)).read_text())
         if cat in d078:
@@ -217,16 +231,19 @@ def run(model_dir: Path, scratch: Path) -> None:
                 if n_pass >= need:
                     break
                 m = meta[e["title"]]   # BUG-036: never a silent empty-licence default
-                lic, tpl = rs.licence_of(m.get("templates", []), m.get("license_short"))
+                ra.check_identity(e.get("sha1"), m.get("commons_sha1"))      # D-079 identity rule (STOP)
+                lic, tpl = rs.licence_of(m["templates"], m.get("license_short"))
                 key = rs.title_key(e["title"])
 
-                def load(m=m, key=key, d=d):
+                def load(m=m, key=key, d=d, e=e):
                     if not m.get("url"):
                         raise ra.StopError(f"no download url for {key}")
                     src = d / f"{key[:16]}{Path(m['url']).suffix.lower()}"
                     if not src.exists():
                         _dl(m["url"], src)
                         time.sleep(1.0)
+                    ra.check_identity(e.get("sha1"), m.get("commons_sha1"),
+                                      hashlib.sha1(src.read_bytes()).hexdigest())
                     bgr = cv2.imread(str(src), cv2.IMREAD_COLOR)
                     if bgr is None:
                         raise ra.StopError(f"decode failed for BITMAP file {key}")
@@ -235,47 +252,66 @@ def run(model_dir: Path, scratch: Path) -> None:
                 adm = rs.admissible(lic, rc["image_licences"])
                 c = ra.Candidate(e["title"], key, e, m, lic, tpl, adm, load)
                 row = ra.evaluate_image(cat, c, det, cfg, st, keys, longest)
-                row.update(sha1=e.get("sha1"), pageid=e["pageid"], revid=e["revid"], licence=lic,
-                           licence_template=tpl, url=m.get("url"), descriptionurl=m.get("descriptionurl"),
-                           artist=m.get("artist", ""), credit=m.get("credit", ""))
+                row.update(sha1=e.get("sha1"), commons_sha1=m.get("commons_sha1"), pageid=e["pageid"],
+                           **ra.revid_fields(e, m), licence=lic, licence_template=tpl,
+                           templates=m["templates"], templates_sha256=ra.templates_digest(m["templates"]),
+                           url=m.get("url"), descriptionurl=m.get("descriptionurl"),
+                           artist=m.get("artist", ""), credit=m.get("credit", ""), source=e.get("source"),
+                           log_version=d9["log_version"], run_commit=run_commit)
                 if row["decision"] == "pass":
                     src = next(d.glob(f"{key[:16]}.*"))
                     row["source_sha256"] = hashlib.sha256(src.read_bytes()).hexdigest()
                     n_pass += 1
-                ra.audit_prior(row, prior, exempt)
+                ra.audit_v2(row, priors, flips, exempt, c1)
                 ra.append_jsonl(log_path, row)
                 i += 1
             print(cat, "evaluated", i, "passes", n_pass, flush=True)
         if n_pass < need:
             raise ra.StopError(f"{cat}: {n_pass} passes < {need} in the full snapshot: STOP to the owner")
+        ran.append(cat)
+
+
+def source_counts(rows: list[dict]) -> dict[str, dict[str, int]]:
+    """Per snapshot source: rows evaluated and passes (D-079 disclosure; the realised source mix)."""
+    out: dict[str, dict[str, int]] = {}
+    for r in rows:
+        c = out.setdefault(str(r.get("source")), {"evaluated": 0, "passes": 0})
+        c["evaluated"] += 1
+        c["passes"] += r["decision"] == "pass"
+    return out
 
 
 def finalise(scratch: Path) -> None:
     cfg = load_config()
     rc = cfg["controls"]["refclips"]
-    need, sections = rc["loc_per_category"], {}
-    for cat in rc["loc_categories"]:
-        lp = ROOT / rs.image_log_rel(cat, cfg)
-        rows = [json.loads(x) for x in lp.read_text().splitlines()]
+    ra.check_frozen_d079(cfg)
+    need, sections, counts = rc["loc_per_category"], {}, {}
+    for cat in cfg["controls"]["refclips_d079"]["category_order"]:
+        lp = ROOT / rs.image_log_v2(cat, cfg)
+        rows = _read_jsonl(lp)
+        if any(r.get("log_version") != "v2" for r in rows):
+            raise ra.StopError(f"{lp.name}: a row without log_version v2")
         snap = json.loads((rs.REFSTIM / "snapshots" / rs.snapshot_name_eff(cat, cfg)).read_text())
         log = [{"title": r["title"], "sha256_title": r["sha256_title"], "decision": r["decision"],
                 "reason": r["reason"] or ""} for r in rows]
         rs.check_log(log, snap, cfg, need)
+        counts[cat] = source_counts(rows)
         man = []
         for r in rows:
             if r["decision"] != "pass":
                 continue
             fname = f"{cat}_{len(man):02d}{Path(r['url']).suffix.lower()}"
             man.append({"file": fname, "category": cat, "url": r["descriptionurl"], "download_url": r["url"],
-                        "pageid": r["pageid"], "revid": r["revid"], "licence": r["licence"],
-                        "licence_template": r["licence_template"],
+                        "pageid": r["pageid"], "revid": r["revid"], "snapshot_revid": r["snapshot_revid"],
+                        "licence": r["licence"], "licence_template": r["licence_template"],
                         "attribution": rs.attribution(r["artist"], r["credit"]), "sha256": r["source_sha256"],
-                        "crop_box": r["crop_box"], "title": r["title"],
+                        "crop_box": r["crop_box"], "title": r["title"], "source": r.get("source"),
                         "s3_key": f"sources/images/{cat}/{fname}"})
         rs.check_manifest(man, cfg, need)
         rs.write_json(rs.REFSTIM / f"image_{cat}_manifest.json", man)
         src = "D-078" if cat in rs.d078_categories(cfg) else "D-074"
-        sections[f"Localiser images: {cat} ({src} source, D-075 filters)"] = man
+        sections[f"Localiser images: {cat} ({src} source, D-075 filters, D-079 v2 logs)"] = man
+    rs.write_json(rs.REFSTIM / "image_source_counts_v2.json", counts)
     text = rs.licenses_md(sections)
     for man in sections.values():
         rs.check_licenses_md(text, man)

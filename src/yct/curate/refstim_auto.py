@@ -461,6 +461,82 @@ def audit_prior(row: dict, prior: dict[str, dict], exempt: tuple[str, ...] = ("d
         raise StopError(f"determinism audit: {row['title']!r} now {a}, D-074 log {b}: STOP to the owner")
 
 
+# ---------------------------------------------------------------- D-079 (v2 logs after BUG-036)
+def check_frozen_d079(cfg: dict) -> None:
+    """The v2 run is refused unless controls.refclips_d079 and its flip sha are frozen and set."""
+    rows = {r["key"] for r in cfg.get("frozen") or []}
+    need = ["controls.refclips_d079", "controls.refclips_d079_artifacts.flip_sha256"]
+    missing = [k for k in need if k not in rows]
+    if missing:
+        raise StopError(f"not frozen: {missing}")
+    if not cfg["controls"]["refclips_d079_artifacts"].get("flip_sha256"):
+        raise StopError("controls.refclips_d079_artifacts.flip_sha256 not set")
+
+
+def audit_v2(row: dict, priors: list[tuple[str, dict[str, dict]]], flips: dict[str, set[str]],
+             exempt: tuple[str, ...], c1: tuple[str, ...]) -> None:
+    """D-079 determinism audit (non-selecting, fail-closed): the v2 row is compared with the row for the same
+    title in every superseded v1 log of its category. Equal (decision, reason), or either reason exempt
+    (C3 depends on the passes before it), or the title is in that log's committed BUG-036 flip list
+    (v1 C1 reject -> admissible now; the later rules are new evaluations). Anything else is a STOP. A listed
+    title that is not a v1 C1 reject, or is still a C1 reject in v2, contradicts the re-check: STOP."""
+    a = (row["decision"], row.get("reason") or None)
+    for name, rows in priors:
+        old = rows.get(row["title"])
+        if old is None:
+            continue
+        b = (old["decision"], old.get("reason") or None)
+        if row["sha256_title"] in flips.get(name, set()):
+            if b[1] not in c1 or a[1] in c1:
+                raise StopError(f"flip list contradiction for {row['title']!r}: v2 {a}, {name} {b}: STOP")
+            continue
+        if a != b and not ({a[1], b[1]} & set(exempt)):
+            raise StopError(f"determinism audit: {row['title']!r} now {a}, {name} {b}: STOP to the owner")
+
+
+def check_identity(snapshot_sha1: str | None, commons_sha1: str | None, data_sha1: str | None = None) -> None:
+    """D-079 identity rule (STOP): the file judged is the file snapshotted. Snapshot sha1 must equal the
+    current Commons imageinfo sha1 and, once downloaded, the sha1 of the bytes."""
+    if not snapshot_sha1 or not commons_sha1 or snapshot_sha1 != commons_sha1 or \
+            (data_sha1 is not None and data_sha1 != snapshot_sha1):
+        raise StopError(f"file identity: snapshot {snapshot_sha1} commons {commons_sha1} bytes {data_sha1}: "
+                        "STOP to the owner")
+
+
+def revid_fields(entry: dict, meta: dict) -> dict:
+    """D-079 revid rule (evaluate_current_log_both): templates are read at the current page revision; the
+    snapshot revid and the read revid are both logged; revid (manifest, LICENSES.md) = the read revid."""
+    if meta.get("read_revid") is None:
+        raise StopError("no read_revid from Commons (prop=info): STOP")
+    return {"snapshot_revid": entry["revid"], "read_revid": meta["read_revid"], "revid": meta["read_revid"],
+            "revid_drift": entry["revid"] != meta["read_revid"]}
+
+
+def templates_digest(templates: list[str]) -> str:
+    return hashlib.sha256(json.dumps(list(templates)).encode()).hexdigest()
+
+
+def preload_v2(st: State, cat: str, cfg: dict, root: Path, ran: list[str] | None = None) -> list[dict]:
+    """C3 state from the v2 log of `cat` only (earlier categories were preloaded when they ran, in
+    category_order). `ran` = the categories already processed in this run; it must be exactly the
+    categories before `cat` in category_order. v1 logs are never read here."""
+    from yct.curate import refstim as rs
+
+    order = cfg["controls"]["refclips_d079"]["category_order"]
+    before = order[:order.index(cat)]
+    if ran is not None and list(ran) != before:
+        raise StopError(f"{cat}: category order {list(ran)} != {before}: STOP")
+    p = Path(root) / rs.image_log_v2(cat, cfg)
+    done = [json.loads(x) for x in p.read_text().splitlines() if x.strip()] if p.exists() else []
+    for r in done:
+        if r.get("log_version", "v2") != "v2":
+            raise StopError(f"{p.name}: row with log_version {r.get('log_version')!r}: STOP")
+        if r["decision"] == "pass":
+            st.pass_sha1.add(r["sha1"])
+            st.pass_dhash.append(int(r["values"]["dhash"], 16))
+    return done
+
+
 def check_artifact(path: Path, want_sha256: str) -> None:
     h = hashlib.sha256(Path(path).read_bytes()).hexdigest()
     if h != want_sha256:

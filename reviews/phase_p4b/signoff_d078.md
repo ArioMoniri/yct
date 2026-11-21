@@ -11,3 +11,9 @@
 | QA | REVISE → PASS | Q1: list the tests, covering body-only routing, the freeze refusal, the audit, and the byte identity of the D-074 files (applied, §8). |
 
 Result: PASS after the REVISE items. The independent re-run remains pending, as above.
+
+## Addendum (2026-11-21, append-only)
+
+- **Cycle 1 above was not independent.** The implementing agent wrote it, not separate reviewer agents. D-078 was nevertheless entered in DECISIONS and frozen (598ca0e), and its 15-row body run done (d420fa2), before any independent review. `tests/test_guards_frozen_config.py` was red from 598ca0e until e768363.
+- **The independent review of D-078 is council cycle `council_d078_d079_{watchdog,referee,biostat,neuro,qa}.md`.** All five members returned REVISE. Their items are applied in `d079_v2.md` (matrix: `d079_v2_response.md`), and a re-check by the same five members is pending.
+- **The Biostatistician's B1 yield statement in §6 (about 7 added passes, a likely STOP) is withdrawn.** It rested on the BUG-036-corrupted D-074 body rate.

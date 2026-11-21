@@ -675,6 +675,29 @@ class RefClipsD078(M):                # D-078: second body category (amends D-07
     audit_exempt_reasons: list[Literal["duplicate"]]
 
 
+class D079Audit(M):                   # D-079
+    exempt_reasons: list[Literal["duplicate"]]
+    c1_reasons: list[Literal["licence", "personality_rights"]]
+    flip_file: Literal["data/refstim/bug036_c1_flips.json"]
+
+
+class RefClipsD079(M):                # D-079: v2 image logs after BUG-036 (amends D-074/D-075/D-078)
+    decision: Literal["D-079"]
+    amends: list[Literal["D-074", "D-075", "D-078"]]
+    log_version: Literal["v2"]
+    category_order: list[Literal["face", "body", "place"]]
+    logs: dict[Literal["face", "body", "place"], Annotated[str, Field(pattern=r"_v2\.jsonl$")]]
+    superseded_logs: dict[Literal["face", "body", "place"], list[str]]
+    audit: D079Audit
+    revid_rule: Literal["evaluate_current_log_both"]
+    identity_rule: Literal["stop"]
+    finality: Literal["v2_is_selection"]
+
+
+class RefClipsD079Artifacts(M):       # D-079
+    flip_sha256: Sha256 | None
+
+
 class AutoEnv(M):                     # D-075
     where: Literal["yct_pod_cpu"]
     python: Literal["3.12.3"]
@@ -837,6 +860,8 @@ class Controls(M):
     refclips_d074: RefClipsD074
     refclips_d078: RefClipsD078
     refclips_d078_artifacts: RefClipsD078Artifacts
+    refclips_d079: RefClipsD079
+    refclips_d079_artifacts: RefClipsD079Artifacts
     curation_http: CurationHttp
     refclips_auto: RefClipsAuto
     refclips_auto_artifacts: RefClipsAutoArtifacts
@@ -866,6 +891,12 @@ class Controls(M):
         for c in self.refclips_d078.categories:
             if self.refclips_d078.image_sources[c][0] != self.refclips_d074.image_sources[c][0]:
                 raise ValueError(f"controls.refclips_d078.image_sources.{c} must start with the D-074 source")
+        d9 = self.refclips_d079
+        if d9.category_order != self.refclips.loc_categories or set(d9.logs) != set(d9.category_order) \
+                or set(d9.superseded_logs) != set(d9.category_order):
+            raise ValueError("controls.refclips_d079 must route exactly refclips.loc_categories, in order")
+        if set(d9.logs.values()) & {p for v in d9.superseded_logs.values() for p in v}:
+            raise ValueError("controls.refclips_d079: a v2 log path is a superseded v1 log")
         reasons = set(self.refclips.reject_reasons)
         for rule, rs_ in self.refclips_auto.rule_reasons.items():
             for r in (rs_ if isinstance(rs_, list) else [rs_]):

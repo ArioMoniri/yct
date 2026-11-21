@@ -455,6 +455,24 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     audit_exempt_reasons: [duplicate]   # determinism audit vs the D-074 body log; any other mismatch = STOP
   refclips_d078_artifacts:     # D-078: set with the snapshot, frozen by its own row in the next commit
     body_snapshot_sha256: 5abe8cb59e5d5132830f0c10991e0db5ad05bbcc830c2537e978847feddf9e38   # image_body_d078_snapshot.json
+  refclips_d079:               # D-079 DRAFT (BUG-036): v2 image logs; frozen only after five independent sign-offs
+    decision: D-079
+    amends: [D-074, D-075, D-078]
+    log_version: v2              # the runner refuses to run unless this key and its artifacts row are frozen
+    category_order: [face, body, place]   # = refclips.loc_categories; C3 state only from v2 logs already run
+    logs: {face: data/refstim/image_face_auto_log_v2.jsonl, body: data/refstim/image_body_auto_log_v2.jsonl,
+           place: data/refstim/image_place_auto_log_v2.jsonl}
+    superseded_logs:             # kept byte-identical; read only by the determinism audit, never for selection
+      face: [data/refstim/image_face_auto_log.jsonl]
+      body: [data/refstim/image_body_auto_log.jsonl, data/refstim/image_body_d078_auto_log.jsonl]
+      place: []
+    audit: {exempt_reasons: [duplicate], c1_reasons: [licence, personality_rights],
+            flip_file: data/refstim/bug036_c1_flips.json}   # committed BUG-036 re-check list (sha frozen)
+    revid_rule: evaluate_current_log_both   # templates read at the current revision; snapshot + read revid logged
+    identity_rule: stop          # snapshot sha1 != Commons sha1 or != sha1(downloaded bytes) -> STOP to the owner
+    finality: v2_is_selection    # v3 only for a code defect (fail-closed check / BUG entry), from rank 1, disclosed
+  refclips_d079_artifacts:       # D-079: set with the flip file, frozen in the next commit
+    flip_sha256: null
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host
