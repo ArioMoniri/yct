@@ -490,6 +490,8 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
       place: []
     audit_c1_equivalence: true   # both rows C1 rejects (licence <-> personality_rights) = same outcome; both logged
     dry_audit_file: data/refstim/d080_dry_audit.json   # metadata-stage dry audit (pod, read-only), sha below
+    stop_resolution:             # D-080 council watchdog B1: Commons edited after the dry audit
+      audit_revid_drift: current_revision_stands_log_both_resume_next_rank   # read revid != superseded and != dry-audit revid; disclosed
     finality: v3_is_selection    # D-079 finality carried over: v4 only for a code defect, from rank 1, disclosed
   refclips_d080_artifacts:       # D-080: set with the dry-audit file, frozen in the freeze commit
     dry_audit_sha256: 35bb0b9530e11dd1b1912c65cd3053d4c2571dc271edfac7b36880df3eed6fe7   # data/refstim/d080_dry_audit.json (pod, 8148366)

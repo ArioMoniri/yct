@@ -498,7 +498,8 @@ def audit_pair(a: tuple, b: tuple, flipped: bool, exempt: tuple[str, ...], c1: t
 
 
 def audit_v2(row: dict, priors: list[tuple[str, dict[str, dict]]], flips: dict[str, set[str]],
-             exempt: tuple[str, ...], c1: tuple[str, ...], c1_equiv: bool = False) -> list[tuple]:
+             exempt: tuple[str, ...], c1: tuple[str, ...], c1_equiv: bool = False,
+             dry_revids: dict[str, int] | None = None) -> list[tuple]:
     """D-079 determinism audit (non-selecting, fail-closed): the v2 row is compared with the row for the same
     title in every superseded log of its category (audit_pair). Equal (decision, reason), or one reason exempt
     (C3 depends on the passes before it) while the other is not a C1 reason (re-check B2: C1 runs before C3,
@@ -507,7 +508,12 @@ def audit_v2(row: dict, priors: list[tuple[str, dict[str, dict]]], flips: dict[s
     evaluations), or (D-080, c1_equiv) both rows are C1 rejects. A v2 identity_changed reject is a different
     file from the one v1 judged: exempt. Anything else is a STOP, resolved as a code defect. A listed title
     that is not a v1 C1 reject, or is still a C1 reject in v2, contradicts the re-check: STOP.
-    Returns [(log name, kind, superseded reason if c1_equivalent/flip else None)]."""
+    D-080 council (watchdog B1, stop_resolution.audit_revid_drift): with `dry_revids` (sha256_title -> the
+    revid the dry audit read), a pair that would STOP is resolved as kind revid_drift when the row's
+    read_revid differs from both the superseded row's revid and the dry-audit revid: the Commons page was
+    edited after the dry audit, so the current-revision decision stands; both revids are logged and the
+    case is disclosed (revid_drift_disclosure). A title absent from the dry audit is never exempt.
+    Returns [(log name, kind, superseded reason if c1_equivalent/flip/revid_drift else None)]."""
     a = (row["decision"], row.get("reason") or None)
     if a[1] == IDENTITY_REASON:
         return []
@@ -517,10 +523,87 @@ def audit_v2(row: dict, priors: list[tuple[str, dict[str, dict]]], flips: dict[s
         if old is None:
             continue
         b = (old["decision"], old.get("reason") or None)
-        kind = audit_pair(a, b, row["sha256_title"] in flips.get(name, set()), exempt, c1, c1_equiv,
-                          row["title"], name)
-        out.append((name, kind, b[1] if kind in ("c1_equivalent", "flip") else None))
+        try:
+            kind = audit_pair(a, b, row["sha256_title"] in flips.get(name, set()), exempt, c1, c1_equiv,
+                              row["title"], name)
+        except StopError:
+            if not revid_drifted(row, old, dry_revids):
+                raise
+            kind = "revid_drift"
+        out.append((name, kind, b[1] if kind in ("c1_equivalent", "flip", "revid_drift") else None))
     return out
+
+
+def superseded_revid(old: dict):
+    """The revision a superseded row was judged at: read_revid (v2 rows) else revid (v1: snapshot revid)."""
+    return old.get("read_revid", old.get("revid"))
+
+
+def revid_drifted(row: dict, old: dict, dry_revids: dict[str, int] | None) -> bool:
+    """D-080 audit_revid_drift: the v3 read revision differs from the superseded and the dry-audit one."""
+    if dry_revids is None or row["sha256_title"] not in dry_revids or row.get("read_revid") is None:
+        return False
+    rv = row["read_revid"]
+    return rv != superseded_revid(old) and rv != dry_revids[row["sha256_title"]]
+
+
+def revid_drift_rows(row: dict, priors: list[tuple[str, dict[str, dict]]], notes: list[tuple],
+                     dry_revids: dict[str, int]) -> dict:
+    """Log entry for revid_drift pairs: superseded revid, dry-audit revid and the superseded decision."""
+    out = {}
+    for name, kind, _ in notes:
+        if kind != "revid_drift":
+            continue
+        old = dict(priors)[name][row["title"]]
+        out[name] = {"superseded_revid": superseded_revid(old),
+                     "dry_audit_revid": dry_revids[row["sha256_title"]],
+                     "superseded": [old["decision"], old.get("reason") or None]}
+    return out
+
+
+def revid_drift_disclosure(rows: list[dict]):
+    """D-080 report disclosure: every row resolved by audit_revid_drift, or "none"."""
+    out = [{"title": r["title"], "sha256_title": r["sha256_title"], "decision": r["decision"],
+            "read_revid": r.get("read_revid"), "logs": r["audit_revid_drift"]}
+           for r in rows if r.get("audit_revid_drift")]
+    return out or "none"
+
+
+DRY_AUDIT_CODE_PATHS = ("src/yct/curate/refstim*.py", "scripts/refstim_d080_dry_audit.py")
+
+
+def check_dry_audit(cfg: dict, root, run_commit: str, changed_paths) -> dict:
+    """D-080 launch rule in code (council referee B1 / biostat): before rank 1 the dry-audit file must hash to
+    the frozen sha, cover every category with superseded logs and every superseded log, have would_stop ==
+    [] everywhere, name its code commit, and no file in DRY_AUDIT_CODE_PATHS may have changed between that
+    commit and the run commit (`changed_paths(a, b, paths)` -> changed files). Any failure: STOP."""
+    d8, d9 = cfg["controls"]["refclips_d080"], cfg["controls"]["refclips_d079"]
+    p = Path(root) / d8["dry_audit_file"]
+    if not p.exists():
+        raise StopError(f"dry audit {p.name} missing: STOP")
+    want = cfg["controls"]["refclips_d080_artifacts"]["dry_audit_sha256"]
+    if hashlib.sha256(p.read_bytes()).hexdigest() != want:
+        raise StopError(f"dry audit {p.name} sha differs from the frozen dry_audit_sha256: STOP")
+    doc = json.loads(p.read_text())
+    for cat in d9["category_order"]:
+        logs = [Path(q).name for q in d9["superseded_logs"][cat]]
+        if not logs:
+            continue
+        c = (doc.get("categories") or {}).get(cat)
+        if c is None:
+            raise StopError(f"dry audit has no {cat} category: STOP")
+        miss = [n for n in logs if n not in (c.get("logs") or {})]
+        if miss:
+            raise StopError(f"dry audit {cat}: superseded log(s) {miss} not audited: STOP")
+        if c.get("would_stop") != []:
+            raise StopError(f"dry audit {cat}: would_stop is not empty: STOP")
+    if not doc.get("code_commit"):
+        raise StopError("dry audit has no code_commit: STOP")
+    ch = changed_paths(doc["code_commit"], run_commit, DRY_AUDIT_CODE_PATHS)
+    if ch:
+        raise StopError(f"code changed since the dry audit ({doc['code_commit'][:12]}): {ch}: "
+                        "re-run it: STOP")
+    return doc
 
 
 # ---------------------------------------------------------------- D-080 metadata-stage dry audit

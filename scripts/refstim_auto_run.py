@@ -165,6 +165,15 @@ def _head() -> str:
                           text=True).stdout.strip()
 
 
+def _git_changed(a: str, b: str, paths) -> list[str]:
+    """Files under `paths` (git pathspecs) that differ between commits a and b."""
+    import subprocess
+
+    out = subprocess.run(["git", "-C", str(ROOT), "diff", "--name-only", a, b, "--", *paths], check=True,
+                         capture_output=True, text=True).stdout
+    return [x for x in out.splitlines() if x.strip()]
+
+
 def run(model_dir: Path, scratch: Path) -> None:
     """D-079: evaluate face, body, place (category_order) into the v2 logs only, from rank 1, resuming from
     the v2 logs. The superseded v1 logs are read only by the determinism audit (audit_v2)."""
@@ -196,6 +205,9 @@ def run(model_dir: Path, scratch: Path) -> None:
                           cfg["controls"]["refclips_d079_artifacts"]["flip_sha256"], d9["flip_logs"])
     exempt, c1 = tuple(d9["audit"]["exempt_reasons"]), tuple(d9["audit"]["c1_reasons"])
     run_commit = _head()
+    dry = None
+    if cfg["controls"].get("refclips_d080"):    # D-080 launch rule, enforced before rank 1
+        dry = ra.check_dry_audit(cfg, ROOT, run_commit, _git_changed)
     det = RealDetectors(cfg, model_dir)
     keys, longest = ra.manifest_key_hashes()
     st = ra.State()
@@ -205,6 +217,7 @@ def run(model_dir: Path, scratch: Path) -> None:
         log_path = ROOT / rs.image_log_v2(cat, cfg)
         priors = [(Path(q).name, {r["title"]: r for r in _read_jsonl(ROOT / q)})
                   for q in d9["superseded_logs"][cat]]
+        dry_revids = ((dry["categories"].get(cat) or {}).get("read_revids") or {}) if dry else None
         done = ra.preload_v2(st, cat, cfg, ROOT, ran=ran)     # C3 state: v2 logs only, face -> body -> place
         n_pass = sum(r["decision"] == "pass" for r in done)
         snap = json.loads((snapdir / rs.snapshot_name_eff(cat, cfg)).read_text())
@@ -261,10 +274,13 @@ def run(model_dir: Path, scratch: Path) -> None:
                     row["source_sha256"] = hashlib.sha256(src.read_bytes()).hexdigest()
                     n_pass += 1
                 notes = ra.audit_v2(row, priors, flips, exempt, c1,
-                                    c1_equiv=d9["audit"].get("c1_equivalence", False))
+                                    c1_equiv=d9["audit"].get("c1_equivalence", False), dry_revids=dry_revids)
                 eq = {n: b for n, k, b in notes if k == "c1_equivalent"}
                 if eq:                         # D-080: both C1 reasons are logged
                     row["audit_c1_equivalent"] = eq
+                drift = ra.revid_drift_rows(row, priors, notes, dry_revids or {})
+                if drift:                      # D-080 audit_revid_drift: both revids logged, disclosed
+                    row["audit_revid_drift"] = drift
                 ra.append_jsonl(log_path, row)
                 i += 1
             print(cat, "evaluated", i, "passes", n_pass, flush=True)
@@ -290,7 +306,7 @@ def finalise(scratch: Path) -> None:
     if cfg["controls"].get("refclips_d080"):
         ra.check_frozen_d080(cfg)
     ver = cfg["controls"]["refclips_d079"]["log_version"]
-    need, sections, counts, ident = rc["loc_per_category"], {}, {}, {}
+    need, sections, counts, ident, drift = rc["loc_per_category"], {}, {}, {}, {}
     for cat in cfg["controls"]["refclips_d079"]["category_order"]:
         lp = ROOT / rs.image_log_v2(cat, cfg)
         rows = _read_jsonl(lp)
@@ -303,6 +319,7 @@ def finalise(scratch: Path) -> None:
                      extra_reasons=cfg["controls"]["refclips_d079"]["extra_reject_reasons"])
         counts[cat] = source_counts(rows)
         ident[cat] = ra.identity_disclosure(rows)
+        drift[cat] = ra.revid_drift_disclosure(rows)
         man = []
         for r in rows:
             if r["decision"] != "pass":
@@ -322,6 +339,8 @@ def finalise(scratch: Path) -> None:
              "v3": ("image_source_counts_v3.json", "image_identity_changed_v3.json")}[ver]
     rs.write_json(rs.REFSTIM / names[0], counts)
     rs.write_json(rs.REFSTIM / names[1], ident)   # D-079 §A disclosure
+    if ver == "v3":
+        rs.write_json(rs.REFSTIM / "image_revid_drift_v3.json", drift)   # D-080 audit_revid_drift disclosure
     text = rs.licenses_md(sections)
     for man in sections.values():
         rs.check_licenses_md(text, man)

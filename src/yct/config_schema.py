@@ -706,6 +706,10 @@ class RefClipsD079Artifacts(M):       # D-079
     flip_sha256: Sha256 | None
 
 
+class D080StopResolution(M):          # D-080 council watchdog B1
+    audit_revid_drift: Literal["current_revision_stands_log_both_resume_next_rank"]
+
+
 class RefClipsD080(M):                # D-080 draft (BUG-037): v3 logs, C1-equivalence in the audit
     decision: Literal["D-080"]
     amends: list[Literal["D-079"]]
@@ -714,6 +718,7 @@ class RefClipsD080(M):                # D-080 draft (BUG-037): v3 logs, C1-equiv
     superseded_logs_add: dict[Literal["face", "body", "place"], list[str]]
     audit_c1_equivalence: Literal[True]
     dry_audit_file: Literal["data/refstim/d080_dry_audit.json"]
+    stop_resolution: D080StopResolution
     finality: Literal["v3_is_selection"]
 
 

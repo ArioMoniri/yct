@@ -43,7 +43,8 @@ def audit_category(cat: str, priors: list[tuple[str, list[dict]]], entries: dict
     d9 = cfg["controls"]["refclips_d079"]
     exempt, c1 = tuple(d9["audit"]["exempt_reasons"]), tuple(d9["audit"]["c1_reasons"])
     eq = d9["audit"].get("c1_equivalence", False)
-    out: dict = {"logs": {}, "would_stop": []}
+    out: dict = {"logs": {}, "would_stop": [],
+                 "read_revids": {rs.title_key(t): meta[t].get("read_revid") for t in sorted(meta)}}
     preds: dict[str, tuple] = {}
     for name, rows in priors:
         n: dict[str, int] = {}
@@ -65,6 +66,18 @@ def audit_category(cat: str, priors: list[tuple[str, list[dict]]], entries: dict
     return out
 
 
+def _code_state() -> tuple[str, list[str]]:
+    """HEAD and any uncommitted change under ra.DRY_AUDIT_CODE_PATHS (D-080 council biostat c)."""
+    import subprocess
+
+    git = ["git", "-C", str(ROOT)]
+    head = subprocess.run([*git, "rev-parse", "HEAD"], check=True, capture_output=True,
+                          text=True).stdout.strip()
+    st = subprocess.run([*git, "status", "--porcelain", "--", *ra.DRY_AUDIT_CODE_PATHS], check=True,
+                        capture_output=True, text=True).stdout
+    return head, [x for x in st.splitlines() if x.strip()]
+
+
 def main(argv: list[str]) -> int:
     out_path = Path(argv[0])
     cfg = rs.effective_cfg(load_config())
@@ -72,8 +85,11 @@ def main(argv: list[str]) -> int:
     flips = rs.load_flips(ROOT / d9["audit"]["flip_file"],
                           cfg["controls"]["refclips_d079_artifacts"]["flip_sha256"], d9["flip_logs"])
     keys, longest = ra.manifest_key_hashes()
+    commit, dirty = _code_state()
+    if dirty:
+        raise ra.StopError(f"dry audit: uncommitted changes in {dirty}: commit first")
     doc = {"decision": "D-080", "source": "scripts/refstim_d080_dry_audit.py (fixed client, metadata only)",
-           "categories": {}}
+           "code_commit": commit, "categories": {}}
     for cat in d9["category_order"]:
         if not d9["superseded_logs"][cat]:
             continue
