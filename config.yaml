@@ -478,7 +478,7 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     finality: v2_is_selection    # v3 only for a code defect (fail-closed check / BUG entry), from rank 1, disclosed
   refclips_d079_artifacts:       # D-079: set with the flip file, frozen in the next commit
     flip_sha256: e7ce5c2a517d5ff77c0c36cb0bb483caace466a2968d6e8024595badc01f2067   # data/refstim/bug036_c1_flips.json (3310383, pod)
-  refclips_d080:               # D-080 DRAFT (BUG-037): v3 logs; council review first, then the two-commit freeze
+  refclips_d080:               # D-080 (BUG-037): v3 logs; 5/5 sign-offs (78c738a), frozen by the rows below
     decision: D-080
     amends: [D-079]
     log_version: v3              # the runner refuses to run unless this key and its artifacts row are frozen
@@ -688,3 +688,6 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   # D-079 (v2 image logs after BUG-036): frozen in the commit after the DECISIONS entry, before any v2 filter call
   - {key: controls.refclips_d079, frozen_at: a4709e34ec30c82c9e3cc67a378c3edbe0ab981c}
   - {key: controls.refclips_d079_artifacts.flip_sha256, frozen_at: a4709e34ec30c82c9e3cc67a378c3edbe0ab981c}
+  # D-080 (v3 image logs after BUG-037): frozen in the commit after the DECISIONS entry, before any v3 filter call
+  - {key: controls.refclips_d080, frozen_at: cb960bc9c1880d76ad4c84269812bf9c6db27ed7}
+  - {key: controls.refclips_d080_artifacts.dry_audit_sha256, frozen_at: cb960bc9c1880d76ad4c84269812bf9c6db27ed7}
