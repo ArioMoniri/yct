@@ -668,3 +668,6 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   # D-078 (body second category): frozen in the commit after the keys (two-commit freeze), before any filter call
   - {key: controls.refclips_d078, frozen_at: a18b246f457f025713d43a4dcaa296bf71624e9e}
   - {key: controls.refclips_d078_artifacts.body_snapshot_sha256, frozen_at: a18b246f457f025713d43a4dcaa296bf71624e9e}
+  # D-079 (v2 image logs after BUG-036): frozen in the commit after the DECISIONS entry, before any v2 filter call
+  - {key: controls.refclips_d079, frozen_at: a4709e34ec30c82c9e3cc67a378c3edbe0ab981c}
+  - {key: controls.refclips_d079_artifacts.flip_sha256, frozen_at: a4709e34ec30c82c9e3cc67a378c3edbe0ab981c}
