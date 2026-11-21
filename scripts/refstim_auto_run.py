@@ -273,8 +273,13 @@ def run(model_dir: Path, scratch: Path) -> None:
                     src = next(d.glob(f"{key[:16]}.*"))
                     row["source_sha256"] = hashlib.sha256(src.read_bytes()).hexdigest()
                     n_pass += 1
-                notes = ra.audit_v2(row, priors, flips, exempt, c1,
-                                    c1_equiv=d9["audit"].get("c1_equivalence", False), dry_revids=dry_revids)
+                try:
+                    notes = ra.audit_v2(row, priors, flips, exempt, c1,
+                                        c1_equiv=d9["audit"].get("c1_equivalence", False),
+                                        dry_revids=dry_revids)
+                except ra.StopError as exc:    # BUG-038: the evaluated row (templates, rule) is kept
+                    ra.write_stop_evidence(log_path, row, exc)
+                    raise
                 eq = {n: b for n, k, b in notes if k == "c1_equivalent"}
                 if eq:                         # D-080: both C1 reasons are logged
                     row["audit_c1_equivalent"] = eq

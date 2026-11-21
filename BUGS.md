@@ -80,3 +80,13 @@ Append-only log. Format: date | phase | id | summary | evidence.
   - **Possible causes, unresolved:** a transient or inconsistent Commons API response (a template-links table out of sync with the page), or an undiagnosed merge defect in `rs.query_pages`. No fix has been chosen.
   - **Council questions:** (a) log the full template list and its sha in every audit STOP message, and write the evidence row before the audit raises; (b) whether a C1 admissibility flip between the dry audit and the run, at the same revid, should get a pre-stated resolution (for example, re-read that title once and STOP only if it reproduces). Any such rule must be stated before the v4 run.
   - **Evidence:** data/refstim/image_face_auto_log_v3.jsonl (492 rows, sha 82fb41b6…697d) and data/refstim/image_body_auto_log_v3.jsonl (135 rows, sha 1bf2f025…a407), committed as evidence only. Run log: s3://yct-research-235229001983/refstim/v3_run1/refstim_v3.log. Nothing is running on the pod.
+  - **Root cause found (append, 2026-11-21):** an audit classification defect, not Commons and not the template merge. The audit read the reason code `personality_rights` as meaning C1, but the frozen `rule_reasons` also gives it to F7 and B4, the CLIP adult proxies that run after the download.
+    - The STOP title passed C1 (Cc-zero, admissible, as the flip list says) and was then rejected by B4: clip_adult was [0.977, 0.023] for the child and adult prompts.
+    - Evidence: a pod replay at 6ba2230 (read-only metadata, raw responses at s3://yct-research-235229001983/refstim/bug038/raw/). In the exact in-run batch `order[100:150]`, no file has Template:Personality rights and all 35 logged rows match their logged templates_sha256. A single-title rule replay gives B4. The committed v3 logs already hold one F7 (face row 44) and one B4 (body row 48) `personality_rights` row with no template.
+    - The same defect could silently exempt an unlisted C1 admissibility change as c1_equivalent. That did not occur: every logged c1_equivalent note is C1 on both sides.
+    - Full write-up: reviews/phase_p4b/bug038_rootcause.md.
+  - **FIXED in code (TDD, tests/test_refstim_bug038.py), pending council review (reviews/phase_p4b/d081_draft.md):**
+    - `ra.is_c1_reject` classifies by rule, and a reject row with no rule is a STOP. `audit_pair`, `audit_v2` and `dry_pair` use it.
+    - `ra.write_stop_evidence` writes `<log>.stop.json` with the full row before any audit STOP.
+    - Offline re-audit of all 627 v3 rows (data/refstim/bug038_audit_v3.json): 0 STOP, and no face pass or reject affected.
+    - Next under the frozen rule: council, D-081, a re-run of the dry audit at the fix commit, then v4 from rank 1.

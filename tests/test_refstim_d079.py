@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+from tests._refstim_rules import rule_for
 from yct.config import load_config
 from yct.curate import refstim as rs
 from yct.curate import refstim_auto as ra
@@ -129,7 +130,8 @@ def test_flip_file_sha_and_content_checked(tmp_path):
 
 # ------------------------------------------------------------------ determinism audit v2 vs v1
 def r(title, decision="reject", reason=None, key=None):
-    return {"title": title, "sha256_title": key or title, "decision": decision, "reason": reason}
+    return {"title": title, "sha256_title": key or title, "decision": decision, "reason": reason,
+            "rule": rule_for(decision, reason)}   # BUG-038: real rows carry their rule
 
 
 EX, C1 = ("duplicate",), ("licence", "personality_rights")

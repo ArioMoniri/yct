@@ -478,21 +478,41 @@ DEFECT = ("treat as a code defect (D-079 stop_resolution.other_audit_stop): BUG 
           "for every category")
 
 
+C1_RULE = "C1"
+
+
+def is_c1_reject(row: dict, c1: tuple[str, ...]) -> bool:
+    """BUG-038: a C1 (licence / Template:Personality rights) reject is identified by its RULE. The reason
+    code personality_rights is shared with F7/B4 (the CLIP adult proxy, after the download), so the reason
+    alone never says whether C1 was passed. A reject row without a rule fails closed."""
+    if row["decision"] != "reject":
+        return False
+    rule = row.get("rule")
+    if not rule:
+        raise StopError(f"reject row with no rule for {row.get('title')!r}: STOP; {DEFECT}")
+    if rule == C1_RULE and (row.get("reason") or None) not in c1:
+        raise StopError(f"C1 reject of {row.get('title')!r} with a non-C1 reason {row.get('reason')!r}: STOP")
+    return rule == C1_RULE
+
+
 def audit_pair(a: tuple, b: tuple, flipped: bool, exempt: tuple[str, ...], c1: tuple[str, ...],
-               c1_equiv: bool = False, title: str = "?", name: str = "?") -> str:
+               c1_equiv: bool = False, title: str = "?", name: str = "?", *, a_c1: bool, b_c1: bool) -> str:
     """Classify one (v2 decision, reason) `a` against one superseded-log (decision, reason) `b`, or STOP.
-    Kinds: flip (title in that log's committed BUG-036 flip list), equal, duplicate_exempt (re-check B2), and
-    with D-080 c1_equiv: c1_equivalent = both rows are C1 rejects (licence <-> personality_rights, BUG-037):
-    the selection outcome is identical, both reasons are logged."""
+    `a_c1` / `b_c1`: whether that row is a C1 reject, by rule (BUG-038, is_c1_reject); `c1` (the C1 reason
+    codes) is no longer read here. Kinds: flip (title in that log's committed BUG-036 flip list: v1 was a C1
+    reject and v2 passed C1), equal, duplicate_exempt (re-check B2: a duplicate passed C1, so it is exempt
+    only against a row that also passed C1), and with D-080 c1_equiv: c1_equivalent = both rows are C1
+    rejects (licence <-> personality_rights, BUG-037): the selection outcome is identical, both reasons are
+    logged."""
     if flipped:
-        if b[1] not in c1 or a[1] in c1:
+        if not b_c1 or a_c1:
             raise StopError(f"flip list contradiction for {title!r}: v2 {a}, {name} {b}: STOP")
         return "flip"
     if a == b:
         return "equal"
-    if (a[1] in exempt and b[1] not in c1) or (b[1] in exempt and a[1] not in c1):
+    if (a[1] in exempt and not b_c1) or (b[1] in exempt and not a_c1):
         return "duplicate_exempt"
-    if c1_equiv and a[0] == b[0] == "reject" and a[1] in c1 and b[1] in c1:
+    if c1_equiv and a_c1 and b_c1:
         return "c1_equivalent"
     raise StopError(f"determinism audit: {title!r} now {a}, {name} {b}: STOP; {DEFECT}")
 
@@ -518,14 +538,16 @@ def audit_v2(row: dict, priors: list[tuple[str, dict[str, dict]]], flips: dict[s
     if a[1] == IDENTITY_REASON:
         return []
     out = []
+    a_c1 = is_c1_reject(row, c1)          # BUG-038: by rule; a missing rule is a STOP (never revid_drift)
     for name, rows in priors:
         old = rows.get(row["title"])
         if old is None:
             continue
         b = (old["decision"], old.get("reason") or None)
+        b_c1 = is_c1_reject(old, c1)
         try:
             kind = audit_pair(a, b, row["sha256_title"] in flips.get(name, set()), exempt, c1, c1_equiv,
-                              row["title"], name)
+                              row["title"], name, a_c1=a_c1, b_c1=b_c1)
         except StopError:
             if not revid_drifted(row, old, dry_revids):
                 raise
@@ -643,10 +665,11 @@ def dry_pair(pred: tuple, v1: dict, flipped: bool, exempt: tuple[str, ...], c1: 
     if pred[2] == IDENTITY_REASON:
         return "identity_changed"
     b = (v1["decision"], v1.get("reason") or None)
+    b_c1 = is_c1_reject(v1, c1)             # BUG-038: by rule; a reject row without a rule STOPs
     v1_meta = b[0] == "reject" and v1.get("rule") in METADATA_RULES
     if pred[0] == "continue":
         if flipped:
-            return "flip" if b[1] in c1 else "would_stop"
+            return "flip" if b_c1 else "would_stop"
         if not v1_meta or v1.get("rule") == "C3":
             return "reaches_download"
         return "would_stop"
@@ -654,9 +677,19 @@ def dry_pair(pred: tuple, v1: dict, flipped: bool, exempt: tuple[str, ...], c1: 
     if not v1_meta and not flipped and b[1] not in exempt:
         return "would_stop"                 # v1 got past the metadata rules, v3 would not
     try:
-        return audit_pair(a, b, flipped, exempt, c1, c1_equiv, v1["title"], "v1")
+        return audit_pair(a, b, flipped, exempt, c1, c1_equiv, v1["title"], "v1",
+                          a_c1=pred[1] == C1_RULE, b_c1=b_c1)
     except StopError:
         return "would_stop"
+
+
+def write_stop_evidence(log_path: Path, row: dict, exc: Exception) -> Path:
+    """BUG-038: the full evaluated row (templates, templates_sha256, rule, values) of a title whose audit
+    STOPs is written next to the log before the STOP propagates, so the evidence is never lost. The log
+    itself stays the contiguous evaluated prefix (the STOP row is not appended)."""
+    out = log_path.with_name(log_path.name.removesuffix(".jsonl") + ".stop.json")
+    out.write_text(json.dumps({"stop": str(exc), "row": row}, sort_keys=True, indent=1, default=str) + "\n")
+    return out
 
 
 def check_frozen_d080(cfg: dict) -> None:

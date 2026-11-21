@@ -26,7 +26,8 @@ BATCH = slice(100, 150)
 
 
 def _runner():
-    spec = importlib.util.spec_from_file_location("refstim_auto_run", ROOT / "scripts" / "refstim_auto_run.py")
+    spec = importlib.util.spec_from_file_location("refstim_auto_run",
+                                                  ROOT / "scripts" / "refstim_auto_run.py")
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod

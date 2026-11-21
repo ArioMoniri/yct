@@ -6,6 +6,7 @@ from pathlib import Path
 
 import pytest
 
+from tests._refstim_rules import rule_for
 from tests.test_refstim_bug036 import TITLES, fake_commons
 from yct.config import load_config
 from yct.curate import refstim as rs
@@ -17,7 +18,8 @@ EX, C1 = tuple(D9["audit"]["exempt_reasons"]), tuple(D9["audit"]["c1_reasons"])
 
 
 def r(title, decision="reject", reason=None):
-    return {"title": title, "sha256_title": title, "decision": decision, "reason": reason}
+    return {"title": title, "sha256_title": title, "decision": decision, "reason": reason,
+            "rule": rule_for(decision, reason)}   # BUG-038: real rows carry their rule
 
 
 def audit(row, prior_rows, flips=frozenset()):

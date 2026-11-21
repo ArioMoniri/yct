@@ -1,0 +1,46 @@
+{
+ "body": {
+  "audit_kinds": {
+   "c1_equivalent": 2,
+   "equal": 74,
+   "flip": 16
+  },
+  "passes": 8,
+  "personality_rights_by_rule": {
+   "B4": 1,
+   "C1": 5
+  },
+  "reclassified_by_rule": [
+   {
+    "decision": "reject",
+    "reason": "personality_rights",
+    "rule": "B4",
+    "title": "File:Elderly Chinese American Man with Queue b.jpg"
+   }
+  ],
+  "rows": 135,
+  "stops": []
+ },
+ "face": {
+  "audit_kinds": {
+   "c1_equivalent": 1,
+   "equal": 368,
+   "flip": 141
+  },
+  "passes": 20,
+  "personality_rights_by_rule": {
+   "C1": 11,
+   "F7": 1
+  },
+  "reclassified_by_rule": [
+   {
+    "decision": "reject",
+    "reason": "personality_rights",
+    "rule": "F7",
+    "title": "File:Face in water.jpg"
+   }
+  ],
+  "rows": 492,
+  "stops": []
+ }
+}

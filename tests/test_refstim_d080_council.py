@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 
+from tests._refstim_rules import rule_for
 from yct.config import load_config
 from yct.curate import refstim as rs
 from yct.curate import refstim_auto as ra
@@ -22,7 +23,8 @@ EX, C1 = ("duplicate",), ("licence", "personality_rights")
 
 
 def row(title, decision="reject", reason=None, read_revid=None, revid=None):
-    d = {"title": title, "sha256_title": title, "decision": decision, "reason": reason}
+    d = {"title": title, "sha256_title": title, "decision": decision, "reason": reason,
+         "rule": rule_for(decision, reason)}   # BUG-038: real rows carry their rule
     if read_revid is not None:
         d["read_revid"] = read_revid
     if revid is not None:
