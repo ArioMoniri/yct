@@ -711,3 +711,5 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   - {key: controls.refclips_d081, frozen_at: f305da8814e8a682115972a5303dee6dd4a231a1}
   - {key: controls.refclips_d081_artifacts.dry_audit_sha256, frozen_at: f305da8814e8a682115972a5303dee6dd4a231a1}
   - {key: controls.refclips_d081_artifacts.reaudit_sha256, frozen_at: f305da8814e8a682115972a5303dee6dd4a231a1}
+  # D-081 v4 finalise: image manifest sha frozen in the commit after it was set (two-commit freeze)
+  - {key: controls.refclips_artifacts.image_manifest_sha256, frozen_at: 376966a7aed15ac7db4aa3fd4d7e7a4cb4d9b665}

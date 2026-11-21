@@ -126,6 +126,7 @@ D081_SHA = "f305da8814e8a682115972a5303dee6dd4a231a1"   # D-081 DECISIONS entry 
 D075_FROZEN += [("controls.refclips_d081", D081_SHA),
                 ("controls.refclips_d081_artifacts.dry_audit_sha256", D081_SHA),
                 ("controls.refclips_d081_artifacts.reaudit_sha256", D081_SHA)]   # D-081 step 2
+D075_FROZEN += [("controls.refclips_artifacts.image_manifest_sha256", "376966a7aed15ac7db4aa3fd4d7e7a4cb4d9b665")]   # D-081 v4 finalise
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
