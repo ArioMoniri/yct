@@ -27,5 +27,8 @@ Each required item and where it is applied. "§" refers to d079_v2.md.
 | QA | 3 untested fail-closed paths | Added: missing/invalid, unrequested, normalized, non-terminating continue, Personality rights in a continuation, page_meta_c4 truncated | tests/test_refstim_bug036.py |
 | QA | 4 log full template list (or sha) and read revid; drift logged | `templates`, `templates_sha256`, `snapshot_revid`, `read_revid`, `revid_drift`, `commons_sha1` per row | runner; §2.6 |
 
-Not yet done (needs the sign-offs first): run the re-check with `--flips` on the pod, commit the flip
-file and its sha, then the freeze commit and DECISIONS D-079.
+Done: the flip file was produced on the pod (3310383), committed, and its sha set (not frozen). Counts
+reproduce §4.
+
+Not yet done (needs the five sign-offs first): the freeze commit (frozen rows plus test_guards_frozen_config
+rows) and DECISIONS D-079, then the v2 run from a green commit.

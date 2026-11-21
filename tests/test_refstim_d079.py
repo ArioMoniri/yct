@@ -246,6 +246,28 @@ def test_templates_digest_is_stable():
     assert ra.templates_digest(t) == hashlib.sha256(json.dumps(t).encode()).hexdigest()
 
 
+# ------------------------------------------------------------------ the committed flip file
+def committed_flips():
+    sha = CFG["controls"]["refclips_d079_artifacts"]["flip_sha256"]
+    return rs.load_flips(ROOT / D["audit"]["flip_file"], sha, D["superseded_logs"])
+
+
+def test_committed_flip_file_matches_config_and_recheck_counts():
+    want = {"image_face_auto_log.jsonl": 260, "image_body_auto_log.jsonl": 108,
+            "image_body_d078_auto_log.jsonl": 3}
+    assert {k: len(v) for k, v in committed_flips().items()} == want
+
+
+def test_every_listed_flip_is_a_v1_c1_reject():
+    f = committed_flips()
+    for paths in V1.values():
+        for p in paths:
+            rows = {x["sha256_title"]: x for x in map(json.loads, (ROOT / p).read_text().splitlines())}
+            listed = f[Path(p).name]
+            assert listed <= set(rows)
+            assert all(rows[k]["reason"] in D["audit"]["c1_reasons"] for k in listed)
+
+
 # ------------------------------------------------------------------ re-check flip list builder
 def test_recheck_diff_rows_lists_flips_by_sha256_title():
     import importlib.util

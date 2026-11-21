@@ -472,7 +472,7 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     identity_rule: stop          # snapshot sha1 != Commons sha1 or != sha1(downloaded bytes) -> STOP to the owner
     finality: v2_is_selection    # v3 only for a code defect (fail-closed check / BUG entry), from rank 1, disclosed
   refclips_d079_artifacts:       # D-079: set with the flip file, frozen in the next commit
-    flip_sha256: null
+    flip_sha256: e7ce5c2a517d5ff77c0c36cb0bb483caace466a2968d6e8024595badc01f2067   # data/refstim/bug036_c1_flips.json (3310383, pod)
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host
