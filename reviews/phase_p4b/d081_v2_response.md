@@ -1,0 +1,21 @@
+# D-081 cycle 1: response matrix (wf_0b4d3341-8ef)
+
+| # | Member | Item | Resolution | Where |
+|---|---|---|---|---|
+| 1 | biostat, neuro, QA (blocking) | B1: `audit_pair` returns `equal` on matching (decision, reason) before the C1-class test | Fixed. `audit_pair` STOPs when both rows are rejects and `a_c1 != b_c1`. The check comes before `equal`; `dry_pair` reaches it through `audit_pair`. Tested in both directions for C1 against B4 and C1 against F7, directly and through `audit_v2`. A same-class pair stays `equal` | `src/yct/curate/refstim_auto.py` `audit_pair`; `tests/test_refstim_d081.py` |
+| 2 | biostat, neuro, QA | Count same-reason/different-C1-class pairs and regenerate the v3 re-audit and its sha | `scripts/refstim_bug038_audit_v3.py` now lists them, pinned to the D-080 superseded set. Regenerated: 0 such pairs and 0 STOP in face and body. The new launch re-audit counts them too and requires 0 | `data/refstim/bug038_audit_v3.json` (sha fe70527c…17ba); `data/refstim/d081_reaudit.json` |
+| 3 | watchdog (1), every member (Q1) | No separate F7/B4 reason code; freeze a test that every reason shared between C1 and a non-C1 rule is classified by rule | No reason-code change. The new test derives the shared reasons from the frozen `rule_reasons`, fails if there are none, and requires classification by rule plus a cross-class STOP for each. It also checks that `c1_reasons` equals the frozen C1 `rule_reasons`. D-081 v2 §2 says `rule` is the audit key and `reason` is a label | `tests/test_refstim_d081.py`; `d081_v2.md` §2 |
+| 4 | watchdog (2), referee, biostat, neuro, QA (Q2) | Post-download re-audit as a fail-closed launch precondition in code, with a frozen sha and the code-change guard | `ra.post_download_reaudit` and `rs.post_download_reaudit_cfg` cover every superseded post-BUG-036 log, v3 included. `ra.check_frozen_d081` requires the frozen keys, both shas set, the recomputed document's sha equal to the frozen one, 0 STOP and 0 cross-class pairs. `run()` and `finalise()` call it on a document recomputed at launch. `scripts/refstim_d081_reaudit.py` is added to `DRY_AUDIT_CODE_PATHS` | `refstim_auto.py`, `refstim.py`, `scripts/refstim_auto_run.py`, `scripts/refstim_d081_reaudit.py`; tests |
+| 5 | watchdog (3) | Fix the §4 wording: c1_equivalent and duplicate_exempt differences do not STOP | Rewritten to list exactly which kinds do not STOP and which do | `d081_v2.md` §4 |
+| 6 | biostat (nit), referee (nit), QA (nit), neuro (nit) | Pin the `rule_for` mapping; do not fall back to C0 for an unknown reason | `tests/_refstim_rules.py` now uses an explicit `PINNED` map, and an unknown reason raises `KeyError`. A test checks every pinned pair against the frozen map. No existing assertion changed | `tests/_refstim_rules.py`; `tests/test_refstim_d081.py` |
+| 7 | referee | Disclose that the re-audit covers only rows already evaluated | Disclosed: it says nothing about body ranks 136+ or about place, which the in-run audit covers | `d081_v2.md` §3.3 |
+| 8 | neuro | Disclose the per-category count of F7/B4 adult-proxy rejects; do not tune the filter | Each re-audit log entry has `adult_proxy_rejects` (v3: face 1, body 1), and the v1 report gives the per-category counts for v4. The filter is not tuned | `refstim_auto.py`; `d081_v2.md` §4 |
+| 9 | all | Cheaper path (resume or reuse v3): none allowed | Agreed. v4 runs from rank 1 for every category, with the v3 logs in the superseded set | `d081_v2.md` §3.1 |
+| 10 | watchdog, QA | Re-run the dry audit at the fix commit (the code guard requires it) | Done on the pod, metadata only, at the D-081 code commit. Output is `data/refstim/d081_dry_audit.json`; its sha is set in `refclips_d081_artifacts.dry_audit_sha256` but not frozen | `d081_v2.md` §3.2 |
+
+## Test-file edits (not weakening)
+- **`tests/test_refstim_d080.py` and `tests/test_refstim_d080_council.py`:** their module-level `CFG` now drops
+  `controls.refclips_d081`, so they keep testing the D-080 (v3) layer they were written for. No assertion was
+  changed or removed. The v4 layer is tested in `tests/test_refstim_d081.py`.
+- **`tests/_refstim_rules.py`:** the explicit `PINNED` map replaces the YAML-order derivation. It gives the
+  same rule for every reason in use, and an unknown reason now raises instead of returning C0.

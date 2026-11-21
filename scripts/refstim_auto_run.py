@@ -186,6 +186,8 @@ def run(model_dir: Path, scratch: Path) -> None:
     ra.check_frozen_d079(cfg)
     if cfg["controls"].get("refclips_d080"):
         ra.check_frozen_d080(cfg)
+    if cfg["controls"].get("refclips_d081"):   # D-081: frozen keys + recomputed post-download re-audit
+        ra.check_frozen_d081(cfg, rs.post_download_reaudit_cfg(load_config(), ROOT))
     rs.check_d079_routing(cfg)
     ra.check_env(cfg, installed())
     p = artifact_paths(model_dir)
@@ -310,6 +312,8 @@ def finalise(scratch: Path) -> None:
     ra.check_frozen_d079(cfg)
     if cfg["controls"].get("refclips_d080"):
         ra.check_frozen_d080(cfg)
+    if cfg["controls"].get("refclips_d081"):
+        ra.check_frozen_d081(cfg, rs.post_download_reaudit_cfg(load_config(), ROOT))
     ver = cfg["controls"]["refclips_d079"]["log_version"]
     need, sections, counts, ident, drift = rc["loc_per_category"], {}, {}, {}, {}
     for cat in cfg["controls"]["refclips_d079"]["category_order"]:

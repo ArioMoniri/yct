@@ -726,6 +726,22 @@ class RefClipsD080Artifacts(M):       # D-080
     dry_audit_sha256: Sha256 | None
 
 
+class RefClipsD081(M):                # D-081 draft (BUG-038): v4 logs from rank 1; rule-based C1 audit
+    decision: Literal["D-081"]
+    amends: list[Literal["D-080"]]
+    log_version: Literal["v4"]
+    logs: dict[Literal["face", "body", "place"], Annotated[str, Field(pattern=r"_v4\.jsonl$")]]
+    superseded_logs_add: dict[Literal["face", "body", "place"], list[str]]
+    dry_audit_file: Literal["data/refstim/d081_dry_audit.json"]
+    reaudit_file: Literal["data/refstim/d081_reaudit.json"]
+    finality: Literal["v4_is_selection"]
+
+
+class RefClipsD081Artifacts(M):       # D-081
+    dry_audit_sha256: Sha256 | None
+    reaudit_sha256: Sha256 | None
+
+
 class AutoEnv(M):                     # D-075
     where: Literal["yct_pod_cpu"]
     python: Literal["3.12.3"]
@@ -892,6 +908,8 @@ class Controls(M):
     refclips_d079_artifacts: RefClipsD079Artifacts
     refclips_d080: RefClipsD080
     refclips_d080_artifacts: RefClipsD080Artifacts
+    refclips_d081: RefClipsD081
+    refclips_d081_artifacts: RefClipsD081Artifacts
     curation_http: CurationHttp
     refclips_auto: RefClipsAuto
     refclips_auto_artifacts: RefClipsAutoArtifacts
@@ -935,6 +953,13 @@ class Controls(M):
             raise ValueError("controls.refclips_d080: a v3 log path is a v1/v2 log")
         if any(set(v) - {d9.logs[c]} for c, v in d8.superseded_logs_add.items()):
             raise ValueError("controls.refclips_d080.superseded_logs_add may only name D-079 v2 logs")
+        d81 = self.refclips_d081
+        if set(d81.logs) != set(d9.category_order) or set(d81.superseded_logs_add) != set(d9.category_order):
+            raise ValueError("controls.refclips_d081 must route exactly refclips.loc_categories")
+        if set(d81.logs.values()) & (old | set(d8.logs.values())):
+            raise ValueError("controls.refclips_d081: a v4 log path is a v1/v2/v3 log")
+        if any(set(v) - {d8.logs[c]} for c, v in d81.superseded_logs_add.items()):
+            raise ValueError("controls.refclips_d081.superseded_logs_add may only name D-080 v3 logs")
         reasons = set(self.refclips.reject_reasons)
         if set(d9.extra_reject_reasons) & reasons:
             raise ValueError("controls.refclips_d079.extra_reject_reasons repeats a frozen "

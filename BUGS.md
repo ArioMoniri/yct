@@ -90,3 +90,8 @@ Append-only log. Format: date | phase | id | summary | evidence.
     - `ra.write_stop_evidence` writes `<log>.stop.json` with the full row before any audit STOP.
     - Offline re-audit of all 627 v3 rows (data/refstim/bug038_audit_v3.json): 0 STOP, and no face pass or reject affected.
     - Next under the frozen rule: council, D-081, a re-run of the dry audit at the fix commit, then v4 from rank 1.
+  - **Council cycle 1 (wf_0b4d3341-8ef), append 2026-11-21:** the fix above still let a same-reason, cross-C1-class reject pair through as `equal` (C1/personality_rights against B4/F7 personality_rights). This was latent: 0 such pairs in the committed logs.
+    - **Closed (TDD, tests/test_refstim_d081.py):** `audit_pair` STOPs when both rows are rejects and exactly one is C1, checked before the `equal` test.
+    - **Re-audit:** bug038_audit_v3.json regenerated with the count, 0 pairs and 0 STOP (sha fe70527c…17ba).
+    - **Launch precondition in code:** `ra.check_frozen_d081` recomputes the post-download re-audit over every superseded log at launch (data/refstim/d081_reaudit.json).
+    - **Write-up:** reviews/phase_p4b/d081_v2.md and d081_v2_response.md.

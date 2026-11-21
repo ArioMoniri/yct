@@ -88,7 +88,8 @@ def main(argv: list[str]) -> int:
     commit, dirty = _code_state()
     if dirty:
         raise ra.StopError(f"dry audit: uncommitted changes in {dirty}: commit first")
-    doc = {"decision": "D-080", "source": "scripts/refstim_d080_dry_audit.py (fixed client, metadata only)",
+    decision = "D-081" if load_config()["controls"].get("refclips_d081") else "D-080"
+    doc = {"decision": decision, "source": "scripts/refstim_d080_dry_audit.py (fixed client, metadata only)",
            "code_commit": commit, "categories": {}}
     for cat in d9["category_order"]:
         if not d9["superseded_logs"][cat]:

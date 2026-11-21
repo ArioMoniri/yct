@@ -1,0 +1,43 @@
+{
+ "body": {
+  "logs": {
+   "image_body_auto_log_v3.jsonl": {
+    "adult_proxy_rejects": 1,
+    "audit_kinds": {
+     "c1_equivalent": 2,
+     "equal": 74,
+     "flip": 16
+    },
+    "passes": 8,
+    "rows": 135
+   }
+  },
+  "same_reason_diff_class": 0,
+  "stops": []
+ },
+ "face": {
+  "logs": {
+   "image_face_auto_log_v2.jsonl": {
+    "adult_proxy_rejects": 0,
+    "audit_kinds": {
+     "equal": 16,
+     "flip": 2
+    },
+    "passes": 0,
+    "rows": 18
+   },
+   "image_face_auto_log_v3.jsonl": {
+    "adult_proxy_rejects": 1,
+    "audit_kinds": {
+     "c1_equivalent": 1,
+     "equal": 368,
+     "flip": 141
+    },
+    "passes": 20,
+    "rows": 492
+   }
+  },
+  "same_reason_diff_class": 0,
+  "stops": []
+ }
+}

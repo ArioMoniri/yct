@@ -230,8 +230,8 @@ def check_d079_routing(cfg: dict) -> None:
     (KeyError when the D-079 key is absent)."""
     d = cfg["controls"]["refclips_d079"]
     ver = d["log_version"]
-    if ver not in ("v2", "v3"):
-        raise CurationError(f"refclips_d079.log_version {ver!r} not in ('v2', 'v3')")
+    if ver not in ("v2", "v3", "v4"):
+        raise CurationError(f"refclips_d079.log_version {ver!r} not in ('v2', 'v3', 'v4')")
     if d["category_order"] != cfg["controls"]["refclips"]["loc_categories"]:
         raise CurationError("refclips_d079.category_order != refclips.loc_categories")
     old = {p for v in d["superseded_logs"].values() for p in v}
@@ -258,7 +258,47 @@ def effective_cfg(cfg: dict) -> dict:
     d9["superseded_logs"] = {c: list(v) + list(d8["superseded_logs_add"].get(c, []))
                              for c, v in d9["superseded_logs"].items()}
     d9["audit"]["c1_equivalence"] = bool(d8["audit_c1_equivalence"])
+    d81 = out["controls"].get("refclips_d081")
+    if not d81:
+        return out
+    # D-081 (BUG-038): v4 logs from rank 1; the v3 logs join the superseded (audit-only) logs; the D-080
+    # launch rule (check_dry_audit) reads the D-081 dry audit and its sha. Derived copy only: the frozen
+    # D-080 keys in the config are never edited.
+    d9.update(log_version=d81["log_version"], logs=copy.deepcopy(d81["logs"]), finality=d81["finality"])
+    d9["superseded_logs"] = {c: list(v) + list(d81["superseded_logs_add"].get(c, []))
+                             for c, v in d9["superseded_logs"].items()}
+    out["controls"]["refclips_d080"]["dry_audit_file"] = d81["dry_audit_file"]
+    out["controls"]["refclips_d080_artifacts"]["dry_audit_sha256"] = \
+        (out["controls"].get("refclips_d081_artifacts") or {}).get("dry_audit_sha256")
     return out
+
+
+def post_download_reaudit_cfg(cfg: dict, root: Path) -> dict:
+    """D-081 (watchdog 2): ra.post_download_reaudit over the committed superseded logs of the effective
+    config (raw `cfg` in, never mutated). Baseline = the D-079 v1 logs (flip_logs); each v3 log is audited
+    with the read revids of the D-080 dry audit its run used; other logs with none."""
+    from yct.curate import refstim_auto as ra
+
+    eff = effective_cfg(cfg)
+    d9 = eff["controls"]["refclips_d079"]
+    flips = load_flips(Path(root) / d9["audit"]["flip_file"],
+                       eff["controls"]["refclips_d079_artifacts"]["flip_sha256"], d9["flip_logs"])
+    v3 = cfg["controls"].get("refclips_d080") or {}
+    dry80 = {}
+    if v3:
+        dry80 = json.loads((Path(root) / v3["dry_audit_file"]).read_text()).get("categories") or {}
+    cats, base, dry = {}, {}, {}
+    for cat in d9["category_order"]:
+        paths = d9["superseded_logs"][cat]
+        if not paths:
+            continue
+        cats[cat] = [(Path(q).name, [json.loads(x) for x in (Path(root) / q).read_text().splitlines()
+                                     if x.strip()]) for q in paths]
+        base[cat] = {Path(q).name for q in d9["flip_logs"][cat]}
+        if v3:
+            dry[cat] = {Path(v3["logs"][cat]).name: (dry80.get(cat) or {}).get("read_revids") or {}}
+    exempt, c1 = tuple(d9["audit"]["exempt_reasons"]), tuple(d9["audit"]["c1_reasons"])
+    return ra.post_download_reaudit(cats, base, flips, exempt, c1, dry_revids=dry)
 
 
 def image_log_v2(category: str, cfg: dict) -> str:

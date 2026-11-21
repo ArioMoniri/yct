@@ -508,6 +508,11 @@ def audit_pair(a: tuple, b: tuple, flipped: bool, exempt: tuple[str, ...], c1: t
         if not b_c1 or a_c1:
             raise StopError(f"flip list contradiction for {title!r}: v2 {a}, {name} {b}: STOP")
         return "flip"
+    if a[0] == "reject" and b[0] == "reject" and a_c1 != b_c1:
+        # D-081 council B1: a reject that is C1 on one side only is an admissibility change, even when
+        # the reason codes match (personality_rights is C1 and F7/B4): never 'equal', never exempt
+        raise StopError(f"determinism audit: {title!r} C1 class differs: v2 {a} (C1={a_c1}), {name} {b} "
+                        f"(C1={b_c1}): STOP; {DEFECT}")
     if a == b:
         return "equal"
     if (a[1] in exempt and not b_c1) or (b[1] in exempt and not a_c1):
@@ -591,7 +596,8 @@ def revid_drift_disclosure(rows: list[dict]):
     return out or "none"
 
 
-DRY_AUDIT_CODE_PATHS = ("src/yct/curate/refstim*.py", "scripts/refstim_d080_dry_audit.py")
+DRY_AUDIT_CODE_PATHS = ("src/yct/curate/refstim*.py", "scripts/refstim_d080_dry_audit.py",
+                        "scripts/refstim_d081_reaudit.py")   # D-081 council referee/QA: re-audit code too
 
 
 def check_dry_audit(cfg: dict, root, run_commit: str, changed_paths) -> dict:
@@ -681,6 +687,81 @@ def dry_pair(pred: tuple, v1: dict, flipped: bool, exempt: tuple[str, ...], c1: 
                           a_c1=pred[1] == C1_RULE, b_c1=b_c1)
     except StopError:
         return "would_stop"
+
+
+def post_download_reaudit(cats: dict[str, list[tuple[str, list[dict]]]], baseline: dict[str, set[str]],
+                          flips: dict[str, set[str]], exempt: tuple[str, ...], c1: tuple[str, ...],
+                          dry_revids: dict[str, dict[str, dict]] | None = None) -> dict:
+    """D-081 (watchdog 2): offline re-audit of every superseded post-BUG-036 log (no network, no detector,
+    selects nothing). `cats`: per category, the superseded logs in order (name, rows); logs named in
+    `baseline` (the D-079 v1 logs) are only compared against. Every other log's rows are audited with
+    audit_v2 (c1_equiv) against all EARLIER logs of the category; `dry_revids[cat][log]` is the dry-audit
+    revid map that log's run used (else None). Counts kinds per log, every STOP, the logged-vs-recomputed
+    c1_equivalent notes, and same-reason/different-C1-class reject pairs (B1). Launch needs 0 of both."""
+    out: dict = {}
+    for cat, logs in cats.items():
+        res: dict = {"logs": {}, "stops": [], "same_reason_diff_class": 0}
+        for i, (name, rows) in enumerate(logs):
+            if name in baseline.get(cat, set()):
+                continue
+            priors = [(n, {x["title"]: x for x in rr}) for n, rr in logs[:i]]
+            dry = ((dry_revids or {}).get(cat) or {}).get(name)
+            kinds: dict[str, int] = {}
+            for row in rows:
+                for _, prev in priors:
+                    old = prev.get(row["title"])
+                    if (old is not None and row["decision"] == old["decision"] == "reject"
+                            and (row.get("reason") or None) == (old.get("reason") or None)
+                            and row.get("rule") and old.get("rule")
+                            and (row["rule"] == C1_RULE) != (old["rule"] == C1_RULE)):
+                        res["same_reason_diff_class"] += 1
+                try:
+                    notes = audit_v2(row, priors, flips, exempt, c1, c1_equiv=True, dry_revids=dry)
+                except StopError as exc:
+                    res["stops"].append({"log": name, "title": row["title"], "stop": str(exc)[:240]})
+                    continue
+                for _, k, _ in notes:
+                    kinds[k] = kinds.get(k, 0) + 1
+                eq = {n for n, k, _ in notes if k == "c1_equivalent"}
+                if eq != set(row.get("audit_c1_equivalent") or {}):
+                    res["stops"].append({"log": name, "title": row["title"],
+                                         "stop": "c1_equivalent notes differ from the logged ones"})
+            res["logs"][name] = {"rows": len(rows), "passes": sum(x["decision"] == "pass" for x in rows),
+                                 "audit_kinds": dict(sorted(kinds.items())),
+                                 # D-081 council neuro: disclosed count of CLIP adult-proxy rejects
+                                 "adult_proxy_rejects": sum(x["decision"] == "reject"
+                                                            and x.get("rule") in ADULT_PROXY_RULES
+                                                            for x in rows)}
+        out[cat] = res
+    return out
+
+
+ADULT_PROXY_RULES = ("F7", "B4")   # the frozen CLIP adult argmax rules (reason personality_rights)
+
+D081_FROZEN_KEYS = ("controls.refclips_d081", "controls.refclips_d081_artifacts.dry_audit_sha256",
+                    "controls.refclips_d081_artifacts.reaudit_sha256")
+
+
+def check_frozen_d081(cfg: dict, doc: dict) -> None:
+    """D-081 launch precondition in code (watchdog 2): the D-081 keys are frozen, the re-audit `doc` the
+    runner recomputed from the committed logs hashes (canonical JSON) to the frozen reaudit_sha256, and it
+    has 0 STOP and 0 same-reason/different-C1-class pairs in every category. Otherwise STOP."""
+    rows = {r["key"] for r in cfg.get("frozen") or []}
+    missing = [k for k in D081_FROZEN_KEYS if k not in rows]
+    if missing:
+        raise StopError(f"not frozen: {missing}")
+    arts = cfg["controls"].get("refclips_d081_artifacts") or {}
+    if not arts.get("reaudit_sha256"):
+        raise StopError("controls.refclips_d081_artifacts.reaudit_sha256 not set")
+    if not arts.get("dry_audit_sha256"):
+        raise StopError("controls.refclips_d081_artifacts.dry_audit_sha256 not set")
+    text = json.dumps(doc, sort_keys=True, indent=1, ensure_ascii=False) + "\n"   # == refstim.canonical
+    if hashlib.sha256(text.encode("utf-8")).hexdigest() != arts["reaudit_sha256"]:
+        raise StopError("post-download re-audit sha differs from the frozen reaudit_sha256: STOP")
+    for cat, c in doc.items():
+        if c.get("stops") or c.get("same_reason_diff_class"):
+            raise StopError(f"post-download re-audit {cat}: {len(c.get('stops') or [])} stop(s), "
+                            f"{c.get('same_reason_diff_class')} same-reason/different-C1-class pair(s): STOP")
 
 
 def write_stop_evidence(log_path: Path, row: dict, exc: Exception) -> Path:

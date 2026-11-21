@@ -19,6 +19,8 @@ from yct.curate import refstim_auto as ra
 
 ROOT = Path(__file__).resolve().parents[1]
 CFG = load_config()
+# these tests pin the D-080 (v3) layer; the D-081 v4 layer is tested in test_refstim_d081
+CFG["controls"].pop("refclips_d081", None)
 EX, C1 = ("duplicate",), ("licence", "personality_rights")
 
 
