@@ -149,3 +149,49 @@ Founder videos whose metadata declares a non-English audio language were exclude
 - **web.archive.org**: requests timed out after the first success and were not retried.
 - **Blocked or unreadable sources**: one founder blog sits behind a JavaScript bot challenge and was skipped, not worked around. Medium and LinkedIn pages often hide embedded video ids.
 - **Unverified fields**: some non-YouTube rows have unverified audio language. One row's poster is a co-founder who is not in the directory's founder list. Details are in the sealed notes.
+
+## Round 6 (2026-11-21, append-only)
+
+Data Curator, blind to study hypotheses. Appended 9 new pool rows `yct_0719`..`yct_0727` (wave=2, collected_after_lock=PENDING). Every company is disjoint from `data/manifest.csv` and from all earlier pool rows. Disjointness was checked by company_id, by fuzzy company-name match (including YC-directory former names), and by video id / LinkedIn activity id against both manifests and both exclusion lists. One candidate was dropped because its name fuzzy-matched a wave-1 company. One video per company: 9 rows = 9 companies. No outcome breakdowns appear in this file. Labels and evidence are only in `data/sealed/sealed_w2pool_part7.tar.age` (yct_0719..0727). The plaintext was shredded after encryption.
+
+### Counts by label confidence x era (round-6 rows, one per company)
+
+| confidence | E1 | E2 | E3 | UNKNOWN | total |
+|---|---|---|---|---|---|
+| A (in_primary=True) | 0 | 1 | 3 | 2 | 6 |
+| not A (B) | 0 | 0 | 2 | 1 | 3 |
+| total | 0 | 1 | 5 | 3 | 9 |
+
+The one-per-company counts are the same (9 distinct companies, 6 conf-A). claimed_batch is UNKNOWN when the uploader or founder stated no batch, which gives the 3 UNKNOWN-era rows. Three conf-A rows were matched through a YC-directory former name (the application used the company's earlier name). The B rows were uploaded by company accounts with no founder post claiming them.
+
+### Sources used
+- **YouTube Data API v3**:
+  - About 70 search.list calls with new phrasings only, checked against both search logs before running. These included "YC pitch <batch>", "<batch> founder video" for batch codes not tried before (W17–W21, S17–S22, F26), "YC Application <year>", "1 minute for YC", "the video we sent to YC", "YC ED application video", and non-English-title variants (Chinese, Korean, French, Turkish). They also included `ycombinator` with `videoDuration=short` and order=date windows around 12 application deadlines from 2016 to 2022.
+  - Re-review of about 3,000 earlier-seen candidates and the earlier 240-channel upload dump against a fresh yc-oss directory dump, including former names. This used no new API calls and produced 2 of the conf-A rows.
+  - commentThreads.list on about 1,100 application-like candidates, looking for uploader replies that state an outcome.
+  - playlistItems.list on founder channels to keep one video per company.
+- **Exa web search** (6 queries): Spanish-language LinkedIn posts, Instagram/TikTok reels, X posts, and founder sites that publish their application. Exa fetch was used for a 2016 Medium application.
+- **LinkedIn**: public post pages, checked through their VideoObject metadata.
+- **Web fetch**: founder blogs and docs, plus one application PDF.
+- **Other**:
+  - Hacker News Algolia (8 new phrasings, no application videos).
+  - The YC directory (yc-oss dump plus ycombinator.com company pages) for batch, founders and former names.
+  - Founder identity was cross-checked through LinkedIn profiles and investor pages where the channel name differed from the directory name.
+
+### YouTube API units
+About 8,300 units used of the daily ~10,000 (about 70 search.list calls plus about 1,100 commentThreads calls and small videos/playlistItems/channels calls). No 403 quotaExceeded was hit.
+
+### Exclusions
+297 reviewed candidates were appended to `exclusions.csv`, with reason categories only and no outcome words in any written URL. The main reasons were:
+- no stated outcome / no directory match (C)
+- non-English metadata
+- not an application video
+- launch/demo videos
+- dead or unavailable links
+- one possible duplicate company (fuzzy name match to a wave-1 company)
+
+### Blockers / caveats
+- **YouTube is saturated**: most searches returned fewer than 15 unseen videos, nearly all with no stated outcome and no directory match. New rows came mainly from former-name re-matching of already-seen candidates.
+- **Exa/LinkedIn is saturated**: most relevant posts had already been reviewed. Several promising posts had no native video, a dead short link (404 target), or a demo rather than a founder video.
+- **Old published applications**: some founder videos are now private or deleted, and some application PDFs omit the video URL.
+- **Unverified fields**: two of the conf-A rows rest on a directory batch match for the upload's application window, with no batch stated by the founder. One founder match goes through a channel name that differs from the directory's short form, and that name was confirmed via LinkedIn and an investor page. Details are in the sealed notes.

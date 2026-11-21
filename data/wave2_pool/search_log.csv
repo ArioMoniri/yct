@@ -352,3 +352,90 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-20T09:05:00Z,hn_algolia(author),"author_EREFUNDO submissions (Our YC Video for W13)",50,0
 2026-11-20T09:05:00Z,linkedin_fetch,"public LinkedIn post pages (VideoObject check) for 5 Exa hits",5,0
 2026-11-20T09:05:00Z,ycombinator_directory,"yc-oss companies dump + ycombinator.com/companies pages for batch/founder/former-name checks",6402,0
+2026-11-21T08:18:13Z,youtube_data_api_v3,"Dear YC",50,48
+2026-11-21T08:18:15Z,youtube_data_api_v3,"Hi YC team",50,22
+2026-11-21T08:18:16Z,youtube_data_api_v3,"YC 申请视频",50,33
+2026-11-21T08:18:17Z,youtube_data_api_v3,"YC 지원 영상",50,12
+2026-11-21T08:18:18Z,youtube_data_api_v3,"vidéo candidature Y Combinator",50,10
+2026-11-21T08:18:19Z,youtube_data_api_v3,"YC başvuru videosu",50,47
+2026-11-21T08:21:06Z,youtube_data_api_v3,"YC pitch W25",50,14
+2026-11-21T08:21:06Z,youtube_data_api_v3,"YC pitch S24",50,6
+2026-11-21T08:21:07Z,youtube_data_api_v3,"Y Combinator pitch W24",50,7
+2026-11-21T08:21:08Z,youtube_data_api_v3,"rejected by YC accepted into",50,26
+2026-11-21T08:21:09Z,youtube_data_api_v3,"1 minute for YC",50,9
+2026-11-21T08:21:10Z,youtube_data_api_v3,"our 1 minute video for Y Combinator",50,6
+2026-11-21T08:21:10Z,youtube_data_api_v3,"YC Winter 2019 Pitch",50,25
+2026-11-21T08:21:11Z,youtube_data_api_v3,"YC X25 pitch",13,7
+2026-11-21T08:21:12Z,youtube_data_api_v3,"applied to YC with this video",50,4
+2026-11-21T08:21:12Z,youtube_data_api_v3,"the video we sent to YC",50,12
+2026-11-21T08:21:13Z,youtube_data_api_v3,"video we submitted to Y Combinator",50,4
+2026-11-21T08:21:14Z,youtube_data_api_v3,"YC application video teardown",50,21
+2026-11-21T08:22:01Z,youtube_data_api_v3,"YC 1 Minute Video",50,1
+2026-11-21T08:22:01Z,youtube_data_api_v3,"YC team video",50,4
+2026-11-21T08:22:02Z,youtube_data_api_v3,"YC cofounder video",50,10
+2026-11-21T08:22:03Z,youtube_data_api_v3,"Y Combinator intro",50,3
+2026-11-21T08:22:04Z,youtube_data_api_v3,"Y Combinator Video Pitch",50,0
+2026-11-21T08:22:04Z,youtube_data_api_v3,"YC Application 2019",50,28
+2026-11-21T08:22:05Z,youtube_data_api_v3,"YC Application 2021",50,22
+2026-11-21T08:22:06Z,youtube_data_api_v3,"YC Application 2022",50,33
+2026-11-21T08:22:07Z,youtube_data_api_v3,"YC Application 2023",50,12
+2026-11-21T08:22:08Z,youtube_data_api_v3,"YC application 2017",50,41
+2026-11-21T08:22:08Z,youtube_data_api_v3,"YC application 2018",50,30
+2026-11-21T08:22:09Z,youtube_data_api_v3,"YC application 2020",50,26
+2026-11-21T08:22:10Z,youtube_data_api_v3,"YC application 2015",50,29
+2026-11-21T08:22:11Z,youtube_data_api_v3,"founder video for YC",50,1
+2026-11-21T08:23:37Z,youtube_data_api_v3,"Koywe postulación YC",0,0
+2026-11-21T08:23:43Z,youtube_data_api_v3,"Koywe",50,49
+2026-11-21T08:24:41Z,youtube_data_api_v3,"ycombinator [2016-02-20..2016-04-01] order=date videoDuration=short",19,1
+2026-11-21T08:24:42Z,youtube_data_api_v3,"ycombinator [2016-08-20..2016-10-10] order=date videoDuration=short",11,2
+2026-11-21T08:24:42Z,youtube_data_api_v3,"ycombinator [2017-02-20..2017-04-01] order=date videoDuration=short",19,7
+2026-11-21T08:24:43Z,youtube_data_api_v3,"ycombinator [2017-08-20..2017-10-10] order=date videoDuration=short",38,12
+2026-11-21T08:24:44Z,youtube_data_api_v3,"ycombinator [2018-02-20..2018-04-01] order=date videoDuration=short",25,7
+2026-11-21T08:24:44Z,youtube_data_api_v3,"ycombinator [2018-08-20..2018-10-10] order=date videoDuration=short",32,9
+2026-11-21T08:24:45Z,youtube_data_api_v3,"ycombinator [2020-02-20..2020-04-01] order=date videoDuration=short",29,10
+2026-11-21T08:24:46Z,youtube_data_api_v3,"ycombinator [2020-08-20..2020-10-10] order=date videoDuration=short",50,24
+2026-11-21T08:24:46Z,youtube_data_api_v3,"ycombinator [2021-02-20..2021-04-01] order=date videoDuration=short",50,34
+2026-11-21T08:24:47Z,youtube_data_api_v3,"ycombinator [2021-08-20..2021-10-10] order=date videoDuration=short",50,23
+2026-11-21T08:24:48Z,youtube_data_api_v3,"ycombinator [2022-02-20..2022-04-01] order=date videoDuration=short",50,29
+2026-11-21T08:24:48Z,youtube_data_api_v3,"ycombinator [2022-08-20..2022-10-10] order=date videoDuration=short",50,26
+2026-11-21T08:29:27Z,youtube_data_api_v3,"meet the founders YC application",50,10
+2026-11-21T08:29:28Z,youtube_data_api_v3,"cofounders introduce YC",50,12
+2026-11-21T08:29:28Z,youtube_data_api_v3,"YC founder intro W24",50,4
+2026-11-21T08:29:29Z,youtube_data_api_v3,"YC founders intro S23",50,3
+2026-11-21T08:29:30Z,youtube_data_api_v3,"YC S2024 application",50,10
+2026-11-21T08:29:30Z,youtube_data_api_v3,"Y Combinator application Fall 2025",50,6
+2026-11-21T08:29:31Z,youtube_data_api_v3,"YC application Spring 2026",50,4
+2026-11-21T08:29:32Z,youtube_data_api_v3,"founders introduction Y Combinator batch",50,8
+2026-11-21T08:29:33Z,youtube_data_api_v3,"our founder video YC",50,1
+2026-11-21T08:31:20Z,youtube_data_api_v3,"YC W20 founder video",50,13
+2026-11-21T08:31:21Z,youtube_data_api_v3,"YC S20 founder video",50,14
+2026-11-21T08:31:22Z,youtube_data_api_v3,"YC W21 founder video",50,7
+2026-11-21T08:31:22Z,youtube_data_api_v3,"YC S21 founder video",50,15
+2026-11-21T08:31:23Z,youtube_data_api_v3,"YC S22 founder video",50,8
+2026-11-21T08:31:24Z,youtube_data_api_v3,"YC F26 founder video",50,5
+2026-11-21T08:33:11Z,youtube_data_api_v3,"YC W19 founder video",50,13
+2026-11-21T08:33:12Z,youtube_data_api_v3,"YC S19 founder video",50,8
+2026-11-21T08:33:12Z,youtube_data_api_v3,"YC S18 founder video",50,11
+2026-11-21T08:33:13Z,youtube_data_api_v3,"YC W18 founder video",50,8
+2026-11-21T08:33:14Z,youtube_data_api_v3,"YC S17 founder video",50,8
+2026-11-21T08:33:15Z,youtube_data_api_v3,"YC W17 founder video",50,9
+2026-11-21T08:33:15Z,youtube_data_api_v3,"YC W2021 founder video",50,11
+2026-11-21T08:33:16Z,youtube_data_api_v3,"YC ED application video",50,11
+2026-11-21T08:33:17Z,youtube_data_api_v3,"YC early decision founder video",50,3
+2026-11-21T09:10:00Z,youtube_data_api_v3(re-review),"keyword + former-name re-match of 3055 earlier-seen candidates and 240-channel upload dump (no new API calls)",3400,4
+2026-11-21T09:10:00Z,youtube_data_api_v3(commentThreads),"commentThreads.list on application-like candidates <=3 min (uploader replies with outcome)",1096,2
+2026-11-21T09:10:00Z,youtube_data_api_v3(playlistItems),"uploads playlists of 5 founder channels (REZI, Write It Off, Tuva Health, Quid, Circle) for one-video-per-company check",5,0
+2026-11-21T09:10:00Z,youtube_data_api_v3(videos.list),"detail checks for individual candidate ids",10,0
+2026-11-21T09:10:00Z,exa_search,"LinkedIn post: nuestro video de aplicación a Y Combinator, quedamos en el batch (video adjunto)",20,3
+2026-11-21T09:10:00Z,exa_search,"instagram reel founder: this is the one minute video we sent with our Y Combinator application",20,1
+2026-11-21T09:10:00Z,exa_search,"x.com founder tweet with video: our YC video from when we applied, now we're in the batch",25,2
+2026-11-21T09:10:00Z,exa_search,"founder personal website page titled our YC application with embedded YouTube founder video (2023-2026)",25,2
+2026-11-21T09:10:00Z,exa_search,"founder blog post: we got into Y Combinator, here is the exact 1-minute founder video we submitted",25,1
+2026-11-21T09:10:00Z,exa_search,"founder-identity follow-ups (Shelfer.ai co-founder; Sirka co-founder)",10,0
+2026-11-21T09:10:00Z,exa_fetch,"medium.com/the-mission (2016 published application) + linkedin pulse page",2,1
+2026-11-21T09:10:00Z,linkedin_fetch,"public LinkedIn post pages (VideoObject check) for 4 Exa hits",4,2
+2026-11-21T09:10:00Z,lnkd.in_resolve,"lnkd.in short link from a W23 founder post (target page 404)",1,0
+2026-11-21T09:10:00Z,webfetch,"founder blogs/pages: docs.koywe.com, timfoldy-porto.com (+ application PDF), andy-thinks.com, shelfer.ai",5,0
+2026-11-21T09:10:00Z,hn_algolia(comment+story),"new phrasings: video for YC / our pitch video / yc pitch video / video application vimeo / made a video for yc / our YC app / submitted to yc video / the video we made (0 application videos)",1600,0
+2026-11-21T09:10:00Z,ycombinator_directory,"yc-oss companies dump (fresh) + ycombinator.com/companies pages for batch/founder/former-name checks",5600,0
+2026-11-21T08:25:00Z,youtube_data_api_v3,"x (accidental test call; results discarded)",1,0
