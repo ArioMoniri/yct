@@ -442,6 +442,19 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     image_snapshot_limit: 6000 # per source; more refuses the snapshot (complete enumeration, nothing truncated)
     require_complete: true
     snapshot_file_suffix: "_d074"   # data/refstim/snapshots/image_<cat>_d074_snapshot.json
+  refclips_d078:               # D-078 (owner 2026-11-21 "Add 2nd category"): body source amendment of D-074; licences unchanged
+    decision: D-078
+    amends: D-074
+    categories: [body]
+    image_sources:
+      body: [{category: "Rear views of people", depth: 0}, {category: "Rear views of men", depth: 0}]
+    base: frozen_d074_snapshot   # base entries = image_body_d074_snapshot.json verbatim (not re-enumerated)
+    selection: union_sha256_title_from_start   # first 20 passes over the union, new log; earlier outcomes unused
+    snapshot_file_suffix: "_d078"   # data/refstim/snapshots/image_body_d078_snapshot.json
+    log_suffix: "_d078"             # data/refstim/image_body_d078_auto_log.jsonl
+    audit_exempt_reasons: [duplicate]   # determinism audit vs the D-074 body log; any other mismatch = STOP
+  refclips_d078_artifacts:     # D-078: set with the snapshot, frozen by its own row in the next commit
+    body_snapshot_sha256: 5abe8cb59e5d5132830f0c10991e0db5ad05bbcc830c2537e978847feddf9e38   # image_body_d078_snapshot.json
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host

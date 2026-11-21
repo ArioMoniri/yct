@@ -439,6 +439,28 @@ def check_frozen(cfg: dict) -> None:
         raise StopError(f"artifact shas not set: {unset}")
 
 
+def check_frozen_d078(cfg: dict) -> None:
+    """D-078 body runs are refused unless controls.refclips_d078 and its snapshot sha are frozen and set."""
+    rows = {r["key"] for r in cfg.get("frozen") or []}
+    need = ["controls.refclips_d078", "controls.refclips_d078_artifacts.body_snapshot_sha256"]
+    missing = [k for k in need if k not in rows]
+    if missing:
+        raise StopError(f"not frozen: {missing}")
+    if not cfg["controls"]["refclips_d078_artifacts"].get("body_snapshot_sha256"):
+        raise StopError("controls.refclips_d078_artifacts.body_snapshot_sha256 not set")
+
+
+def audit_prior(row: dict, prior: dict[str, dict], exempt: tuple[str, ...] = ("duplicate",)) -> None:
+    """D-078 determinism audit: a candidate already in the superseded D-074 log must get the same
+    (decision, reason), unless either reason is exempt (C3 depends on the passes before it)."""
+    old = prior.get(row["title"])
+    if old is None:
+        return
+    a, b = (row["decision"], row.get("reason") or None), (old["decision"], old.get("reason") or None)
+    if a != b and not ({a[1], b[1]} & set(exempt)):
+        raise StopError(f"determinism audit: {row['title']!r} now {a}, D-074 log {b}: STOP to the owner")
+
+
 def check_artifact(path: Path, want_sha256: str) -> None:
     h = hashlib.sha256(Path(path).read_bytes()).hexdigest()
     if h != want_sha256:

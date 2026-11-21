@@ -201,6 +201,79 @@ def image_snapshot_sha_d074(snapshot_dir: Path, cfg: dict) -> str:
     return h.hexdigest()
 
 
+# ---------------------------------------------------------------- D-078 (body: second category)
+def d078_categories(cfg: dict) -> list[str]:
+    return list(cfg["controls"]["refclips_d078"]["categories"])
+
+
+def snapshot_name_d078(category: str, cfg: dict) -> str:
+    return f"image_{category}{cfg['controls']['refclips_d078']['snapshot_file_suffix']}_snapshot.json"
+
+
+def snapshot_name_eff(category: str, cfg: dict) -> str:
+    """The snapshot a category is filtered from: D-078 for its categories, else D-074."""
+    if category in d078_categories(cfg):
+        return snapshot_name_d078(category, cfg)
+    return snapshot_name_d074(category, cfg)
+
+
+def image_log_rel(category: str, cfg: dict) -> str:
+    d = cfg["controls"]["refclips_d078"]
+    tag = category + (d["log_suffix"] if category in d078_categories(cfg) else "")
+    return cfg["controls"]["refclips_auto"]["logs"]["image"].replace("<cat>", tag)
+
+
+def header_for_d078(cfg: dict, category: str, utc_date: str, base_sha256: str) -> dict:
+    d, d4 = cfg["controls"]["refclips_d078"], cfg["controls"]["refclips_d074"]
+    return {
+        "kind": "image",
+        "decision": d["decision"],
+        "amends": d["amends"],
+        "category": category,
+        "sources": [dict(x) for x in d["image_sources"][category]],
+        "base_snapshot": snapshot_name_d074(category, cfg),
+        "base_snapshot_sha256": base_sha256,
+        "namespace": d4["namespace"],
+        "api": d4["api"],
+        "limit": d4["image_snapshot_limit"],
+        "utc_date": utc_date,
+    }
+
+
+def build_d078_snapshot(header: dict, base: dict, fetch_members: Callable[[str, int, int], dict]) -> dict:
+    """Base = the frozen D-074 snapshot's entries verbatim, first; then every added source, enumerated
+    completely within the limit, unioned and deduplicated by title (first seen wins)."""
+    nb = len(base["header"]["sources"])
+    if base["header"]["sources"] != header["sources"][:nb] or nb >= len(header["sources"]):
+        raise CurationError("D-078 header sources must extend the D-074 base sources")
+    entries = list(base["entries"])
+    seen = {e["title"] for e in entries}
+    for src in header["sources"][nb:]:
+        r = fetch_members(src["category"], header["namespace"], header["limit"])
+        if r.get("complete") is not True:
+            raise CurationError(f"incomplete enumeration of Category:{src['category']}")
+        if len(r["entries"]) > header["limit"]:
+            raise CurationError(f"Category:{src['category']} has more than {header['limit']} files")
+        for e in r["entries"]:
+            missing = [f for f in D074_FIELDS if f not in e]
+            if missing:
+                raise CurationError(f"entry {e.get('title')!r} lacks {missing}")
+            if e["title"] in seen:
+                continue
+            seen.add(e["title"])
+            entries.append({**{f: e[f] for f in D074_FIELDS}, "source": src["category"]})
+    return {"header": {**header, "complete": True, "n_members": len(entries)}, "entries": entries}
+
+
+def check_header_d078(snapshot: dict, cfg: dict, snapshot_dir: Path) -> None:
+    h = snapshot["header"]
+    base_sha = file_sha(Path(snapshot_dir) / snapshot_name_d074(h.get("category"), cfg))
+    want = {**header_for_d078(cfg, h.get("category"), h["utc_date"], base_sha), "complete": True,
+            "n_members": len(snapshot["entries"])}
+    if h != want:
+        raise CurationError(f"D-078 snapshot header {h} != config {want}")
+
+
 def ordered(snapshot: dict) -> list[dict]:
     return sorted(snapshot["entries"], key=lambda e: title_key(e["title"]))
 

@@ -178,20 +178,35 @@ def run(model_dir: Path, scratch: Path) -> None:
     want_snap = cfg["controls"]["refclips_artifacts"]["image_snapshot_sha256"]
     if rs.image_snapshot_sha_d074(snapdir, cfg) != want_snap:
         raise ra.StopError("D-074 image snapshots differ from the frozen sha")
+    d078 = rs.d078_categories(cfg)
+    if d078:
+        ra.check_frozen_d078(cfg)
+        for cat in d078:
+            if rs.file_sha(snapdir / rs.snapshot_name_d078(cat, cfg)) != \
+                    cfg["controls"]["refclips_d078_artifacts"]["body_snapshot_sha256"]:
+                raise ra.StopError("D-078 snapshot differs from the frozen sha")
+    exempt = tuple(cfg["controls"]["refclips_d078"]["audit_exempt_reasons"])
     det = RealDetectors(cfg, model_dir)
     keys, longest = ra.manifest_key_hashes()
     st = ra.State()
     need = rc["loc_per_category"]
     for cat in rc["loc_categories"]:
-        log_path = ROOT / a["logs"]["image"].replace("<cat>", cat)
+        log_path = ROOT / rs.image_log_rel(cat, cfg)
+        prior = {}
+        if cat in d078:   # superseded D-074 log: never preloaded, used only for the determinism audit
+            old = ROOT / a["logs"]["image"].replace("<cat>", cat)
+            prior = {r["title"]: r for r in map(json.loads, old.read_text().splitlines())}
         done = [json.loads(x) for x in log_path.read_text().splitlines()] if log_path.exists() else []
         for r in done:
             if r["decision"] == "pass":
                 st.pass_sha1.add(r["sha1"])
                 st.pass_dhash.append(int(r["values"]["dhash"], 16))
         n_pass = sum(r["decision"] == "pass" for r in done)
-        snap = json.loads((snapdir / rs.snapshot_name_d074(cat, cfg)).read_text())
-        rs.check_header_d074(snap, cfg)
+        snap = json.loads((snapdir / rs.snapshot_name_eff(cat, cfg)).read_text())
+        if cat in d078:
+            rs.check_header_d078(snap, cfg, snapdir)
+        else:
+            rs.check_header_d074(snap, cfg)
         order = rs.ordered(snap)
         d = scratch / cat
         d.mkdir(parents=True, exist_ok=True)
@@ -230,6 +245,7 @@ def run(model_dir: Path, scratch: Path) -> None:
                     src = next(d.glob(f"{key[:16]}.*"))
                     row["source_sha256"] = hashlib.sha256(src.read_bytes()).hexdigest()
                     n_pass += 1
+                ra.audit_prior(row, prior, exempt)
                 ra.append_jsonl(log_path, row)
                 i += 1
             print(cat, "evaluated", i, "passes", n_pass, flush=True)
@@ -239,12 +255,12 @@ def run(model_dir: Path, scratch: Path) -> None:
 
 def finalise(scratch: Path) -> None:
     cfg = load_config()
-    a, rc = cfg["controls"]["refclips_auto"], cfg["controls"]["refclips"]
+    rc = cfg["controls"]["refclips"]
     need, sections = rc["loc_per_category"], {}
     for cat in rc["loc_categories"]:
-        lp = ROOT / a["logs"]["image"].replace("<cat>", cat)
+        lp = ROOT / rs.image_log_rel(cat, cfg)
         rows = [json.loads(x) for x in lp.read_text().splitlines()]
-        snap = json.loads((rs.REFSTIM / "snapshots" / rs.snapshot_name_d074(cat, cfg)).read_text())
+        snap = json.loads((rs.REFSTIM / "snapshots" / rs.snapshot_name_eff(cat, cfg)).read_text())
         log = [{"title": r["title"], "sha256_title": r["sha256_title"], "decision": r["decision"],
                 "reason": r["reason"] or ""} for r in rows]
         rs.check_log(log, snap, cfg, need)
@@ -261,7 +277,8 @@ def finalise(scratch: Path) -> None:
                         "s3_key": f"sources/images/{cat}/{fname}"})
         rs.check_manifest(man, cfg, need)
         rs.write_json(rs.REFSTIM / f"image_{cat}_manifest.json", man)
-        sections[f"Localiser images: {cat} (D-074 source, D-075 filters)"] = man
+        src = "D-078" if cat in rs.d078_categories(cfg) else "D-074"
+        sections[f"Localiser images: {cat} ({src} source, D-075 filters)"] = man
     text = rs.licenses_md(sections)
     for man in sections.values():
         rs.check_licenses_md(text, man)

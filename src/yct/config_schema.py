@@ -642,6 +642,10 @@ class RefClipArtifacts(M):            # D-071 (d): null until set; frozen row pe
     manifest_sha256: Sha256 | None
 
 
+class RefClipsD078Artifacts(M):       # D-078
+    body_snapshot_sha256: Sha256 | None
+
+
 class D074Source(M):                  # D-074
     category: Annotated[str, Field(min_length=1)]
     depth: Literal[0]
@@ -657,6 +661,18 @@ class RefClipsD074(M):                # D-074: Commons category candidate source
     image_snapshot_limit: PosInt
     require_complete: Literal[True]
     snapshot_file_suffix: Literal["_d074"]
+
+
+class RefClipsD078(M):                # D-078: second body category (amends D-074)
+    decision: Literal["D-078"]
+    amends: Literal["D-074"]
+    categories: list[Literal["body"]]
+    image_sources: dict[Literal["body"], Annotated[list[D074Source], Field(min_length=2)]]
+    base: Literal["frozen_d074_snapshot"]
+    selection: Literal["union_sha256_title_from_start"]
+    snapshot_file_suffix: Literal["_d078"]
+    log_suffix: Literal["_d078"]
+    audit_exempt_reasons: list[Literal["duplicate"]]
 
 
 class AutoEnv(M):                     # D-075
@@ -819,6 +835,8 @@ class Controls(M):
     refclips: RefClips
     refclips_artifacts: RefClipArtifacts
     refclips_d074: RefClipsD074
+    refclips_d078: RefClipsD078
+    refclips_d078_artifacts: RefClipsD078Artifacts
     curation_http: CurationHttp
     refclips_auto: RefClipsAuto
     refclips_auto_artifacts: RefClipsAutoArtifacts
@@ -843,6 +861,11 @@ class Controls(M):
         if set(self.refclips_d074.image_sources) != set(self.refclips.loc_categories):
             raise ValueError("controls.refclips_d074.image_sources must cover exactly "
                              "refclips.loc_categories")
+        if set(self.refclips_d078.categories) != set(self.refclips_d078.image_sources):
+            raise ValueError("controls.refclips_d078.categories must equal its image_sources keys")
+        for c in self.refclips_d078.categories:
+            if self.refclips_d078.image_sources[c][0] != self.refclips_d074.image_sources[c][0]:
+                raise ValueError(f"controls.refclips_d078.image_sources.{c} must start with the D-074 source")
         reasons = set(self.refclips.reject_reasons)
         for rule, rs_ in self.refclips_auto.rule_reasons.items():
             for r in (rs_ if isinstance(rs_, list) else [rs_]):
