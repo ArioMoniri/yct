@@ -122,6 +122,10 @@ D075_FROZEN += [("controls.refclips_d079", D079_SHA),
 D080_SHA = "cb960bc9c1880d76ad4c84269812bf9c6db27ed7"   # D-080 DECISIONS entry (5/5 sign-off at 78c738a)
 D075_FROZEN += [("controls.refclips_d080", D080_SHA),
                 ("controls.refclips_d080_artifacts.dry_audit_sha256", D080_SHA)]   # D-080 step 2
+D081_SHA = "f305da8814e8a682115972a5303dee6dd4a231a1"   # D-081 DECISIONS entry (5/5 sign-off at caf46de)
+D075_FROZEN += [("controls.refclips_d081", D081_SHA),
+                ("controls.refclips_d081_artifacts.dry_audit_sha256", D081_SHA),
+                ("controls.refclips_d081_artifacts.reaudit_sha256", D081_SHA)]   # D-081 step 2
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():

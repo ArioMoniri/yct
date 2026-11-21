@@ -707,3 +707,7 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   # D-080 (v3 image logs after BUG-037): frozen in the commit after the DECISIONS entry, before any v3 filter call
   - {key: controls.refclips_d080, frozen_at: cb960bc9c1880d76ad4c84269812bf9c6db27ed7}
   - {key: controls.refclips_d080_artifacts.dry_audit_sha256, frozen_at: cb960bc9c1880d76ad4c84269812bf9c6db27ed7}
+  # D-081 (v4 image logs after BUG-038): frozen in the commit after the DECISIONS entry, before any v4 filter call
+  - {key: controls.refclips_d081, frozen_at: f305da8814e8a682115972a5303dee6dd4a231a1}
+  - {key: controls.refclips_d081_artifacts.dry_audit_sha256, frozen_at: f305da8814e8a682115972a5303dee6dd4a231a1}
+  - {key: controls.refclips_d081_artifacts.reaudit_sha256, frozen_at: f305da8814e8a682115972a5303dee6dd4a231a1}
