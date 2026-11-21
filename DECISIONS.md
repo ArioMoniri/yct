@@ -421,3 +421,29 @@ Append-only log. Format: date | phase | id | summary | evidence.
   - **Owner re-decision:** on 2026-11-21, after being shown the 108 wrong body rejects, the owner chose "Keep it as frozen" (A) over "use the union only if D-074 alone stays below 20" (B). D-078 is kept by an outcome-blind principle stated before any v2 call: a frozen amendment is not revisited on knowledge gained after it.
   - **Male-only skew:** "Rear views of men" can skew the body set towards male, and neither the face source nor the body source is controlled for sex. Body enters the gated FFC contrast face − mean(place, body) (D-071 d). The expected effect on FFC gating is negligible, because rear views show hair or the back of the head whatever the sex, and B3 excludes any detected face. Sex is never labelled, counted or used for selection.
   - **Report:** the v1 report gives, per source, the rows evaluated and the passes, and the source of each of the 20 body passes. D-078 §3 (audit vs the D-074 body log only) and §5 (log routing) are proposed for amendment by D-079 (draft v2, not yet decided).
+- D-079 P4b localiser images v2 after BUG-036 (the Commons licence lookup was truncated; fixed in e768363 with full paging and fail-closed checks). This is a pre-run amendment of D-074, D-075 and D-078.
+  - **Full text:** reviews/phase_p4b/d079_draft.md, d079_v2.md, d079_v3.md (incl. §H).
+  - **Reviews:** independent cycle council_d078_d079_*.md (REVISE ×5); re-check recheck_d079_*.md (3 APPROVE, 2 REVISE); sign-off signoff_d079_*.md (3 APPROVE, 2 REVISE, then referee and QA re-signed APPROVE, 5/5 at fb89535). Responses: d079_v2_response.md, d079_recheck_response.md, d079_signoff_response.md.
+  - **Owner decision (2026-11-21):** "Keep it as frozen", so the D-078 body union stays. The owner chose this after seeing that 108 body C1 rejects were BUG-036 artefacts.
+  - **Logs:** the v1 logs (image_face_auto_log.jsonl, image_body_auto_log.jsonl, image_body_d078_auto_log.jsonl) are superseded. They are kept byte-identical and read only by the determinism audit.
+    - New v2 logs are evaluated from rank 1 in the order face, body, place (config `controls.refclips_d079`).
+    - C3 duplicate state comes only from v2 logs already run, and preload refuses any row without `log_version: v2`.
+  - **Unchanged:** the frozen filters, the ascending sha256(title) order, the first-20-passes rule, the licences and the D-078 union. No filter outcome was used to choose any rule.
+  - **Audit:** each v2 row is compared with every v1 log of its category. Any mismatch is a STOP, with three exemptions:
+    - a `duplicate` whose other side is not a C1 reason;
+    - titles in the committed flip list data/refstim/bug036_c1_flips.json (sha e7ce5c2a…2067; face 260, body 108, body D-078 3, all inadmissible to admissible);
+    - v2 `identity_changed` rows.
+  - **Revisions:** licences are read at the current Commons revision, and both the snapshot and the read revids are logged. If the revision moves within a batch (during template paging, or C4 extmetadata differs from the read revid), the batch is retried once, then the run STOPs to the council.
+  - **Identity (§H):**
+    - Snapshot sha1 ≠ Commons sha1 (a re-upload): the file is rejected at the metadata stage as D1 `identity_changed`, and the run resumes at the next rank. The reason is added via `extra_reject_reasons`; the frozen reason list is not edited.
+    - Bytes differ while the metadata sha1s agree: a download defect. The file is re-downloaded once, then the run STOPs.
+    - A missing sha1 is a STOP.
+    - finalise writes data/refstim/image_identity_changed_v2.json.
+  - **Finality:** v2 is the selection.
+    - A v3 is allowed only for a code defect (a fail-closed check or a BUG entry). It runs from rank 1 for every category and is disclosed.
+    - Any other audit STOP is a code defect. Fewer than 20 passes is a STOP to the owner.
+  - **Disclosed:**
+    - BUG-036.
+    - The D-078 notes: frozen and run before independent review; the suite was red from 598ca0e to e768363; the D-078 trigger was corrupted; the male-only skew.
+    - Per-source body counts and the identity_changed list.
+    - The cycle-2 contact-sheet check applies to the v2 sets.

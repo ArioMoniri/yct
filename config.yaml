@@ -455,7 +455,7 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     audit_exempt_reasons: [duplicate]   # determinism audit vs the D-074 body log; any other mismatch = STOP
   refclips_d078_artifacts:     # D-078: set with the snapshot, frozen by its own row in the next commit
     body_snapshot_sha256: 5abe8cb59e5d5132830f0c10991e0db5ad05bbcc830c2537e978847feddf9e38   # image_body_d078_snapshot.json
-  refclips_d079:               # D-079 DRAFT (BUG-036): v2 image logs; frozen only after five independent sign-offs
+  refclips_d079:               # D-079 (BUG-036): v2 image logs; 5/5 independent sign-offs (fb89535), frozen next commit
     decision: D-079
     amends: [D-074, D-075, D-078]
     log_version: v2              # the runner refuses to run unless this key and its artifacts row are frozen
