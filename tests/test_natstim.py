@@ -154,3 +154,15 @@ def test_stream_get_404_raises(tmp_path):
 
     with pytest.raises(rs.CurationError):
         ns.stream_get("https://upload.wikimedia.org/b.webm", tmp_path / "g", opener=opener, clock=_Clock())
+
+
+def test_source_ext_ignores_query():
+    import importlib.util
+    from pathlib import Path
+
+    p = Path(__file__).resolve().parents[1] / "scripts" / "natstim_cpu_run.py"
+    spec = importlib.util.spec_from_file_location("natstim_cpu_run", p)
+    m = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(m)
+    u = "https://upload.wikimedia.org/a/b/X.webm?utm_source=commons.wikimedia.org&utm_campaign=imageinfo"
+    assert m.source_ext(u) == ".webm" and m.source_ext("https://h/x") == ".bin"

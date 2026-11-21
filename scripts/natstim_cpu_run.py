@@ -35,6 +35,13 @@ def _s3(src: Path, key: str, cfg: dict) -> None:
                     f"{root}/{key}"], check=True)
 
 
+def source_ext(url: str) -> str:
+    """File extension from the URL path (Commons appends a ?utm_... query to imageinfo urls)."""
+    import urllib.parse
+
+    return Path(urllib.parse.urlsplit(url).path).suffix.lower() or ".bin"
+
+
 def fetch_normalise_fn(scratch: Path, cfg: dict):
     from yct.normalize.core import normalize_video
 
@@ -46,7 +53,7 @@ def fetch_normalise_fn(scratch: Path, cfg: dict):
         title, url, want = entry["title"], meta["url"], meta.get("commons_sha1")
         if not want:
             raise ra.StopError(f"Commons returned no sha1 for {title!r} (fail-closed)")
-        ext = Path(url).suffix.lower() or ".bin"
+        ext = source_ext(url)
         src = srcd / f"{rs.title_key(title)[:16]}{ext}"
         for _ in range(2):        # D-079 byte rule: a mismatch is a download defect -> once more, then STOP
             if not src.exists():
