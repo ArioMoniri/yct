@@ -64,8 +64,8 @@ def two_voice_fixture(work: Path) -> Path:
     for i, (voice, text) in enumerate(texts):
         f = work / f"part{i}.wav"
         subprocess.run(["espeak-ng", "-v", voice, "-s", "150", "-w", str(f), text], check=True)
-        subprocess.run(["ffmpeg", "-y", "-v", "error", "-i", str(f), "-ac", "1", "-ar", str(nb.SR),
-                        str(f.with_suffix(".16k.wav"))], check=True)
+        subprocess.run(["ffmpeg", "-y", "-nostdin", "-v", "error", "-i", str(f), "-ac", "1", "-ar",
+                        str(nb.SR), str(f.with_suffix(".16k.wav"))], check=True)
         x, _ = sf.read(str(f.with_suffix(".16k.wav")), dtype="float32")
         parts += [x, np.zeros(nb.SR // 2, np.float32)]
     out = work / "two_voice.wav"
