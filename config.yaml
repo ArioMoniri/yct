@@ -642,3 +642,6 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   - {key: controls.refclips_auto_artifacts.haar_face_sha256, frozen_at: 8cb678e9c6a9c6e73015a55ea34c2cc44c169a34}
   - {key: controls.refclips_auto_artifacts.haar_eye_sha256, frozen_at: 8cb678e9c6a9c6e73015a55ea34c2cc44c169a34}
   - {key: controls.refclips_artifacts.nat_snapshot_sha256, frozen_at: 8cb678e9c6a9c6e73015a55ea34c2cc44c169a34}   # D-075 step 0
+  # D-078 (body second category): frozen in the commit after the keys (two-commit freeze), before any filter call
+  - {key: controls.refclips_d078, frozen_at: a18b246f457f025713d43a4dcaa296bf71624e9e}
+  - {key: controls.refclips_d078_artifacts.body_snapshot_sha256, frozen_at: a18b246f457f025713d43a4dcaa296bf71624e9e}
