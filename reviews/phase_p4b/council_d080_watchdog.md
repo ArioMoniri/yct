@@ -26,3 +26,9 @@ controls.refclips_d079/d080. I did not read sealed data, labels, transcripts or 
   When the v3 `read_revid` differs from both the superseded row's `revid` and the dry-audit revid, the current-revision decision stands (it is the frozen revid rule), both are logged, the run resumes at the next rank and the case is disclosed.
   Alternatively state "STOP to council, no v4". Either way, decide it now, not after a STOP.
 - Non-blocking: freeze at a commit whose src/ and scripts/ match 8148366 (4118fa2 changed only config and data; check `git diff 8148366 <freeze> -- src scripts` is empty), and launch soon after freezing.
+
+## Re-sign-off (cycle 2: d080_v2.md, c5ccdfb, e7f87c8): APPROVE
+- B1 (a) done: the dry-audit JSON has `read_revids` for 948 face and 575 body titles, none null, plus `code_commit` c5ccdfb. The sha256 I recomputed (ca87244c…) matches config `dry_audit_sha256`. would_stop = [] in both categories.
+- B1 (b) done: `stop_resolution.audit_revid_drift` is stated in config, schema and D-080 §A before the run. `revid_drifted` exempts a pair only when the v3 read_revid differs from both the superseded revid and the dry-audit revid. A title missing from the audit, or an equal revid, still STOPs. Both revids are logged, finalise writes `image_revid_drift_v3.json`, and there is no v4. The rule only decides STOP vs resume. It never selects.
+- The launch rule in `check_dry_audit` (sha, categories/logs, would_stop, code_commit, git diff of code paths) also covers my earlier non-blocking freeze-commit point. `tests/test_refstim_d080_council.py` passes 20/20. `git diff c5ccdfb HEAD -- src scripts` is empty.
+- Non-blocking: freeze the sha in the next commit and launch soon after, so the drift window stays short.

@@ -35,3 +35,9 @@ Verdict: **REVISE** (one blocking item, small). Not read: data/sealed/*, labels,
   and the launch.
 - Remaining STOP risks are post-download determinism of the 348 reaches_download pairs (detectors, decode)
   and revision moves. Both are fail-closed, and neither biases selection.
+
+## Re-sign-off (d080_v2.md, c5ccdfb, e7f87c8): **APPROVE**
+- B1 resolved. `ra.check_dry_audit` (refstim_auto.py:575) re-hashes the file against `dry_audit_sha256`, requires `would_stop == []` and every category and superseded log, requires `code_commit`, and STOPs on a `git diff` of the code paths. `refstim_auto_run.py run` calls it before rank 1. Each refusal has its own test, and 110 d079/d080 tests pass locally.
+- I checked the committed file. Its sha ca87244c… matches config.yaml. It has code_commit c5ccdfb, both categories, all 4 superseded logs, and an empty would_stop list. Its counts match the draft run.
+- §A revid drift is outcome-blind. It only decides STOP vs resume, never which file passes. It is stated before the run and disclosed in image_revid_drift_v3.json.
+- Non-blocking: (1) At run time the runner compares only commits and does not look at the working tree. A dirty checkout in the code paths at launch would pass the check. Add a `git status --porcelain` check for those paths (the dry-audit script already does this) or record the clean state in the run rows. (2) config.yaml is not in DRY_AUDIT_CODE_PATHS. It is covered only by the frozen shas, so confirm that the c1/exempt reasons are inside the frozen surface. (3) Provenance still lacks a UTC time and the snapshot shas. Disclose the gap between the dry audit and the launch in the v1 report.

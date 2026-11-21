@@ -17,3 +17,11 @@ Verdict: REVISE (1 blocking item; the rest of the draft I can approve once it is
 
 ## Could anything still STOP or bias selection?
 - STOP is still possible from post-download nondeterminism (235 face, 105+2 body pairs reach the download) and from Commons drift after the dry run. Both fall under frozen rules. Neither can bias selection, because v4 is allowed only for a code defect, from rank 1, and is never driven by outcomes. Launch soon after the dry run to keep drift small.
+
+## Re-sign-off (cycle 2: d080_v2.md, c5ccdfb, e7f87c8)
+Verdict: APPROVE. Blocking item 1 is fixed.
+- (a) `ra.check_dry_audit` runs in `run` before rank 1 and re-hashes the file against `dry_audit_sha256`. I recomputed sha256(d080_dry_audit.json) = ca87244c...2b40. It matches config.
+- (b) It STOPs on a missing category, on a superseded log that was not audited, and when `would_stop != []`. The file covers all 4 superseded logs, and would_stop = [] for face and body. The counts match §C and the cycle-1 run.
+- (c) `code_commit` = c5ccdfb. The script refuses to run with uncommitted changes in the code paths, and the runner diffs `refstim*.py` plus the script against the run commit. `git diff c5ccdfb HEAD` shows no change in those paths. The audit imports only refstim, refstim_auto and yct.config, so the pathspec covers the code. There is one test for each refusal; I ran `tests/test_refstim_d080_council.py` and all 20 pass.
+- `audit_revid_drift` only turns a would-be STOP into a logged and disclosed row when the revid differs from both the superseded revid and the dry-audit revid. It never selects, so it cannot bias selection.
+- Non-blocking: config.yaml and the superseded logs are outside the code-path diff. Config is covered by the frozen-config checks, but no hash pins the logs. Freeze the sha (it is set, not yet frozen), and launch soon after the freeze.
