@@ -271,3 +271,12 @@ def test_committed_d081_dry_audit_passes_the_launch_rule():
     assert all(c["would_stop"] == [] for c in doc["categories"].values())
     names = {Path(q).name for q in CFG["controls"]["refclips_d081"]["superseded_logs_add"]["face"]}
     assert names <= set(doc["categories"]["face"]["logs"])
+
+
+def test_finalise_names_v4_disclosure_files():
+    """BUG-039: finalise must know the v4 (D-081) disclosure file names and write the revid-drift
+    disclosure for every log version from v3 on (D-080 audit_revid_drift carries over to v4)."""
+    src = (ROOT / "scripts" / "refstim_auto_run.py").read_text()
+    assert '"v4": ("image_source_counts_v4.json", "image_identity_changed_v4.json")' in src
+    assert 'f"image_revid_drift_{ver}.json"' in src
+    assert 'if ver in ("v3", "v4"):' in src

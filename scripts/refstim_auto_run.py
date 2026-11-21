@@ -345,11 +345,12 @@ def finalise(scratch: Path) -> None:
         src = "D-078" if cat in rs.d078_categories(cfg) else "D-074"
         sections[f"Localiser images: {cat} ({src} source, D-075 filters, D-079 v2 logs)"] = man
     names = {"v2": ("image_source_counts_v2.json", "image_identity_changed_v2.json"),
-             "v3": ("image_source_counts_v3.json", "image_identity_changed_v3.json")}[ver]
+             "v3": ("image_source_counts_v3.json", "image_identity_changed_v3.json"),
+             "v4": ("image_source_counts_v4.json", "image_identity_changed_v4.json")}[ver]   # BUG-039
     rs.write_json(rs.REFSTIM / names[0], counts)
     rs.write_json(rs.REFSTIM / names[1], ident)   # D-079 §A disclosure
-    if ver == "v3":
-        rs.write_json(rs.REFSTIM / "image_revid_drift_v3.json", drift)   # D-080 audit_revid_drift disclosure
+    if ver in ("v3", "v4"):   # D-080 audit_revid_drift disclosure, carried over to v4 (D-081; BUG-039)
+        rs.write_json(rs.REFSTIM / f"image_revid_drift_{ver}.json", drift)
     text = rs.licenses_md(sections)
     for man in sections.values():
         rs.check_licenses_md(text, man)
