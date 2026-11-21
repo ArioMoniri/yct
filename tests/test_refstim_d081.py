@@ -260,3 +260,12 @@ def test_runner_refuses_while_d081_is_not_frozen():
 def test_reaudit_code_is_under_the_dry_audit_code_change_guard():
     assert "scripts/refstim_d081_reaudit.py" in ra.DRY_AUDIT_CODE_PATHS
     assert "src/yct/curate/refstim*.py" in ra.DRY_AUDIT_CODE_PATHS
+
+
+def test_committed_d081_dry_audit_passes_the_launch_rule():
+    cfg = rs.effective_cfg(CFG)
+    doc = ra.check_dry_audit(cfg, ROOT, "HEAD", lambda a, b, paths: [])
+    assert doc["decision"] == "D-081"
+    assert all(c["would_stop"] == [] for c in doc["categories"].values())
+    names = {Path(q).name for q in CFG["controls"]["refclips_d081"]["superseded_logs_add"]["face"]}
+    assert names <= set(doc["categories"]["face"]["logs"])

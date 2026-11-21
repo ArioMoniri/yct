@@ -509,7 +509,7 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     reaudit_file: data/refstim/d081_reaudit.json       # offline post-download re-audit, recomputed at launch
     finality: v4_is_selection    # D-079 finality carried over: v5 only for a code defect, from rank 1, disclosed
   refclips_d081_artifacts:       # D-081: set with the files, frozen in the freeze commit
-    dry_audit_sha256: null
+    dry_audit_sha256: 3c85936878ff26ee4f3b862dff7d1bd60ae58c1fc83f2173989c26b5e1dd3856   # data/refstim/d081_dry_audit.json (pod, 1d67b4a)
     reaudit_sha256: eeb292e83777a0a4df8942f47346c0351e572179f89f0023eca86967850bcf6d   # data/refstim/d081_reaudit.json (offline)
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
