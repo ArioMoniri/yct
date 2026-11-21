@@ -495,7 +495,7 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     finality: v3_is_selection    # D-079 finality carried over: v4 only for a code defect, from rank 1, disclosed
   refclips_d080_artifacts:       # D-080: set with the dry-audit file, frozen in the freeze commit
     dry_audit_sha256: ca87244c9004b3634a1b45fa359d2f86d54afe4cd3f537820c3c8fc66fea2b40   # data/refstim/d080_dry_audit.json (pod, c5ccdfb)
-  refclips_d081:               # D-081 draft (BUG-038): council wf_0b4d3341-8ef; NOT frozen, no DECISIONS entry yet
+  refclips_d081:               # D-081 (BUG-038): v4 logs; 5/5 sign-offs (caf46de), frozen by the rows below
     decision: D-081
     amends: [D-080]
     log_version: v4              # the runner refuses to run unless the D-081 keys are frozen (check_frozen_d081)
