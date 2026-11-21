@@ -35,3 +35,12 @@ are covered by test_refstim_bug038.py. Non-blocking: rule_for falls back to "C0"
 The frozen `other_audit_stop` requires v4 from rank 1 for every category. Resuming body at rank 136, or reusing
 the v3 face logs, would mean amending the stop rule after seeing v3 outcomes, which is not allowed. The cost is
 already kept low: the v3 logs go into the superseded set, so v4 is checked against them and any difference STOPs.
+
+## Re-sign-off (cycle 1, 1d67b4a + f9a4e56): APPROVE
+- B1 fixed: `audit_pair` STOPs on reject/reject with `a_c1 != b_c1` before the `equal` test; `dry_pair` reaches it via `audit_pair` (-> would_stop). Tests cover C1 vs B4 and C1 vs F7 both ways, directly and through `audit_v2`; same-class pairs stay `equal`.
+- Re-audit: recomputed `post_download_reaudit_cfg` here hashes to eeb292e8...cf6d = file = config `reaudit_sha256`; 0 STOP, 0 same-reason/different-class pairs in face and body, as predicted.
+- Dry audit: `d081_dry_audit.json` sha 3c859369...3856 = config; code_commit 1d67b4a; would_stop [] for both; no src/scripts change since 1d67b4a, so the code guard holds.
+- `check_frozen_d081` is fail-closed (unfrozen keys, missing or wrong sha, any stop or pair) and runs in both `run()` and `finalise()`; the re-audit script is in `DRY_AUDIT_CODE_PATHS`.
+- Test edits do not weaken anything: the d080 tests only drop `refclips_d081` from their CFG so they keep testing the v3 layer they were written for, and no assertion changed. `rule_for` is now pinned and raises on an unknown reason (my nit is closed).
+- pytest bug038 + d080 + d080_council + d081: 85 passed. make guards: OK.
+- Non-blocking: the D-081 keys are not frozen yet. The runner refuses to launch until the freeze commit.

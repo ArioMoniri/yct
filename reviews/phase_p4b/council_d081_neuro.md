@@ -36,3 +36,9 @@ That is an unlisted C1 admissibility change, exempted silently. It is the "dange
 - resuming body at rank 136.
 
 The only saving consistent with the rules is that all checks run offline before launch. A v4 face run that reproduces v3 is a check, not a new selection, and it costs compute, not validity.
+
+## Re-sign-off (cycle 2, at f9a4e56): APPROVE
+- **B1 fixed.** `audit_pair` now STOPs on reject/reject with `a_c1 != b_c1`. The check sits after the flip branch and before `equal` and exempt, so a same-reason pair in a different C1 class can no longer pass as `equal` or `duplicate_exempt`. It is tested in both directions (C1 vs B4, C1 vs F7), directly and through `audit_v2`/`dry_pair`. A same-class pair is still `equal`.
+- **Re-audit.** `d081_reaudit.json` shows 0 STOP and 0 same_reason_diff_class in face and body, with adult_proxy_rejects v3 face 1, body 1 (disclosed as asked). Its sha eeb292e8… matches config, and `check_frozen_d081` enforces it at both run() and finalise(). The dry audit at 1d67b4a gives would_stop 0 in face and body, and its sha 3c859368… matches.
+- **Tests are not weakened.** test_refstim_d080*.py only pop `refclips_d081` from a module-level copy, so they keep pinning the v3 layer. No assertion was removed. v4 routing and the launch gate are covered in test_refstim_d081.py. The `rule_for` map is now pinned explicitly, and an unknown reason raises KeyError instead of returning C0, which is stricter. 249/249 refstim tests pass.
+- **Not blocking.** The D-081 keys are not frozen yet. The runner refuses to launch until they are, which is tested, so the two-commit freeze stays a precondition and is not a defect.
