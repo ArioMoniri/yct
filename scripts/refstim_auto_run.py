@@ -230,12 +230,13 @@ def run(model_dir: Path, scratch: Path) -> None:
                     if not m.get("url"):
                         raise ra.StopError(f"no download url for {e['title']!r} ({key})")
                     src = d / f"{key[:16]}{Path(m['url']).suffix.lower()}"
-                    if not src.exists():
-                        _dl(m["url"], src)
+
+                    def dl_polite(url, dest):
+                        _dl(url, dest)
                         time.sleep(1.0)
-                    if not ra.identity_ok(e.get("sha1"), m.get("commons_sha1"),
-                                          hashlib.sha1(src.read_bytes()).hexdigest(), title=e["title"]):
-                        raise ra.RejectError("D1", ra.IDENTITY_REASON)   # bytes differ: D1 reject, next rank
+                    # sign-off referee B1: bytes differing from the agreed sha1 = download defect:
+                    # one re-download, then STOP naming the title (never an identity_changed reject)
+                    ra.fetch_verified(src, m["url"], e["sha1"], e["title"], dl_polite)
                     bgr = cv2.imread(str(src), cv2.IMREAD_COLOR)
                     if bgr is None:
                         raise ra.StopError(f"decode failed for BITMAP file {e['title']!r} ({key})")
@@ -280,7 +281,7 @@ def finalise(scratch: Path) -> None:
     cfg = load_config()
     rc = cfg["controls"]["refclips"]
     ra.check_frozen_d079(cfg)
-    need, sections, counts = rc["loc_per_category"], {}, {}
+    need, sections, counts, ident = rc["loc_per_category"], {}, {}, {}
     for cat in cfg["controls"]["refclips_d079"]["category_order"]:
         lp = ROOT / rs.image_log_v2(cat, cfg)
         rows = _read_jsonl(lp)
@@ -292,6 +293,7 @@ def finalise(scratch: Path) -> None:
         rs.check_log(log, snap, cfg, need,
                      extra_reasons=cfg["controls"]["refclips_d079"]["extra_reject_reasons"])
         counts[cat] = source_counts(rows)
+        ident[cat] = ra.identity_disclosure(rows)
         man = []
         for r in rows:
             if r["decision"] != "pass":
@@ -308,6 +310,7 @@ def finalise(scratch: Path) -> None:
         src = "D-078" if cat in rs.d078_categories(cfg) else "D-074"
         sections[f"Localiser images: {cat} ({src} source, D-075 filters, D-079 v2 logs)"] = man
     rs.write_json(rs.REFSTIM / "image_source_counts_v2.json", counts)
+    rs.write_json(rs.REFSTIM / "image_identity_changed_v2.json", ident)   # D-079 §A disclosure
     text = rs.licenses_md(sections)
     for man in sections.values():
         rs.check_licenses_md(text, man)

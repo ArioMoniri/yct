@@ -518,8 +518,40 @@ def identity_ok(snapshot_sha1: str | None, commons_sha1: str | None, data_sha1: 
 
 
 def identity_reject_row(cat: str, c: Candidate) -> dict:
+    """Metadata-stage D1 reject (snapshot sha1 != current Commons sha1): nothing was downloaded, so
+    data_sha1 is None. The byte stage is never a reject (D-079 sign-off referee B1): see fetch_verified."""
     return {"title": c.title, "sha256_title": c.sha256_title, "category": cat, "decision": "reject",
-            "rule": "D1", "reason": IDENTITY_REASON, "values": {}}
+            "rule": "D1", "reason": IDENTITY_REASON, "values": {}, "identity_stage": "metadata",
+            "data_sha1": None}
+
+
+def fetch_verified(src, url: str, expect_sha1: str, title: str, dl) -> str:
+    """Byte stage of the identity rule, run only after the snapshot and Commons sha1s agree. Bytes that
+    differ are a download defect, not a re-upload: delete, download once more, and STOP naming the title if
+    they still differ. A cached file is checked the same way. Returns the sha1 of the verified bytes."""
+    import hashlib
+
+    for _attempt in range(2):
+        if not src.exists():
+            dl(url, src)
+        got = hashlib.sha1(src.read_bytes()).hexdigest()
+        if got == expect_sha1:
+            return got
+        src.unlink()
+    raise StopError(f"download defect: {title!r} bytes sha1 {got} != snapshot/Commons sha1 {expect_sha1} "
+                    "after one re-download: STOP")
+
+
+def identity_disclosure(rows: list[dict]) -> list[dict] | str:
+    """D-079 §A disclosure: every identity_changed row (title, both sha1s, stage, data sha1), or "none"."""
+    out = []
+    for r in rows:
+        if r.get("reason") != IDENTITY_REASON:
+            continue
+        if "identity_stage" not in r or "data_sha1" not in r:
+            raise StopError(f"identity_changed row {r.get('title')!r} without identity_stage/data_sha1")
+        out.append({k: r.get(k) for k in ("title", "sha1", "commons_sha1", "identity_stage", "data_sha1")})
+    return out or "none"
 
 
 def check_identity(snapshot_sha1: str | None, commons_sha1: str | None, data_sha1: str | None = None) -> None:

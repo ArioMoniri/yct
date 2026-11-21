@@ -51,7 +51,8 @@ def test_identity_reject_row():
     c = ra.Candidate("File:x.jpg", "k", {}, {}, None, None, True, lambda: None)
     row = ra.identity_reject_row("face", c)
     assert row == {"title": "File:x.jpg", "sha256_title": "k", "category": "face", "decision": "reject",
-                   "rule": "D1", "reason": "identity_changed", "values": {}}
+                   "rule": "D1", "reason": "identity_changed", "values": {},
+                   "identity_stage": "metadata", "data_sha1": None}   # D-079 sign-off QA B1
 
 
 def test_byte_identity_mismatch_in_load_becomes_a_reject_row():
