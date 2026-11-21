@@ -208,3 +208,75 @@ def stream_get(url: str, dest: Path, opener=None, clock=None) -> Path:
                 raise rs.CurationError(f"network error for {url}: {e}") from e
             clock.sleep(c["backoff_base_s"] * 2 ** attempt)
             attempt += 1
+
+
+# ---------------------------------------------------------------- session 0 (GPU results -> selection)
+STAGE_S0 = "session0"
+N3_MIN = 0.5    # D-071 (c): face_present_crop >= 0.5 over W (unchanged by D-075)
+
+
+def n3_value(face_present_crop, cfg: dict) -> float:
+    """N3: mean face_present_crop over W = [window.start_tr, window.end_tr) of the P3 (yct.confounds)
+    per-TR table of the trimmed T1 clip. A short or all-NaN window is a STOP (fail-closed)."""
+    import numpy as np
+
+    w = cfg["window"]
+    s, e = int(w["start_tr"]), int(w["end_tr"])
+    x = np.asarray(face_present_crop, dtype=float)[s:e]
+    if len(x) != e - s or not np.isfinite(x).any():
+        raise ra.StopError(f"face_present_crop covers {len(x)} of {e - s} W TRs (fail-closed)")
+    v = float(np.nanmean(x))
+    ra.finite(v)
+    return v
+
+
+class Session0Stop(ra.StopError):
+    """Fewer than nat_n passes in the buffer: STOP to the owner. .rows = the rows to log first."""
+
+    def __init__(self, rows: list[dict], n_pass: int):
+        super().__init__(f"{n_pass} NAT passes < nat_n in the buffer: STOP to the owner")
+        self.rows = rows
+
+
+def session0_rows(buffer: list[str], gpu: dict[str, dict], n3: Callable[[str], float],
+                  cfg: dict) -> list[dict]:
+    """N1, N2 (ra.nat_decide on the session-0 outputs), then N3, in buffer order, up to the nat_n-th pass
+    (ra.nat_select). gpu[id] = {lang_probs, segments}; a buffer id without output is a STOP. N3 (P3) is
+    computed only for N1/N2 passes. Returns the stage-session0 rows; < nat_n passes -> Session0Stop."""
+    missing = [i for i in buffer if i not in gpu]
+    if missing:
+        raise ra.StopError(f"session 0 returned no N1/N2 output for {missing[:5]} (fail-closed)")
+    rows: list[dict] = []
+
+    def decide(i: str) -> dict:
+        d = ra.nat_decide(gpu[i]["lang_probs"], [tuple(s) for s in gpu[i]["segments"]], cfg)
+        if d["decision"] == "pass":
+            v = n3(i)
+            d["values"]["face_present_crop_w"] = round(v, 6)
+            if v < N3_MIN:
+                d.update(decision="reject", rule="N3", reason="low_face_present")
+        rows.append({"stage": STAGE_S0, "t1_name": i, **d})
+        return d
+
+    try:
+        ra.nat_select(buffer, decide, cfg)
+    except ra.StopError:
+        raise Session0Stop(rows, sum(r["decision"] == "pass" for r in rows)) from None
+    return rows
+
+
+def nat_manifest(log: list[dict], cfg: dict) -> list[dict]:
+    """The NAT set: the session-0 passes (exactly nat_n), each joined to its CPU-stage row."""
+    cpu = {r["t1_name"]: r for r in cpu_rows(log) if r["decision"] == "pass"}
+    s0 = [r for r in log if r.get("stage") == STAGE_S0 and r["decision"] == "pass"]
+    need = cfg["controls"]["refclips"]["nat_n"]
+    if len(s0) != need:
+        raise ra.StopError(f"{len(s0)} session-0 passes logged != nat_n {need}")
+    keep = ("title", "pageid", "read_revid", "url", "source_sha1", "source_sha256", "t1_name", "t1_sha256",
+            "wav_sha256", "attribution")
+    out = []
+    for r in s0:
+        c = cpu[r["t1_name"]]
+        out.append({**{k: c.get(k) for k in keep}, "licence": c["values"]["licence"],
+                    "licence_template": c["values"]["licence_template"], "values": r["values"]})
+    return out
