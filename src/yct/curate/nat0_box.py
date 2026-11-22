@@ -81,16 +81,37 @@ def load_pipeline(mirror: Path, work: Path, device: str = "cpu"):
 
 
 def read_wav(path: Path):
-    import numpy as np
-    import soundfile as sf
+    """16 kHz mono PCM16 wav -> float32 in [-1, 1). stdlib wave + numpy only: the pinned WhisperX env
+    (wx_pip_freeze.txt) has no soundfile."""
+    import wave
 
-    x, sr = sf.read(str(path), dtype="float32", always_2d=True)
-    if sr != SR or x.shape[1] != 1:
-        raise SystemExit(f"{path.name}: {sr} Hz x {x.shape[1]} ch, need {SR} mono")
-    x = x[:, 0]
+    import numpy as np
+
+    with wave.open(str(path), "rb") as w:
+        sr, ch, width = w.getframerate(), w.getnchannels(), w.getsampwidth()
+        raw = w.readframes(w.getnframes())
+    if sr != SR or ch != 1:
+        raise SystemExit(f"{path.name}: {sr} Hz x {ch} ch, need {SR} mono")
+    if width != 2:
+        raise SystemExit(f"{path.name}: {8 * width}-bit samples, need PCM16")
+    x = np.frombuffer(raw, dtype="<i2").astype(np.float32) / 32768.0
     if not np.isfinite(x).all():
         raise SystemExit(f"{path.name}: non-finite samples")
     return x
+
+
+def write_wav(path: Path, x) -> None:
+    """float32 mono -> 16 kHz PCM16 wav (stdlib wave)."""
+    import wave
+
+    import numpy as np
+
+    with wave.open(str(path), "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(SR)
+        w.writeframes(np.clip(np.round(np.asarray(x, np.float32) * 32768.0), -32768, 32767)
+                      .astype("<i2").tobytes())
 
 
 def _torch_waveform(x):

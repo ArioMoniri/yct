@@ -66,7 +66,6 @@ def upload(mirror: Path) -> None:
 def two_voice_fixture(work: Path) -> Path:
     """Two espeak-ng voices, A-B-A (synthetic; no real recording)."""
     import numpy as np
-    import soundfile as sf
 
     work.mkdir(parents=True, exist_ok=True)
     parts = []
@@ -78,10 +77,10 @@ def two_voice_fixture(work: Path) -> Path:
         subprocess.run(["espeak-ng", "-v", voice, "-s", "150", "-w", str(f), text], check=True)
         subprocess.run(["ffmpeg", "-y", "-nostdin", "-v", "error", "-i", str(f), "-ac", "1", "-ar",
                         str(nb.SR), str(f.with_suffix(".16k.wav"))], check=True)
-        x, _ = sf.read(str(f.with_suffix(".16k.wav")), dtype="float32")
+        x = nb.read_wav(f.with_suffix(".16k.wav"))
         parts += [x, np.zeros(nb.SR // 2, np.float32)]
     out = work / "two_voice.wav"
-    sf.write(str(out), np.concatenate(parts), nb.SR, subtype="PCM_16")
+    nb.write_wav(out, np.concatenate(parts))
     return out
 
 

@@ -130,3 +130,48 @@ def test_session0_requires_d082_frozen():
     c["frozen"] = [r for r in c["frozen"] if r["key"] != "controls.refclips_d082"]
     with pytest.raises(SystemExit, match="refclips_d082"):
         nat0.check_frozen(c)
+
+
+def _write_pcm16(path, x, sr=16000, ch=1):
+    import wave
+
+    import numpy as np
+
+    with wave.open(str(path), "wb") as w:
+        w.setnchannels(ch)
+        w.setsampwidth(2)
+        w.setframerate(sr)
+        w.writeframes((np.clip(x, -1, 1) * 32767).astype("<i2").tobytes())
+
+
+def test_read_wav_uses_only_the_pinned_env(tmp_path):
+    """The pinned WhisperX freeze has no soundfile: read_wav must work with stdlib wave + numpy."""
+    import numpy as np
+
+    x = np.linspace(-0.5, 0.5, 1600, dtype=np.float32)
+    _write_pcm16(tmp_path / "a.wav", x)
+    y = nb.read_wav(tmp_path / "a.wav")
+    assert y.dtype == np.float32 and y.shape == (1600,) and np.allclose(y, x, atol=1e-4)
+    freeze = (ROOT / "outputs/runs/wave1p2b_20261117T234829Z/wx_pip_freeze.txt").read_text().lower()
+    assert "soundfile" not in freeze
+    for f in ("src/yct/curate/nat0_box.py", "scripts/nat0_pyannote_setup.py"):
+        assert "import soundfile" not in (ROOT / f).read_text()
+
+
+def test_read_wav_refuses_wrong_rate_or_channels(tmp_path):
+    import numpy as np
+
+    _write_pcm16(tmp_path / "r.wav", np.zeros(800, np.float32), sr=8000)
+    with pytest.raises(SystemExit, match="8000"):
+        nb.read_wav(tmp_path / "r.wav")
+    _write_pcm16(tmp_path / "c.wav", np.zeros(800, np.float32), ch=2)
+    with pytest.raises(SystemExit, match="2 ch"):
+        nb.read_wav(tmp_path / "c.wav")
+
+
+def test_write_wav_round_trips(tmp_path):
+    import numpy as np
+
+    x = np.sin(np.linspace(0, 20, 3200)).astype(np.float32) * 0.3
+    nb.write_wav(tmp_path / "o.wav", x)
+    assert np.allclose(nb.read_wav(tmp_path / "o.wav"), x, atol=1e-4)
