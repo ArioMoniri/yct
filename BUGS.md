@@ -106,3 +106,15 @@ Append-only log. Format: date | phase | id | summary | evidence.
     - (a) Pin and mirror the `plda/` subfolder of pyannote/speaker-diarization-community-1 at a fixed revision. It is passed explicitly and is unused by AgglomerativeClustering. Needs the owner to accept that repo's gate and a D- entry.
     - (b) Construct the 3.1 pipeline with the PLDA explicitly disabled, if 4.1.0 allows it without a code patch. This must be verified first.
     - (c) Run N2 in a separate env with pyannote.audio 3.x, the version 3.1 was released for. That is a pinned-env change and needs a D- entry.
+  - **Status 2026-11-22: fix drafted (D-082 draft), awaiting the council.**
+    - **Owner decision:** option (a), community-1 gate accepted ("Done gate accepted").
+    - **Pin:** `pyannote/speaker-diarization-community-1`@3533c8cf8e369892e6b79ff1bf80f7b0286a54ee. Only
+      `plda/` is mirrored, `dir_sha` 53df9c188dd21b02cd629aff5f63b1509958aad5251f2fcdea0ef8c02c75835e.
+    - **Use:** the PLDA is passed explicitly in the patched config, and `patched_config` refuses
+      VBxClustering, the only path that applies it.
+    - **Pod verify at 78d09e3:** rc 0; 2 speakers on the two-voice fixture; `plda_loaded: true`,
+      `clustering: AgglomerativeClustering`.
+    - **Second defect found by the same verify (fixed in 78d09e3):** `nat0_box.read_wav` imported
+      soundfile, which the pinned WhisperX freeze does not contain. It now uses stdlib `wave` + numpy.
+    - **Still unset:** the shas, in config and freeze. Session 0 stays refused until D-082 is accepted
+      and frozen.
