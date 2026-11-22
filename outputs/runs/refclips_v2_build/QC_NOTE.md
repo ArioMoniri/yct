@@ -1,0 +1,7 @@
+# p4b_ref/v2 (D-087) rebuild + frozen D-085 QC: PASS
+- Run on the pod (CPU, `/work/yct/repo_v2screen`) at **9204e42** (`run_commit.txt`): `scripts/refclips_build.py /work/yct/refclips_v2_build --qc d085 --images v2 --sources /work/yct/refclips_sources_v2`; rc 0.
+- A first attempt at 1a62e79 was refused at the freeze-row precondition (`build_attempt0_refused.log`: "image_manifest_v2_sha256 is not frozen"; the builder checks exact keys, the freeze row was on the parent key) before any fetch, build or QC; exact-key rows added at 9204e42 with the same frozen_at (eb458aa). Not a QC run.
+- Identity before YuNet, same command: LOC/LOC_SCR post-SHINE patches == the screen record's per-patch sha256 (no STOP); GREY_CTRL, FLASH, MOT, MOT_STAT == build 1 (`rebuild_record.json` gating `rebuild_mismatches: []`). Toolchain: ffmpeg 6.1.1-3ubuntu5, libx264-164 2:0.164.3108+git31e19f9-1.
+- Frozen D-085 QC (`qc.json`, code_commit 9204e42, descends from the qc freeze): pass true. Per family clips passing: GREY_CTRL 2/2, FLASH 5/5, LOC 20/20, LOC_SCR 20/20, MOT 16/16, MOT_STAT 16/16. LOC face_hit family-pooled 19/20 = 0.95 (pass).
+- Partial visual manifest: `refclips_partial_manifest.json` (sha 1e7437c3…). The overall clip manifest sha is NOT frozen (NAT and the speech/TALKFACE families are still to come; D-071 (d)). No clip was uploaded (the builder never uploads clips).
+- Source images: all 60 v2 `s3_key`s present and read back with sha256 == manifest (`s3_readback.json`; BUG-045 for the 3 uploaded after the build).

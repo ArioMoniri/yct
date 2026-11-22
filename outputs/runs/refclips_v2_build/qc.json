@@ -1,0 +1,3292 @@
+{
+ "rule": "D-085",
+ "rows": [
+  {
+   "name": "grey_ctrl_00",
+   "family": "GREY_CTRL",
+   "checks": {},
+   "pass": true
+  },
+  {
+   "name": "grey_ctrl_01",
+   "family": "GREY_CTRL",
+   "checks": {},
+   "pass": true
+  },
+  {
+   "name": "flash_00",
+   "family": "FLASH",
+   "checks": {
+    "flash": {
+     "onset_change_min": 0.4980392156862745,
+     "off_event_change_max": 0.0,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "flash_01",
+   "family": "FLASH",
+   "checks": {
+    "flash": {
+     "onset_change_min": 0.4980392156862745,
+     "off_event_change_max": 0.0,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "flash_02",
+   "family": "FLASH",
+   "checks": {
+    "flash": {
+     "onset_change_min": 0.4980392156862745,
+     "off_event_change_max": 0.0,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "flash_03",
+   "family": "FLASH",
+   "checks": {
+    "flash": {
+     "onset_change_min": 0.4980392156862745,
+     "off_event_change_max": 0.0,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "flash_04",
+   "family": "FLASH",
+   "checks": {
+    "flash": {
+     "onset_change_min": 0.4980392156862745,
+     "off_event_change_max": 0.0,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "loc_00",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 19,
+     "hit_trs": [
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57
+     ],
+     "max_area": 0.03173828125,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 9.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.045830472552744
+      },
+      {
+       "t": 29.5,
+       "max_abs_diff": 6,
+       "psnr_db": 48.18943347696919
+      },
+      {
+       "t": 49.5,
+       "max_abs_diff": 4,
+       "psnr_db": 47.817940961990686
+      }
+     ],
+     "max_abs_diff": 6,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5022810397815511,
+     "max_rel_dev": 0.001374918022848487,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12423542011494615,
+     "max_rel_dev": 0.0029745129047375513,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    false
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_00",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 20,
+     "hit_trs": [
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57
+     ],
+     "max_area": 0.086944580078125,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5023002782361261,
+     "max_rel_dev": 0.0007263890045963287,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12424465441788267,
+     "max_rel_dev": 0.0021723621191693677,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_01",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 1,
+     "hit_trs": [
+      29
+     ],
+     "max_area": 0.0282135009765625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 9.5,
+       "max_abs_diff": 4,
+       "psnr_db": 48.133239848173474
+      },
+      {
+       "t": 29.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.12897732549992
+      },
+      {
+       "t": 49.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.10958788807958
+      }
+     ],
+     "max_abs_diff": 5,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5022184939123313,
+     "max_rel_dev": 0.00039995167837156764,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12425558117379941,
+     "max_rel_dev": 0.0018949020676438193,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_01",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 1,
+     "hit_trs": [
+      29
+     ],
+     "max_area": 0.1578521728515625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5022086472991676,
+     "max_rel_dev": 0.00046280501632947336,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12426388512125636,
+     "max_rel_dev": 0.0005564136129642282,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_02",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 0,
+     "hit_trs": [],
+     "max_area": 0.0,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 8.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.956383883518015
+      },
+      {
+       "t": 28.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.940578070019384
+      },
+      {
+       "t": 48.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.945076243874425
+      }
+     ],
+     "max_abs_diff": 5,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5020950846643042,
+     "max_rel_dev": 0.000796059233456863,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12423044280788789,
+     "max_rel_dev": 0.002533162753281565,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_02",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 0,
+     "hit_trs": [],
+     "max_area": 0.0,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5021086638517038,
+     "max_rel_dev": 0.0008524153108086548,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12423739820126736,
+     "max_rel_dev": 0.001432993673377834,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_03",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 1,
+     "hit_trs": [
+      8
+     ],
+     "max_area": 0.1263580322265625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 8.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.90207664422469
+      },
+      {
+       "t": 28.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.09239646646294
+      },
+      {
+       "t": 48.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.15706507970095
+      }
+     ],
+     "max_abs_diff": 5,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.502100531917879,
+     "max_rel_dev": 0.0005917788396016559,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12416300382351654,
+     "max_rel_dev": 0.0012377025523874518,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_03",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 1,
+     "hit_trs": [
+      8
+     ],
+     "max_area": 0.041259765625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5021059534822145,
+     "max_rel_dev": 0.0004987441714604745,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12417330394217312,
+     "max_rel_dev": 0.001365468480801165,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_04",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 18,
+     "hit_trs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+     ],
+     "max_area": 0.05474853515625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 9.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.91956511949841
+      },
+      {
+       "t": 29.5,
+       "max_abs_diff": 4,
+       "psnr_db": 48.151336840495425
+      },
+      {
+       "t": 49.5,
+       "max_abs_diff": 6,
+       "psnr_db": 47.978457933611615
+      }
+     ],
+     "max_abs_diff": 6,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5022914435107455,
+     "max_rel_dev": 0.000990319051103371,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12416326616806601,
+     "max_rel_dev": 0.001265439811472055,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_04",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 18,
+     "hit_trs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+     ],
+     "max_area": 0.010986328125,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.50229283691984,
+     "max_rel_dev": 0.0009930904009466323,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12417001423898531,
+     "max_rel_dev": 0.0013718328241494031,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_05",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 10,
+     "hit_trs": [
+      8,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+     ],
+     "max_area": 0.0531158447265625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 9.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.005163354267665
+      },
+      {
+       "t": 29.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.0492010820746
+      },
+      {
+       "t": 49.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.729769530099375
+      }
+     ],
+     "max_abs_diff": 5,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5023608934919604,
+     "max_rel_dev": 0.0008694747462076366,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.1242535735991695,
+     "max_rel_dev": 0.0036440329640623267,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_05",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 10,
+     "hit_trs": [
+      8,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+     ],
+     "max_area": 0.0531158447265625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5023588956119727,
+     "max_rel_dev": 0.0009833057618916284,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12426342342856102,
+     "max_rel_dev": 0.0018945381347285895,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_06",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 2,
+     "hit_trs": [
+      28,
+      48
+     ],
+     "max_area": 0.0729217529296875,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 8.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.926613471555626
+      },
+      {
+       "t": 28.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.00600847425223
+      },
+      {
+       "t": 48.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.9348787484433
+      }
+     ],
+     "max_abs_diff": 5,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5019898630881164,
+     "max_rel_dev": 0.0010711579671900317,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12417297667258624,
+     "max_rel_dev": 0.0012319774128920975,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_06",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 1,
+     "hit_trs": [
+      48
+     ],
+     "max_area": 0.054931640625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5019738501290198,
+     "max_rel_dev": 0.00021774777534700696,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.1241836902086488,
+     "max_rel_dev": 0.0012621238585167626,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_07",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 1,
+     "hit_trs": [
+      17
+     ],
+     "max_area": 0.085723876953125,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 8.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.02536441438817
+      },
+      {
+       "t": 28.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.84424445336339
+      },
+      {
+       "t": 48.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.902695600052056
+      }
+     ],
+     "max_abs_diff": 5,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.50221170751689,
+     "max_rel_dev": 0.0006765736540428213,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12419375561272405,
+     "max_rel_dev": 0.0018443245818511318,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_07",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 1,
+     "hit_trs": [
+      17
+     ],
+     "max_area": 0.085723876953125,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5022067450574317,
+     "max_rel_dev": 0.0006382219651713015,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12420064389316897,
+     "max_rel_dev": 0.0008339683109794074,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_08",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 0,
+     "hit_trs": [],
+     "max_area": 0.0,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 9.5,
+       "max_abs_diff": 6,
+       "psnr_db": 48.41485018672779
+      },
+      {
+       "t": 29.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.88737146914733
+      },
+      {
+       "t": 49.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.0812455251649
+      }
+     ],
+     "max_abs_diff": 6,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5022077889278017,
+     "max_rel_dev": 0.0005265103229250556,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12425647185537823,
+     "max_rel_dev": 0.0028978546826039595,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_08",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 1,
+     "hit_trs": [
+      9
+     ],
+     "max_area": 0.052978515625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5022114456723556,
+     "max_rel_dev": 0.0006345884966953282,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12426915202846234,
+     "max_rel_dev": 0.0009746605117448735,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_09",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 0,
+     "hit_trs": [],
+     "max_area": 0.0,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 9.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.976988431732565
+      },
+      {
+       "t": 29.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.0538559687765
+      },
+      {
+       "t": 49.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.16481678202735
+      }
+     ],
+     "max_abs_diff": 5,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5021348222032279,
+     "max_rel_dev": 0.00030584870962315294,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12426055719290957,
+     "max_rel_dev": 0.0017870837232383991,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_09",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 1,
+     "hit_trs": [
+      49
+     ],
+     "max_area": 0.015625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5021366945257695,
+     "max_rel_dev": 0.0005204945857237062,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12426729209089947,
+     "max_rel_dev": 0.0009108464839154983,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_10",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 19,
+     "hit_trs": [
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57
+     ],
+     "max_area": 0.044219970703125,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 8.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.028209420946666
+      },
+      {
+       "t": 28.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.20210382057947
+      },
+      {
+       "t": 48.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.79497485749498
+      }
+     ],
+     "max_abs_diff": 5,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5020132088290427,
+     "max_rel_dev": 0.0006964669346783581,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12422307841383277,
+     "max_rel_dev": 0.002154211899454797,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_10",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 20,
+     "hit_trs": [
+      8,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57
+     ],
+     "max_area": 0.1267852783203125,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5020055225880423,
+     "max_rel_dev": 0.0006296488663919768,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.1242268158884784,
+     "max_rel_dev": 0.0022871909464988057,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_11",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 0,
+     "hit_trs": [],
+     "max_area": 0.0,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 8.5,
+       "max_abs_diff": 8,
+       "psnr_db": 48.2604112063925
+      },
+      {
+       "t": 28.5,
+       "max_abs_diff": 4,
+       "psnr_db": 48.17438313027486
+      },
+      {
+       "t": 48.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.370548887486166
+      }
+     ],
+     "max_abs_diff": 8,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5021860659420692,
+     "max_rel_dev": 0.0007744930558913439,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12415001622505838,
+     "max_rel_dev": 0.003466020881882702,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_11",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 0,
+     "hit_trs": [],
+     "max_area": 0.0,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5021987163964117,
+     "max_rel_dev": 0.0007996636830569676,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12416181730432839,
+     "max_rel_dev": 0.0014074451420559753,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_12",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 0,
+     "hit_trs": [],
+     "max_area": 0.0,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 9.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.097141063412
+      },
+      {
+       "t": 29.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.06875092258898
+      },
+      {
+       "t": 49.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.92848112815005
+      }
+     ],
+     "max_abs_diff": 5,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5020723986931955,
+     "max_rel_dev": 0.0010543223862326733,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12422884248467098,
+     "max_rel_dev": 0.0022639022583748366,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_12",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 1,
+     "hit_trs": [
+      9
+     ],
+     "max_area": 0.0396881103515625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.502084504308694,
+     "max_rel_dev": 0.00041682353294885527,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12423888156460046,
+     "max_rel_dev": 0.0008319946998064322,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_13",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 9,
+     "hit_trs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "max_area": 0.03701019287109375,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 9.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.08869066132036
+      },
+      {
+       "t": 29.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.90789831461823
+      },
+      {
+       "t": 49.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.04941449984015
+      }
+     ],
+     "max_abs_diff": 5,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5022382202561116,
+     "max_rel_dev": 0.0005476760928127082,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12422496901709161,
+     "max_rel_dev": 0.002068632098332972,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_13",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 9,
+     "hit_trs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+     ],
+     "max_area": 0.0362548828125,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5022321375807529,
+     "max_rel_dev": 0.0006528864236385585,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12423088106582528,
+     "max_rel_dev": 0.0008610346842616398,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_14",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 1,
+     "hit_trs": [
+      37
+     ],
+     "max_area": 0.016143798828125,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 8.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.05667695106269
+      },
+      {
+       "t": 28.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.85953947250278
+      },
+      {
+       "t": 48.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.952082676753335
+      }
+     ],
+     "max_abs_diff": 5,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5020072266409088,
+     "max_rel_dev": 0.00023432836777478153,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.1242460359458798,
+     "max_rel_dev": 0.00118301615776342,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_14",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 1,
+     "hit_trs": [
+      37
+     ],
+     "max_area": 0.016143798828125,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5020081954037843,
+     "max_rel_dev": 0.00028281890770238087,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.1242550078526102,
+     "max_rel_dev": 0.0006725953904049519,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_15",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 37,
+     "hit_trs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57
+     ],
+     "max_area": 0.1102447509765625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 8.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.04459381630465
+      },
+      {
+       "t": 28.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.91923371399683
+      },
+      {
+       "t": 48.5,
+       "max_abs_diff": 6,
+       "psnr_db": 47.96202784588906
+      }
+     ],
+     "max_abs_diff": 6,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5020960289759762,
+     "max_rel_dev": 0.0005709581402373806,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12423486515357775,
+     "max_rel_dev": 0.0022884575464115512,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_15",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 37,
+     "hit_trs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57
+     ],
+     "max_area": 0.1102447509765625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5021015351394127,
+     "max_rel_dev": 0.0004616655492348354,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12423966236963825,
+     "max_rel_dev": 0.0014628156716817216,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_16",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 18,
+     "hit_trs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+     ],
+     "max_area": 0.0400238037109375,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 9.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.99980067676878
+      },
+      {
+       "t": 29.5,
+       "max_abs_diff": 6,
+       "psnr_db": 48.26130749053953
+      },
+      {
+       "t": 49.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.884822696036615
+      }
+     ],
+     "max_abs_diff": 6,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5020870309330628,
+     "max_rel_dev": 0.0004818666288447218,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12419655692440301,
+     "max_rel_dev": 0.0015179061073125927,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_16",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 18,
+     "hit_trs": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18
+     ],
+     "max_area": 0.0400238037109375,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.502097551862963,
+     "max_rel_dev": 0.0008765913167050779,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12420341795700536,
+     "max_rel_dev": 0.0010627018233456413,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_17",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 1,
+     "hit_trs": [
+      49
+     ],
+     "max_area": 0.03228759765625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 9.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.327195450211555
+      },
+      {
+       "t": 29.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.14980767301738
+      },
+      {
+       "t": 49.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.04250509350893
+      }
+     ],
+     "max_abs_diff": 5,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5022137418157591,
+     "max_rel_dev": 0.0011472100228343926,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12418937375955483,
+     "max_rel_dev": 0.003034159157864961,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_17",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 0,
+     "hit_trs": [],
+     "max_area": 0.0,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5022150227699511,
+     "max_rel_dev": 0.000529944910977416,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12420195268101498,
+     "max_rel_dev": 0.0012809477328778666,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_18",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 2,
+     "hit_trs": [
+      28,
+      48
+     ],
+     "max_area": 0.086334228515625,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 8.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.90178782835777
+      },
+      {
+       "t": 28.5,
+       "max_abs_diff": 5,
+       "psnr_db": 48.06395156720083
+      },
+      {
+       "t": 48.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.928273571083324
+      }
+     ],
+     "max_abs_diff": 5,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.502399194806391,
+     "max_rel_dev": 0.0007185115376448598,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12415793804245319,
+     "max_rel_dev": 0.001627394647119624,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_18",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 0,
+     "hit_trs": [],
+     "max_area": 0.0,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5023976245645415,
+     "max_rel_dev": 0.0006866838289645946,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12416697939656976,
+     "max_rel_dev": 0.0005155415256872624,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "loc_19",
+   "family": "LOC",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 1,
+     "hit_trs": [
+      28
+     ],
+     "max_area": 0.286102294921875,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 114,
+     "hits": [],
+     "pass": true
+    },
+    "twin_identity": {
+     "pass": true,
+     "n_diff_frames": 0,
+     "first_diff_frame": null
+    },
+    "twin_decoded": {
+     "n_frames": 44,
+     "max_abs_diff": 0,
+     "mean_frac_pixels_differing": 0.0,
+     "gating": false
+    },
+    "decoded_vs_rendered": {
+     "frames": [
+      {
+       "t": 8.5,
+       "max_abs_diff": 6,
+       "psnr_db": 48.04037477873727
+      },
+      {
+       "t": 28.5,
+       "max_abs_diff": 5,
+       "psnr_db": 47.98152449566842
+      },
+      {
+       "t": 48.5,
+       "max_abs_diff": 4,
+       "psnr_db": 47.804727676995995
+      }
+     ],
+     "max_abs_diff": 6,
+     "gating": false
+    },
+    "luminance": {
+     "mean": 0.5020925371996691,
+     "max_rel_dev": 0.0006263505011727132,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12414682171420634,
+     "max_rel_dev": 0.0016857856527676628,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [
+    true
+   ],
+   "pass": true
+  },
+  {
+   "name": "loc_scr_19",
+   "family": "LOC_SCR",
+   "checks": {
+    "haar": {
+     "n_hit_trs": 0,
+     "hit_trs": [],
+     "max_area": 0.0,
+     "gating": false
+    },
+    "yunet": {
+     "n_frames": 116,
+     "hits": [],
+     "pass": true
+    },
+    "luminance": {
+     "mean": 0.5020910670323658,
+     "max_rel_dev": 0.000629280424128627,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12415406133205857,
+     "max_rel_dev": 0.0017439989188564522,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "face_event_hits": [],
+   "pass": true
+  },
+  {
+   "name": "mot_00",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5020333889128792,
+     "max_rel_dev": 0.0002268158938518411,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11130505721322899,
+     "max_rel_dev": 0.001519238760397925,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.033313528821359274,
+     "motion_static": 0.0,
+     "ratio": Infinity,
+     "off_event_max": 0.001306319891237745,
+     "twin_max": 5.239449295343128e-05,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_00",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5021053936837734,
+     "max_rel_dev": 4.906843909656106e-05,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11130518278762629,
+     "max_rel_dev": 0.0008914967486123432,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_01",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5017743846385199,
+     "max_rel_dev": 0.0001857436090815981,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11144711602764283,
+     "max_rel_dev": 0.0014652412415918962,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.03331333135467729,
+     "motion_static": 5.983838848039194e-08,
+     "ratio": 556721.7333333354,
+     "off_event_max": 0.001239199170879289,
+     "twin_max": 5.50513174019607e-05,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_01",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5018635730343625,
+     "max_rel_dev": 7.996175694909762e-06,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11139285641453238,
+     "max_rel_dev": 0.000667846442451268,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_02",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5014590799719841,
+     "max_rel_dev": 0.00030675524724740893,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11121731901577735,
+     "max_rel_dev": 0.0016766414398025808,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.033115679173687705,
+     "motion_static": 1.911038666768788e-05,
+     "ratio": 1732.8628535643486,
+     "off_event_max": 0.0012884700999540438,
+     "twin_max": 5.709180644914208e-05,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_02",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5014846302416778,
+     "max_rel_dev": 5.398560336368508e-05,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11132685253498831,
+     "max_rel_dev": 0.0011898444167490244,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_03",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5022468627764616,
+     "max_rel_dev": 0.00032393927219312896,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11049778050675546,
+     "max_rel_dev": 0.002527284692050183,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.032623793658088235,
+     "motion_static": 1.6190273309844743e-05,
+     "ratio": 2015.0242700505148,
+     "off_event_max": 0.0012930417528339462,
+     "twin_max": 4.8570819929534225e-05,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_03",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5024082109039905,
+     "max_rel_dev": 2.6857754927599895e-06,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11034654511946679,
+     "max_rel_dev": 0.0011601891461909756,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_04",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5024046777566595,
+     "max_rel_dev": 0.0034067896083943387,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12503331429341005,
+     "max_rel_dev": 0.005641655092199568,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.0939352237477022,
+     "motion_static": 0.0,
+     "ratio": Infinity,
+     "off_event_max": 0.004476665422028187,
+     "twin_max": 0.0002222756778492647,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_04",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5022619236861636,
+     "max_rel_dev": 4.818590577620756e-05,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.1250750152754552,
+     "max_rel_dev": 0.00021151872876912236,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_05",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5024241481365749,
+     "max_rel_dev": 0.002524586047520358,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.1249801788776835,
+     "max_rel_dev": 0.008544321580390625,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.07499549018012153,
+     "motion_static": 0.0,
+     "ratio": Infinity,
+     "off_event_max": 0.004478083591835173,
+     "twin_max": 0.00023759430530024512,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_05",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5022932777636915,
+     "max_rel_dev": 3.960797541128675e-05,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12503304611314395,
+     "max_rel_dev": 0.0012410518978405699,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_06",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5023448296702334,
+     "max_rel_dev": 0.002954649189793959,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12499572141054142,
+     "max_rel_dev": 0.003105456293730812,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.08276146583307803,
+     "motion_static": 8.236355251736112e-05,
+     "ratio": 1004.8311820405395,
+     "off_event_max": 0.0046345430261948515,
+     "twin_max": 0.00024709065755208336,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_06",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5022687265887463,
+     "max_rel_dev": 9.14575757782991e-06,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12500375635468144,
+     "max_rel_dev": 0.0004178596196781242,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_07",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5022618290796079,
+     "max_rel_dev": 0.0025326841312329346,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.1250227350433073,
+     "max_rel_dev": 0.0032351442445147957,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.06403432409747754,
+     "motion_static": 5.9850356158088235e-05,
+     "ratio": 1069.9071519029528,
+     "off_event_max": 0.0033717435948988975,
+     "twin_max": 0.0001795510684742647,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_07",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5026203321104842,
+     "max_rel_dev": 8.96049304869964e-05,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12503330490064632,
+     "max_rel_dev": 0.0004041293297047112,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_08",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5019275194313818,
+     "max_rel_dev": 0.000136967190831961,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11269437675437832,
+     "max_rel_dev": 0.001951626642354915,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.033746984145220586,
+     "motion_static": 0.0,
+     "ratio": Infinity,
+     "off_event_max": 0.0013963168275122548,
+     "twin_max": 5.1700367647058735e-05,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_08",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5019489114489242,
+     "max_rel_dev": 2.8481622747976495e-05,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11274119468610207,
+     "max_rel_dev": 0.0010182147793603969,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_09",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5017873257217252,
+     "max_rel_dev": 0.0001838145680496071,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.1117392415910509,
+     "max_rel_dev": 0.002219725471104518,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.03408731497970282,
+     "motion_static": 8.975758272058792e-08,
+     "ratio": 379770.86666666804,
+     "off_event_max": 0.00136898863549326,
+     "twin_max": 5.056343826593129e-05,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_09",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5016944058865127,
+     "max_rel_dev": 2.1863898615464086e-06,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11166501023036896,
+     "max_rel_dev": 0.001176142107177599,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_10",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5023119268101401,
+     "max_rel_dev": 0.0002627345551948089,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11221847994767653,
+     "max_rel_dev": 0.004162061930584683,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.03319093592026654,
+     "motion_static": 1.6198251761642126e-05,
+     "ratio": 2049.044329516073,
+     "off_event_max": 0.0013319726083792893,
+     "twin_max": 4.84152401194852e-05,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_10",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5024231560573617,
+     "max_rel_dev": 4.129079877765336e-05,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11187277944918275,
+     "max_rel_dev": 0.0010848015522815658,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_11",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5014229734883751,
+     "max_rel_dev": 0.00016459247174753586,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11079593493785185,
+     "max_rel_dev": 0.002432080232159687,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.03234207452512255,
+     "motion_static": 1.6206230213439515e-05,
+     "ratio": 1995.656861538465,
+     "off_event_max": 0.0012369731828278186,
+     "twin_max": 4.861869064031854e-05,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_11",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5014993882453305,
+     "max_rel_dev": 1.2194809775215804e-05,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.11078720865721864,
+     "max_rel_dev": 0.0008304032295323309,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_12",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5023608952458442,
+     "max_rel_dev": 0.0029879087696872723,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12498928509043487,
+     "max_rel_dev": 0.006770601027328727,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.09731862186606414,
+     "motion_static": 0.0,
+     "ratio": Infinity,
+     "off_event_max": 0.00438192928538603,
+     "twin_max": 0.00024783265356924015,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_12",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5022583017097768,
+     "max_rel_dev": 6.431639736283761e-06,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.1250285321131644,
+     "max_rel_dev": 0.0005990007175046057,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_13",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5023668657758094,
+     "max_rel_dev": 0.002377815243713245,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12502146978842868,
+     "max_rel_dev": 0.0030862774429193485,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.10190616183810763,
+     "motion_static": 0.0,
+     "ratio": Infinity,
+     "off_event_max": 0.004843959434359681,
+     "twin_max": 0.0002490772920496323,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_13",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5022355953110804,
+     "max_rel_dev": 7.452871866601556e-06,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.1250072431261711,
+     "max_rel_dev": 0.00048216126424121186,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_14",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5023703049356023,
+     "max_rel_dev": 0.00266053846839158,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.1250010658989622,
+     "max_rel_dev": 0.004594817333051324,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.09749586915658191,
+     "motion_static": 8.347654654309641e-05,
+     "ratio": 1167.9432510573224,
+     "off_event_max": 0.004336434158624388,
+     "twin_max": 0.00025042963962928924,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_14",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.502249572836442,
+     "max_rel_dev": 1.425416311096692e-05,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12505093500262757,
+     "max_rel_dev": 0.0006406314356855071,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_15",
+   "family": "MOT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5024407545274139,
+     "max_rel_dev": 0.002354431894462698,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12498134159022317,
+     "max_rel_dev": 0.009162666854638468,
+     "pass": true
+    },
+    "motion": {
+     "motion_event": 0.10028082953559027,
+     "motion_static": 8.234759561376633e-05,
+     "ratio": 1217.7748334746275,
+     "off_event_max": 0.004499164656096814,
+     "twin_max": 0.000247042786841299,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "mot_stat_15",
+   "family": "MOT_STAT",
+   "checks": {
+    "luminance": {
+     "mean": 0.5022915946542612,
+     "max_rel_dev": 3.11769354120444e-05,
+     "pass": true
+    },
+    "contrast": {
+     "mean": 0.12499396687314719,
+     "max_rel_dev": 0.0001417302224642087,
+     "pass": true
+    },
+    "audio_identity": {
+     "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "control_wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1",
+     "pass": true
+    }
+   },
+   "pass": true
+  }
+ ],
+ "face_hit_family": {
+  "n_events": 20,
+  "n_hit": 19,
+  "frac": 0.95,
+  "pass": true
+ },
+ "pass": true,
+ "code_commit": "9204e42e61e456ec1d6be7b41440fa949be34851"
+}
