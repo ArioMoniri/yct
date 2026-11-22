@@ -162,7 +162,7 @@ def test_run_qc_pass_ignores_non_gating_checks():
 # ---------------------------------------------------------------- (e) TALKFACE
 def test_talkface_is_internal_only_with_pinned_wav2lip_and_a_face_fallback():
     t = D85["talkface"]
-    assert t["weights_file"] == "wav2lip.pth" and t["fps"] == 30
+    assert t["weights_file"] == "Wav2Lip-SD-NOGAN.pt" and t["fps"] == 30   # part-2 amendment of D-085 (e)
     assert t["publish"] is False and t["synthetic_label"] is True
     assert t["mirror_s3"].startswith("s3://yct-research-235229001983/") and "private" in t["mirror_s3"]
     fr = t["face_rule"]
