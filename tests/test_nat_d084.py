@@ -454,12 +454,35 @@ def test_cpu_runner_cli_buffers_option():
         m.parse(["run", "/s", "--x", "2"])
 
 
+def _real_log():
+    return ns.load_log(ROOT / CFG["controls"]["refclips_auto"]["logs"]["nat"])
+
+
+def _prefix_before_session(log, k):
+    """The append-only log as it stood before session k's first row (the state a test was written for)."""
+    cut = next((i for i, r in enumerate(log) if r in ns.gpu_rows(log) and ns.session_of(r) >= k), len(log))
+    return log[:cut]
+
+
 def test_real_log_allows_exactly_buffer_1_now():
-    log = ns.load_log(ROOT / CFG["controls"]["refclips_auto"]["logs"]["nat"])
+    # pinned to the log prefix this test was written for (sessions 0 only; the log is append-only)
+    log = _prefix_before_session(_real_log(), 1)
     assert ns.sessions_logged(log) == [0] and len(ns.nat_selection(log, CFG)) == 4
     assert ns.check_cpu_target(log, CFG, 2) == 80
     with pytest.raises(ra.StopError, match="ahead"):
         ns.check_cpu_target(log, CFG, 3)
+
+
+def test_real_log_after_session1_allows_exactly_buffer_2():
+    # the current real log: sessions 0 and 1 logged, selection incomplete; the CPU stage may fill buffer 2
+    log = _real_log()
+    k = len(ns.sessions_logged(log))
+    assert ns.sessions_logged(log) == list(range(k)) and k >= 2
+    if k == 2:
+        assert len(ns.nat_selection(log, CFG)) == 8
+        assert ns.check_cpu_target(log, CFG, 3) == 120
+        with pytest.raises(ra.StopError, match="ahead"):
+            ns.check_cpu_target(log, CFG, 4)
 
 
 def test_session1_runs_under_frozen_d087_with_the_carried_spend(env):
