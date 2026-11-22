@@ -1,6 +1,7 @@
-"""D-085 part 1 (council re-sign-off, non-blocking items): rebuild name-set equality (neuro), descriptive rebuild
-record with the toolchain, ffprobe timing/colour metadata and the chroma deviation (watchdog, biostat, referee),
-the intercept-only partial r pre-declared as descriptive (watchdog), and the §7 decoded-identity disclosure."""
+"""D-085 part 1 (council re-sign-off, non-blocking items): rebuild name-set equality (neuro), a
+descriptive rebuild record with the toolchain, ffprobe timing/colour metadata and the chroma deviation
+(watchdog, biostat, referee), the intercept-only partial r pre-declared as descriptive (watchdog), and the
+§7 decoded-identity disclosure."""
 from __future__ import annotations
 
 import importlib.util
@@ -43,7 +44,8 @@ def test_rebuild_against_full_build1_record_stops_on_a_missing_clip(tmp_path, mo
     clips = {c.name: c for c in R.plan(cfg)}
     clip = clips["flash_00"]
     monkeypatch.setattr(B.R, "build_clip", lambda c, out, cfg, images=None: {
-        "name": c.name, "family": c.family, "sha256": {k: rec1[f"{c.name}.{k}"] for k in ("mp4", "wav", "tsv")}})
+        "name": c.name, "family": c.family,
+        "sha256": {k: rec1[f"{c.name}.{k}"] for k in ("mp4", "wav", "tsv")}})
     monkeypatch.setattr(B.R, "decoded_sha", lambda p: None)
 
     def no_qc(*a, **k):
@@ -54,7 +56,7 @@ def test_rebuild_against_full_build1_record_stops_on_a_missing_clip(tmp_path, mo
     assert rc == 1 and "missing:flash_01" in note
 
 
-# ---------------------------------------------------------------- watchdog / biostat / referee: descriptive record
+# ------------------------------------------------ watchdog/biostat/referee: descriptive record
 def test_describe_mp4_reports_timing_colour_tags_and_chroma_deviation(tmp_path):
     frames = [np.full((R.H, R.W), R.GREY, np.uint8) for _ in range(30)]
     R.encode(frames, np.zeros(R.SR), [], tmp_path, "c", CFG)
@@ -68,7 +70,8 @@ def test_describe_mp4_reports_timing_colour_tags_and_chroma_deviation(tmp_path):
 
 
 def test_rebuild_record_holds_toolchain_and_per_mp4_descriptives(tmp_path, monkeypatch):
-    monkeypatch.setattr(B, "toolchain", lambda: {"ffmpeg": "ffmpeg version 6.1.1-3ubuntu5", "libx264": "x"})
+    monkeypatch.setattr(B, "toolchain",
+                        lambda: {"ffmpeg": "ffmpeg version 6.1.1-3ubuntu5", "libx264": "x"})
     monkeypatch.setattr(B, "describe_mp4", lambda p: {"nb_frames": "1740", "r_frame_rate": "30/1"})
     (tmp_path / "a.mp4").write_bytes(b"x")
     rec = B.write_rebuild_record(tmp_path, ["a"], mismatches=[])
@@ -79,7 +82,7 @@ def test_rebuild_record_holds_toolchain_and_per_mp4_descriptives(tmp_path, monke
     assert doc["gating"] == {"rebuild_mismatches": []} and doc["descriptive_only"] is True
 
 
-# ---------------------------------------------------------------- watchdog: intercept-only partial r descriptive
+# ------------------------------------------------ watchdog: intercept-only partial r descriptive
 def test_intercept_only_partial_r_is_pre_declared_descriptive():
     from yct.controls.partial import partial_r, partial_r_report
 
@@ -104,15 +107,16 @@ def test_d086_wording_corrected_and_section7_discloses_decoded_identity():
     assert "decoded" in s7 and "|U" in s7 and "|V" in s7
 
 
-# ---------------------------------------------------------------- C1 after the freeze: only post-freeze runs allowed
+# ---------------------------------------------------------------- C1 after the freeze: post-freeze runs only
 def test_c1_allows_yunet_output_only_from_a_run_descending_from_the_freeze(tmp_path):
-    from yct.tribe_run import refclips_qc85 as Q
+    from yct.tribe_run import refclips_qc85 as Q  # noqa: N812
 
     d = tmp_path / "runs" / "refclips_x"
     d.mkdir(parents=True)
     doc = {"rule": "D-085", "code_commit": "RUN", "rows": [{"checks": {"yunet": {"hits": []}}}]}
     (d / "qc.json").write_text(json.dumps(doc))
-    Q.assert_no_yunet_outputs(tmp_path, frozen_at="FRZ", is_ancestor=lambda a, b: (a, b) == ("FRZ", "RUN"))
+    Q.assert_no_yunet_outputs(tmp_path, frozen_at="FRZ",
+                              is_ancestor=lambda a, b: (a, b) == ("FRZ", "RUN"))
     with pytest.raises(SystemExit, match="YuNet"):
         Q.assert_no_yunet_outputs(tmp_path, frozen_at="FRZ", is_ancestor=lambda a, b: False)
     with pytest.raises(SystemExit, match="YuNet"):
@@ -120,7 +124,7 @@ def test_c1_allows_yunet_output_only_from_a_run_descending_from_the_freeze(tmp_p
     del doc["code_commit"]
     (d / "qc.json").write_text(json.dumps(doc))
     with pytest.raises(SystemExit, match="YuNet"):
-        Q.assert_no_yunet_outputs(tmp_path, frozen_at="FRZ", is_ancestor=lambda a, b: True)   # no commit: refused
+        Q.assert_no_yunet_outputs(tmp_path, frozen_at="FRZ", is_ancestor=lambda a, b: True)   # no commit
 
 
 def test_d085_qc_record_carries_the_code_commit(tmp_path, monkeypatch):
@@ -130,7 +134,8 @@ def test_d085_qc_record_carries_the_code_commit(tmp_path, monkeypatch):
     rec1 = json.loads((ROOT / cfg["controls"]["refclips_d085"]["build1_sha_record"]).read_text())["files"]
     clips = [c for c in R.plan(cfg) if f"{c.name}.mp4" in rec1]
     monkeypatch.setattr(B.R, "build_clip", lambda c, out, cfg, images=None: {
-        "name": c.name, "family": c.family, "sha256": {k: rec1[f"{c.name}.{k}"] for k in ("mp4", "wav", "tsv")}})
+        "name": c.name, "family": c.family,
+        "sha256": {k: rec1[f"{c.name}.{k}"] for k in ("mp4", "wav", "tsv")}})
     monkeypatch.setattr(B, "write_rebuild_record", lambda out, names, mismatches: {})
     monkeypatch.setattr(B.refclips_qc85, "run_qc", lambda *a, **k: {"rule": "D-085", "rows": [],
                                                                       "face_hit_family": None, "pass": True})

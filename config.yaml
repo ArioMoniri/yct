@@ -360,6 +360,8 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
   partial_out: [face, motion, luminance_change, speech_envelope]   # partial r controls for all other regressors
   partial_out_nuisance: [intercept, legendre_1]   # D-086 (owner Q1 2026-11-22, R-11 A-18): D-071 (a) "plus an
   # intercept" amended pre-run with one Legendre order-1 drift term (yct.controls.partial); never extended after a FAIL
+  partial_out_nuisance_descriptive: [intercept]   # D-085 part 1 (watchdog re-sign-off): the D-071 (a) intercept-only
+  # partial r is pre-declared and reported descriptively next to the gating drift version; it never gates
   kernel:                      # NO canonical HRF and NO separate shift by L (the kernel already holds the timing)
     type: measured_impulse_per_roi
     window_tr: [-4, 8]         # control-subtracted course over output lags -4..+8 TR, peak-normalised

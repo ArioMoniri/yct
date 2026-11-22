@@ -41,3 +41,13 @@ def partial_r(y: np.ndarray, x: np.ndarray, others: np.ndarray, terms: list[str]
     if ry.std() == 0 or rx.std() == 0:
         raise ValueError("zero residual variance in partial_r")
     return float(np.corrcoef(ry, rx)[0, 1])
+
+
+def partial_r_report(y: np.ndarray, x: np.ndarray, others: np.ndarray, controls: dict) -> dict:
+    """D-085 part 1 (watchdog): the gating partial r uses controls.partial_out_nuisance; the pre-declared
+    intercept-only version (controls.partial_out_nuisance_descriptive) is reported beside it and never gates.
+    An added nuisance column can raise a partial r as well as lower it: neither is "the conservative one"."""
+    gate = list(controls["partial_out_nuisance"])
+    desc = list(controls["partial_out_nuisance_descriptive"])
+    return {"gating": {"terms": gate, "r": partial_r(y, x, others, gate)},
+            "descriptive": [{"terms": desc, "r": partial_r(y, x, others, desc), "gates": False}]}

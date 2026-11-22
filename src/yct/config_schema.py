@@ -1022,6 +1022,7 @@ class Controls(M):
     regressors: dict[str, Regressor]
     partial_out: list[str]
     partial_out_nuisance: list[Literal["intercept", "legendre_1"]]   # D-086 (owner Q1)
+    partial_out_nuisance_descriptive: list[Literal["intercept", "legendre_1"]]   # D-085 p1: never gates
     kernel: Kernel
     aud_selectivity_run: str
     readout_lag_tr: Annotated[list[int], Field(min_length=2, max_length=2)]

@@ -29,9 +29,8 @@ import numpy as np
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from yct.config import load_config  # noqa: E402
-from yct.tribe_run import locimg  # noqa: E402
+from yct.tribe_run import locimg, refclips_qc85  # noqa: E402
 from yct.tribe_run import refclips58 as R  # noqa: E402,N812
-from yct.tribe_run import refclips_qc85  # noqa: E402
 
 SPEECH = {"SPK", "BURST", "TALKFACE"}
 DEFAULT = ["GREY_CTRL", "FLASH", "LOC", "LOC_SCR", "MOT", "MOT_STAT"]
@@ -117,6 +116,50 @@ def rebuild_mismatches(recs: dict[str, dict], files: dict[str, str],
     return bad
 
 
+def name_set_mismatches(recs: dict[str, dict], rec1: dict[str, str]) -> list[str]:
+    """D-085 part 1 (neuro re-sign-off): the rebuilt clip names must equal the build-1 clip names exactly,
+    so a build-1 clip absent from the rebuild (or a new one) is a mismatch, not silently skipped."""
+    names1 = {k[:-4] for k in rec1 if k.endswith(".mp4")}
+    return ([f"missing:{n}" for n in sorted(names1 - set(recs))]
+            + [f"extra:{n}" for n in sorted(set(recs) - names1)])
+
+
+def describe_mp4(mp4: Path) -> dict:
+    """Descriptive only (never gating): ffprobe timing + colour tags, and the maximum |U-128| / |V-128| over
+    the decoded yuv420p frames (watchdog, biostat, referee re-sign-off of D-085)."""
+    pr = json.loads(subprocess.run(
+        ["ffprobe", "-v", "error", "-select_streams", "v:0", "-count_frames", "-show_entries",
+         "stream=nb_frames,nb_read_frames,r_frame_rate,color_space,color_range,color_primaries,color_transfer",
+         "-of", "json", str(mp4)], capture_output=True, text=True, check=True).stdout)["streams"][0]
+    raw = subprocess.run([*R.FF, "-i", str(mp4), "-map", "0:v:0", "-f", "rawvideo", "-pix_fmt", "yuv420p",
+                          "-"], capture_output=True, check=True).stdout
+    y = R.W * R.H
+    q = (R.W // 2) * (R.H // 2)
+    a = np.frombuffer(raw, np.uint8).reshape(-1, y + 2 * q).astype(np.int16)
+    return {"nb_frames": pr.get("nb_frames"), "nb_read_frames": pr.get("nb_read_frames"),
+            "r_frame_rate": pr.get("r_frame_rate"), "color_space": pr.get("color_space"),
+            "color_range": pr.get("color_range"), "color_primaries": pr.get("color_primaries"),
+            "color_transfer": pr.get("color_transfer"),
+            "max_abs_u_minus_128": int(np.abs(a[:, y:y + q] - 128).max()),
+            "max_abs_v_minus_128": int(np.abs(a[:, y + q:] - 128).max())}
+
+
+def write_rebuild_record(out: Path, names: list[str], mismatches: list[str]) -> dict:
+    """rebuild_record.json: the toolchain of this rebuild and per-mp4 descriptives. Only the sha check
+    (mismatches) gates; everything under "descriptive" is reported, never used for a decision."""
+    rec = {"toolchain": toolchain(), "gating": {"rebuild_mismatches": list(mismatches)},
+           "descriptive_only": True,
+           "descriptive": {f"{n}.mp4": describe_mp4(out / f"{n}.mp4") for n in sorted(names)
+                           if (out / f"{n}.mp4").exists()}}
+    (out / "rebuild_record.json").write_text(json.dumps(rec, indent=1, sort_keys=True))
+    return rec
+
+
+def git_head() -> str:
+    return subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True,
+                          check=True).stdout.strip()
+
+
 def build_all(clips: list, out: Path, cfg: dict, images=None, sources: dict | None = None,
               qc: str = "d071", yunet=None) -> int:
     """qc="d071": the original frozen D-071 (a) QC (build 1). qc="d085": the amended QC
@@ -141,7 +184,8 @@ def build_all(clips: list, out: Path, cfg: dict, images=None, sources: dict | No
         for name in recs:
             mp4 = out / f"{name}.mp4"
             recs[name]["decoded_sha256"] = R.decoded_sha(mp4) if mp4.exists() else None
-        mm = rebuild_mismatches(recs, rec1, dec1)
+        mm = name_set_mismatches(recs, rec1) + rebuild_mismatches(recs, rec1, dec1)
+        write_rebuild_record(out, sorted(recs), mm)
         if mm:          # watchdog C3: the sha check runs before YuNet, in the same command
             (out / "STOP_NOTE.md").write_text(
                 "# p4b_ref/v1 D-085 rebuild: sha mismatch against build 1, STOP to the owner (before YuNet)\n"
@@ -149,6 +193,7 @@ def build_all(clips: list, out: Path, cfg: dict, images=None, sources: dict | No
             print(f"STOP: rebuild sha mismatch {mm}", flush=True)
             return 1
         res = refclips_qc85.run_qc(clips, out, cfg, recs, yunet, lambda c: R.clip_frames(c, images))
+        res["code_commit"] = git_head()   # watchdog C1: the run must descend from the qc freeze commit
         (out / "qc.json").write_text(json.dumps(res, indent=1, default=float))
         bad = [r["name"] for r in res["rows"] if not r["pass"]]
         if res["face_hit_family"] is not None and not res["face_hit_family"]["pass"]:

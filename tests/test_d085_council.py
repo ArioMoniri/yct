@@ -195,8 +195,8 @@ def test_talkface_face_rule_takes_the_next_pass_and_stops_after_five_skips():
 
 # ---------------------------------------------------------------- watchdog C1-C3, R1b, cost, freeze plan
 def test_no_yunet_output_exists_on_any_built_frame():
-    # D-085 part 1: before the freeze no YuNet output may exist; after it, only runs whose code commit descends
-    # from the qc freeze commit (the --qc d085 path is refused until frozen).
+    # D-085 part 1: before the freeze no YuNet output may exist; after it, only runs whose code commit
+    # descends from the qc freeze commit (the --qc d085 path is refused until frozen).
     import subprocess
     frz = next((f["frozen_at"] for f in CFG["frozen"] if f["key"] == "controls.refclips_d085.qc"), None)
 

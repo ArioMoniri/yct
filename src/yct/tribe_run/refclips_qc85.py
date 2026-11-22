@@ -243,9 +243,10 @@ def talkface_face(passes: Sequence[dict], failures: dict[str, str], rule: dict) 
     raise SystemExit("TALKFACE: face passes exhausted, STOP to the owner")
 
 
-def assert_no_yunet_outputs(root) -> None:
+def assert_no_yunet_outputs(root, frozen_at: str | None = None, is_ancestor: Callable | None = None) -> None:
     """Watchdog C1: before the D-085 freeze, YuNet has never run on a built frame: no JSON under root carries
-    a refclip `yunet` check."""
+    a refclip `yunet` check. After the freeze (frozen_at = the qc freeze row), a JSON with a yunet check is
+    allowed only if it records a code_commit that descends from frozen_at (is_ancestor(frozen_at, commit))."""
     import json
     from pathlib import Path
 
@@ -257,6 +258,9 @@ def assert_no_yunet_outputs(root) -> None:
         except (ValueError, UnicodeDecodeError):
             continue
         if '"yunet"' in json.dumps(doc):
+            commit = doc.get("code_commit") if isinstance(doc, dict) else None
+            if frozen_at and is_ancestor and commit and is_ancestor(frozen_at, commit):
+                continue
             raise SystemExit(f"YuNet output found on built frames: {p}")
 
 
