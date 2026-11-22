@@ -599,8 +599,8 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
       requires_frozen_before_build: [controls.refclips_d085.speech, controls.refclips_d085.talkface,
                                      controls.refclips_artifacts.speech_corpus_sha256, controls.refclips_d085.tenv]
     tenv:                        # ENH-002 / T-ENV speech_envelope code; set and frozen before any speech build
-      module: null
-      blob_sha1: null
+      module: src/yct/confounds/envelope.py   # D-086 R-ENV op; Butterworth order 4 zero-phase, 0.5 s bins
+      blob_sha1: c81eae2b2fc6c0176a390e9f0c421c1356c38151   # git hash-object of the module; frozen next commit
     talkface:
       generator: wav2lip
       repo: "https://github.com/Rudrabha/Wav2Lip"

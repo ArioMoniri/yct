@@ -307,8 +307,20 @@ def fetch_sources(mans: dict[str, list[dict]], cfg: dict, d: Path, local: list[P
                         index.setdefault(_sha_file(f), f)
         return index
 
+    def ensure_uploaded(row: dict, p: Path) -> None:
+        # BUG-045: a sha-verified cache hit must still leave the object at s3_key (head, else upload)
+        bucket, _, prefix = root[len("s3://"):].partition("/")
+        try:
+            subprocess.run(["aws", "s3api", "head-object", "--bucket", bucket,
+                            "--key", prefix + row["s3_key"]], check=True, capture_output=True)
+        except subprocess.CalledProcessError:
+            subprocess.run(["aws", "s3", "cp", "--only-show-errors", str(p), root + row["s3_key"]],
+                           check=True)
+
     def load(row: dict) -> np.ndarray:
         p = d / hashlib.sha256(row["s3_key"].encode()).hexdigest()[:16]
+        if upload and p.exists() and _sha_file(p) == row["sha256"]:
+            ensure_uploaded(row, p)
         if not p.exists() or _sha_file(p) != row["sha256"]:
             try:
                 subprocess.run(["aws", "s3", "cp", "--only-show-errors", root + row["s3_key"], str(p)],
@@ -416,6 +428,15 @@ def main() -> int:
                    build1_families=b1)
     if rc == 0 and "LOC" in fams:
         contact_sheet(a.out, clips, cfg, a.out / "loc_contact_sheet.png")
+        root = cfg["controls"]["refclips"]["s3_root"]
+
+        def s3_get(key: str) -> bytes | None:
+            r = subprocess.run(["aws", "s3", "cp", "--only-show-errors", root + key, "-"],
+                               capture_output=True)
+            return r.stdout if r.returncode == 0 else None
+        readback = verify_s3_sources(mans, s3_get)          # BUG-045: every source must be on S3, sha-exact
+        (a.out / "s3_readback.json").write_text(json.dumps({"readback_ok": len(readback), "keys": readback},
+                                                           indent=1, sort_keys=True))
     return rc
 
 
