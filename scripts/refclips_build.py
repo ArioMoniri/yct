@@ -196,8 +196,17 @@ def main() -> int:
     images, sources = None, {}
     if "LOC" in fams:
         mans = check_image_manifests(cfg)
-        images = locimg.loc_images(mans, fetch_sources(mans, cfg, a.sources, local=a.local), cfg)
-        sources = {"image_manifest_sha256": cfg["controls"]["refclips_artifacts"]["image_manifest_sha256"]}
+        base = fetch_sources(mans, cfg, a.sources, local=a.local)
+        over: dict[str, int] = {}
+
+        def load(row: dict) -> np.ndarray:
+            rgb = base(row)
+            if locimg.overrun(rgb, row["crop_box"]):
+                over[row["file"]] = locimg.overrun(rgb, row["crop_box"])
+            return rgb
+        images = locimg.loc_images(mans, load, cfg)
+        sources = {"image_manifest_sha256": cfg["controls"]["refclips_artifacts"]["image_manifest_sha256"],
+                   "crop_box_edge_overrun_px": over}
     rc = build_all(clips, a.out, cfg, images=images, sources=sources)
     if rc == 0 and "LOC" in fams:
         contact_sheet(a.out, clips, cfg, a.out / "loc_contact_sheet.png")

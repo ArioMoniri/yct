@@ -28,13 +28,27 @@ def grey709(rgb: np.ndarray) -> np.ndarray:
             .round().clip(0, 255).astype(np.uint8))
 
 
-def patch(rgb: np.ndarray, box) -> np.ndarray:
+MAX_OVERRUN_PX = 16   # a priori: crop_box = a <=1600-px Haar crop scaled back with rounding (<~4 px/axis)
+
+
+def overrun(rgb: np.ndarray, box) -> int:
+    """Pixels by which the square crop_box runs past the right and bottom image edges (summed)."""
+    x, y, s = (int(v) for v in box)
+    h, w = rgb.shape[:2]
+    return max(0, x + s - w) + max(0, y + s - h)
+
+
+def patch(rgb: np.ndarray, box, max_overrun: int = MAX_OVERRUN_PX) -> np.ndarray:
+    """The T-LIC crop exactly as T-LIC sliced it (numpy: an edge overrun is clipped, as in
+    refstim_auto.crop_info / refstim_inspect.processed), then BT.709 grey and INTER_AREA to the patch."""
     import cv2
 
     x, y, s = (int(v) for v in box)
     h, w = rgb.shape[:2]
-    if x < 0 or y < 0 or s <= 0 or x + s > w or y + s > h:
-        raise ValueError(f"crop_box {box} outside the {w}x{h} image")
+    if x < 0 or y < 0 or s <= 0 or x >= w or y >= h:
+        raise ValueError(f"crop_box {box} origin outside the {w}x{h} image")
+    if overrun(rgb, box) > max_overrun:
+        raise ValueError(f"crop_box {box} overruns the {w}x{h} image by more than {max_overrun} px")
     g = grey709(rgb[y:y + s, x:x + s])
     return cv2.resize(g, (PATCH, PATCH), interpolation=cv2.INTER_AREA)
 
