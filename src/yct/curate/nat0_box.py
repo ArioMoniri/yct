@@ -172,16 +172,24 @@ def main(argv: list[str] | None = None) -> int:
     # N1 model: the public large-v3 resolved ONLINE (D-075 pins faster-whisper 1.2.1 + large-v3; the HF
     # snapshot hash is recorded), then everything else OFFLINE (pyannote from the frozen mirror only)
     wpath = download_model("large-v3")
-    model = WhisperModel(wpath, device=a.device, compute_type=ct)
-    enforce_offline()
-    pipe = load_pipeline(mirror, Path(a.out).parent / "pyannote_cfg", a.device)
     samples = [float(s) for s in a.samples_s.split(",")]
+    wavs = sorted(Path(a.wavs).glob("*.wav"))
     res = {"versions": vers, "whisper_model": {"name": "large-v3", "snapshot": Path(wpath).name},
            "results": {}}
-    for w in sorted(Path(a.wavs).glob("*.wav")):
+    # BUG-043: N1 over every wav, then the Whisper model is released before pyannote loads (peak memory
+    # = the larger of the two models, not their sum); outputs are unchanged
+    model = WhisperModel(wpath, device=a.device, compute_type=ct)
+    for w in wavs:
         x = read_wav(w)
-        res["results"][w.stem] = {"lang_probs": lang_probs(model, x, samples),
-                                  "segments": diarize(pipe, x), "n_samples": int(len(x))}
+        res["results"][w.stem] = {"lang_probs": lang_probs(model, x, samples), "n_samples": int(len(x))}
+    del model
+    import gc
+
+    gc.collect()
+    enforce_offline()
+    pipe = load_pipeline(mirror, Path(a.out).parent / "pyannote_cfg", a.device)
+    for w in wavs:
+        res["results"][w.stem]["segments"] = diarize(pipe, read_wav(w))
     Path(a.out).write_text(json.dumps(res, sort_keys=True, separators=(",", ":")))     # compact
     print(json.dumps({"n": len(res["results"]), **vers}))
     return 0

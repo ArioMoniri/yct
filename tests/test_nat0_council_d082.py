@@ -458,3 +458,53 @@ def test_enforce_offline_imports_the_constants_submodule(monkeypatch):
     monkeypatch.setitem(sys.modules, "huggingface_hub.constants", consts)
     nb.enforce_offline()
     assert consts.HF_HUB_OFFLINE is True
+
+
+# ---------------------------------------------------------------- BUG-043 (rehearsal run 2): peak memory
+def test_main_runs_n1_for_all_wavs_and_frees_the_model_before_loading_pyannote(monkeypatch, tmp_path):
+    """The pod (7 GB) OOM-killed nat0_box holding large-v3 and pyannote together. N1 now runs over every wav,
+    the Whisper model is released, and only then is pyannote loaded for N2 (same outputs)."""
+    import gc
+    import importlib.metadata as md
+    import weakref
+
+    import numpy as np
+
+    events, refs = [], []
+    fw = types.ModuleType("faster_whisper")
+
+    class WM:
+        def __init__(self, path, device, compute_type):
+            refs.append(weakref.ref(self))
+
+        def detect_language(self, x):
+            events.append("n1")
+            return "en", 0.99, [("en", 0.99)]
+
+    fw.WhisperModel = WM
+    fwu = types.ModuleType("faster_whisper.utils")
+    fwu.download_model = lambda name: str(tmp_path / "snap" / "abc")
+    monkeypatch.setitem(sys.modules, "faster_whisper", fw)
+    monkeypatch.setitem(sys.modules, "faster_whisper.utils", fwu)
+    monkeypatch.setattr(nb, "enforce_offline", lambda: None)
+    monkeypatch.setattr(nb, "check_mirror", lambda m, w: None)
+
+    def load(m, w, d):
+        gc.collect()
+        events.append("pyannote_alive" if refs[0]() is not None else "pyannote")
+        return object()
+
+    monkeypatch.setattr(nb, "load_pipeline", load)
+    monkeypatch.setattr(nb, "diarize", lambda p, x: events.append("n2") or ONE)
+    monkeypatch.setattr(md, "version", lambda p: {"faster-whisper": "1.2.1", "pyannote.audio": "4.1.0"}[p])
+    (tmp_path / "w").mkdir()
+    for i in range(3):
+        nb.write_wav(tmp_path / "w" / f"t{i}.wav", np.zeros(16000, np.float32))
+    out = tmp_path / "o.json"
+    assert nb.main(["--wavs", str(tmp_path / "w"), "--mirror", str(tmp_path), "--shas", "{}",
+                    "--out", str(out), "--device", "cpu"]) == 0
+    assert events == ["n1", "n1", "n1", "pyannote", "n2", "n2", "n2"], events
+    r = json.loads(out.read_text())["results"]
+    assert sorted(r) == ["t0", "t1", "t2"]
+    assert all(v["lang_probs"] == {"en": 0.99} and v["segments"] == ONE and v["n_samples"] == 16000
+               for v in r.values())
