@@ -1,0 +1,65 @@
+{
+ "git_head": "2954f7f267dbbe238cb58d37b0e555224a9f3279",
+ "ok": false,
+ "steps": {
+  "a_buffer_files": {
+   "bad": [],
+   "complete": true,
+   "n_buffer": 40,
+   "ok": true
+  },
+  "b_ship_uv_venv": {
+   "err": "downloading uv 0.13.9 x86_64-unknown-linux-gnu\nWARN: The following commands are shadowed by other commands in your PATH: uv uvx\n",
+   "n_files": 30,
+   "ok": true,
+   "tarball_sha256": "c780147d7416a41778549c0b694366eb501ea25810b9df1aff4f5ba8a21d4e01",
+   "work": "/work/yct/nat0_rehearsal/r_potd7pyc"
+  },
+  "c_mirror": {
+   "err": "",
+   "ok": true,
+   "shas": {
+    "diarization": "0f66ffc1f5de057eb8d0a6a16d01e49695a43457484b3301f407780208d05af2",
+    "embedding": "519a3249b87205b64910678ac968c27fa91d1deb252d15136f12cf4a5ce8f84e",
+    "plda": "53df9c188dd21b02cd629aff5f63b1509958aad5251f2fcdea0ef8c02c75835e",
+    "segmentation": "702a51c693b35998715c383c11bd5678791367772e3b5c124a52bac778ee7733"
+   }
+  },
+  "d_nat0_box_cpu": {
+   "err": "/work/yct/nat0_rehearsal/r_potd7pyc/yct/wxvenv/lib/python3.11/site-packages/pyannote/audio/models/blocks/pooling.py:102: UserWarning: std(): degrees of freedom is <= 0. Correction should be strictly less than the reduction factor (input numel divided by output numel). (Triggered internally at /pytorch/aten/src/ATen/native/ReduceOps.cpp:1839.)\n  std = sequences.std(dim=-1, correction=1)\n",
+   "n": 3,
+   "n_turns": {},
+   "ok": false,
+   "out_bytes": 0,
+   "p_en": {},
+   "rc": -9,
+   "stdout": "",
+   "whisper_model": null
+  },
+  "e_offline": {
+   "err": "",
+   "ok": true,
+   "out": "REFUSED LocalEntryNotFoundError"
+  },
+  "f_transcribe_cpu": {
+   "err": "",
+   "files": [
+    "5c57ed2b55f74c2f.json"
+   ],
+   "ok": true,
+   "rc": 0
+  },
+  "g_n3": {
+   "err": "",
+   "ok": true,
+   "value": 0.2
+  },
+  "h_session0_rows_dry": {
+   "decisions": [],
+   "log_unchanged": true,
+   "n_rows": 0,
+   "ok": false,
+   "stop": null
+  }
+ }
+}

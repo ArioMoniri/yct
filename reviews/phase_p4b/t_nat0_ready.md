@@ -71,7 +71,17 @@ sync + `check_mirror` on the four frozen shas; (d) `nat0_box --device cpu` on 3 
 `--shas` JSON; (e) HF offline enforced after faster_whisper's import; (f) `yct.transcribe` on 1 wav (cpu/int8
 for the rehearsal only); (g) N3 via `n3_cmd` on 1 mp4; (h) `session0_rows` dry (log unchanged).
 - Run 1 (f4211ea): a, b, c, g ok; d, e, f failed → BUG-042 (fixed in 2954f7f).
-- Run 2 (2954f7f): see run2_2954f7f.json and the update below.
+- Run 2 (2954f7f): d OOM-killed on the 7 GB pod (both models held at once) → BUG-043 (fixed in 72bd29d);
+  e, f, g ok.
+- **Run 3 (72bd29d): all 8 steps ok, exit 0** (run3_72bd29d.json). Ship tarball from the exact ship list;
+  fresh uv and venv from the freeze; mirror sync reproduces the four frozen shas; `nat0_box --device cpu`
+  on 3 buffer wavs returns finite lang_probs and segments (large-v3 snapshot edaa852e…); HF offline
+  refuses a download; `yct.transcribe` writes its JSON; N3 = 0.2 on one mp4; `session0_rows` dry leaves the
+  log unchanged. The full suite passes at 72bd29d (1222).
+- **Early warning (rehearsal numbers only, CPU int8, not decisions):** all 3 rehearsed candidates would be
+  rejects (two N1 p(en) 0.20 and 0.69 < 0.9; one N2), and N3 on the one mp4 tried is 0.2 < 0.5. If this rate
+  holds, session 0 may yield fewer than 15 of 40 passes, which the frozen rule makes a STOP to the owner
+  (rows logged, no relaxation). The council may want to weigh this before spending the session.
 
 ## 6. Cost
 About 45 min of A100 time, about $1.5; the cap guard plans $3.48 (1.99 $/h × 1.75 h). Campaign spend so

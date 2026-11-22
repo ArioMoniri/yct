@@ -1,0 +1,92 @@
+{
+ "git_head": "72bd29d7f11d9a77242bbefd2001343bc13bd595",
+ "ok": true,
+ "steps": {
+  "a_buffer_files": {
+   "bad": [],
+   "complete": true,
+   "n_buffer": 40,
+   "ok": true
+  },
+  "b_ship_uv_venv": {
+   "err": "downloading uv 0.13.9 x86_64-unknown-linux-gnu\nWARN: The following commands are shadowed by other commands in your PATH: uv uvx\n",
+   "n_files": 30,
+   "ok": true,
+   "tarball_sha256": "5b67ad2ff25e12837d03b34dad7057da10ab6c8434e5697fd2dd57d24bcfcc2c",
+   "work": "/work/yct/nat0_rehearsal/r_mod8hhqy"
+  },
+  "c_mirror": {
+   "err": "",
+   "ok": true,
+   "shas": {
+    "diarization": "0f66ffc1f5de057eb8d0a6a16d01e49695a43457484b3301f407780208d05af2",
+    "embedding": "519a3249b87205b64910678ac968c27fa91d1deb252d15136f12cf4a5ce8f84e",
+    "plda": "53df9c188dd21b02cd629aff5f63b1509958aad5251f2fcdea0ef8c02c75835e",
+    "segmentation": "702a51c693b35998715c383c11bd5678791367772e3b5c124a52bac778ee7733"
+   }
+  },
+  "d_nat0_box_cpu": {
+   "err": "",
+   "n": 3,
+   "n_turns": {
+    "192ab06d7cc4bc84": 15,
+    "3e8dc61e867f59a3": 21,
+    "5c57ed2b55f74c2f": 0
+   },
+   "ok": true,
+   "out_bytes": 10027,
+   "p_en": {
+    "192ab06d7cc4bc84": 0.6927,
+    "3e8dc61e867f59a3": 0.9989,
+    "5c57ed2b55f74c2f": 0.1976
+   },
+   "rc": 0,
+   "stdout": "{\"n\": 3, \"faster-whisper\": \"1.2.1\", \"pyannote.audio\": \"4.1.0\"}\n",
+   "whisper_model": {
+    "name": "large-v3",
+    "snapshot": "edaa852ec7e145841d8ffdb056a99866b5f0a478"
+   }
+  },
+  "e_offline": {
+   "err": "",
+   "ok": true,
+   "out": "REFUSED LocalEntryNotFoundError"
+  },
+  "f_transcribe_cpu": {
+   "err": "",
+   "files": [
+    "5c57ed2b55f74c2f.json"
+   ],
+   "ok": true,
+   "rc": 0
+  },
+  "g_n3": {
+   "err": "",
+   "ok": true,
+   "value": 0.2
+  },
+  "h_session0_rows_dry": {
+   "decisions": [
+    [
+     "5c57ed2b55f74c2f",
+     "reject",
+     "N1"
+    ],
+    [
+     "3e8dc61e867f59a3",
+     "reject",
+     "N2"
+    ],
+    [
+     "192ab06d7cc4bc84",
+     "reject",
+     "N1"
+    ]
+   ],
+   "log_unchanged": true,
+   "n_rows": 3,
+   "ok": true,
+   "stop": "0 NAT passes < nat_n in the buffer: STOP to the owner"
+  }
+ }
+}
