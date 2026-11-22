@@ -84,3 +84,39 @@ def test_qc_pass_writes_partial_manifest_and_never_uploads(tmp_path, monkeypatch
     assert m["partial"] is True and "NAT" in m["families_missing"]
     assert sorted(r["name"] for r in m["clips"]) == sorted(c.name for c in clips)
     assert not any("s3" in " ".join(map(str, a[0])) for a in called)
+
+
+def test_sources_resolve_from_local_scratch_by_sha256_and_upload_to_manifest_key(tmp_path, monkeypatch):
+    """BUG-044: the T-LIC finalise wrote s3_key but never uploaded; the builder takes the source from the
+    pod scratch by content sha256 only, uploads it to the frozen manifest s3_key, and decodes it."""
+    import cv2
+    import numpy as np
+
+    scratch = tmp_path / "scratch" / "face"
+    scratch.mkdir(parents=True)
+    img = np.random.default_rng(1).integers(0, 256, (40, 50, 3)).astype(np.uint8)
+    ok, buf = cv2.imencode(".png", img)
+    f = scratch / "0123456789abcdef.org&utm_x"
+    f.write_bytes(buf.tobytes())
+    (scratch / "other.jpg").write_bytes(b"not it")
+    row = {"title": "File:A.png", "s3_key": "sources/images/face/face_00.png",
+           "sha256": hashlib.sha256(buf.tobytes()).hexdigest()}
+    calls = []
+    monkeypatch.setattr(B.subprocess, "run", lambda cmd, **k: calls.append(cmd))
+    load = B.fetch_sources({"face": [row]}, CFG, tmp_path / "cache", local=[tmp_path / "scratch"])
+    rgb = load(row)
+    assert rgb.shape == (40, 50, 3) and np.array_equal(rgb, img[..., ::-1])
+    up = [c for c in calls if c[:3] == ["aws", "s3", "cp"] and not c[-2].startswith("s3://")]
+    assert len(up) == 1 and up[0][-1] == CFG["controls"]["refclips"]["s3_root"] + row["s3_key"]
+
+
+def test_sources_refuse_when_no_local_or_s3_copy_matches(tmp_path, monkeypatch):
+    row = {"title": "File:B.png", "s3_key": "sources/images/face/face_01.png", "sha256": "f" * 64}
+
+    def fail(cmd, **k):
+        raise B.subprocess.CalledProcessError(1, cmd)
+
+    monkeypatch.setattr(B.subprocess, "run", fail)
+    load = B.fetch_sources({"face": [row]}, CFG, tmp_path / "cache", local=[tmp_path])
+    with pytest.raises(SystemExit, match="no source"):
+        load(row)
