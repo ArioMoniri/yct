@@ -1,0 +1,163 @@
+{
+ "a_sources": {
+  "body": {
+   "loaded": 20,
+   "passes": 20
+  },
+  "face": {
+   "loaded": 20,
+   "passes": 20
+  },
+  "place": {
+   "loaded": 20,
+   "passes": 20
+  }
+ },
+ "b_render": {
+  "dtype": "uint8",
+  "equal_to_loc_frames": true,
+  "equal_to_loc_images": true,
+  "n_clips_checked_vs_loc_frames": 20,
+  "n_entries": 180,
+  "n_loc_clips": 20,
+  "shape": [
+   316,
+   316
+  ],
+  "v1_patch_sha256": {
+   "body": [
+    "03e2f267eeb5e7ef3da15ba2513e3c9be5c0a59976636e131363af3cfd228efc",
+    "5ac2e718b673e5be6b61ce6afe4c11128f997daacebeb6b8584b9a10647ebeee",
+    "931f64065896383b8d607cb3f91e1777d0da70518d36d5904976dfc48c615caa",
+    "c77bb00f22900a04234c41ff46116c5b54b277dd852d7c6d9101b405a61f2301",
+    "fcac33377943d0749fa22bf0be523373c2e6499c253a1a773263b21397c8368c",
+    "ccb86e8781a7db3533f459abfa2892833883c0c63de8399120af2851c9f8952c",
+    "c8325772e866432210408ff13d18b6556066505b0e165a3fa80b3b080f8f6186",
+    "759f70cfc4697ecb26f6ccb582a8d642b87a7e8a86c702b38507944aac91b3cd",
+    "6b2bb76119f39be73845fff0c0fed0dbda739dc476ea90334d528e20e6ee789a",
+    "88e63316f59bc707ca6bf4e6a69d8e1c1f158c6330979832651b42a2146226bb",
+    "f178a9aa7564b794a403da8acdb91c84e3de82f4c8e33e1bafedbbbf7a0e7540",
+    "2f827429e647d99b29320f12135cce783cf57ae2a06fe88ca96e39492eab631b",
+    "12c27dd278af5ac031969284a86e0f94f3b2b0cc54f93414bd8c8258a8af8723",
+    "ee861579a4de98cf939cebeca2c6eb5c27dee52c465edd1e08047f4420280fe6",
+    "62f0d2fc56de7584326fe3d1e26218d274cc2251c5aca274d0afbab714152f36",
+    "e41d8dfacd45862f6540c0a1c08150a0133849e09a82a08c84de25ad17484fba",
+    "04f743fd7afa34ed92e4bf473098350724889850f5725f44ed13efc49a36d338",
+    "46ab7fe6ff7f9f070547df8a8128d4344f487cb2afb5b29b3e86c91a6ce71b1b",
+    "4cce65028ab03b31911fac38cf2ce9ff78ee069e4426caf8944a979597c74cf3",
+    "a69515032a022633adbdf303645efc01e15316c632d729e4c2991a9d5fc44d3c"
+   ],
+   "face": [
+    "28892c5decd7ed53c96d717fe2679f6580343c72191fb0c2d2a2b1a3ae95d907",
+    "0039400b313108da9da04b12586e1745dfff0355b678ccfe2f1b9a348bb71ded",
+    "db30394413b970d9dc15d0429ff6a227177c103f9cdbbc6d03ad60e13f61c263",
+    "0877bab00cf46c91df1e958e233694b115fa4b6dde3b6aa0cb32189ef2902639",
+    "5a34f854cf6a8435aeda5052e561dd7c010ee305cd05f7f5e13db4124a796e93",
+    "d805de87737bd920e45146a7205e98279cede8847fb65282b1ffdf6405438052",
+    "4ac9af8c254a8588c6c1d4784679fdb84d5def4219db160ae047860815e8fedb",
+    "d33328ac3a07038d6635c51a570d7173199cd50d09c7c9942e5110eafcf2ccfa",
+    "ae23081b7e746af90bfb7062b2a70e8de6bf93782a447f3339a539a636d36e58",
+    "6190524f8715f6458dd88f73afdb8ff3189ebb334530d711ce294b9776fde2d4",
+    "b9c4dc2ea119c687bd942ee26d9c186a6977e7a7d19decaae49fccfafae8ee6d",
+    "efb8c0e86c2d38e541d699e15fe6c948604a066ad2a6d1d8f9dc88e18a1fa60e",
+    "3b39395870816ceb6cddf39fe287757258f0a6625dabdbf4004df3a522ee426c",
+    "41138089b3caba9e8b55642548726a8a241e0278b7b8d53210b0baeb22ded780",
+    "ecff57a2daf88a066e1e466b58c785d338a165ce17926675aa4287abc2f76c65",
+    "8627a560145fb570479fc65dc7aa90f049cd6fbb3a8dc7978c685c704dfc8a99",
+    "8a9935debf9c21d535e195cd24fd43cef5115de4cc482e6e282223b2966c617f",
+    "c2620676556cb50b7081394deaff4d6ffaad04b9a30ecc7cf0b94c80a0f6e862",
+    "9990b1d66a1ffcd9d8fe2c65632608b0c15e698cccde092ad4b3fd3b65ca1f4c",
+    "ef0f75acef5317698e2744e1be653ea2666e5ce4d8fcb0132ecfd97619117292"
+   ],
+   "place": [
+    "e7acdbcdd69bf0229e0a3ba294b45b0e32cdb39b40ceee7638d94b0c7a561b4e",
+    "b6dfe185847c954b1f83040f5caf8531610d1ebd3bb23dbdaff1d7b773044dc3",
+    "dad79d08d78e6891f15332c2686ecc4c4079cc3f504379f0b5aceb57d23821e3",
+    "1bdaf4790ab072ab8854a56578c2d7d9be175a45cb05c78cc8e6a3e01eabcf9e",
+    "a5473765530cc2aed2db0b4b3cafee8dc71238d487f6c50bb5558b604bb6ba0e",
+    "802509cfbc5622bd13e4d5a2cd77fcc5e83980f53c085466ce55853071ec87e4",
+    "7a515048ce2925043cbae899ade8e7b9aa5e2ec29974d878a99486e76c78833b",
+    "fe11d6abdb374527c846a8414d1c64ab2ca7bb382f7e6d88691a48344ecbf524",
+    "b181b674fd38c83c0a20eeb28ffc2863af91297ab8abf3547b0f7a16d4dc1911",
+    "aee5d784fe1296dea0da05696c0a36349806106389692faaecfa5c759e2cc10f",
+    "553f05281b08807bb21e02272aa7bb2c4fe21b7223ca5a10e1157119af84f6bd",
+    "a91e138881158d74dfcbbac0a277ca175310b7fab23643f66a99a80fc179e85f",
+    "b078c6a616c9ec9764ae6fbf6bc29787417134508d702203204869341a24ad96",
+    "b0f8619fda52b1dbd0ff489610279735cb19401047afe59f88b7532261358460",
+    "b25ed70e25ad6e0ea824d32294a5eda80cf0528fd6df5a87e9d858ac4585eb1e",
+    "372ff2ba92d2dcdcea613bc6bcc649c95e35ef16124e03eaad12a474582a95f8",
+    "6bc95ec1882b0f2531c1334e060ae89ad0ce92176c0ab987f380c4db1801b72e",
+    "0f1b230b966d30376b169e736b571a3cd834f7513bb708e4d8e167292a8e05c9",
+    "6defb043cf93fc6f59e295dc07f1edcf652ab10e1bfa5a7645dfa9a85096d26f",
+    "179e058ad74782c5c7bc12d090a35982e21af12dc30c424d3685224e615d38ee"
+   ]
+  }
+ },
+ "c_yunet": {
+  "grey_patch_detections": 0,
+  "rows": [
+   {
+    "category": "face",
+    "got": 3,
+    "logged": 3,
+    "match": true,
+    "reason": "multi_subject",
+    "rule": "F1",
+    "threshold": 0.9,
+    "title": "File:Jenny Paulaharju istuu salongissa rouvien kanssa 1928 (KK3490-8359).tif"
+   },
+   {
+    "category": "face",
+    "got": 0,
+    "logged": 0,
+    "match": true,
+    "reason": "no_face_detected",
+    "rule": "F1",
+    "threshold": 0.9,
+    "title": "File:Tom Thomson (I0007855).jpg"
+   },
+   {
+    "category": "face",
+    "got": 5,
+    "logged": 5,
+    "match": true,
+    "reason": "multi_subject",
+    "rule": "F1",
+    "threshold": 0.9,
+    "title": "File:Solo un milagro por persona \u2013 At the beach \u2013 Batch 90.jpg"
+   },
+   {
+    "category": "place",
+    "got": 1,
+    "logged": 1,
+    "match": true,
+    "reason": "face_detected",
+    "rule": "P2",
+    "threshold": 0.5,
+    "title": "File:2022 - Influence at Palacio do Grilo RC0 9408 (52473090088).jpg"
+   },
+   {
+    "category": "place",
+    "got": 1,
+    "logged": 1,
+    "match": true,
+    "reason": "face_detected",
+    "rule": "P2",
+    "threshold": 0.5,
+    "title": "File:2022 - Influence at Palacio do Grilo RC0 9405 (52473003515).jpg"
+   }
+  ]
+ },
+ "data_refstim_unchanged": true,
+ "decision": "D-087 smoke",
+ "local": [
+  "/work/yct/refstim_auto_scratch"
+ ],
+ "run_commit": "d7a416c5ab727776b6ade6adb91a66ec1826ab69",
+ "versions": {
+  "cv2": "4.11.0",
+  "ffmpeg": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+  "onnxruntime": "not installed (cv2.dnn runs the onnx)"
+ }
+}
+

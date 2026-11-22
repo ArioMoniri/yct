@@ -1,0 +1,14 @@
+venv 4.11.0 none
+venv_refstim 4.11.0 none
+10ec13f103f94094dcd004f4f4fb5db99e38ec503e044fd5dfca0d59099b1350  data/refstim/image_body_auto_log_v4.jsonl
+2ac34e9cae3ec3894ae300b6248452c2fc81b4d4fb0179771ded24c63bf84f02  data/refstim/image_face_auto_log_v4.jsonl
+e7e6911f5c9145fb4d4a6418344dac539463af99e7b346be7e4db34ea6d23676  data/refstim/image_place_auto_log_v4.jsonl
+10ec13f103f94094dcd004f4f4fb5db99e38ec503e044fd5dfca0d59099b1350  data/refstim/image_body_auto_log_v4.jsonl
+2ac34e9cae3ec3894ae300b6248452c2fc81b4d4fb0179771ded24c63bf84f02  data/refstim/image_face_auto_log_v4.jsonl
+e7e6911f5c9145fb4d4a6418344dac539463af99e7b346be7e4db34ea6d23676  data/refstim/image_place_auto_log_v4.jsonl
+identical
+0
+0
+d7a416c5ab727776b6ade6adb91a66ec1826ab69
+---
+
