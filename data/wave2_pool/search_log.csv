@@ -439,3 +439,71 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-21T09:10:00Z,hn_algolia(comment+story),"new phrasings: video for YC / our pitch video / yc pitch video / video application vimeo / made a video for yc / our YC app / submitted to yc video / the video we made (0 application videos)",1600,0
 2026-11-21T09:10:00Z,ycombinator_directory,"yc-oss companies dump (fresh) + ycombinator.com/companies pages for batch/founder/former-name checks",5600,0
 2026-11-21T08:25:00Z,youtube_data_api_v3,"x (accidental test call; results discarded)",1,0
+2026-11-22T08:17:24Z,youtube_data_api_v3,Y Combinator [2022-09-15..2022-10-20] order=date videoDuration=short,50,19
+2026-11-22T08:17:25Z,youtube_data_api_v3,Y Combinator [2023-02-20..2023-04-10] order=date videoDuration=short,50,28
+2026-11-22T08:17:26Z,youtube_data_api_v3,Y Combinator [2023-09-01..2023-10-20] order=date videoDuration=short,50,3
+2026-11-22T08:17:27Z,youtube_data_api_v3,Y Combinator [2024-02-15..2024-03-25] order=date videoDuration=short,50,9
+2026-11-22T08:17:28Z,youtube_data_api_v3,Y Combinator [2024-05-01..2024-06-20] order=date videoDuration=short,50,43
+2026-11-22T08:17:29Z,youtube_data_api_v3,Y Combinator [2024-10-01..2024-11-20] order=date videoDuration=short,50,5
+2026-11-22T08:17:30Z,youtube_data_api_v3,Y Combinator [2024-12-15..2025-02-10] order=date videoDuration=short,50,40
+2026-11-22T08:17:32Z,youtube_data_api_v3,Y Combinator [2025-03-20..2025-05-10] order=date videoDuration=short,50,39
+2026-11-22T08:17:33Z,youtube_data_api_v3,Y Combinator [2025-07-15..2025-08-25] order=date videoDuration=short,50,49
+2026-11-22T08:17:35Z,youtube_data_api_v3,Y Combinator [2025-10-01..2025-11-20] order=date videoDuration=short,50,42
+2026-11-22T08:17:36Z,youtube_data_api_v3,Y Combinator [2025-12-15..2026-02-15] order=date videoDuration=short,50,14
+2026-11-22T08:17:37Z,youtube_data_api_v3,Y Combinator [2026-03-20..2026-05-10] order=date videoDuration=short,50,42
+2026-11-22T08:17:38Z,youtube_data_api_v3,Y Combinator [2026-07-01..2026-08-25] order=date videoDuration=short,50,43
+2026-11-22T08:17:39Z,youtube_data_api_v3,Y Combinator [2026-10-01..2026-11-21] order=date videoDuration=short,50,46
+2026-11-22T08:18:41Z,youtube_data_api_v3,Founders Video YCombinator videoDuration=short,50,3
+2026-11-22T08:18:42Z,youtube_data_api_v3,submitted to Y Combinator as our founders video videoDuration=short,50,1
+2026-11-22T08:18:42Z,youtube_data_api_v3,YC founder video spring 2026 videoDuration=short,50,0
+2026-11-22T08:18:43Z,youtube_data_api_v3,founder video fall 2025 YC videoDuration=short,50,5
+2026-11-22T08:18:43Z,youtube_data_api_v3,Y Combinator founders' video videoDuration=short,50,0
+2026-11-22T08:18:44Z,youtube_data_api_v3,our video for ycombinator videoDuration=short,50,4
+2026-11-22T08:18:45Z,youtube_data_api_v3,Y Combinator self-intro video videoDuration=short,50,21
+2026-11-22T08:18:45Z,youtube_data_api_v3,ycombinator founder video summer 2025 videoDuration=short,50,7
+2026-11-22T08:18:46Z,youtube_data_api_v3,founders video yc S26 videoDuration=short,50,1
+2026-11-22T08:18:47Z,youtube_data_api_v3,YC founder video W26 videoDuration=short,50,2
+2026-11-22T08:18:48Z,youtube_data_api_v3,Y-Combinator intro video videoDuration=short,50,0
+2026-11-22T08:18:48Z,youtube_data_api_v3,YC submission video videoDuration=short,50,14
+2026-11-22T08:22:55Z,youtube_data_api_v3,application video [2024-02-25..2024-03-20] order=date videoDuration=short,50,50
+2026-11-22T08:22:56Z,youtube_data_api_v3,application video [2024-05-20..2024-06-15] order=date videoDuration=short,50,49
+2026-11-22T08:22:57Z,youtube_data_api_v3,application video [2024-10-20..2024-11-15] order=date videoDuration=short,50,44
+2026-11-22T08:22:58Z,youtube_data_api_v3,application video [2025-01-25..2025-02-14] order=date videoDuration=short,50,39
+2026-11-22T08:22:59Z,youtube_data_api_v3,application video [2025-04-15..2025-05-10] order=date videoDuration=short,50,47
+2026-11-22T08:22:59Z,youtube_data_api_v3,application video [2025-07-20..2025-08-06] order=date videoDuration=short,50,46
+2026-11-22T08:23:00Z,youtube_data_api_v3,application video [2025-10-25..2025-11-12] order=date videoDuration=short,50,44
+2026-11-22T08:23:01Z,youtube_data_api_v3,application video [2026-01-25..2026-02-12] order=date videoDuration=short,50,47
+2026-11-22T08:23:01Z,youtube_data_api_v3,application video [2026-04-15..2026-05-26] order=date videoDuration=short,50,49
+2026-11-22T08:23:02Z,youtube_data_api_v3,application video [2026-07-10..2026-07-29] order=date videoDuration=short,50,48
+2026-11-22T08:23:03Z,youtube_data_api_v3,application video [2026-10-15..2026-11-04] order=date videoDuration=short,50,48
+2026-11-22T08:28:08Z,exa_search,"LinkedIn post: throwback to the 1-minute founder video we sent with our YC application, we got in (video attached)",25,1
+2026-11-22T08:28:08Z,exa_search,"founder shares the exact YC founder intro video recorded for the batch they got into (LinkedIn 2026, with video)",25,0
+2026-11-22T08:28:08Z,exa_search,"application video YC rejected us, founders share our video (LinkedIn post)",25,1
+2026-11-22T08:28:08Z,exa_search,24vids founder video we submitted to YC got us in batch,30,1
+2026-11-22T08:28:08Z,exa_search,24vids founder video YC application we got in (2025-2026 batch codes),30,1
+2026-11-22T08:28:08Z,exa_search,x.com tweet: here's the founder video that got us into YC,40,1
+2026-11-22T08:28:08Z,exa_search,24vids my YC application video we got in (founder video tweet),50,0
+2026-11-22T08:28:08Z,exa_search,"tweet: our YC founder video accepted batch, sharing for applicants, deadline tonight",40,1
+2026-11-22T08:28:08Z,exa_search,nitter tweet: the YC application video that got us into the batch,40,0
+2026-11-22T08:28:08Z,exa_search,"nitter/xitter founder video YC rejected us, sharing the video we submitted",40,0
+2026-11-22T08:28:08Z,exa_search,founder-identity and tweet-id follow-ups (Adam W25 founder; Polygres tweet text; Minro tweet text),30,0
+2026-11-22T08:28:08Z,webfetch,"ycarena.com partnersim applications list (102 curated video ids, all already in exclusions/manifests)",102,0
+2026-11-22T08:28:09Z,x_syndication_api,"cdn.syndication.twimg.com tweet-result lookups for candidate tweet ids (video presence, duration, author)",12,3
+2026-11-22T08:28:09Z,nitter_mirror_profile_pages,xitter.cf/teapawt profile pages of candidate founders to resolve tweet ids (search page is gated and was not used),6,1
+2026-11-22T08:28:09Z,linkedin_fetch,public LinkedIn post pages (VideoObject check) for 5 Exa hits,5,1
+2026-11-22T08:29:58Z,exa_search,tweet: here's our YC application video founders 2025,1,0
+2026-11-22T08:29:58Z,exa_search,we got into YC tweet with the founder video we submitted attached (F25 W26 S26 F26),40,0
+2026-11-22T08:29:58Z,exa_search,"didn't get into YC, posting the founder video we submitted anyway (tweet with video)",40,1
+2026-11-22T08:29:58Z,exa_search,LinkedIn: the video we applied to YC with and didn't get in; later got into YC,40,0
+2026-11-22T08:31:52Z,exa_search,"throwback: our first YC application video that got rejected, now we're a YC company",40,0
+2026-11-22T08:31:52Z,webfetch,maxprilutskiy.com YC application blog (no founder video embedded),1,0
+2026-11-22T08:31:52Z,youtube_data_api_v3,commentThreads.list on 144 new application-like candidates <=3 min (uploader replies with outcome),144,0
+2026-11-22T08:31:52Z,exa_search,loom.com share YC application founder video,30,0
+2026-11-22T08:31:52Z,exa_search,"24vids application video Y Combinator we got in, sharing for founders applying",40,0
+2026-11-22T08:31:52Z,exa_search,twstalker/tweetlook founder video YC got in / rejected 2026,40,0
+2026-11-22T08:31:52Z,hn_algolia,items/45427690 (YC application video dataset tweet -> ycarena.com),1,0
+2026-11-22T08:31:59Z,youtube_data_api_v3,videos.list/channels.list/playlistItems.list detail checks for individual candidates and 3 founder channels,12,0
+2026-11-22T08:34:42Z,exa_search,founder tweet sharing our founder video from the YC S26 application that got us in,20,1
+2026-11-22T08:34:42Z,exa_search,"""application closes today"" attaching our founder video YC tweet",20,0
+2026-11-22T08:34:42Z,nitter_mirror_profile_pages,xitter.cf media-tab pagination of one founder profile (7 pages) to resolve a 2025 tweet id,7,1
+2026-11-22T08:34:42Z,linkedin_fetch,public LinkedIn post pages (VideoObject check) for 4 more Exa hits,4,0
