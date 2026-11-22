@@ -45,3 +45,9 @@ Verdict: **REVISE**, one small blocking item. Read only v2, the response matrix,
 - Item 1: the §1 text has all four points. The §6 entry must paste §1 in full, not only cite "§1", and must say that silent input gives zeros. I treat this as a drafting condition, not a new item.
 - Item 2: accepted. The fail-closed re-hash is tested. Resampling 22050 to 48 kHz with `resample_bandlimited` makes the selection span the same quantity as the build's span.
 - Items 4 and 5: accepted (`face_continuation` terms as ruled, `assert_byte_prefix`, the order). Once the blob key is added, the order holds: weights and loader are frozen before any face candidate.
+
+## Final sign-off (v2 addendum §7: 4dedd87, 746e0c5)
+
+- Loader keys: `talkface.loader.blob_sha1` = 43f805e8e1a3066ca138251a47aea814639fdc3b, which matches `git hash-object src/yct/tribe_run/wav2lip_loader.py`. `check_record_sha256` = d4e7d038…898a, which matches `sha256sum` of `loader_check.json`. Both are schema-typed and checked by a test; 51 tests pass. The weights and loader are frozen before any face candidate, so item 5's order holds.
+- T-ENV: §6 pastes §1 word for word. That covers all four points and the statement that silent input (SD 0) gives zeros. The drafting condition is met. Nothing else is open.
+APPROVE
