@@ -21,3 +21,12 @@ Checks: `pytest tests/test_tenv.py tests/test_d085_part2.py tests/test_refclips_
 - B2: Weights per ruling 3: (a) NOGAN with the strict state_dict load (jit fallback decided on the fixture only), frozen in the part-2 commit, plus loader tests.
 - B3: The `talkface.face_continuation` key with the budget stated (ruling 4), plus a test that the existing face-log rows stay byte-identical.
 - B4: The DECISIONS part-2 entry carries the T-ENV disclosure, the weights amendment and the amended freeze order.
+
+## Re-sign-off (v2: d7692c7 cadb82d ff0bc9f) — APPROVE
+
+- Checks: `pytest tests/test_d085p2_council.py tests/test_d085_part2.py tests/test_d085_council.py` 38 passed; `make guards` rc=0. The ff0bc9f edit tracks the disclosed literal amendment (`wav2lip.pth` → `Wav2Lip-SD-NOGAN.pt`). It is not a weakening.
+- B1 met. `engine_pin` is required. `verify_engine` re-hashes the binary, lib and data tree before any synthesis and fails closed. `scripts/espeak_pin.py` is committed and tested.
+- B2 met. Option (b) does not exist (master = bac9a81, no SD loader in history), so my pre-stated (a) applies. The strict load was decided on the synthetic fixture only: 352/352 keys, max |diff| 0.0 (loader_check.json). `load_nogan` checks the sha before `jit.load`, refuses GAN and has no jit fallback, so a strict failure is a STOP. The weights sha is in the part-2 config.
+- B3 met. `face_continuation` is named and gated on the part-2 freeze, for face only. Its target is ≤ 21+5, and `assert_byte_prefix` runs after each category. The budget is separate from D-087 rather than counted against it. I accept that: it is bounded and stated.
+- B4 met as a draft. Condition for the append: the DECISIONS entry must inline the §1 T-ENV text (all four points) and the §5 order verbatim, not refer to "§1"/"§5" of a review file.
+- Outcome-blind: nothing has been synthesised, selected or run on a real face. I read no sealed data, labels, transcripts, Harvard texts or predictions.

@@ -28,3 +28,10 @@ Verdict: REVISE. Nothing blocks on design. The items below are fixes to the reco
 
 ## Owner questions
 None. The licence and use questions are already covered by the owner's rulings (non-commercial, internal only).
+
+## Re-sign-off (v2: d085_part2_v2.md, _response.md; d7692c7 cadb82d ff0bc9f; loader_check.json)
+Verdict: APPROVE. Not read: sealed data, labels, transcripts, Harvard texts, outputs/ predictions other than d085p2_loader_check/.
+- Ruling 3: option (b) does not exist (master = bac9a81, no SD loader in 113 commits). My pre-stated fallback (a) therefore applies; this is not a re-vote. The loader was decided on the synthetic fixture before any real face (strict 352/352, max |diff| 0.0). jit fallback off, GAN refused, sha checked; README and s3fd unchanged. B3 met. The DECISIONS text must add the second reason for the amendment: `wav2lip.pth` is gone from the official folder.
+- B1 met in `EspeakSynth`/`verify_engine` (fail closed, tested; `engine_pin` required). Condition before synthesis: `speech_corpus.select` and the build's `make_speech_provider` take any callable, and no pod driver exists yet. The driver for both must construct `EspeakSynth`, or `select` must refuse a synth that lacks `verified`. Record which in the run log.
+- B2 met by the §6 draft (T-ENV disclosure, (e) amendment, TALKFACE authority). Ruling 4: `--target` up to 26 is not tied to skips in the code. The run log must list each s3fd/Wav2Lip skip that justifies the target above 21.
+- Ruling 5: the amended order is as ruled, with the corpus sha, weights sha and face_continuation in the one part-2 commit. 38 tests pass locally.

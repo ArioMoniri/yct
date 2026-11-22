@@ -16,3 +16,10 @@
 
 ## Owner questions
 None. Licence and use are covered by the owner's rulings (non-commercial, internal only). A licence change at the new revision becomes a STOP and an owner question only if it happens.
+
+## Re-sign-off (v2: d085_part2_v2.md, _response.md, d7692c7 cadb82d ff0bc9f)
+**Verdict: APPROVE.** Read the v2 note, the response matrix, the three commits, and `outputs/runs/d085p2_loader_check/loader_check.json`. 38 tests pass (test_d085p2_council, test_d085_part2, test_d085_council).
+- Ruling 3: option (b) is empty. Upstream has one branch, master = bac9a81 (our pin), and no SD loader in any of its 113 commits. So my pre-stated fallback (a) applies as written. No STOP fired: README, licence and s3fd are unchanged. GAN is refused in code. Path (a) was decided on the synthetic fixture only, before any real face. It uses strict state_dict into the pinned `models.Wav2Lip` (352/352 keys, max |diff| vs TorchScript 0.0), with no jit fallback. This is stricter than the jit wrapper I allowed, and it leaves the pinned forward pass unchanged. Accepted. The path is logged (`loader.path`, `load_nogan` return).
+- B1: met. `engine_pin` is required. `verify_engine` fails closed before any synthesis, with a test. `scripts/espeak_pin.py` is committed. B3: met. The fixture check is recorded, and the weights sha will be frozen in the part-2 commit.
+- B2: met in draft. §6 carries the T-ENV disclosure (via §1), the (b)→(a) amendment and face_continuation. When appended, the entry should spell out the §1 T-ENV facts and the strict-vs-jit note (from §3) in full, not just "§1"/"§3", because DECISIONS must stand alone. This is not blocking.
+- Ruling 4: `face_continuation` matches: rank > 492, no YuNet, ≤ 5 skips, budget separate from D-087, append-only with a byte-prefix check, exhaustion = STOP. Ruling 5 and the pass_rates pre-specification (Wilson 95%, descriptive, exhaustion = STOP) are carried. Nothing is frozen yet. That is correct.

@@ -36,3 +36,12 @@ Verdict: **REVISE**. The work is sound. Fix the items below in the part-2 entry 
 Blocking: items 3 and 5 (weights and loader frozen in the part-2 keys; order amended), item 4 (`face_continuation` key), and the item 1 disclosure text.
 Feasibility (as already disclosed): if fewer than 60 SPK items pass of the 410, that is a STOP to the owner. Never relax the span gate after selection.
 Owner questions: none. The weights source is a council matter; the licence is the same README, non-commercial and internal.
+
+## Re-sign-off (v2: d7692c7, cadb82d, ff0bc9f)
+
+Verdict: **REVISE**, one small blocking item. Read only v2, the response matrix, the commits and `outputs/runs/d085p2_loader_check/`. The 38 part-2 tests pass.
+- Item 3: accepted. (b) does not exist (master = bac9a81, no SD loader in 113 commits), so my pre-stated fallback (a) applies. It used the strongest form: 352/352 keys, strict load into the pinned `models.Wav2Lip`, max |diff| 0.0 against the jit forward, no jit fallback, GAN refused. The deviation from `wav2lip.pth` and the May 2023 file are disclosed.
+- **Blocking (items 3 and 5):** `talkface.loader` names the module, but the loader's blob sha that I asked to freeze is missing. Add `loader.blob_sha1` (currently `git hash-object` = 43f805e8…) and the sha256 of `loader_check.json` to the part-2 keys, frozen in that commit as was done for T-ENV `blob_sha1`.
+- Item 1: the §1 text has all four points. The §6 entry must paste §1 in full, not only cite "§1", and must say that silent input gives zeros. I treat this as a drafting condition, not a new item.
+- Item 2: accepted. The fail-closed re-hash is tested. Resampling 22050 to 48 kHz with `resample_bandlimited` makes the selection span the same quantity as the build's span.
+- Items 4 and 5: accepted (`face_continuation` terms as ruled, `assert_byte_prefix`, the order). Once the blob key is added, the order holds: weights and loader are frozen before any face candidate.

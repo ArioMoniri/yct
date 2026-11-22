@@ -16,3 +16,11 @@ Verdict: **REVISE**. The record is sound and nothing outcome-bearing has run. Th
    There is no synthesis before step 1 (`require_frozen`), and no listening at any point.
 
 Owner rulings respected: TALKFACE internal only; AI lip-sync; 3-word SPK at 175 wpm; Harvard texts as hashes only. No owner decision is needed now. The licence check in B1 becomes one only if the terms differ.
+
+## Re-sign-off (v2: d085_part2_v2.md, d7692c7, cadb82d, ff0bc9f)
+
+Verdict: **APPROVE**. B1–B3 are met, and nothing outcome-bearing has run.
+- Ruling 3: option (b) does not exist (upstream master = bac9a81, 113 commits, no SD loader), so my pre-stated fallback (a) applies as fixed. The fixture check (loader_check.json) passed: 352/352 keys, strict load succeeds, max |diff| 0.0 against the jit forward, decided before any real face. `load_nogan` has no jit fallback and refuses GAN. The README, licence and s3fd are unchanged, so no STOP fired. The literal change from `wav2lip.pth` is disclosed as a D-085 (e) amendment. Accepted.
+- B2: `face_continuation` is separate from D-087 and gated on the part-2 freeze. It is face only, append-only (`assert_byte_prefix`), with no YuNet replacement. The skip allowance (+1 per frozen mechanical `skip_on`, ≤5, target ≤26, within 20 extra passes) adds no visual or quality judgement. Accepted.
+- B3: `engine_pin` is required and re-hashed before synthesis, fail-closed. The data-tree script is committed and tested. 38 tests pass.
+- Ruling 1 and the freeze order match my review. Non-blocking: the DECISIONS entry should carry the full §1 T-ENV sentence (frozen at 62c3806 before ratification, effective order 8, any change needs a new decision), not just "(§1)".
