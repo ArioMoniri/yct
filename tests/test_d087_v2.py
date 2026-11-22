@@ -330,9 +330,17 @@ def _builder():
 
 def test_v2_manifests_refused_until_frozen_and_sha_matches(tmp_path):
     bld = _builder()
-    cfg = load_config()
+    from _pre_d087 import pre_d087
+    cfg = pre_d087(copy.deepcopy(load_config()))   # the state before the D-087 freeze (24bf885 / eb458aa)
     with pytest.raises(SystemExit, match="not frozen"):
         bld.check_image_manifests_v2(cfg, tmp_path)
+
+
+def test_v2_manifests_accepted_at_the_frozen_repo_state():
+    bld = _builder()
+    mans, screen = bld.check_image_manifests_v2(load_config())   # frozen shas == the committed files
+    assert {c: len(mans[c]) for c in CATS} == {c: 20 for c in CATS}
+    assert screen["rounds"] >= 1
 
 
 def test_v2_patch_identity_mismatch_is_reported():

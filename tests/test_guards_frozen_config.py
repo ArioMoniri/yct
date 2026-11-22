@@ -159,6 +159,8 @@ D087_SHA = "24bf885e51a0209de3e3f725921161725fc3d7c8"   # D-087 DECISIONS entry
 D075_FROZEN += [("controls.refclips_d087", D087_SHA)]   # D-087 rule
 D087A_SHA = "eb458aa49a847657b4f954ca93129cbdd7747443"   # D-087 screen run 1 (sets the v2 artifact shas)
 D075_FROZEN += [("controls.refclips_d087_artifacts", D087A_SHA)]   # D-087 artifacts
+D075_FROZEN += [(f"controls.refclips_d087_artifacts.{k}", D087A_SHA)
+                for k in ("image_manifest_v2_sha256", "screen_record_sha256")]   # exact keys (builder)
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
