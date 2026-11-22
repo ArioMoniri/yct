@@ -937,3 +937,5 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   # the builder checks the two artifact keys by exact key (refclips_build._frozen); same commit as the row above
   - {key: controls.refclips_d087_artifacts.image_manifest_v2_sha256, frozen_at: eb458aa49a847657b4f954ca93129cbdd7747443}
   - {key: controls.refclips_d087_artifacts.screen_record_sha256, frozen_at: eb458aa49a847657b4f954ca93129cbdd7747443}
+  # T-ENV (D-086 R-ENV, D-085 part 2 prerequisite): module + blob set in the commit named, frozen in the next
+  - {key: controls.refclips_d085.tenv, frozen_at: 8754ba50e54c3f39e123baa75da26f09dda790c1}

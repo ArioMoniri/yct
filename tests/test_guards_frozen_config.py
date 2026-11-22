@@ -161,6 +161,8 @@ D087A_SHA = "eb458aa49a847657b4f954ca93129cbdd7747443"   # D-087 screen run 1 (s
 D075_FROZEN += [("controls.refclips_d087_artifacts", D087A_SHA)]   # D-087 artifacts
 D075_FROZEN += [(f"controls.refclips_d087_artifacts.{k}", D087A_SHA)
                 for k in ("image_manifest_v2_sha256", "screen_record_sha256")]   # exact keys (builder)
+TENV_SHA = "8754ba50e54c3f39e123baa75da26f09dda790c1"   # T-ENV module + blob set (D-085 part 2 prerequisite)
+D075_FROZEN += [("controls.refclips_d085.tenv", TENV_SHA)]   # T-ENV
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
