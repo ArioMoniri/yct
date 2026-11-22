@@ -28,3 +28,10 @@ Verdict: **REVISE** (one blocking item, a text fix only; the code is acceptable 
 - `_finish_k` "failed" path (post-GPU error, rows not logged): add a line saying session k is not re-run without
   a council note, because a re-run would re-evaluate a buffer whose GPU output already exists. §3: disclose
   that the NAT clips may come from several pods/sessions (same pins, same rules).
+
+## Re-sign-off (d084_v2.md, d084_v2_response.md, c364d99, 7deeeff, 9848baf; f9de8f1 does not resolve in this repo, the tests are in 8a70fdf)
+- **Blocking item 1: resolved.** §2.6 and the DECISIONS text state $2.4 expected and $3.48/session ($20.9 for six) worst case. `check_projection` runs in every k >= 1 preflight after the buffer checks and before the baseline/launch: spend (which includes the `-nat` sessions) + $61 (matches d071_v3 §k) + price × max_hours. Over $75 it is refused and that is a STOP. The result is written into `pre_launch.projection`, and the guard refuses once a non-NAT launch exists. The four tests are meaningful. 41 passed (test_nat_d084 + test_guards_frozen_config).
+- Effect: NAT spend is held to ≤ $75 − $61 − $3.48 ≈ $10.5 before the next session, so the main plan keeps its headroom. The $61 is an estimate, not a bound, but the main campaign's own guards cover it.
+- **Non-blocking items: done** (§2.5 no re-run of a `failed` session without a council note; §3 multi-session/pod provenance).
+- **Order of events (freeze before re-sign-off).** D-084 was entered in 7deeeff and frozen in 9848baf before this re-sign-off. The DECISIONS line is accurate: it says "watchdog REVISE ... applied in v2" and does not claim my approval. No session k >= 1 has launched (only the CPU stage, 9aa1090). Nothing was decided on the strength of an approval that did not yet exist, so this is acceptable. Disclosure (non-blocking): the v1 report's D-084 section should note that the freeze preceded the watchdog re-sign-off and that the re-sign-off left the frozen values unchanged. Future councils: freeze only after every REVISE member has re-signed.
+APPROVE
