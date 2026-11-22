@@ -741,3 +741,5 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   - {key: controls.refclips_auto_artifacts.pyannote_segmentation_sha256, frozen_at: 0c3057cdb33aeb33a51f187ba2eed5f23f6894fe}
   - {key: controls.refclips_auto_artifacts.pyannote_embedding_sha256, frozen_at: 0c3057cdb33aeb33a51f187ba2eed5f23f6894fe}
   - {key: controls.refclips_auto_artifacts.pyannote_plda_sha256, frozen_at: 0c3057cdb33aeb33a51f187ba2eed5f23f6894fe}
+  # D-084 (NAT continuation, post hoc): frozen in the commit after the DECISIONS entry, before session 1
+  - {key: controls.refclips_d084, frozen_at: 7deeeff74a323857a936e740729b3ff6dad21dcc}

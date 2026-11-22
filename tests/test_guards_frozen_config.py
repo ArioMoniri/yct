@@ -132,6 +132,8 @@ D082_SHA = "0c3057cdb33aeb33a51f187ba2eed5f23f6894fe"   # D-082 DECISIONS entry 
 D075_FROZEN += [("controls.refclips_d082", D082_SHA)] + [
     (f"controls.refclips_auto_artifacts.pyannote_{k}_sha256", D082_SHA)
     for k in ("diarization", "segmentation", "embedding", "plda")]   # D-082 step 2
+D084_SHA = "7deeeff74a323857a936e740729b3ff6dad21dcc"   # D-084 DECISIONS entry (council v2)
+D075_FROZEN += [("controls.refclips_d084", D084_SHA)]   # D-084 step 2
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
