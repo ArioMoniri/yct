@@ -147,6 +147,9 @@ D075_FROZEN += [(k, D071_SHA) for k in (
     "controls.rois.FFC", "controls.rois.PH", "controls.rois.AUD", "controls.rois.V1_V3",
     "controls.regressors.face", "controls.regressors.motion", "controls.regressors.luminance_change",
     "controls.partial_out")]   # D-086 FIX-NORM-P4B item 6 (unchanged since T-D071 commit 1)
+D086_SHA = "1a3cff74f8a4b3fb866ae0ee07c58563be1112a4"   # D-086 entry (sets the two keys below)
+D075_FROZEN += [("controls.partial_out_nuisance", D086_SHA),
+                ("controls.regressors.speech_envelope", D086_SHA)]   # D-086 step 2
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():

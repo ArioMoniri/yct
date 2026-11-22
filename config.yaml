@@ -866,3 +866,7 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   - {key: controls.regressors.motion, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
   - {key: controls.regressors.luminance_change, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
   - {key: controls.partial_out, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  # D-086 step 2: keys set by D-086 (owner Q1 drift term; R-ENV envelope op), frozen in the commit after
+  # the one that sets them
+  - {key: controls.partial_out_nuisance, frozen_at: 1a3cff74f8a4b3fb866ae0ee07c58563be1112a4}
+  - {key: controls.regressors.speech_envelope, frozen_at: 1a3cff74f8a4b3fb866ae0ee07c58563be1112a4}
