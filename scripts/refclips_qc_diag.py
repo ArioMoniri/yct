@@ -36,7 +36,8 @@ def main() -> int:
             k = R._in_event(t * tr + tr / 2, c)
             if k is not None:
                 e = c.events[k]
-                what = f"{'intact' if c.family == 'LOC' else 'swap-scramble'} {e['category']}_{e['image']:02d}"
+                kind = "intact" if c.family == "LOC" else "swap-scramble"
+                what = f"{kind} {e['category']}_{e['image']:02d}"
             else:
                 e = c.events[min(R._segment(t * tr + tr / 2, c), len(c.events) - 1)]
                 what = f"scramble of {e['category']}_{e['image']:02d}"
