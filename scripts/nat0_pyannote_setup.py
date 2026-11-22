@@ -1,6 +1,7 @@
 """T-NAT0 pyannote setup step (D-075 §1/§3; yct pod; run with the pinned WhisperX env /work/yct/venv_wx).
 
-  download MIRROR      snapshot_download the pinned repos (3 from D-075 + the community-1 plda/ subfolder, D-082 draft) (owner-accepted HF gates; the token
+  download MIRROR      snapshot_download the pinned repos (3 from D-075 + the community-1 plda/
+                       subfolder, D-082 draft) (owner-accepted HF gates; the token
                        is read by huggingface_hub from $HF_TOKEN_PATH, a umask-077 file the wrapper
                        pipes from SSM /yct/hf_token and shreds afterwards; never printed) into
                        MIRROR/<repo>; print the shas

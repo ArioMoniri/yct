@@ -69,7 +69,8 @@ class Refused(SystemExit):
 
 def check_frozen(cfg: dict) -> None:
     rows = {r["key"] for r in cfg.get("frozen") or []}
-    need = ["controls.refclips_auto", "controls.refclips_d082", "controls.refclips_artifacts.nat_snapshot_sha256"] + \
+    need = ["controls.refclips_auto", "controls.refclips_d082",
+            "controls.refclips_artifacts.nat_snapshot_sha256"] + \
         [f"controls.refclips_auto_artifacts.{k}" for k in PYANNOTE_KEYS]
     missing = [k for k in need if k not in rows]
     unset = [k for k in PYANNOTE_KEYS if not cfg["controls"]["refclips_auto_artifacts"].get(k)]

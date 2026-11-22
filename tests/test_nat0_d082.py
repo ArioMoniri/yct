@@ -49,7 +49,9 @@ def test_schema_refuses_a_branch_name_revision():
 
     d = copy.deepcopy(CFG["controls"]["refclips_d082"])
     d["plda"]["revision"] = "main"
-    with pytest.raises(Exception):
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
         RefClipsD082.model_validate(d)
 
 

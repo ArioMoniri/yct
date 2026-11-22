@@ -117,7 +117,8 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--wavs", required=True)
     ap.add_argument("--mirror", required=True)
-    ap.add_argument("--shas", required=True, help="JSON {diarization, segmentation, embedding, plda} frozen shas")
+    ap.add_argument("--shas", required=True,
+                    help="JSON {diarization, segmentation, embedding, plda} frozen shas")
     ap.add_argument("--out", required=True)
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--samples-s", default="0,30")
