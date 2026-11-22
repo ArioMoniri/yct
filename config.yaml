@@ -592,10 +592,11 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     tessdata_eng_sha256: 7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2
     haar_face_sha256: 0f7d4527844eb514d4a4948e822da90fbb16a34a0bbbbc6adc6498747a5aafb0
     haar_eye_sha256: 71cc64fc305a355dc60067880f6fbbd43dd155bd63ee3844661a1bda34b2fd8c
-    pyannote_diarization_sha256: null
-    pyannote_segmentation_sha256: null
-    pyannote_embedding_sha256: null
-    pyannote_plda_sha256: null          # D-082 draft: community-1 plda/ mirror (set + frozen after the council)
+    # D-082: dir_sha of the S3 mirror models/pyannote/<repo> (set at the D-082 entry, frozen in the next commit)
+    pyannote_diarization_sha256: 0f66ffc1f5de057eb8d0a6a16d01e49695a43457484b3301f407780208d05af2
+    pyannote_segmentation_sha256: 702a51c693b35998715c383c11bd5678791367772e3b5c124a52bac778ee7733
+    pyannote_embedding_sha256: 519a3249b87205b64910678ac968c27fa91d1deb252d15136f12cf4a5ce8f84e
+    pyannote_plda_sha256: 53df9c188dd21b02cd629aff5f63b1509958aad5251f2fcdea0ef8c02c75835e   # community-1 plda/
 
 p4:                            # P4 TRIBE inference run sets + compute (D-063, ticket FIX-P4E; scripts/gpu_wave1_p4.py)
   # Label-blind, fixed before any real-data P4 output. Output firewall (D-063 B2): P4 extracts features and
