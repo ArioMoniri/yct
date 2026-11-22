@@ -102,3 +102,40 @@ def test_d086_wording_corrected_and_section7_discloses_decoded_identity():
     doc = (ROOT / "reviews" / "phase_p4b" / "d085_v2.md").read_text()
     s7 = doc[doc.index("## 7. Disclosures"):doc.index("## 8.")]
     assert "decoded" in s7 and "|U" in s7 and "|V" in s7
+
+
+# ---------------------------------------------------------------- C1 after the freeze: only post-freeze runs allowed
+def test_c1_allows_yunet_output_only_from_a_run_descending_from_the_freeze(tmp_path):
+    from yct.tribe_run import refclips_qc85 as Q
+
+    d = tmp_path / "runs" / "refclips_x"
+    d.mkdir(parents=True)
+    doc = {"rule": "D-085", "code_commit": "RUN", "rows": [{"checks": {"yunet": {"hits": []}}}]}
+    (d / "qc.json").write_text(json.dumps(doc))
+    Q.assert_no_yunet_outputs(tmp_path, frozen_at="FRZ", is_ancestor=lambda a, b: (a, b) == ("FRZ", "RUN"))
+    with pytest.raises(SystemExit, match="YuNet"):
+        Q.assert_no_yunet_outputs(tmp_path, frozen_at="FRZ", is_ancestor=lambda a, b: False)
+    with pytest.raises(SystemExit, match="YuNet"):
+        Q.assert_no_yunet_outputs(tmp_path)                       # before the freeze: never allowed
+    del doc["code_commit"]
+    (d / "qc.json").write_text(json.dumps(doc))
+    with pytest.raises(SystemExit, match="YuNet"):
+        Q.assert_no_yunet_outputs(tmp_path, frozen_at="FRZ", is_ancestor=lambda a, b: True)   # no commit: refused
+
+
+def test_d085_qc_record_carries_the_code_commit(tmp_path, monkeypatch):
+    import copy
+    cfg = copy.deepcopy(CFG)
+    cfg["frozen"] = list(cfg["frozen"]) + [{"key": "controls.refclips_d085.qc", "frozen_at": "x"}]
+    rec1 = json.loads((ROOT / cfg["controls"]["refclips_d085"]["build1_sha_record"]).read_text())["files"]
+    clips = [c for c in R.plan(cfg) if f"{c.name}.mp4" in rec1]
+    monkeypatch.setattr(B.R, "build_clip", lambda c, out, cfg, images=None: {
+        "name": c.name, "family": c.family, "sha256": {k: rec1[f"{c.name}.{k}"] for k in ("mp4", "wav", "tsv")}})
+    monkeypatch.setattr(B, "write_rebuild_record", lambda out, names, mismatches: {})
+    monkeypatch.setattr(B.refclips_qc85, "run_qc", lambda *a, **k: {"rule": "D-085", "rows": [],
+                                                                      "face_hit_family": None, "pass": True})
+    monkeypatch.setattr(B.R, "manifest", lambda recs, tc, src, path: path.write_text("{}"))
+    monkeypatch.setattr(B, "toolchain", lambda: {})
+    monkeypatch.setattr(B, "git_head", lambda: "abc123")
+    assert B.build_all(clips, tmp_path, cfg, qc="d085", yunet=lambda *a: []) == 0
+    assert json.loads((tmp_path / "qc.json").read_text())["code_commit"] == "abc123"
