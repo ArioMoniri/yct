@@ -18,7 +18,9 @@ import os
 from pathlib import Path
 
 REPOS = {"diarization": "speaker-diarization-3.1", "segmentation": "segmentation-3.0",
-         "embedding": "wespeaker-voxceleb-resnet34-LM"}
+         "embedding": "wespeaker-voxceleb-resnet34-LM",
+         "plda": "speaker-diarization-community-1"}     # D-082 draft: only its plda/ subfolder is mirrored
+PLDA_FILES = ("plda.npz", "xvec_transform.npz")
 SR = 16000
 
 
@@ -42,7 +44,8 @@ def check_mirror(mirror: Path, want: dict[str, str]) -> None:
 
 def patched_config(mirror: Path, out_dir: Path) -> Path:
     """The pinned 3.1 pipeline config with its two model references pointed at the local mirror (the
-    original config file is unchanged and covered by the diarization sha)."""
+    original config file is unchanged and covered by the diarization sha), plus the pinned
+    community-1 PLDA passed explicitly (D-082 draft; loaded by 4.1.0, unused by AgglomerativeClustering)."""
     import yaml
 
     c = yaml.safe_load((mirror / REPOS["diarization"] / "config.yaml").read_text())
@@ -50,8 +53,16 @@ def patched_config(mirror: Path, out_dir: Path) -> Path:
     if p.get("segmentation") != "pyannote/segmentation-3.0" or \
             p.get("embedding") != "pyannote/wespeaker-voxceleb-resnet34-LM":
         raise SystemExit(f"unexpected 3.1 pipeline params {p}")
+    if p.get("clustering") != "AgglomerativeClustering":
+        # pyannote.audio 4.1.0 applies the PLDA only under VBxClustering (D-082 draft): refuse it
+        raise SystemExit(f"unexpected 3.1 clustering {p.get('clustering')!r}, need AgglomerativeClustering")
+    plda = mirror / REPOS["plda"] / "plda"
+    missing = [f for f in PLDA_FILES if not (plda / f).is_file()]
+    if missing:
+        raise SystemExit(f"incomplete plda mirror {plda}: missing {missing}")
     p["segmentation"] = str(mirror / REPOS["segmentation"] / "pytorch_model.bin")
     p["embedding"] = str(mirror / REPOS["embedding"] / "pytorch_model.bin")
+    p["plda"] = str(plda)     # explicit, so 4.1.0 never reaches for the unpinned hub default
     out_dir.mkdir(parents=True, exist_ok=True)
     f = out_dir / "config.yaml"
     f.write_text(yaml.safe_dump(c, sort_keys=False))
@@ -106,7 +117,7 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--wavs", required=True)
     ap.add_argument("--mirror", required=True)
-    ap.add_argument("--shas", required=True, help="JSON {diarization, segmentation, embedding} frozen shas")
+    ap.add_argument("--shas", required=True, help="JSON {diarization, segmentation, embedding, plda} frozen shas")
     ap.add_argument("--out", required=True)
     ap.add_argument("--device", default="cuda")
     ap.add_argument("--samples-s", default="0,30")

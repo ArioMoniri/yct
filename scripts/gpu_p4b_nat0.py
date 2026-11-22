@@ -58,7 +58,8 @@ ref = _ref()
 USD_LIMIT_MAX = 8.0                       # D-071 (k): --usd-limit 8 per session
 TERMINATOR_MAX_LATE_S = 3600
 SESSION = "nat0"
-PYANNOTE_KEYS = ("pyannote_diarization_sha256", "pyannote_segmentation_sha256", "pyannote_embedding_sha256")
+PYANNOTE_KEYS = ("pyannote_diarization_sha256", "pyannote_segmentation_sha256", "pyannote_embedding_sha256",
+                 "pyannote_plda_sha256")                       # plda: D-082 draft (BUG-040)
 STEPS = ("setup_wx", "push_buffer", "nat0", "asr")     # the only box steps: no TRIBE job
 
 
@@ -68,7 +69,7 @@ class Refused(SystemExit):
 
 def check_frozen(cfg: dict) -> None:
     rows = {r["key"] for r in cfg.get("frozen") or []}
-    need = ["controls.refclips_auto", "controls.refclips_artifacts.nat_snapshot_sha256"] + \
+    need = ["controls.refclips_auto", "controls.refclips_d082", "controls.refclips_artifacts.nat_snapshot_sha256"] + \
         [f"controls.refclips_auto_artifacts.{k}" for k in PYANNOTE_KEYS]
     missing = [k for k in need if k not in rows]
     unset = [k for k in PYANNOTE_KEYS if not cfg["controls"]["refclips_auto_artifacts"].get(k)]

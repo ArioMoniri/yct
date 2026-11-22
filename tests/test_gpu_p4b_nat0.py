@@ -29,6 +29,7 @@ def cfg(pyannote=True):
         for k in nat0.PYANNOTE_KEYS:
             c["controls"]["refclips_auto_artifacts"][k] = "a" * 64
             c["frozen"].append({"key": f"controls.refclips_auto_artifacts.{k}", "frozen_at": "x"})
+        c["frozen"].append({"key": "controls.refclips_d082", "frozen_at": "x"})     # D-082 draft
     return c
 
 

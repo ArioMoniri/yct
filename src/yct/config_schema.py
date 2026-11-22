@@ -737,6 +737,20 @@ class RefClipsD081(M):                # D-081 draft (BUG-038): v4 logs from rank
     finality: Literal["v4_is_selection"]
 
 
+class D082Plda(M):
+    repo: Literal["pyannote/speaker-diarization-community-1"]
+    revision: Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
+    subfolder: Literal["plda"]
+    files: list[Literal["plda.npz", "xvec_transform.npz"]]
+
+
+class RefClipsD082(M):                # D-082 draft (BUG-040): pinned community-1 PLDA for pyannote 4.1.0
+    decision: Literal["D-082"]
+    amends: list[Literal["D-075"]]
+    plda: D082Plda
+    clustering_must_be: Literal["AgglomerativeClustering"]
+
+
 class RefClipsD081Artifacts(M):       # D-081
     dry_audit_sha256: Sha256 | None
     reaudit_sha256: Sha256 | None
@@ -884,6 +898,7 @@ class RefClipsAutoArtifacts(M):       # D-075: null until set (commit k); frozen
     pyannote_diarization_sha256: Sha256 | None
     pyannote_segmentation_sha256: Sha256 | None
     pyannote_embedding_sha256: Sha256 | None
+    pyannote_plda_sha256: Sha256 | None     # D-082 draft
 
 
 class Controls(M):
@@ -910,6 +925,7 @@ class Controls(M):
     refclips_d080_artifacts: RefClipsD080Artifacts
     refclips_d081: RefClipsD081
     refclips_d081_artifacts: RefClipsD081Artifacts
+    refclips_d082: RefClipsD082
     curation_http: CurationHttp
     refclips_auto: RefClipsAuto
     refclips_auto_artifacts: RefClipsAutoArtifacts

@@ -1,13 +1,13 @@
 """T-NAT0 pyannote setup step (D-075 §1/§3; yct pod; run with the pinned WhisperX env /work/yct/venv_wx).
 
-  download MIRROR      snapshot_download the three pinned repos (owner-accepted HF gates; the token
+  download MIRROR      snapshot_download the pinned repos (3 from D-075 + the community-1 plda/ subfolder, D-082 draft) (owner-accepted HF gates; the token
                        is read by huggingface_hub from $HF_TOKEN_PATH, a umask-077 file the wrapper
                        pipes from SSM /yct/hf_token and shreds afterwards; never printed) into
                        MIRROR/<repo>; print the shas
   upload MIRROR        mirror -> controls.refclips.s3_root/<refclips_auto.nat.weights_mirror>pyannote/
   verify MIRROR WORK   load 3.1 OFFLINE (HF_HUB_OFFLINE=1) under pyannote.audio 4.1.0 from the mirror on
                        CPU and diarize a synthetic two-voice espeak-ng fixture; exit 0 iff it loads
-                       and returns turns
+                       and returns exactly two speakers
                        (a load failure is a STOP to the council: no switch to another pipeline)
 """
 from __future__ import annotations
@@ -27,8 +27,19 @@ def pins(cfg: dict) -> dict[str, tuple[str, str]]:
     d = cfg["controls"]["refclips_auto"]["nat"]["diarization"]
     seg_repo, seg_rev = d["segmentation"].split("@")
     emb_repo, emb_rev = d["embedding"].split("@")
+    plda = cfg["controls"]["refclips_d082"]["plda"]           # D-082 draft (BUG-040)
     return {"diarization": (d["pipeline"], d["revision"]), "segmentation": (seg_repo, seg_rev),
-            "embedding": (emb_repo, emb_rev)}
+            "embedding": (emb_repo, emb_rev), "plda": (plda["repo"], plda["revision"])}
+
+
+def allow_patterns(k: str) -> list[str] | None:
+    """Only the plda/ subfolder of community-1 is mirrored (its own models are never loaded)."""
+    return ["plda/*"] if k == "plda" else None
+
+
+def fixture_ok(segs: list) -> bool:
+    """The A-B-A two-voice fixture must come back as exactly two speakers (diarisation is correct)."""
+    return bool(segs) and len({s[2] for s in segs}) == 2
 
 
 def download(mirror: Path) -> dict:
@@ -37,7 +48,7 @@ def download(mirror: Path) -> dict:
     out = {}
     for k, (repo, rev) in pins(load_config()).items():
         d = mirror / nb.REPOS[k]
-        snapshot_download(repo_id=repo, revision=rev, local_dir=str(d))
+        snapshot_download(repo_id=repo, revision=rev, local_dir=str(d), allow_patterns=allow_patterns(k))
         out[f"pyannote_{k}_sha256"] = nb.dir_sha(d)
     return out
 
@@ -87,8 +98,10 @@ def verify(mirror: Path, work: Path) -> dict:
     res = {"pyannote.audio": md.version("pyannote.audio"), "n_turns": len(segs),
            "n_speakers": len({s[2] for s in segs}), "speech_s": round(sum(e - s for s, e, _ in segs), 3),
            "mirror_shas": shas}
+    res["plda_loaded"] = getattr(pipe, "_plda", None) is not None
+    res["clustering"] = getattr(pipe, "klustering", None)
     print(json.dumps(res))
-    if md.version("pyannote.audio") != "4.1.0" or not segs:
+    if md.version("pyannote.audio") != "4.1.0" or not fixture_ok(segs):
         raise SystemExit(f"STOP: 3.1 under pyannote.audio 4.1.0 did not run cleanly: {res}")
     return res
 

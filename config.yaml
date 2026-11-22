@@ -511,6 +511,15 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
   refclips_d081_artifacts:       # D-081: set with the files, frozen in the freeze commit
     dry_audit_sha256: 3c85936878ff26ee4f3b862dff7d1bd60ae58c1fc83f2173989c26b5e1dd3856   # data/refstim/d081_dry_audit.json (pod, 1d67b4a)
     reaudit_sha256: eeb292e83777a0a4df8942f47346c0351e572179f89f0023eca86967850bcf6d   # data/refstim/d081_reaudit.json (offline)
+  refclips_d082:               # D-082 draft (BUG-040; owner chose option (a) and accepted the community-1 gate 2026-11-22)
+    decision: D-082
+    amends: [D-075]
+    plda:                        # loaded by pyannote.audio 4.1.0 SpeakerDiarization.__init__ even when unused;
+      repo: pyannote/speaker-diarization-community-1      # 3.1 uses AgglomerativeClustering, so it is never applied
+      revision: 3533c8cf8e369892e6b79ff1bf80f7b0286a54ee
+      subfolder: plda
+      files: [plda.npz, xvec_transform.npz]
+    clustering_must_be: AgglomerativeClustering   # nat0_box refuses VBxClustering (the only path that uses the PLDA)
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host
@@ -586,6 +595,7 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     pyannote_diarization_sha256: null
     pyannote_segmentation_sha256: null
     pyannote_embedding_sha256: null
+    pyannote_plda_sha256: null          # D-082 draft: community-1 plda/ mirror (set + frozen after the council)
 
 p4:                            # P4 TRIBE inference run sets + compute (D-063, ticket FIX-P4E; scripts/gpu_wave1_p4.py)
   # Label-blind, fixed before any real-data P4 output. Output firewall (D-063 B2): P4 extracts features and

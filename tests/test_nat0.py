@@ -98,8 +98,12 @@ def test_patched_config_points_at_mirror(tmp_path):
     (m / nb.REPOS["diarization"]).mkdir(parents=True)
     (m / nb.REPOS["diarization"] / "config.yaml").write_text(yaml.safe_dump(
         {"pipeline": {"name": "pyannote.audio.pipelines.SpeakerDiarization",
-                      "params": {"segmentation": "pyannote/segmentation-3.0",
+                      "params": {"clustering": "AgglomerativeClustering",
+                                 "segmentation": "pyannote/segmentation-3.0",
                                  "embedding": "pyannote/wespeaker-voxceleb-resnet34-LM"}}}))
+    (m / nb.REPOS["plda"] / "plda").mkdir(parents=True)      # D-082 draft: mirrored PLDA
+    for f in nb.PLDA_FILES:
+        (m / nb.REPOS["plda"] / "plda" / f).write_bytes(b"x")
     f = nb.patched_config(m, tmp_path / "w")
     p = yaml.safe_load(f.read_text())["pipeline"]["params"]
     assert p["segmentation"].startswith(str(m)) and p["embedding"].endswith("pytorch_model.bin")
