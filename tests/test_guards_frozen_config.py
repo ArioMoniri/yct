@@ -157,6 +157,8 @@ D075_FROZEN += [(k, D085_SHA) for k in (
     "controls.partial_out_nuisance_descriptive")]   # D-085 part 1
 D087_SHA = "24bf885e51a0209de3e3f725921161725fc3d7c8"   # D-087 DECISIONS entry
 D075_FROZEN += [("controls.refclips_d087", D087_SHA)]   # D-087 rule
+D087A_SHA = "eb458aa49a847657b4f954ca93129cbdd7747443"   # D-087 screen run 1 (sets the v2 artifact shas)
+D075_FROZEN += [("controls.refclips_d087_artifacts", D087A_SHA)]   # D-087 artifacts
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():

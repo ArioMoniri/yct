@@ -932,3 +932,5 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   - {key: controls.partial_out_nuisance_descriptive, frozen_at: 0d01a59d8b60b3185b98c3db9ad3b97b8b71fbde}
   # D-087 p4b_ref/v2 (consumes D-071 (h)): the redesign rule, set in the D-087 entry commit, frozen in the next
   - {key: controls.refclips_d087, frozen_at: 24bf885e51a0209de3e3f725921161725fc3d7c8}
+  # D-087 artifacts (set at the screen-run-1 commit), frozen in the next
+  - {key: controls.refclips_d087_artifacts, frozen_at: eb458aa49a847657b4f954ca93129cbdd7747443}
