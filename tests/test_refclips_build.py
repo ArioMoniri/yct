@@ -120,3 +120,59 @@ def test_sources_refuse_when_no_local_or_s3_copy_matches(tmp_path, monkeypatch):
     load = B.fetch_sources({"face": [row]}, CFG, tmp_path / "cache", local=[tmp_path])
     with pytest.raises(SystemExit, match="no source"):
         load(row)
+
+
+def _cached_row(tmp_path, seed, key):
+    import cv2
+    import numpy as np
+    img = np.random.default_rng(seed).integers(0, 256, (20, 30, 3)).astype(np.uint8)
+    data = cv2.imencode(".png", img)[1].tobytes()
+    row = {"title": f"File:{seed}.png", "s3_key": key, "sha256": hashlib.sha256(data).hexdigest()}
+    cache = tmp_path / "cache"
+    cache.mkdir(exist_ok=True)
+    (cache / hashlib.sha256(key.encode()).hexdigest()[:16]).write_bytes(data)
+    return row, cache
+
+
+def _uploads(calls):
+    return [c for c in calls if c[:3] == ["aws", "s3", "cp"] and c[-1].startswith("s3://")]
+
+
+def test_bug045_cache_hit_uploads_when_s3_object_missing(tmp_path, monkeypatch):
+    """BUG-045: a sha-verified cache hit still makes sure the object is at s3_key (head, else upload)."""
+    row, cache = _cached_row(tmp_path, 3, "sources/images/face/face_v2_00.png")
+    calls = []
+
+    def run(cmd, **k):
+        calls.append(cmd)
+        if cmd[:3] == ["aws", "s3api", "head-object"]:
+            raise B.subprocess.CalledProcessError(254, cmd)
+    monkeypatch.setattr(B.subprocess, "run", run)
+    B.fetch_sources({"face": [row]}, CFG, cache, local=[])(row)
+    up = _uploads(calls)
+    assert len(up) == 1 and up[0][-1] == CFG["controls"]["refclips"]["s3_root"] + row["s3_key"]
+
+
+def test_bug045_cache_hit_no_upload_when_s3_object_present(tmp_path, monkeypatch):
+    row, cache = _cached_row(tmp_path, 4, "sources/images/face/face_v2_01.png")
+    calls = []
+    monkeypatch.setattr(B.subprocess, "run", lambda cmd, **k: calls.append(cmd))
+    B.fetch_sources({"face": [row]}, CFG, cache, local=[])(row)
+    assert any(c[:3] == ["aws", "s3api", "head-object"] for c in calls)
+    assert not _uploads(calls)
+
+
+def test_bug045_no_upload_mode_never_heads_or_writes(tmp_path, monkeypatch):
+    row, cache = _cached_row(tmp_path, 5, "sources/images/face/face_v2_02.png")
+    calls = []
+    monkeypatch.setattr(B.subprocess, "run", lambda cmd, **k: calls.append(cmd))
+    B.fetch_sources({"face": [row]}, CFG, cache, local=[], upload=False)(row)
+    assert not _uploads(calls)
+    assert not any(c[:3] == ["aws", "s3api", "head-object"] for c in calls)
+
+
+def test_bug045_build_reads_back_every_source_after_success():
+    """BUG-045: a successful build that loaded LOC sources ends with the S3 read-back of every row."""
+    import inspect
+    src = inspect.getsource(B.main)
+    assert "verify_s3_sources(" in src and "s3_get" in src
