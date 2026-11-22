@@ -681,8 +681,8 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     qc: refclips_d085.qc         # the frozen D-085 QC, unchanged; rebuild once
     on_fail: stop_owner_final    # any QC failure after the v2 rebuild: final STOP, no v3 (D-071 (h))
   refclips_d087_artifacts:
-    image_manifest_v2_sha256: null   # set when the v2 manifests are written, frozen in the next commit
-    screen_record_sha256: null       # sha of the committed screen record (rounds, flags, replacements)
+    image_manifest_v2_sha256: e21d090dacb3092e2a778d48e792b49ffcd694cb64f2c18456f990921ac8b3cc   # concat face,body,place v2
+    screen_record_sha256: ba85cbb7fd10c4fd28d53202842318593c13ce2efa8c31c4bed590c36e033f19       # loc_screen_v2.json
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host

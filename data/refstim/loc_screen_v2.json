@@ -1,0 +1,642 @@
+{
+ "decision": "D-087",
+ "excluded": [
+  "File:Naantali, Kultaranta 1 kerros, presidentin ty\u00f6huone 1974 (HK10000-5797).tif"
+ ],
+ "face_absent": [],
+ "image_manifest_v2_sha256": "e21d090dacb3092e2a778d48e792b49ffcd694cb64f2c18456f990921ac8b3cc",
+ "inputs": {
+  "body": "10ec13f103f94094dcd004f4f4fb5db99e38ec503e044fd5dfca0d59099b1350",
+  "face": "2ac34e9cae3ec3894ae300b6248452c2fc81b4d4fb0179771ded24c63bf84f02",
+  "place": "f03c71bf022c1a85a4cfb29bfdbce703e2f84bd76424d10737d48c304a9cde5a",
+  "toolchain": {
+   "cv2": "4.11.0",
+   "ffmpeg": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+   "onnxruntime": "not installed (cv2.dnn runs the onnx)"
+  }
+ },
+ "max_consumed_rank": {
+  "body": 533,
+  "face": 492,
+  "place": 163
+ },
+ "patch_sha256": {
+  "body": [
+   "022d5fbe4893a8b99842cec43ca4faaf8bcdaf37be3017739b0d77ed46b55c8b",
+   "e16a3be9388b7cdb6ffed349e7499034ef3b3c8ca5497ce36970bfb4a3b0474f",
+   "a1e635f1367fcfd40eb491da7d512900bbc9d11b3f813c15f873dcbaa48b48c6",
+   "22f081bee40f13af775486523798b068992ab65f1f58114a62b6fa7bd5bc828b",
+   "363dff98b50a734b73ef10897f038b686d0251fde3c10a0a7a92a7d6914686e0",
+   "02ee9e70d6e7804dce4591f2e3ba219ebd6592042d29d60a4e608f8f5ac26529",
+   "02945a7e6fcf86907c1627e97697194bf06d66d01227b2d82dd19d7fc20be7ad",
+   "62e2b4442d4d096d10509bf42a31a0d31faf3bb1e45ff061fa0d20c284588f08",
+   "88714f353396ba7deab2ddf14072dbaa45e4a5a93933f4d6169019fb7dcea347",
+   "dafd2feecb2750d70c3669d0e006cc18d99a7e27a5e4f334f5b5228b4c6b745a",
+   "d8711aed710331e8b7302081f9ec11fa025e7d6e3c3366a78f362b774617bee3",
+   "dd6b291799aedca82fc89996ea4047642bd1b004ce3b834ecf4e150bc38ad7de",
+   "359c11271e95699e391461fc339e2d94fa48b3899246d75a63082fd6b5873fcf",
+   "e55b59e0d679b0fae4a85014d61a134ccb6f3d0565f46929765029e2c20ca710",
+   "4501133d16ddfab5e63f7a602b352fa205ce9c3dc256306a7bdcff0c95861bbe",
+   "71ffbab3b827f8d206e8c43bb968366f3bd6ad5f57d594cbad9efa74416a7b1c",
+   "0b6cba4c991d6d934c0540f70c13384122fe62fbd1ecd130fe21704fd228e8ac",
+   "511bfbe952026c55b6186dc067242cc57592b23d1fad2840520e8af6033f0f9b",
+   "1ac425508b0cf59ff496af4ac7e6a1e6e4141ff59eac8a82a7a53f5c548e0b68",
+   "9fe1ea0285551c780aa4832d81e0aa7e35a114bcb193772e2897afd855821381"
+  ],
+  "face": [
+   "831972fd57e63b42ad172fab8f839e36804b20890b82180819ec83eadb2980fa",
+   "aa53040d2c50dbf3b3600ec543ce32863b9bc51bd11e9c9a88462a7f755e6ad2",
+   "ff3879da6b850acbf0547538d40da84583942f20a771d10eb9f9ffed8462d069",
+   "95acf8ea44f23b703ad0ff2e96b5aca84a7c0980538acb4e6244dcde91c8fe43",
+   "09d0f4ce95b4fb3d7c7608efc74b474b312b884de5500ef2bdb89a81c46f33dc",
+   "26238e77f9520d123750cc4d603b8785d62475ab0eca80229d6a0480be5d0400",
+   "8e18735d2f1cbdf5b3d33ed1b7871a8a0c4d0c50edf7e6c7869e0a3d0767d09a",
+   "a5f9bc3b5b4760480c0c66cd7793edc6150d7c95f47d9785333c45042f22ab33",
+   "d2360026da52ae23dc0d3fec90860524d78f4a6c3b061c4c6463699158da2e03",
+   "12a3cad1464f8fbc5506611aaf841cd4258492aa91ea2283aaef17ad8e126c46",
+   "97cefaf3b93c257630d9ab8207e496222d9d3ed1f1bb32ecf7ad13c24316888a",
+   "e6bcc80f586d714e2f46079cf98b077e4f3c40f8727aaf4f3cfa3e00f86bde72",
+   "f803b11ee7d7a536a7d278ba45db86bb5b0d1c40bee69107eb60266336ee6524",
+   "1dd9eb3b0d0c14909e1b132716707b7585e442a92328fdca77e6ef62b97cb5a5",
+   "6d3212746962ea3e53ff80a09abfa9f2798a255ca68ed6d01e7e03231d171302",
+   "b8791f67f0ccdc6b95ff25ad4a3bf4a34e649e5e5f04f5dc60fc50011133a07d",
+   "74fdc38961bd22fb4a6fe0e3377d6f97a3403f345bc96ebd56356b9e8a2df1c7",
+   "bce9d97fa26bcb830972e66dfa46fece6d1a74a91aad091843759317fd02c121",
+   "16119601c89aef64aa0136f7078be0a6d7b6a9c36e6c0034c7ca2279bdccc3e1",
+   "2da2639030e95fbac588947cdaa39bb4bb571ac1214bb461b4efeef59af43e34"
+  ],
+  "place": [
+   "cf9c09575962e69a1ef6c71d625ab3a964f2e23c3ad039c02fcb81e8d6dda194",
+   "333b04a31b68d3224a648285bce0a6aea42cdc188c29fbf8b20a4987901f024e",
+   "a331fdc691c91bccea83a94413d2ca9167b59b2a707730c52e223a00a290e406",
+   "83084508258740c96cf41ec9e904f9e8e571e374572e9ac3fb277f17f6f8306b",
+   "6015ccd9212d902354b050124daf237111b9efd4c2407b074c54846c592a37ab",
+   "13cef26646f5ef451e762b149f04c826369969349eb0803c90595f87edf135a7",
+   "647f592849637860fe8d870f140d976e27ddc590f9222bd22af8199c9763a31e",
+   "27dfb6864a393a667cb619825f9547d98dc8509d925dd92e4a7e8cea464d9d0f",
+   "32fa94833f65c80b4747cea3293e2395b9de895ca3f15502cfa3af5b76434e3c",
+   "c10e67d61eeb61aa8c379d7a6255f8c624bdc4a46804388f6c04cb9280065b57",
+   "674aa747d368e522ce66b0a85b14d67c5d701ccb2d7e5928348f9d4eef2fa940",
+   "7b71e712b9914b5954b28cefcb8690e7e0a9185e95fb18a0adaf31c6be01a531",
+   "24bae7f15141ea468691eb92ae25b70b7a3f25fffd398ea21f3c3cc4eba6f83f",
+   "09320541708b2fb21a6ea0e53e49f3520bd9065681a2705457e36e779583eefb",
+   "2156d0ba58fd98c630e47e51649d064c455b7147739823706f39cf73244bb483",
+   "972d2fdb59cfcf27cd1dfc6c03d625b1e166c337cfc20574df7ca99cdc5d964f",
+   "bcd141c2e2565db144cd9e841fdc366393c2570e45f73e1addf5b1bae6cbce5d",
+   "d8cdc320219674b9f7382450f352c27fc8db296aa80fa760973a2710c626a3ef",
+   "2768d2589ff6991f9e33b637416d080b4fa00f0edd3408d3b5b29b35a16717ec",
+   "62afa1b289632ca8ec534a8662e0bb0c653882442f97ca0ec39e7c52be4a979f"
+  ]
+ },
+ "redesign": "p4b_ref/v2",
+ "replacements": [
+  {
+   "category": "place",
+   "in": "File:Helga & Lauri Helmrosin koti - N56388 - hkm.HKMS000005-km002zn9.jpg",
+   "out": "File:Naantali, Kultaranta 1 kerros, presidentin ty\u00f6huone 1974 (HK10000-5797).tif",
+   "reason": "pre_excluded",
+   "round": 0,
+   "scores": [],
+   "slot": 14
+  }
+ ],
+ "round_log": [
+  {
+   "descriptive": [
+    {
+     "category": "face",
+     "clip": "loc_00",
+     "k": 0,
+     "kind": "intact",
+     "scores": [
+      0.8901229500770569
+     ],
+     "slot": 0,
+     "title": "File:Walentyna Aleksandrowicz aktorka 02.jpg"
+    },
+    {
+     "category": "face",
+     "clip": "loc_01",
+     "k": 0,
+     "kind": "intact",
+     "scores": [
+      0.8882520198822021
+     ],
+     "slot": 1,
+     "title": "File:Hendrik Kruys.jpg"
+    },
+    {
+     "category": "face",
+     "clip": "loc_02",
+     "k": 2,
+     "kind": "intact",
+     "scores": [
+      0.9238624572753906
+     ],
+     "slot": 2,
+     "title": "File:Zajchowska Janina 415 VIII. Universala Kongreso Esperantista \u2013 Albumo (cropped).jpg"
+    },
+    {
+     "category": "face",
+     "clip": "loc_03",
+     "k": 2,
+     "kind": "intact",
+     "scores": [
+      0.892074704170227
+     ],
+     "slot": 3,
+     "title": "File:E. J. Hathaway (I0014562).jpg"
+    },
+    {
+     "category": "face",
+     "clip": "loc_04",
+     "k": 1,
+     "kind": "intact",
+     "scores": [
+      0.9275506734848022
+     ],
+     "slot": 4,
+     "title": "File:Memorable Portraits (15628798659).jpg"
+    },
+    {
+     "category": "face",
+     "clip": "loc_05",
+     "k": 1,
+     "kind": "intact",
+     "scores": [
+      0.8973309397697449
+     ],
+     "slot": 5,
+     "title": "File:Kapellimestari Jorma Panula (HK7155-10129).tif"
+    },
+    {
+     "category": "face",
+     "clip": "loc_06",
+     "k": 0,
+     "kind": "intact",
+     "scores": [
+      0.9277017712593079
+     ],
+     "slot": 6,
+     "title": "File:Kansanedustaja, Suomen ensimm\u00e4inen kulttuuriministeri Meeri Kalavainen 1971 (HK7155-701-71-1).tif"
+    },
+    {
+     "category": "face",
+     "clip": "loc_07",
+     "k": 0,
+     "kind": "intact",
+     "scores": [
+      0.9226956367492676
+     ],
+     "slot": 7,
+     "title": "File:Rouva Marjatta Myrberg 1964 (HK7155-971-64-2).tif"
+    },
+    {
+     "category": "face",
+     "clip": "loc_08",
+     "k": 2,
+     "kind": "intact",
+     "scores": [
+      0.9296844005584717
+     ],
+     "slot": 8,
+     "title": "File:Finnish singer Annikki T\u00e4hti 1956 (JOKAUAS2 3288-6).tif"
+    },
+    {
+     "category": "face",
+     "clip": "loc_09",
+     "k": 2,
+     "kind": "intact",
+     "scores": [
+      0.9155406355857849
+     ],
+     "slot": 9,
+     "title": "File:Rouva Katja Arni 1968 (HK7155-178-68-4).tif"
+    },
+    {
+     "category": "face",
+     "clip": "loc_10",
+     "k": 1,
+     "kind": "intact",
+     "scores": [
+      0.923430860042572
+     ],
+     "slot": 10,
+     "title": "File:Walentyna Aleksandrowicz w jednej ze scen sztuki 1923\u20131939.jpg"
+    },
+    {
+     "category": "face",
+     "clip": "loc_11",
+     "k": 1,
+     "kind": "intact",
+     "scores": [
+      0.8861457705497742
+     ],
+     "slot": 11,
+     "title": "File:Theophile Hamel (I0007878).jpg"
+    },
+    {
+     "category": "face",
+     "clip": "loc_12",
+     "k": 0,
+     "kind": "intact",
+     "scores": [
+      0.9114091992378235
+     ],
+     "slot": 12,
+     "title": "File:\u05d9\u05e6\u05d7\u05e7 \u05d3\u05e1\u05d4.jpg"
+    },
+    {
+     "category": "face",
+     "clip": "loc_13",
+     "k": 0,
+     "kind": "intact",
+     "scores": [
+      0.9162487983703613
+     ],
+     "slot": 13,
+     "title": "File:Ana Gabriela Ross.png"
+    },
+    {
+     "category": "face",
+     "clip": "loc_14",
+     "k": 2,
+     "kind": "intact",
+     "scores": [
+      0.911165714263916
+     ],
+     "slot": 14,
+     "title": "File:Maria Lindeman-Lagn 1953 (HK7155-258-53-2).tif"
+    },
+    {
+     "category": "face",
+     "clip": "loc_15",
+     "k": 2,
+     "kind": "intact",
+     "scores": [
+      0.8902958035469055
+     ],
+     "slot": 15,
+     "title": "File:Alexandre Travers - Photo d'\u00e9poque.jpg"
+    },
+    {
+     "category": "face",
+     "clip": "loc_16",
+     "k": 1,
+     "kind": "intact",
+     "scores": [
+      0.922636866569519
+     ],
+     "slot": 16,
+     "title": "File:M.O. Hammond (I0014652).jpg"
+    },
+    {
+     "category": "face",
+     "clip": "loc_17",
+     "k": 1,
+     "kind": "intact",
+     "scores": [
+      0.918773353099823
+     ],
+     "slot": 17,
+     "title": "File:Franklin Carmichael (I0007933).jpg"
+    },
+    {
+     "category": "face",
+     "clip": "loc_18",
+     "k": 0,
+     "kind": "intact",
+     "scores": [
+      0.906027615070343
+     ],
+     "slot": 18,
+     "title": "File:Rouva Laila Kuloj\u00e4rvi 1962 (HK7155-170-62-4).tif"
+    },
+    {
+     "category": "face",
+     "clip": "loc_19",
+     "k": 0,
+     "kind": "intact",
+     "scores": [
+      0.8930985331535339
+     ],
+     "slot": 19,
+     "title": "File:Lawren Harris at his studio (I0014622).jpg"
+    }
+   ],
+   "flagged": [],
+   "images": [
+    "File:Walentyna Aleksandrowicz aktorka 02.jpg",
+    "File:Hendrik Kruys.jpg",
+    "File:Zajchowska Janina 415 VIII. Universala Kongreso Esperantista \u2013 Albumo (cropped).jpg",
+    "File:E. J. Hathaway (I0014562).jpg",
+    "File:Memorable Portraits (15628798659).jpg",
+    "File:Kapellimestari Jorma Panula (HK7155-10129).tif",
+    "File:Kansanedustaja, Suomen ensimm\u00e4inen kulttuuriministeri Meeri Kalavainen 1971 (HK7155-701-71-1).tif",
+    "File:Rouva Marjatta Myrberg 1964 (HK7155-971-64-2).tif",
+    "File:Finnish singer Annikki T\u00e4hti 1956 (JOKAUAS2 3288-6).tif",
+    "File:Rouva Katja Arni 1968 (HK7155-178-68-4).tif",
+    "File:Walentyna Aleksandrowicz w jednej ze scen sztuki 1923\u20131939.jpg",
+    "File:Theophile Hamel (I0007878).jpg",
+    "File:\u05d9\u05e6\u05d7\u05e7 \u05d3\u05e1\u05d4.jpg",
+    "File:Ana Gabriela Ross.png",
+    "File:Maria Lindeman-Lagn 1953 (HK7155-258-53-2).tif",
+    "File:Alexandre Travers - Photo d'\u00e9poque.jpg",
+    "File:M.O. Hammond (I0014652).jpg",
+    "File:Franklin Carmichael (I0007933).jpg",
+    "File:Rouva Laila Kuloj\u00e4rvi 1962 (HK7155-170-62-4).tif",
+    "File:Lawren Harris at his studio (I0014622).jpg",
+    "File:Man with brown bob haircut from behind.jpg",
+    "File:Kittinger-jump.jpg",
+    "File:Buzz Aldrin carries the EASEP.jpg",
+    "File:Homem (16728390683).jpg",
+    "File:Man leaning against a window (Unsplash).jpg",
+    "File:Fushimi Inari Taisha early morning maintenance (34001893745).jpg",
+    "File:Verde (8181487697).jpg",
+    "File:Main prayer hall, Great Umayyid Mosque, Damascus.jpg",
+    "File:Black Kippah.jpg",
+    "File:Iranian soldier running with MG3.jpg",
+    "File:Under a roof.jpg",
+    "File:People backside 0002.jpg",
+    "File:Young man with short brown hair from behind.jpg",
+    "File:(((slide and drop.jpg",
+    "File:Muse at the Royal Albert Hall 2018-70 The Prince's Trust.jpg",
+    "File:A young man, standing, unclothed to the waist and viewed fro Wellcome V0029502.jpg",
+    "File:Stetson with pink ribbon (43265662022).jpg",
+    "File:Kobieta w po\u0144czochach - 014.JPG",
+    "File:Ystavyydenpuisto.jpg",
+    "File:Walked into the brush and discovered lots of seeds (3945418475).jpg",
+    "File:Town, Barbados (6879852742).jpg",
+    "File:Void 4 (215863465).jpeg",
+    "File:High-level conference on e-health Health in the digital society The digital society for health High-level conference on e-health Health in the digital society. The digital society for health (37099438513).jpg",
+    "File:Empty Office Real Estate (22789285225).jpg",
+    "File:Schiphol tijdens de coronacrisis in 2020 12.jpg",
+    "File:Jerusalem Light Rail interior.JPG",
+    "File:Mini Mart (3042314739).jpg",
+    "File:Locker room under construction, Yankee Stadium, New York City - 20090218.jpg",
+    "File:Konservatorio, sis\u00e4kuva 1931 (HK19670603-3186).tif",
+    "File:Israel Batch 3 (347).JPG",
+    "File:Old buildings along Leven Street, Naseby.jpg",
+    "File:Void (215862861).jpeg",
+    "File:36C3 hall Ada on day 0 04.jpg",
+    "File:Sis\u00e4kuva Fazerin uudesta Mokka-M\u00f6kki -kahvilasta 1938 (HK19670603-34621).tif",
+    "File:Helga & Lauri Helmrosin koti - N56388 - hkm.HKMS000005-km002zn9.jpg",
+    "File:Void 6 (215864133).jpeg",
+    "File:Aeroporto di Firenze - Alitalia Airport check-in counters.jpg",
+    "File:Beer-Shava-Avrahams-Well-436.jpg",
+    "File:Harbour Worker Hotel in Hanko 1952 (JOKAVN4A1C01-3).tif",
+    "File:L\u00e4ndliche Massagepraxis in Thailand.JPG"
+   ],
+   "round": 1
+  }
+ ],
+ "rounds": 1,
+ "slots": {
+  "body": [
+   {
+    "rank": 9,
+    "title": "File:Man with brown bob haircut from behind.jpg"
+   },
+   {
+    "rank": 12,
+    "title": "File:Kittinger-jump.jpg"
+   },
+   {
+    "rank": 15,
+    "title": "File:Buzz Aldrin carries the EASEP.jpg"
+   },
+   {
+    "rank": 41,
+    "title": "File:Homem (16728390683).jpg"
+   },
+   {
+    "rank": 42,
+    "title": "File:Man leaning against a window (Unsplash).jpg"
+   },
+   {
+    "rank": 45,
+    "title": "File:Fushimi Inari Taisha early morning maintenance (34001893745).jpg"
+   },
+   {
+    "rank": 61,
+    "title": "File:Verde (8181487697).jpg"
+   },
+   {
+    "rank": 134,
+    "title": "File:Main prayer hall, Great Umayyid Mosque, Damascus.jpg"
+   },
+   {
+    "rank": 178,
+    "title": "File:Black Kippah.jpg"
+   },
+   {
+    "rank": 295,
+    "title": "File:Iranian soldier running with MG3.jpg"
+   },
+   {
+    "rank": 321,
+    "title": "File:Under a roof.jpg"
+   },
+   {
+    "rank": 326,
+    "title": "File:People backside 0002.jpg"
+   },
+   {
+    "rank": 414,
+    "title": "File:Young man with short brown hair from behind.jpg"
+   },
+   {
+    "rank": 450,
+    "title": "File:(((slide and drop.jpg"
+   },
+   {
+    "rank": 465,
+    "title": "File:Muse at the Royal Albert Hall 2018-70 The Prince's Trust.jpg"
+   },
+   {
+    "rank": 468,
+    "title": "File:A young man, standing, unclothed to the waist and viewed fro Wellcome V0029502.jpg"
+   },
+   {
+    "rank": 490,
+    "title": "File:Stetson with pink ribbon (43265662022).jpg"
+   },
+   {
+    "rank": 516,
+    "title": "File:Kobieta w po\u0144czochach - 014.JPG"
+   },
+   {
+    "rank": 528,
+    "title": "File:Ystavyydenpuisto.jpg"
+   },
+   {
+    "rank": 533,
+    "title": "File:Walked into the brush and discovered lots of seeds (3945418475).jpg"
+   }
+  ],
+  "face": [
+   {
+    "rank": 66,
+    "title": "File:Walentyna Aleksandrowicz aktorka 02.jpg"
+   },
+   {
+    "rank": 156,
+    "title": "File:Hendrik Kruys.jpg"
+   },
+   {
+    "rank": 157,
+    "title": "File:Zajchowska Janina 415 VIII. Universala Kongreso Esperantista \u2013 Albumo (cropped).jpg"
+   },
+   {
+    "rank": 158,
+    "title": "File:E. J. Hathaway (I0014562).jpg"
+   },
+   {
+    "rank": 164,
+    "title": "File:Memorable Portraits (15628798659).jpg"
+   },
+   {
+    "rank": 172,
+    "title": "File:Kapellimestari Jorma Panula (HK7155-10129).tif"
+   },
+   {
+    "rank": 204,
+    "title": "File:Kansanedustaja, Suomen ensimm\u00e4inen kulttuuriministeri Meeri Kalavainen 1971 (HK7155-701-71-1).tif"
+   },
+   {
+    "rank": 223,
+    "title": "File:Rouva Marjatta Myrberg 1964 (HK7155-971-64-2).tif"
+   },
+   {
+    "rank": 231,
+    "title": "File:Finnish singer Annikki T\u00e4hti 1956 (JOKAUAS2 3288-6).tif"
+   },
+   {
+    "rank": 278,
+    "title": "File:Rouva Katja Arni 1968 (HK7155-178-68-4).tif"
+   },
+   {
+    "rank": 337,
+    "title": "File:Walentyna Aleksandrowicz w jednej ze scen sztuki 1923\u20131939.jpg"
+   },
+   {
+    "rank": 343,
+    "title": "File:Theophile Hamel (I0007878).jpg"
+   },
+   {
+    "rank": 352,
+    "title": "File:\u05d9\u05e6\u05d7\u05e7 \u05d3\u05e1\u05d4.jpg"
+   },
+   {
+    "rank": 357,
+    "title": "File:Ana Gabriela Ross.png"
+   },
+   {
+    "rank": 405,
+    "title": "File:Maria Lindeman-Lagn 1953 (HK7155-258-53-2).tif"
+   },
+   {
+    "rank": 434,
+    "title": "File:Alexandre Travers - Photo d'\u00e9poque.jpg"
+   },
+   {
+    "rank": 462,
+    "title": "File:M.O. Hammond (I0014652).jpg"
+   },
+   {
+    "rank": 469,
+    "title": "File:Franklin Carmichael (I0007933).jpg"
+   },
+   {
+    "rank": 488,
+    "title": "File:Rouva Laila Kuloj\u00e4rvi 1962 (HK7155-170-62-4).tif"
+   },
+   {
+    "rank": 492,
+    "title": "File:Lawren Harris at his studio (I0014622).jpg"
+   }
+  ],
+  "place": [
+   {
+    "rank": 3,
+    "title": "File:Town, Barbados (6879852742).jpg"
+   },
+   {
+    "rank": 18,
+    "title": "File:Void 4 (215863465).jpeg"
+   },
+   {
+    "rank": 28,
+    "title": "File:High-level conference on e-health Health in the digital society The digital society for health High-level conference on e-health Health in the digital society. The digital society for health (37099438513).jpg"
+   },
+   {
+    "rank": 29,
+    "title": "File:Empty Office Real Estate (22789285225).jpg"
+   },
+   {
+    "rank": 43,
+    "title": "File:Schiphol tijdens de coronacrisis in 2020 12.jpg"
+   },
+   {
+    "rank": 44,
+    "title": "File:Jerusalem Light Rail interior.JPG"
+   },
+   {
+    "rank": 49,
+    "title": "File:Mini Mart (3042314739).jpg"
+   },
+   {
+    "rank": 53,
+    "title": "File:Locker room under construction, Yankee Stadium, New York City - 20090218.jpg"
+   },
+   {
+    "rank": 57,
+    "title": "File:Konservatorio, sis\u00e4kuva 1931 (HK19670603-3186).tif"
+   },
+   {
+    "rank": 72,
+    "title": "File:Israel Batch 3 (347).JPG"
+   },
+   {
+    "rank": 78,
+    "title": "File:Old buildings along Leven Street, Naseby.jpg"
+   },
+   {
+    "rank": 88,
+    "title": "File:Void (215862861).jpeg"
+   },
+   {
+    "rank": 105,
+    "title": "File:36C3 hall Ada on day 0 04.jpg"
+   },
+   {
+    "rank": 108,
+    "title": "File:Sis\u00e4kuva Fazerin uudesta Mokka-M\u00f6kki -kahvilasta 1938 (HK19670603-34621).tif"
+   },
+   {
+    "rank": 163,
+    "title": "File:Helga & Lauri Helmrosin koti - N56388 - hkm.HKMS000005-km002zn9.jpg"
+   },
+   {
+    "rank": 117,
+    "title": "File:Void 6 (215864133).jpeg"
+   },
+   {
+    "rank": 121,
+    "title": "File:Aeroporto di Firenze - Alitalia Airport check-in counters.jpg"
+   },
+   {
+    "rank": 135,
+    "title": "File:Beer-Shava-Avrahams-Well-436.jpg"
+   },
+   {
+    "rank": 137,
+    "title": "File:Harbour Worker Hotel in Hanko 1952 (JOKAVN4A1C01-3).tif"
+   },
+   {
+    "rank": 144,
+    "title": "File:L\u00e4ndliche Massagepraxis in Thailand.JPG"
+   }
+  ]
+ }
+}
