@@ -224,12 +224,15 @@ def row_pass(row: dict) -> bool:
                if k != "haar" and v.get("gating", True) is not False)
 
 
-def talkface_face(passes: Sequence[dict], failures: dict[str, str], rule: dict) -> dict[str, Any]:
+def talkface_face(passes: Sequence[dict], failures: dict[str, str], rule: dict,
+                  after_rank: int = 492) -> dict[str, Any]:
     """Council D-085 (e): the TALKFACE face is the first face pass after v4 rank 492 (log order). A pass
     with a technical failure in rule.skip_on is skipped and logged (no visual review); more than
-    rule.max_skips skips -> STOP to the owner."""
-    if any(p["rank"] <= 492 for p in passes):
-        raise ValueError("TALKFACE candidates must come after rank 492 (the 20 LOC faces)")
+    rule.max_skips skips -> STOP to the owner. D-087 draft: after_rank = the highest face rank consumed by
+    the v2 LOC selection (selected or screened out), so TALKFACE never takes a face used or screened
+    for LOC."""
+    if any(p["rank"] <= after_rank for p in passes):
+        raise ValueError(f"TALKFACE candidates must come after rank {after_rank} (the LOC faces)")
     skipped = []
     for p in sorted(passes, key=lambda p: p["rank"]):
         why = failures.get(p["title"])

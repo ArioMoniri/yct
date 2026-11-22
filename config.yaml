@@ -631,6 +631,42 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
               controls.refclips_d085.build1_decoded_sha_record]   # unlocks the visual rebuild
       part2: [controls.refclips_d085.speech, controls.refclips_d085.talkface,
               controls.refclips_artifacts.speech_corpus_sha256]
+  refclips_d087:               # D-087 DRAFT: p4b_ref/v2, the single D-071 (h) redesign (owner 2026-11-23 "Redesign v2",
+                               # cap "$75"). NOT frozen: council review first (reviews/phase_p4b/d087_draft.md)
+    decision: D-087
+    redesign: p4b_ref/v2
+    consumes_redesign: true      # D-071 (h): the one versioned redesign; v1 is reported in full
+    amends: [D-071, D-085]
+    post_hoc: true               # chosen after the D-085 build-2 QC STOP (5a33bb1: YuNet 0.681 on place_14)
+    trigger: outputs/runs/refclips_v1_d085_build2/STOP_NOTE.md
+    changes: [loc_image_set]     # stimuli only: which 60 images fill the LOC/LOC_SCR slots (D-071 (h))
+    cost_cap_usd: 75             # owner 2026-11-23: the v2 campaign's own cap (not shared with v1)
+    spend_carried_usd: 0.39      # NAT session 0 (p4bnat0_1795336302), counted against the v2 cap (conservative)
+    screen:                      # pre-build, on the rendered post-SHINE 316-px patches, never on built frames
+      detector: refclips_auto.face_detector   # the frozen T-LIC YuNet (yunet_sha256)
+      score_threshold: 0.5       # = refclips_d085.qc.yunet_score_threshold
+      input_long_side: 640       # = refclips_d085.qc.yunet_input_long_side (refclips_qc85.to_bgr640)
+      max_rounds: 5              # still flagged after round 5 -> final STOP to the owner
+      order: v4_log_rank         # candidates = v4 log passes in log order; never re-ordered
+      slot_rule: replace_in_slot # a flagged slot gets the next unused pass of its category; seeds stay per slot
+      flagged_never_return: true
+      categories: [body, place]  # council Q1 (draft): face patches carry a face by design; their YuNet
+                                 # detections are recorded descriptively, never replaced
+    continuation:                # v4 filter run past rank 20 under the same frozen rules (refstim_auto_run --target)
+      logs: v4
+      mode: target_passes
+      max_extra_per_category: 20 # a priori: more than 20 extra passes needed in a category -> STOP to the owner
+    manifests:
+      face: data/refstim/image_face_manifest_v2.json
+      body: data/refstim/image_body_manifest_v2.json
+      place: data/refstim/image_place_manifest_v2.json
+    scrambles: same_seed_rule    # LOC_SCR / scramble seeds = refclips58.item_seed(family, i, k): per slot, unchanged
+    talkface_after: max_consumed_face_rank   # amends refclips_d085.talkface.face_rule (after rank 492)
+    qc: refclips_d085.qc         # the frozen D-085 QC, unchanged; rebuild once
+    on_fail: stop_owner_final    # any QC failure after the v2 rebuild: final STOP, no v3 (D-071 (h))
+  refclips_d087_artifacts:
+    image_manifest_v2_sha256: null   # set when the v2 manifests are written, frozen in the next commit
+    screen_record_sha256: null       # sha of the committed screen record (rounds, flags, replacements)
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host

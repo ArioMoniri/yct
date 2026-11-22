@@ -867,6 +867,47 @@ class RefClipsD085(M):                # D-085 draft: LOC QC amendment, speech co
     freeze_plan: D085FreezePlan
 
 
+class D087Screen(M):
+    detector: Literal["refclips_auto.face_detector"]
+    score_threshold: float
+    input_long_side: Literal[640]
+    max_rounds: Annotated[int, Field(ge=1, le=10)]
+    order: Literal["v4_log_rank"]
+    slot_rule: Literal["replace_in_slot"]
+    flagged_never_return: Literal[True]
+    categories: list[Literal["face", "body", "place"]]
+
+
+class D087Continuation(M):
+    logs: Literal["v4"]
+    mode: Literal["target_passes"]
+    max_extra_per_category: Annotated[int, Field(ge=1, le=100)]
+
+
+class RefClipsD087(M):                # D-087 draft: p4b_ref/v2 (the single D-071 (h) redesign)
+    decision: Literal["D-087"]
+    redesign: Literal["p4b_ref/v2"]
+    consumes_redesign: Literal[True]
+    amends: list[Literal["D-071", "D-085"]]
+    post_hoc: Literal[True]
+    trigger: str
+    changes: list[Literal["loc_image_set"]]
+    cost_cap_usd: Annotated[float, Field(gt=0, le=75)]
+    spend_carried_usd: Annotated[float, Field(ge=0)]
+    screen: D087Screen
+    continuation: D087Continuation
+    manifests: dict[Literal["face", "body", "place"], str]
+    scrambles: Literal["same_seed_rule"]
+    talkface_after: Literal["max_consumed_face_rank"]
+    qc: Literal["refclips_d085.qc"]
+    on_fail: Literal["stop_owner_final"]
+
+
+class RefClipsD087Artifacts(M):
+    image_manifest_v2_sha256: Sha256 | None
+    screen_record_sha256: Sha256 | None
+
+
 class RefClipsD081Artifacts(M):       # D-081
     dry_audit_sha256: Sha256 | None
     reaudit_sha256: Sha256 | None
@@ -1046,6 +1087,8 @@ class Controls(M):
     refclips_d082: RefClipsD082
     refclips_d084: RefClipsD084
     refclips_d085: RefClipsD085
+    refclips_d087: RefClipsD087
+    refclips_d087_artifacts: RefClipsD087Artifacts
     curation_http: CurationHttp
     refclips_auto: RefClipsAuto
     refclips_auto_artifacts: RefClipsAutoArtifacts

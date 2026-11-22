@@ -9,15 +9,16 @@ import numpy as np
 import pytest
 
 from yct.config import load_config
-from yct.tribe_run import locscreen as L
-from yct.tribe_run import refclips_qc85 as Q
+from yct.tribe_run import locscreen as L  # noqa: N812
+from yct.tribe_run import refclips_qc85 as Q  # noqa: N812
 
 ROOT = Path(__file__).resolve().parents[1]
 CATS = ["face", "body", "place"]
 
 
 def _runner():
-    spec = importlib.util.spec_from_file_location("refstim_auto_run", ROOT / "scripts" / "refstim_auto_run.py")
+    path = ROOT / "scripts" / "refstim_auto_run.py"
+    spec = importlib.util.spec_from_file_location("refstim_auto_run", path)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
@@ -104,7 +105,7 @@ def test_order_is_invariant_to_which_images_are_flagged():
 
 def test_round_cap_is_a_stop():
     c = cands(40)
-    bad = {f"place_{j}" for j in range(14, 40)}   # every replacement is flagged again
+    bad = {"place_14"} | {f"place_{j}" for j in range(20, 40)}   # every replacement is flagged again
     with pytest.raises(L.ScreenStop, match="5 rounds"):
         run_select(c, bad, max_rounds=5)
 
@@ -187,7 +188,8 @@ def test_d087_config_block():
     assert d["cost_cap_usd"] == 75
     s = d["screen"]
     q = load_config()["controls"]["refclips_d085"]["qc"]
-    assert s["score_threshold"] == q["yunet_score_threshold"] and s["input_long_side"] == q["yunet_input_long_side"]
+    assert s["score_threshold"] == q["yunet_score_threshold"]
+    assert s["input_long_side"] == q["yunet_input_long_side"]
     assert s["max_rounds"] == 5 and s["order"] == "v4_log_rank" and s["slot_rule"] == "replace_in_slot"
     assert d["on_fail"] == "stop_owner_final"
     assert set(d["manifests"]) == set(CATS)
@@ -228,3 +230,16 @@ def test_target_above_20_needs_d087_frozen_and_the_cap():
 def test_run_uses_effective_need():
     src = inspect.getsource(_runner().run)
     assert "effective_need(" in src and "targets" in src
+
+
+def test_only_screen_categories_gate_and_face_hits_are_descriptive():
+    c = cands()
+    out = L.select(c, 20, patch_of, ident_shine, fake_yunet({"face_0", "place_14"}), thr=0.5, long_side=640,
+                   max_rounds=5, cats=CATS, to_bgr=to_bgr, screen_cats=["body", "place"])
+    assert [r["title"] for r in out["slots"]["face"]][0] == "face_0"
+    assert [r["title"] for r in out["slots"]["place"]][14] == "place_20"
+    assert out["round_log"][0]["descriptive"] == [{"title": "face_0", "scores": [0.68]}]
+
+
+def test_config_screens_body_and_place():
+    assert load_config()["controls"]["refclips_d087"]["screen"]["categories"] == ["body", "place"]

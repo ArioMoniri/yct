@@ -174,7 +174,41 @@ def _git_changed(a: str, b: str, paths) -> list[str]:
     return [x for x in out.splitlines() if x.strip()]
 
 
-def run(model_dir: Path, scratch: Path) -> None:
+def parse_targets(argv: list[str], cats) -> dict[str, int]:
+    """D-087 draft continuation: --target <category>=<n passes> (repeatable)."""
+    out: dict[str, int] = {}
+    it = iter(argv)
+    for a in it:
+        if a != "--target":
+            raise SystemExit(f"unknown argument {a!r}")
+        c, _, n = next(it, "").partition("=")
+        if c not in cats or not n.isdigit():
+            raise SystemExit(f"--target needs <category>=<n> with category in {list(cats)}")
+        out[c] = int(n)
+    return out
+
+
+def _frozen_key(cfg: dict, key: str) -> bool:
+    return any(key == f.get("key") or key.startswith(f.get("key", "") + ".") for f in cfg.get("frozen", []))
+
+
+def effective_need(cat: str, targets: dict[str, int], need: int, cfg: dict) -> int:
+    """Passes to reach in `cat`: the frozen loc_per_category, or a D-087 continuation target past it (the
+    same v4 log, same order, same frozen rules; only a larger stop count). Needs D-087 frozen and the cap."""
+    t = targets.get(cat, need)
+    if t < need:
+        raise SystemExit(f"{cat}: target {t} < loc_per_category {need}")
+    if t == need:
+        return need
+    if not _frozen_key(cfg, "controls.refclips_d087"):
+        raise SystemExit("controls.refclips_d087 is not frozen: no continuation past the frozen count")
+    cap = cfg["controls"]["refclips_d087"]["continuation"]["max_extra_per_category"]
+    if t - need > cap:
+        raise SystemExit(f"{cat}: {t - need} extra passes > the D-087 cap {cap}: STOP to the owner")
+    return t
+
+
+def run(model_dir: Path, scratch: Path, targets: dict[str, int] | None = None) -> None:
     """D-079: evaluate face, body, place (category_order) into the v2 logs only, from rank 1, resuming from
     the v2 logs. The superseded v1 logs are read only by the determinism audit (audit_v2)."""
     import cv2
@@ -213,9 +247,10 @@ def run(model_dir: Path, scratch: Path) -> None:
     det = RealDetectors(cfg, model_dir)
     keys, longest = ra.manifest_key_hashes()
     st = ra.State()
-    need = rc["loc_per_category"]
+    targets = targets or {}
     ran: list[str] = []
     for cat in d9["category_order"]:
+        need = effective_need(cat, targets, rc["loc_per_category"], cfg)
         log_path = ROOT / rs.image_log_v2(cat, cfg)
         priors = [(Path(q).name, {r["title"]: r for r in _read_jsonl(ROOT / q)})
                   for q in d9["superseded_logs"][cat]]
@@ -367,7 +402,9 @@ if __name__ == "__main__":
     if cmd == "artifacts":
         artifacts(Path(sys.argv[2]))
     elif cmd == "run":
-        run(Path(sys.argv[2]), Path(sys.argv[3]))
+        _cfg = load_config()
+        run(Path(sys.argv[2]), Path(sys.argv[3]),
+            parse_targets(sys.argv[4:], _cfg["controls"]["refclips"]["loc_categories"]))
     elif cmd == "finalise":
         finalise(Path(sys.argv[2]))
     else:
