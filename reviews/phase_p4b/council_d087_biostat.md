@@ -30,3 +30,21 @@ Without (ii), the build is not tied to what was screened. Any mismatch is a fina
 3. Pod driver plus integration test, before the freeze.
 4. C3 split into (i) and (ii), using the per-patch shas in the screen record.
 5. The continuation and exhaustion STOPs declared final.
+
+## Re-check (d087_v2.md, d087_v2_response.md, c54daf6, 71bd4b3; tests/test_d087*.py: 42 passed)
+
+**Verdict: REVISE (1 blocking item).** B1, B4 and B5 are closed. B2 is closed by the owner's round-0 pre-exclusion of place_14, which is disclosed as post_hoc with its reason: the hit was on the decoded patch, which the screen never sees. The face-descriptive gate and the screening of every scramble/swap slot, faces included, match the owner rulings and are tested.
+- **Not adopted, acceptable:** (a) QA's lower threshold and (b) my x264 round-trip gate. Lowering the threshold after the build-2 result would be a post-result choice, so keeping the frozen 0.5 is the right call. (b) was one of two options I offered, and the owner took the other (an a priori statement on place_14). The residual risk is a new or re-SHINEd image that passes the rendered screen and then fails the decoded QC. That would be a final STOP, and §7 discloses it. Optional, not a gate: record an x264 round-trip score per entry, descriptively.
+- **Pod driver, fakes only:** acceptable for the config freeze, not for the screen run.
+  - A wiring error that crashes is recoverable, because the driver writes output only on success.
+  - A shared patch/SHINE bug is consistent between screen and build, because the builder uses the same code and `rebuild_identity.loc` checks it.
+  - The unrecoverable case is a silent YuNet-path error (colour order, resize, threshold or onnx wiring) that under-detects. It would surface only at the final decoded QC, as a final STOP.
+- **Minor, non-blocking:**
+  - During the screen, every candidate is fetched and uploaded under the slot-00 key `<cat>_v2_00_r<rank>`. The final manifest uses slot k, so the builder misses in S3, re-copies from local and leaves orphan v2 keys.
+  - The `--local` default may not include the continuation `scratch`, so new passes would fail to load. That is a crash, so it is recoverable.
+
+**Blocking:**
+1. Add a real-path check, outcome-blind for v2, as a precondition between freeze-plan steps 3 and 4. Run it on the pod in the build environment, before any screen.
+   - Run the driver's `t_lic_yunet` and `to_bgr640` path on non-candidate v4 rows with a known T-LIC YuNet result: place P2 `face_detected` (2 rows) must detect, and a few face F1 `no_face_detected` rows must not.
+   - Run the real `fetch_sources`, `patch`, `shine` and `rendered_loc_patches` once on synthetic or v1 inputs, with no YuNet call on candidates.
+   - Write the cv2, onnxruntime and ffmpeg versions and the result into the screen record's `inputs`.

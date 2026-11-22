@@ -19,3 +19,20 @@ Checks: `pytest tests/test_d087.py tests/test_refclips_qc85.py` 32 passed; `make
 3. Add the screen-to-build patch identity check and the per-patch shas to the screen record (Q2). Write C3 for v2 into the frozen text.
 4. Pod driver missing: no script wires `locscreen.select` to the real `locimg` patches, SHINE, YuNet, the continuation and the writing of the v2 manifest and screen record. Write it, test it with fakes, and have the council review it before the `refclips_d087` freeze, since every later failure is final.
 5. Land T-DRV-V2 (the cost-cap wiring) before any v2 GPU session.
+
+## Re-check (d087_v2.md, c54daf6 + 71bd4b3)
+
+**Verdict: APPROVE**, with one condition added to the freeze plan. Checks: `pytest tests/test_d087.py tests/test_d087_v2.py` 42 passed; `make guards` rc=0.
+- B1 scrambles: closed. Every slot's scramble and swap is gated, face slots included (`gate_from_cfg`, `rendered_loc_patches`, pixel-equal to `loc_frames`, tested). Face intact is descriptive, and `face_absent` is recorded, per the owner's ruling.
+- B2 place_14: closed by option (a). Round-0 `pre_excluded` is post_hoc, cites STOP_NOTE, and §7 is now consistent.
+- B3 identity: closed. Per-slot `patch_sha256` is in the record, the builder checks it before any clip, and the build1 families are compared separately (C3 split).
+- B4 driver: written; reviewed here. B5 T-DRV-V2: `campaign_cap` plus the carried $0.39 in `guard_launch` and NAT `check_projection`, tested.
+- Two suggestions not adopted (my x264 margin, the biostat compressed-image check): acceptable. Pre-excluding place_14 removes the one known decoded-only hit. Lowering the threshold or adding a screen surface now would be a choice made after the result. §7 discloses the residual risk (screen-pass, decoded-QC-fail, final STOP).
+- Driver tested with fakes only: acceptable for the config freeze, not for the first real screen. `main()` (fetch_sources over all pass candidates, the S3 uploads to v2 keys, the scratch vs `--local` paths after a continuation, `t_lic_yunet`) has never run.
+  **Condition (freeze plan, between steps 3 and 4):** run one outcome-blind pod smoke before the first real screen, and commit its log:
+  - the imports;
+  - the YuNet sha check;
+  - fetch plus `locimg.patch` and SHINE on the 60 v1 slot images;
+  - per-slot `patch_sha` equal to the builder's patches for the same rows;
+  - YuNet called once on a synthetic image only. No detector call on the real patches, so round 1 stays unseen.
+  - The continuation's output dir must be in `--local`.

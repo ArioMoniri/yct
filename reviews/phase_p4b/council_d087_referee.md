@@ -20,3 +20,21 @@ I read: d087_draft.md, 4fa86c0, 0b0a44a, locscreen.py, refclips58 (seeds), the v
 - B4. Rewrite §2.6 and §3: the continuation is required for any flag. Add where it runs, its cost, and its effect on the log and manifest shas. Add the TALKFACE = 492 note and the face continuation path.
 - B5. T-DRV-V2 (`guard_launch` enforces the $75 cap with $0.39 carried) must land before any v2 spend.
 - B6. Add the scramble-gap disclosure, or a descriptive pre-build scramble screen, to §7.
+
+## Re-check (v2: 71bd4b3, tests c54daf6; owner rulings 2026-11-23)
+
+Verdict: **REVISE**, with one blocking item. I read d087_v2.md, the response matrix, locscreen_v2.py, the refclips_build `--images v2` path and test_d087_v2.py (42 passed). I read nothing sealed.
+- B2–B6 are closed. B2: `rebuild_identity.loc` (patch sha = screen record) plus `.build1`, restricted to the four build-1 families. B3: the owner's rulings are on record and enter D-087 at freeze step 2. B4: §3 now makes the continuation the main path and gives its cost, byte identity and commit-before-rescreen, and §4 states TALKFACE = 492. B5: `campaign_cap` and the carried $0.39 are enforced. B6: scrambles and swaps of every slot now gate, and round 1 being partly known is disclosed.
+- The owner rulings are consistent with the rule: body and place gate, face is descriptive, and a face slot is replaced only on a scramble or swap hit. The place_14 pre-exclusion is correctly marked post_hoc and cited. It forces a place continuation before round 1, and v2 says so.
+- Not adopting the QA lower threshold is acceptable. It is what I asked for: lowering it now would be a choice informed by the outcome.
+- Not adopting the biostat compressed-image (x264 round-trip) check is also acceptable. It would change the screen method in response to the decoded-frame result. Pre-excluding place_14 removes the known case. The remaining risk (passing the screen, then failing the decoded QC, a final STOP) is disclosed in §7. Non-blocking: tell the owner plainly, in D-087, that this risk is accepted.
+- B1 is only partly closed. `run_screen` is well tested with fakes. `main()`, which wires the real pieces, is never run: `fetch_sources` (S3 misses on the new v2 keys, then a content-sha fallback to the local scratch), `locimg.patch` on real crop boxes, `t_lic_yunet`, and the continuation subprocess. Its first real run would come after the freeze, so a wiring bug would force an amendment. Fakes alone are therefore not acceptable before freeze. A concrete gap: the continuation writes new passes into `SCRATCH`, but `--local` defaults to `/work/yct/refstim_auto_scratch`, so an operator who passes any other scratch path gets a SystemExit on every new pass.
+
+**Blocking**
+- R1. Before freeze, run an outcome-blind real-path smoke on the pod and commit its log. It must:
+  - load and sha-verify all 60 round-1 sources through `main()`'s loader;
+  - run `locimg.patch` with real crop boxes, joint SHINE and `rendered_loc_patches`, and check pixel-equality with `refclips58.loc_frames` on these real patches;
+  - load and sha-check `t_lic_yunet`, running it only on a non-LOC fixture (never on a slot patch, so no screen outcome is seen before freeze);
+  - check that `refstim_auto_run.py run --target <cat>=20` is a no-op.
+
+  Also default `--local` to include `SCRATCH`.
