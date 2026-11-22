@@ -640,6 +640,7 @@ class RefClipArtifacts(M):            # D-071 (d): null until set; frozen row pe
     image_manifest_sha256: Sha256 | None
     nat_manifest_sha256: Sha256 | None
     manifest_sha256: Sha256 | None
+    speech_corpus_sha256: Sha256 | None   # D-085 draft
 
 
 class RefClipsD078Artifacts(M):       # D-078
@@ -761,6 +762,65 @@ class RefClipsD084(M):                # D-084 draft: NAT continuation sessions k
     max_sessions: Annotated[int, Field(ge=0, le=10)]
     cpu_ahead_max: Literal[1]
     main_campaign_plan_usd: Annotated[float, Field(ge=0, le=75)]   # council D-084 (watchdog) projection guard
+
+
+class D085Qc(M):
+    face_hit_min: Literal[0.9]
+    face_hit_scope: Literal["family"]
+    no_face_detector: Literal["refclips_auto.face_detector"]
+    yunet_score_threshold: Literal[0.5]
+    yunet_input_long_side: Literal[640]
+    yunet_sample_fps: Literal[2]
+    haar_on_loc: Literal["descriptive"]
+    twin_identity: Literal["rendered_frames_outside_windows"]
+    constancy_tol: Literal[0.01]
+    mot_ratio: Literal[10.0]
+    flash_quiet_frac: Literal[0.01]
+    other_regressors: dict[Literal["visual", "audio"], str]
+    on_fail: Literal["stop_owner_redesign_h"]
+
+
+class D085Speech(M):
+    source: Literal["ieee_harvard_1969"]
+    source_url: str
+    private_raw_s3: Annotated[str, Field(pattern=r"^s3://yct-research-235229001983/")]
+    corpus_file: str
+    lexicon_file: str
+    order: Literal["sha256_text_ascending"]
+    engine: Literal["espeak-ng"]
+    voice: Literal["en-us"]
+    rate_wpm: Literal[175]
+    pitch: Literal[50]
+    amplitude: Literal[100]
+    span_dbfs: Literal[-40.0]
+    counts: dict[Literal["SPK", "BURST", "TALKFACE"], Annotated[int, Field(ge=0)]]
+    ranges_s: dict[Literal["SPK", "BURST", "TALKFACE"],
+                   Annotated[list[float], Field(min_length=2, max_length=2)]]
+    spk_words_rule: str
+    burst_sentences: Literal[2]
+    fill_order: list[Literal["SPK", "BURST", "TALKFACE"]]
+    on_exhausted: Literal["stop_owner"]
+
+
+class D085Talkface(M):
+    generator: Literal["wav2lip"]
+    repo: str
+    revision: Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
+    licence: str
+    weights_sha256: Sha256 | None
+    face_detector_sha256: Sha256 | None
+    face_rule: Literal["first_face_pass_after_v4_rank_492"]
+
+
+class RefClipsD085(M):                # D-085 draft: LOC QC amendment, speech corpus, TALKFACE generator
+    decision: Literal["D-085"]
+    amends: list[Literal["D-071"]]
+    post_hoc: Literal[True]
+    consumes_redesign: Literal[False]
+    build1_sha_record: str
+    qc: D085Qc
+    speech: D085Speech
+    talkface: D085Talkface
 
 
 class RefClipsD081Artifacts(M):       # D-081
@@ -939,6 +999,7 @@ class Controls(M):
     refclips_d081_artifacts: RefClipsD081Artifacts
     refclips_d082: RefClipsD082
     refclips_d084: RefClipsD084
+    refclips_d085: RefClipsD085
     curation_http: CurationHttp
     refclips_auto: RefClipsAuto
     refclips_auto_artifacts: RefClipsAutoArtifacts

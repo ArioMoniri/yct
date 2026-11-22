@@ -430,7 +430,8 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     image_manifest_sha256: 322f8a4211b6b76b7a626c6a2a78acdb1629f479117ea2b8233faf04be02f425   # D-081 v4 finalise: concat sha of image_{face,body,place}_manifest.json
     nat_manifest_sha256: null
     manifest_sha256: null      # refclips_manifest.json, set by T-STIM before upload
-  refclips_d074:               # D-074 (owner-approved 2026-11-19): image candidate source; replaces refclips.image_queries for images
+    speech_corpus_sha256: ef88b4eb247a3670cd70591c48abbcdd6ea7148bc32e220da7786d23fda8db06 # D-085 draft: sha256 of refclips_d085.speech.corpus_file (hash-only; set, NOT frozen)
+  refclips_d074:              # D-074 (owner-approved 2026-11-19): image candidate source; replaces refclips.image_queries for images
     decision: D-074
     image_sources:
       face:  [{category: "Portrait photographs", depth: 0}]
@@ -531,6 +532,54 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     cpu_ahead_max: 1             # the CPU stage never fills beyond the next unevaluated buffer
     main_campaign_plan_usd: 61.0 # council D-084 (watchdog): D-071 (k) estimate of the main reference campaign
                                  # (d071_v3 §k, not yet started); projection = spend + this + session worst case <= cap
+  refclips_d085:               # D-085 DRAFT (owner 2026-11-22: "Fix the rule"; speech corpus approved; TALKFACE
+                               # "AI lip-sync model"). NOT frozen: council review first (reviews/phase_p4b/d085_draft.md)
+    decision: D-085
+    amends: [D-071]
+    post_hoc: true               # the LOC QC amendment is chosen AFTER the build-1 QC result (STOP 97af7ec)
+    consumes_redesign: false     # D-071 (h) not consumed: stimuli, detectors, seeds, thresholds unchanged
+    build1_sha_record: outputs/runs/refclips_v1_nonnat_build1/build1_sha256.json   # committed before any D-085 text
+    qc:
+      face_hit_min: 0.9          # D-071 (a), unchanged
+      face_hit_scope: family     # pooled over the 20 LOC face-event TRs (one per clip), not per clip
+      no_face_detector: refclips_auto.face_detector   # the frozen T-LIC YuNet (yunet_sha256)
+      yunet_score_threshold: 0.5 # = refclips_auto.face_detector.exclusion_score_threshold (B3 / P2)
+      yunet_input_long_side: 640 # = refclips_auto.face_detector.input_long_side (ra.resize_long)
+      yunet_sample_fps: 2        # = confounds.face_fps (the Haar sample frames)
+      haar_on_loc: descriptive   # face_area_crop_frac reported per TR, never gating on LOC / LOC_SCR
+      twin_identity: rendered_frames_outside_windows   # LOC vs LOC_SCR uint8 frames equal outside [o-4, o+8)
+      constancy_tol: 0.01        # design_v2 §1.5 "within 1%": max |x - mean| / mean over all TRs
+      mot_ratio: 10.0            # D-071 (a) 10x, also the static-level rule outside events and in the twin
+      flash_quiet_frac: 0.01     # luminance_change off the onset/offset TRs <= 1% of the smallest onset change
+      other_regressors: {visual: wav_sha_equals_grey_ctrl, audio: video_features_equal_grey_ctrl}
+      on_fail: stop_owner_redesign_h   # any failure: STOP to the owner under D-071 (h); no second amendment
+    speech:
+      source: ieee_harvard_1969  # IEEE Recommended Practice for Speech Quality Measurements (1969), App. C
+      source_url: "https://www.cs.columbia.edu/~hgs/audio/harvard.html"
+      private_raw_s3: s3://yct-research-235229001983/refstim/speech/private/harvard_raw.html   # texts never in git
+      corpus_file: data/refstim/speech/speech_corpus_v1.json   # (list, item, sha256) only; no sentence text
+      lexicon_file: data/refstim/speech/exclusion_lexicon_v1.json
+      order: sha256_text_ascending
+      engine: espeak-ng
+      voice: en-us
+      rate_wpm: 175
+      pitch: 50
+      amplitude: 100
+      span_dbfs: -40.0           # speech span = first..last sample with |x| >= 10^(-40/20) of full scale
+      counts: {SPK: 60, BURST: 15, TALKFACE: 3}
+      ranges_s: {SPK: [1.0, 1.5], BURST: [4.0, 6.0], TALKFACE: [1.0, 6.0]}
+      spk_words_rule: "2 if (k + i // 2) % 2 == 0 else 3"   # 15/15 two/three-word items in each half
+      burst_sentences: 2         # a BURST item = two consecutive queue sentences, synthesised as one text
+      fill_order: [SPK, BURST, TALKFACE]
+      on_exhausted: stop_owner
+    talkface:
+      generator: wav2lip
+      repo: "https://github.com/Rudrabha/Wav2Lip"
+      revision: bac9a81e63ecc153202353372e5724b83d9e6322
+      licence: "README 'License and Citation': personal/research/non-commercial use only; trained on LRS2"
+      weights_sha256: null       # set at the T-TALK setup step (mirrored to s3_root/models/), frozen in the next commit
+      face_detector_sha256: null # Wav2Lip s3fd weights, same procedure
+      face_rule: first_face_pass_after_v4_rank_492   # next pass of the frozen face rules, v4 log order
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host

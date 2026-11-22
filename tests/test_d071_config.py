@@ -69,7 +69,8 @@ def test_curation_snapshot_keys():
     assert {"licence", "personality_rights", "duplicate"} <= set(R["reject_reasons"])
     art = C["refclips_artifacts"]
     assert set(art) == {"image_snapshot_sha256", "nat_snapshot_sha256", "image_manifest_sha256",
-                        "nat_manifest_sha256", "manifest_sha256"}
+                        "nat_manifest_sha256", "manifest_sha256",
+                        "speech_corpus_sha256"}         # D-085 draft (speech corpus, set before its freeze)
     assert "manifest_sha256" not in R                   # later-filled values never sit in the frozen subtree
 
 

@@ -13,8 +13,8 @@ import numpy as np
 import pytest
 
 from yct.config import load_config
-from yct.tribe_run import refclips58 as R
-from yct.tribe_run import refclips_qc85 as Q
+from yct.tribe_run import refclips58 as R  # noqa: N812
+from yct.tribe_run import refclips_qc85 as Q  # noqa: N812
 
 CFG = load_config()
 QC = CFG["controls"]["refclips_d085"]["qc"]
@@ -35,7 +35,9 @@ def test_face_hit_is_pooled_over_the_family():
     r = Q.face_hit_family(rows, QC["face_hit_min"])
     assert r["n_events"] == 20 and r["frac"] == pytest.approx(0.95) and r["pass"]
     rows[0]["face_event_hits"] = [False]
-    assert not Q.face_hit_family(rows, QC["face_hit_min"])["pass"]
+    assert Q.face_hit_family(rows, QC["face_hit_min"])["pass"]          # 18/20 = 0.90: the bound passes
+    rows[1]["face_event_hits"] = [False]
+    assert not Q.face_hit_family(rows, QC["face_hit_min"])["pass"]      # 17/20 = 0.85
 
 
 def test_yunet_gated_trs_skip_face_events_in_loc_and_cover_all_of_loc_scr():
@@ -133,6 +135,13 @@ def test_haar_is_descriptive_only_in_loc_rows():
     fa[[3, 4]] = 0.03
     d = Q.haar_descriptive(CLIPS["loc_scr_00"], fa)
     assert d["n_hit_trs"] == 2 and d["gating"] is False
+
+
+def test_t_lic_yunet_refuses_an_onnx_that_is_not_the_frozen_file(tmp_path):
+    p = tmp_path / "face_detection_yunet_2023mar.onnx"
+    p.write_bytes(b"not the model")
+    with pytest.raises(SystemExit, match="sha256"):
+        Q.t_lic_yunet(CFG, p)
 
 
 def test_rendered_intact_event_frame_equals_the_locimg_patch():

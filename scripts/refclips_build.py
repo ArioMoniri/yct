@@ -73,25 +73,64 @@ def select_families(cfg: dict, fams: list[str] | None) -> list[str]:
 def toolchain() -> dict[str, str]:
     v = subprocess.run(["ffmpeg", "-nostdin", "-version"], capture_output=True, text=True,
                        check=True).stdout.splitlines()
-    return {"ffmpeg": v[0], "ffmpeg_libs": " | ".join(x.strip() for x in v if x.strip().startswith("lib"))}
+    x264 = subprocess.run(["dpkg-query", "-W", "-f", "${Package} ${Version}\n", "libx264-*"],
+                          capture_output=True, text=True, check=False).stdout.strip()
+    return {"ffmpeg": v[0], "ffmpeg_libs": " | ".join(x.strip() for x in v if x.strip().startswith("lib")),
+            "libx264": x264 or "unknown"}
 
 
-def build_all(clips: list, out: Path, cfg: dict, images=None, sources: dict | None = None) -> int:
+def verify_s3_sources(mans: dict[str, list[dict]], get) -> dict[str, str]:
+    """D-085 (council, BUG-044): every manifest s3_key exists and its bytes hash to the manifest sha256.
+    get(key) -> bytes | None. Returns {s3_key: sha256} for the clip manifest record."""
+    out = {}
+    for cat in sorted(mans):
+        for row in mans[cat]:
+            data = get(row["s3_key"])
+            if data is None:
+                raise SystemExit(f"BUG-044 read-back: {row['s3_key']} missing from S3")
+            sha = hashlib.sha256(data).hexdigest()
+            if sha != row["sha256"]:
+                raise SystemExit(f"BUG-044 read-back: {row['s3_key']} sha256 {sha} != manifest "
+                                 f"{row['sha256']}")
+            out[row["s3_key"]] = sha
+    return out
+
+
+def build_all(clips: list, out: Path, cfg: dict, images=None, sources: dict | None = None,
+              qc: str = "d071", yunet=None) -> int:
+    """qc="d071": the original frozen D-071 (a) QC (build 1). qc="d085": the amended QC
+    (yct.tribe_run.refclips_qc85), refused until controls.refclips_d085 is frozen; needs the T-LIC YuNet."""
+    if qc == "d085":
+        from yct.tribe_run import refclips_qc85
+
+        refclips_qc85.require_frozen(cfg)
+        if yunet is None:
+            raise SystemExit("D-085 QC needs the frozen T-LIC YuNet detector")
+    elif qc != "d071":
+        raise SystemExit(f"unknown QC rule {qc}")
     out.mkdir(parents=True, exist_ok=True)
-    recs, qc = {}, []
+    recs, rows = {}, []
     for c in clips:
         recs[c.name] = R.build_clip(c, out, cfg, images=images)
         print(f"built {c.name}", flush=True)
     by = {c.name: c for c in clips}
-    for c in clips:
-        twin = (by[c.control], out / f"{c.control}.mp4") if c.family == "MOT" else None
-        qc.append(R.stimulus_qc(c, out / f"{c.name}.mp4", cfg, twin=twin))
-    (out / "qc.json").write_text(json.dumps(qc, indent=1, default=float))
-    bad = [q["name"] for q in qc if not q["pass"]]
+    if qc == "d085":
+        res = refclips_qc85.run_qc(clips, out, cfg, recs, yunet, lambda c: R.clip_frames(c, images))
+        (out / "qc.json").write_text(json.dumps(res, indent=1, default=float))
+        bad = [r["name"] for r in res["rows"] if not r["pass"]]
+        if res["face_hit_family"] is not None and not res["face_hit_family"]["pass"]:
+            bad.append("LOC family face_hit_frac")
+        rule = "to the owner (D-085, amended D-071 (a); no second amendment, D-071 (h))"
+    else:
+        for c in clips:
+            twin = (by[c.control], out / f"{c.control}.mp4") if c.family == "MOT" else None
+            rows.append(R.stimulus_qc(c, out / f"{c.name}.mp4", cfg, twin=twin))
+        (out / "qc.json").write_text(json.dumps(rows, indent=1, default=float))
+        bad = [q["name"] for q in rows if not q["pass"]]
+        rule = "to the council (D-071 (a), no substitution)"
     if bad:
         (out / "STOP_NOTE.md").write_text(
-            "# p4b_ref/v1 build: stimulus QC failed, STOP to the council (D-071 (a), no substitution)\n"
-            + "".join(f"- {n}\n" for n in bad))
+            f"# p4b_ref/v1 build: stimulus QC failed, STOP {rule}\n" + "".join(f"- {n}\n" for n in bad))
         print(f"STOP: QC failed for {bad}", flush=True)
         return 1
     fams = sorted({c.family for c in clips})
@@ -190,6 +229,10 @@ def main() -> int:
     ap.add_argument("--sources", type=Path, default=Path("/work/yct/refclips_sources"))
     ap.add_argument("--local", type=Path, nargs="*", default=[Path("/work/yct/refstim_auto_scratch")],
                     help="T-LIC scratch dirs searched by content sha256 (BUG-044)")
+    ap.add_argument("--qc", choices=["d071", "d085"], default="d071",
+                    help="d085 = the amended QC, refused until controls.refclips_d085 is frozen")
+    ap.add_argument("--yunet-onnx", type=Path,
+                    default=Path("/work/yct/refstim_models/face_detection_yunet_2023mar.onnx"))
     a = ap.parse_args()
     cfg = load_config()
     fams = select_families(cfg, a.families)
@@ -208,7 +251,13 @@ def main() -> int:
         images = locimg.loc_images(mans, load, cfg)
         sources = {"image_manifest_sha256": cfg["controls"]["refclips_artifacts"]["image_manifest_sha256"],
                    "crop_box_edge_overrun_px": over}
-    rc = build_all(clips, a.out, cfg, images=images, sources=sources)
+    yunet = None
+    if a.qc == "d085":
+        from yct.tribe_run import refclips_qc85
+
+        refclips_qc85.require_frozen(cfg)
+        yunet = refclips_qc85.t_lic_yunet(cfg, a.yunet_onnx)
+    rc = build_all(clips, a.out, cfg, images=images, sources=sources, qc=a.qc, yunet=yunet)
     if rc == 0 and "LOC" in fams:
         contact_sheet(a.out, clips, cfg, a.out / "loc_contact_sheet.png")
     return rc
