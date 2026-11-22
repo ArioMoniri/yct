@@ -382,9 +382,28 @@ def test_projection_recorded_in_pre_launch(env):
     pr = res["pre_launch"]["projection"]
     plan = dcfg()["controls"]["refclips_d084"]["main_campaign_plan_usd"]
     assert pr["main_campaign_plan_usd"] == plan and abs(pr["this_session_planned_usd"] - 1.99 * 1.75) < 1e-6
-    want = pr["campaign_spend_usd"] + plan + pr["this_session_planned_usd"]
+    want = pr["campaign_spend_usd"] + plan + pr["talkface_plan_usd"] + pr["this_session_planned_usd"]
     assert abs(pr["projection_usd"] - want) < 1e-6
     assert pr["cap_usd"] == 75
+
+
+def test_projection_includes_the_d085_talkface_session_worst_case(env):
+    # council D-085 (watchdog): TALKFACE runs as its own GPU session, so its worst case joins the projection
+    rc, res = runk(env, 1, box=Box(set()))
+    pr = res["pre_launch"]["projection"]
+    assert pr["talkface_plan_usd"] == dcfg()["controls"]["refclips_d085"]["talkface"]["session_worst_usd"]
+    c = dcfg()
+    c["controls"]["refclips_d084"]["main_campaign_plan_usd"] = 75 - 1.99 * 1.75 - 1.0   # fits w/o TALKFACE
+    rc2, res2 = runk(env, 1, c=c)
+    assert rc2 == 1 and "TALKFACE" in res2["error"]
+
+
+def test_talkface_session_does_not_count_as_the_main_campaign(env):
+    gt = dcfg()["p4"]["gpu_type"]
+    rec = env.lg.launch(gt, "yct-p4b-ref-talk", 0.1, "yct-pod", None, name_deadline=True)
+    env.lg.terminate(rec["id"], "job_done")
+    rc, res = runk(env, 1, box=Box(set()))
+    assert "main campaign" not in str(res.get("error", ""))
 
 
 def test_projection_over_cap_is_a_stop_before_launch(env):
