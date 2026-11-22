@@ -42,3 +42,26 @@
   5. Commit the output as a pod log. This would have caught B1.
 - After that, use the D-071 (k) launch as written: CI-green pushed HEAD, a new terminator, L4 reconciliation, the
   baseline written once, and the cap guard.
+
+## Re-check + pre-launch (2026-11-22, at ed1e842): APPROVE
+- B1 fixed: `EXTRA_SHIP` adds `src/yct/curate/{__init__,nat0_box}.py` and the freeze; the import-closure test
+  checks the real tarball; rehearsal run 3 ran `nat0_box` from the untarred ship tree (rc 0). B2 fixed:
+  `check_buffer` refuses unless 40/40 or a logged `snapshot_exhausted`; the buffer is 40/40, 0 session-0 rows.
+  B3 done as runs 1-3 (a-h). Runs 1-2 found BUG-042 (wrong embedding loader, which would have cost a paid
+  exit 75) and BUG-043 (OOM). Both fixed test-first. BUG-042's `{checkpoint}` loader is the one the D-082
+  verify used, so that 2-speaker evidence stands. L4 record: 2807 lines, no open or live launch, $0 campaign.
+  (d7f2c62 is not in this repo. Every other listed commit checked.)
+- No frozen value changed after the rehearsal: config.yaml and DECISIONS are unchanged since f4211ea, and the
+  NAT log sha is 4d1cd61f (unchanged). Non-blocking: the run-3 reject reasons look like real signal, not a
+  pipeline fault. 5c57 has p(en) 0.20 and 0 pyannote turns (no speech in the first 30 s). 192a has 0.69 with 15
+  turns. 3e8d has 0.999 but fails N2. N3 is 0.2 on one mp4.
+- The rehearsal must NOT change any rule. It is outcome-exposed. It covers 3 of 40 clips on CPU int8, not the
+  frozen CUDA fp16 path. It is not a decision. N1 0.9, N2 95%/3 s/zero speech, N3 0.5, nat_n 15 and the
+  40-buffer stay as frozen. Changing any of them now would fit the rules to seen outcomes.
+- Launch is still the frozen next step. The <15/40 STOP is defined on session-0 output, not on a forecast.
+  Session 0 is the only way to reach that decision under the rules. It costs about $1.5 (planned $3.48), against
+  a projected $63 of the $75 cap. If it yields fewer than 15 passes, the rows are logged, exit 1 and a STOP to the
+  owner, with no relaxation and no second session 0. Telling the owner about the early warning before launch is
+  a courtesy, not a gate.
+- Verdict: APPROVE. No blocking items. Launch under D-071 (k): CI-green pushed HEAD, a new external terminator,
+  the L4 record re-checked at launch, the baseline written once, the cap guard, and a watched run.
