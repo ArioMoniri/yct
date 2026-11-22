@@ -38,3 +38,31 @@ My earlier items are covered: 1a (YuNet gate plus twin identity; Haar becomes de
 2. Replace the open SPK/BURST envelope row in §2 with the constructive gate (c). Add unit tests.
 3. Freeze `talkface.weights_choice: wav2lip` and the face-fallback rule (e′) in the D-085 freeze commit.
 4. Add the decoded-diff descriptive outputs (d) to run_qc, marked non-gating.
+
+## Re-sign-off (D-085 v2 + addendum fd020e7; D-086). Verdict: APPROVE
+Read: d085_v2.md, d085_v2_response.md, git show d1fc0d1 2374d77 fd020e7 2e3fe52 0f8e19a 1a3cff7 0efb08d, normalization_audit/synthesis.md. No sealed data, labels, transcripts or predictions were opened.
+Checks: `pytest -k "d085 or speech or refclips or d086 or norm or kernel"` gives 194 passed. `make guards` exits 0 (76 frozen keys unchanged).
+- **Cycle-1 blocking items 1–4: closed.**
+  - (1) Licence wording and `spk_words: 3` are in place. Hashes-only corpus with the history rewrite, per the owner.
+  - (2) `speech_gate` is constructive on the rendered 48 kHz audio.
+  - (3) `wav2lip.pth` and the face-fallback rule are in the part-2 keys. TALKFACE has `publish: false`, enforced by the schema.
+  - (4) `twin_decoded` and `decoded_vs_rendered` are reported with `gating: false`.
+  - The owner's Q3 ruling (keep the YuNet gate broad) closes Neuro B1.
+- **S-22 decoded-stream rebuild check: sound.**
+  - `decoded_sha` hashes the raw yuv420p and s16le streams, so no RGB matrix is involved.
+  - The frames are `gray` with neutral chroma, so the bt709/tv tags cannot change what a tag-aware reader such as TRIBE decodes.
+  - Local test with ffmpeg 6.1.1: adding the tags changed the mp4 sha but left the decoded sha identical.
+  - The 2e3fe52 record covers all 79 mp4 files. Its equal-sha groups (flash 0/1/4, flash 2/3, grey_ctrl 0/1) are the same as the byte-sha groups in build1_sha256.json. A missing record fails closed (tested). wav and tsv are still compared byte for byte.
+  - The check is weaker than byte equality only in the container metadata, which the tags change by design.
+- **D-086: sound.**
+  - FIX-NORM-0 freezes are pinned in tests and the guard reports them unchanged.
+  - The drift term is pre-run, only tightens the gate, and fails closed on rank deficiency or non-finite input.
+  - S-23/S-24 span trim is tested, including duration equals span and the BS.1770 reference value.
+  - M-12b is held to a single standardisation path by AST tests.
+  - The loudnorm count of 3/52 = 5.8% is under 10%, so it is a sensitivity analysis only.
+- **Non-blocking:**
+  - (a) Pin the sha256 of `build1_decoded_sha256.json` in the part-1 freeze commit. Freezing the key fixes only the path, not the file content; the same applies to build1_sha256.json.
+  - (b) `rebuild_mismatches` silently skips a rebuilt clip that has no build-1 entry. Add a STOP for that case.
+  - (c) Add a real-ffmpeg test that the tags leave `decoded_sha` unchanged.
+  - (d) List the 3 dynamic-loudnorm clip ids for the S-QC sensitivity (pod-side). Disclose that the Q2 rule and the count landed in one commit.
+  - (e) Pre-existing ruff I001 (import order) in scripts/refclips_build.py:31-36. Fix it with `ruff --fix` in a separate commit.

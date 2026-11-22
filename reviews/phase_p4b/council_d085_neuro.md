@@ -40,3 +40,16 @@
 ## Owner questions
 1. Wav2Lip and LRS2 terms are research and non-commercial only. Is this study and its public report free of any commercial use or sponsor? If not, drop TALKFACE, which is descriptive only.
 2. The Harvard list is not demonstrably public domain. Should the council's restructure stand (index-only corpus file, documented as unverified), and should the full text added in 3acc014 stay in git history or be rewritten out?
+
+## Re-sign-off (2026-11-22; D-085 v2 + addendum fd020e7, D-086)
+**Verdict: APPROVE.** I read d085_v2.md, the response matrix, the §9 addendum, d1fc0d1 / 2374d77 / fd020e7 / 2e3fe52 / 0f8e19a / 1a3cff7 / 0efb08d, DECISIONS D-086, ROADMAP R-11 and the normalisation synthesis. tests/test_fixnorm_p4b.py and tests/test_d085_council.py pass (40). I did not read sealed data, labels, transcripts or predictions.
+- **Owner rulings accepted:** hashes-only corpus with the history rewrite, SPK 3-word only, TALKFACE internal only, and the broad YuNet gate. B1 is closed by the owner's ruling. My risk note stands for the record: a YuNet false hit on a SHINE scramble now means a STOP, with no further amendment allowed.
+- **S-22 decoded-stream rebuild check: sound.** The frames enter as `gray`, so U = V = 128. Changing the matrix from bt601 to bt709 therefore does not change any RGB value, and tv range is also the untagged default. `decoded_sha` decodes at native yuv420p plus s16le, so it ignores the tags while still covering every pixel and audio sample. The stimulus TRIBE sees is the same as in build 1. wav and tsv are still byte-exact, and a missing record fails closed. Non-blocking: decode the rebuild with the same pod ffmpeg 6.1.1-3ubuntu5 (the toolchain record). A decoder drift would fail closed, which is the safe direction. `rebuild_mismatches` only iterates over rebuilt clips, so a build-1 clip that was never rebuilt is not flagged. Assert that the two name sets are equal.
+- **S-23/S-24 span trim:** correct, because the onset and word times now refer to the acoustic span. Non-blocking: at 175 wpm, trimmed 3-word spans near 1.0 s will fail the length gate more often. `pass_rates` logs this and exhaustion is still a STOP.
+- **D-086:**
+  - The FIX-NORM-0 freeze at b24fc1c (whisperx at 4db5895, control keys at 976e8ab) is right.
+  - The Legendre-1 drift is appropriate for 58 s clips. It only makes PASS harder, and it fails closed when the design is rank-deficient.
+  - The single M-12b standardisation path is right.
+  - R-ENV is right: the z-step only rescales, and the 10 Hz low-pass suits a syllabic-rate envelope.
+  - The loudnorm count of 3/52 = 5.8% is below the 10% bar, a rule set before the count, so the frozen mode is kept and those 3 clips go to S-QC sensitivity only. Approved.
+- **Blocking items:** none.

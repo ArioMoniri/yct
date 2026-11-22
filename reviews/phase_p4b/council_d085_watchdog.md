@@ -33,3 +33,20 @@ Verdict: **REVISE (minor).** I checked the anti-forking order. The pre-step was 
 4. Write the (e2) fallback and the non-publication of TALKFACE into D-085.
 5. C1–C3.
 6. If TALKFACE runs as its own session, raise `main_campaign_plan_usd` by $3.48 before the next NAT projection.
+
+## Re-sign-off (2026-11-22): D-085 v2 + addendum fd020e7, and D-086. Verdict: **APPROVE**
+Read: d085_v2.md + response matrix, d1fc0d1 2374d77 fd020e7 2e3fe52 0f8e19a 1a3cff7 0efb08d, DECISIONS D-086, ROADMAP R-11, synthesis.md. I read no sealed data, labels, transcripts or predictions. `pytest tests/test_guards_frozen_config.py tests/test_fixnorm_p4b.py tests/test_d085_council.py`: 50 passed.
+- **My cycle-1 items are all closed.** (a) The licence is re-documented and the corpus is hashes-only after the history rewrite. (b)(ii) SPK is 3-word only and `spk_words_rule` is gone. (c) The constructive gate is in place and T-ENV runs before any speech build. (e)/(e2) TALKFACE is internal only, with the pinned weights, a private mirror and the face fallback (5-skip STOP). C1, C2 and C3 are done. TALKFACE is in the projection. Owner Q3 "keep it broad" closes Neuro B1, and the gate is not narrowed.
+- **The S-22 decoded-fingerprint rebuild check is accepted.**
+  - It does not weaken C3. wav/tsv must still match byte for byte. An mp4 passes only on byte equality or on decoded yuv420p+s16le equality against a record taken from the verified build-1 files (0 byte mismatches). A missing record fails closed, and the check still runs before YuNet.
+  - All reference frames are grey with neutral chroma, so bt601 and bt709 give the same RGB. Equal decoded YUV therefore means equal TRIBE input.
+  - Any decoder difference across ffmpeg builds can only cause a false STOP, never a false pass.
+  - Non-blocking: rebuild on the recorded pod ffmpeg (6.1.1-3ubuntu5) and log that version beside the result. Also log the ffprobe nb_frames, r_frame_rate and colour tags descriptively, because the decoded sha does not cover timing metadata.
+- **D-086 is accepted.**
+  - I checked FIX-NORM-0 key by key. Every key equals its value at b24fc1c, 4db5895 or 976e8ab, so the freeze is genuine and not a re-write. The two new keys are frozen one commit after the commit that set them.
+  - The 10% loudnorm rule was written in synthesis (585cfd1) before the count. 3/52 = 5.8% is a pooled, label-free stimulus count, and sensitivity-only is the correct pre-set consequence.
+  - The span trim, the polyphase resample and the single M-12b path are test-first and pass.
+- **Drift term:** my dissent stands but does not block, since it is the owner's pre-run ruling.
+  - Non-blocking: correct "only makes PASS harder" in D-086 and in the report. An added nuisance column can raise a partial r as well as lower it. The real safeguard is "fixed pre-run, never extended after a FAIL".
+  - Non-blocking: pre-declare now that the intercept-only partial r will be reported descriptively.
+- **No blocking items.** Part 1 may be frozen, including `build1_decoded_sha_record`. Part 2 stays gated on T-ENV and S-23/S-24.
