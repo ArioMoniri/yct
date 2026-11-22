@@ -1,0 +1,26 @@
+{
+ "session": "nat0",
+ "git_sha": "e1a0f6651819e3d88a6b92b95ecb400e1a0d8f7a",
+ "steps": {
+  "setup_wx": "ok",
+  "push_buffer": "ok",
+  "nat0": "ok",
+  "asr": "ok"
+ },
+ "pre_launch": {
+  "campaign_spend_usd": 0.0,
+  "planned_usd": 3.4825,
+  "cap_usd": 75.0,
+  "ack": false
+ },
+ "n_buffer": 40,
+ "instance_id": "1a3d5287fcb04fc3a880202afa0edcf8",
+ "terminator": {
+  "kind": "external_scheduled_session",
+  "fire_at": 1795344360.0
+ },
+ "alive_after": [],
+ "status": "stop",
+ "error": "4 NAT passes < nat_n in the buffer: STOP to the owner",
+ "n_pass": 4
+}
