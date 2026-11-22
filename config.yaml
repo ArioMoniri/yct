@@ -520,7 +520,7 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
       subfolder: plda
       files: [plda.npz, xvec_transform.npz]
     clustering_must_be: AgglomerativeClustering   # nat0_box refuses VBxClustering (the only path that uses the PLDA)
-  refclips_d084:               # D-084 draft (owner "Continue same list", 2026-11-22; decided AFTER seeing session 0 = 4/40)
+  refclips_d084:               # D-084 (owner "Continue same list", 2026-11-22; decided AFTER seeing session 0 = 4/40)
     decision: D-084
     amends: [D-075]
     post_hoc: true               # disclosed: chosen after the session-0 outcome (STOP_NOTE p4bnat0_1795336302)
