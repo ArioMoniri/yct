@@ -631,8 +631,8 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
               controls.refclips_d085.build1_decoded_sha_record]   # unlocks the visual rebuild
       part2: [controls.refclips_d085.speech, controls.refclips_d085.talkface,
               controls.refclips_artifacts.speech_corpus_sha256]
-  refclips_d087:               # D-087 DRAFT: p4b_ref/v2, the single D-071 (h) redesign (owner 2026-11-23 "Redesign v2",
-                               # cap "$75"). NOT frozen: council review first (reviews/phase_p4b/d087_draft.md)
+  refclips_d087:               # D-087: p4b_ref/v2, the single D-071 (h) redesign (owner 2026-11-23 "Redesign v2",
+                               # cap "$75"). Frozen at the D-087 entry commit (council 5/5, reviews/phase_p4b/d087_v2.md)
     decision: D-087
     redesign: p4b_ref/v2
     consumes_redesign: true      # D-071 (h): the one versioned redesign; v1 is reported in full
@@ -930,3 +930,5 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   - {key: controls.refclips_d085.build1_sha_record, frozen_at: 0d01a59d8b60b3185b98c3db9ad3b97b8b71fbde}
   - {key: controls.refclips_d085.build1_decoded_sha_record, frozen_at: 0d01a59d8b60b3185b98c3db9ad3b97b8b71fbde}
   - {key: controls.partial_out_nuisance_descriptive, frozen_at: 0d01a59d8b60b3185b98c3db9ad3b97b8b71fbde}
+  # D-087 p4b_ref/v2 (consumes D-071 (h)): the redesign rule, set in the D-087 entry commit, frozen in the next
+  - {key: controls.refclips_d087, frozen_at: 24bf885e51a0209de3e3f725921161725fc3d7c8}

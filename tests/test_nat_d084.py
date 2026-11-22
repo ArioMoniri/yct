@@ -11,6 +11,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from _pre_d087 import pre_d087
 
 from yct.config import load_config
 from yct.curate import natstim as ns
@@ -214,12 +215,17 @@ p4 = nat0.ref.p4
 HEAD = "c" * 40
 
 
-def dcfg(frozen84=True):
+def dcfg(frozen84=True, frozen87=False):
     c = copy.deepcopy(load_config())
     for k in nat0.PYANNOTE_KEYS:
         c["controls"]["refclips_auto_artifacts"][k] = "a" * 64
         c["frozen"].append({"key": f"controls.refclips_auto_artifacts.{k}", "frozen_at": "x"})
     c["frozen"].append({"key": "controls.refclips_d082", "frozen_at": "x"})
+    # D-087 (frozen at 24bf885) switches guard_launch to the v2 cap with the $0.39 carried spend, which these
+    # D-084 fakes' empty ledgers do not hold; they test the D-084 logic on the pre-D-087 config, and the
+    # D-087-frozen path is tested below (test_session1_runs_under_frozen_d087_with_the_carried_spend)
+    if not frozen87:
+        pre_d087(c)
     if frozen84:
         c["frozen"].append({"key": "controls.refclips_d084", "frozen_at": "x"})
     else:
@@ -454,3 +460,17 @@ def test_real_log_allows_exactly_buffer_1_now():
     assert ns.check_cpu_target(log, CFG, 2) == 80
     with pytest.raises(ra.StopError, match="ahead"):
         ns.check_cpu_target(log, CFG, 3)
+
+
+def test_session1_runs_under_frozen_d087_with_the_carried_spend(env):
+    # T-DRV-V2 with the real (frozen) D-087: the ledger holds the $0.39 NAT session-0 spend the v2 cap carries
+    c = dcfg(frozen87=True)
+    assert any(r["key"] == "controls.refclips_d087" for r in c["frozen"])
+    gt = c["p4"]["gpu_type"]
+    nat0.ref.ensure_baseline(env.store, env.lg, c, env.clock)            # written before the first launch
+    rec = env.lg.launch(gt, "yct-p4b-ref-nat0", 1.99, "yct-pod", None, name_deadline=True)
+    env.clock.advance(701.0)                                            # ~$0.39 at $1.99/h
+    env.lg.terminate(rec["id"], "job_done")
+    rc, res = runk(env, 1, c=c, box=Box(set()))
+    assert "pre_launch" in res, res.get("error")
+    assert res["pre_launch"]["projection"]["cap_usd"] == 75

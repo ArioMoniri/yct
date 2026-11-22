@@ -19,12 +19,14 @@ nat0 = importlib.util.module_from_spec(spec)
 sys.modules["gpu_p4b_nat0"] = nat0
 spec.loader.exec_module(nat0)
 p4 = nat0.ref.p4
+from _pre_d087 import pre_d087  # noqa: E402
+
 HEAD = "c" * 40
 EN, ONE = {"en": 0.99}, [[0.0, 50.0, "S0"]]
 
 
 def cfg(pyannote=True):
-    c = copy.deepcopy(load_config())
+    c = pre_d087(copy.deepcopy(load_config()))
     if pyannote:
         for k in nat0.PYANNOTE_KEYS:
             c["controls"]["refclips_auto_artifacts"][k] = "a" * 64

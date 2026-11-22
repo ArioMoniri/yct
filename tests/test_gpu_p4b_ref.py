@@ -10,6 +10,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from _pre_d087 import pre_d087
 
 from yct.config import load_config, with_overrides
 
@@ -38,7 +39,7 @@ FAMS = {"LOC": 1, "LOC_SCR": 1, "MOT": 1, "MOT_STAT": 1, "SPK": 4, "BURST": 1, "
 def _cfg(manifest_sha=None, **refclips):
     over = {**P4_SMALL, "controls": {"refclips": {"families": FAMS, **refclips},
                                      "refclips_artifacts": {"manifest_sha256": manifest_sha}}}
-    return with_overrides(load_config(), over)
+    return pre_d087(with_overrides(load_config(), over))
 
 
 @pytest.fixture

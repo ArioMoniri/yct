@@ -28,13 +28,15 @@ if nat0 is None:
     sys.modules["gpu_p4b_nat0"] = nat0
     spec.loader.exec_module(nat0)
 p4 = nat0.ref.p4
+from _pre_d087 import pre_d087  # noqa: E402
+
 HEAD = "c" * 40
 EN, ONE = {"en": 0.99}, [[0.0, 50.0, "S0"]]
 CFG = load_config()
 
 
 def cfg():
-    c = copy.deepcopy(CFG)
+    c = pre_d087(copy.deepcopy(CFG))
     for k in nat0.PYANNOTE_KEYS:
         c["controls"]["refclips_auto_artifacts"][k] = "a" * 64
         c["frozen"].append({"key": f"controls.refclips_auto_artifacts.{k}", "frozen_at": "x"})

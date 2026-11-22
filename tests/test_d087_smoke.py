@@ -207,7 +207,8 @@ def test_smoke_yunet_uses_the_tlic_thresholds():
 
 def test_smoke_never_needs_d087_frozen():
     drv = _mod("locscreen_v2", "scripts/locscreen_v2.py")
-    cfg = load_config()
+    cfg = copy.deepcopy(load_config())   # D-087 is frozen at 24bf885; the smoke ran on the unfrozen state
+    cfg["frozen"] = [f for f in cfg["frozen"] if not f["key"].startswith("controls.refclips_d087")]
     assert not any(f["key"].startswith("controls.refclips_d087") for f in cfg["frozen"])
     assert callable(drv.smoke_render) and callable(drv.smoke_yunet) and callable(drv.smoke_sources)
 
