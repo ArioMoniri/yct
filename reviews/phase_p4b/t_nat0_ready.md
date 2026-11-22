@@ -81,7 +81,8 @@ for the rehearsal only); (g) N3 via `n3_cmd` on 1 mp4; (h) `session0_rows` dry (
 - **Early warning (rehearsal numbers only, CPU int8, not decisions):** all 3 rehearsed candidates would be
   rejects (two N1 p(en) 0.20 and 0.69 < 0.9; one N2), and N3 on the one mp4 tried is 0.2 < 0.5. If this rate
   holds, session 0 may yield fewer than 15 of 40 passes, which the frozen rule makes a STOP to the owner
-  (rows logged, no relaxation). The council may want to weigh this before spending the session.
+  (rows logged, no relaxation). This is disclosure only: the rehearsal was outcome-exposed and changes no
+  rule, threshold, order or buffer (council pre-launch sign-off, c294c06).
 
 ## 6. Cost
 About 45 min of A100 time, about $1.5; the cap guard plans $3.48 (1.99 $/h × 1.75 h). Campaign spend so
@@ -91,3 +92,7 @@ far $0. After session 0, the D-071 (k) projection is about $63 of $75.
 `nat_manifest` → `data/refstim/nat_manifest.json`; LICENSES.md NAT section; `nat_manifest_sha256` set,
 then frozen; P2b ingest of the 15 transcripts to TRIBE .tsv (pod); the clip manifest (T-STIM) and its
 frozen sha; then reference session 1 (`--limit 3`, watched).
+
+## 8. Reference note
+The council re-check cited a tests-first commit `d7f2c62`; that object does not exist in this repo. The
+tests-first commit for the D-082 council items is 5582611 (then 9fcbc58).
