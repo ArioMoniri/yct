@@ -382,7 +382,8 @@ def test_projection_recorded_in_pre_launch(env):
     pr = res["pre_launch"]["projection"]
     plan = dcfg()["controls"]["refclips_d084"]["main_campaign_plan_usd"]
     assert pr["main_campaign_plan_usd"] == plan and abs(pr["this_session_planned_usd"] - 1.99 * 1.75) < 1e-6
-    assert abs(pr["projection_usd"] - (pr["campaign_spend_usd"] + plan + pr["this_session_planned_usd"])) < 1e-6
+    want = pr["campaign_spend_usd"] + plan + pr["this_session_planned_usd"]
+    assert abs(pr["projection_usd"] - want) < 1e-6
     assert pr["cap_usd"] == 75
 
 

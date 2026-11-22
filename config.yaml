@@ -529,6 +529,8 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     selection: first_nat_n_by_cpu_rank   # the first nat_n passes by CPU-log (= snapshot) rank, over all sessions
     max_sessions: 6              # continuation sessions k = 1..6; then (or on snapshot exhaustion) STOP to the owner
     cpu_ahead_max: 1             # the CPU stage never fills beyond the next unevaluated buffer
+    main_campaign_plan_usd: 61.0 # council D-084 (watchdog): D-071 (k) estimate of the main reference campaign
+                                 # (d071_v3 §k, not yet started); projection = spend + this + session worst case <= cap
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host

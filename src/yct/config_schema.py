@@ -760,6 +760,7 @@ class RefClipsD084(M):                # D-084 draft: NAT continuation sessions k
     selection: Literal["first_nat_n_by_cpu_rank"]
     max_sessions: Annotated[int, Field(ge=0, le=10)]
     cpu_ahead_max: Literal[1]
+    main_campaign_plan_usd: Annotated[float, Field(ge=0, le=75)]   # council D-084 (watchdog) projection guard
 
 
 class RefClipsD081Artifacts(M):       # D-081

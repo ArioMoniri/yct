@@ -132,24 +132,53 @@ def check_session_k(cfg: dict, log: list[dict], k: int) -> list[str]:
     if k > d["max_sessions"]:
         raise Refused(f"session {k} > max_sessions {d['max_sessions']}: STOP to the owner")
     need = cfg["controls"]["refclips"]["nat_n"]
+    buf = ns.buffer_ids(log, cfg, k)
+    # council D-084 (biostat): the overlap check runs before the selection, whose gap check would otherwise
+    # always pre-empt it for a buffer-k id evaluated out of order
+    seen = {r["t1_name"] for r in ns.gpu_rows(log)}
+    again = [i for i in buf if i in seen]
+    if again:
+        raise Refused(f"NAT buffer {k} ids already evaluated: {again[:5]}")
     try:
         sel = ns.nat_selection(log, cfg)
     except ra.StopError as exc:
         raise Refused(str(exc)) from None
     if len(sel) >= need:
         raise Refused(f"the NAT selection is complete ({need} passes): no session {k}")
-    buf = ns.buffer_ids(log, cfg, k)
     if not buf:
         raise Refused(f"NAT buffer {k} is empty: run the CPU stage (--buffers {k + 1}) first")
     per = cfg["controls"]["refclips_auto"]["nat"]["cpu_buffer"]
     if not ns.buffer_complete(log, cfg, k):
         raise Refused(f"NAT buffer {k} holds {len(buf)} of {per} CPU passes and the log has no matching "
                       "snapshot_exhausted record: finish the CPU stage first")
-    seen = {r["t1_name"] for r in ns.gpu_rows(log)}
-    again = [i for i in buf if i in seen]
-    if again:
-        raise Refused(f"NAT buffer {k} ids already evaluated: {again[:5]}")
     return buf
+
+
+def check_projection(cfg: dict, lg, *, price: float, max_hours: float, now: float, k: int) -> dict | None:
+    """Council D-084 (watchdog): before each continuation session k >= 1, restate the D-071 (k) campaign
+    projection = campaign spend so far + the main reference campaign's plan (not yet started) + this
+    session's worst case (price x max_hours). Over the cap -> STOP to the owner; NAT sessions never eat the
+    main campaign's headroom. Valid only while no non-NAT yct-p4b-ref launch exists (else re-plan)."""
+    if k < 1:
+        return None
+    rc, d = cfg["controls"]["refclips"], cfg["controls"]["refclips_d084"]
+    prefix, cap = rc["ledger_name_prefix"], float(rc["campaign_cap_usd"])
+    _lines, records = ref._ledger(lg)
+    names = [str(r.get("name", "")) for r in records if r.get("event") == "launch"]
+    main = [n for n in names if n.startswith(prefix) and not n.startswith(prefix + "-nat")]
+    if main:
+        raise Refused(f"the main campaign has started ({main[0]}): the D-084 projection plan is stale, "
+                      "STOP to the owner")
+    spend = ref.rcmp.campaign_spend(records, prefix, now)
+    plan = float(d["main_campaign_plan_usd"])
+    this = price * max_hours
+    proj = spend + plan + this
+    out = {"campaign_spend_usd": round(spend, 4), "main_campaign_plan_usd": plan,
+           "this_session_planned_usd": this, "projection_usd": round(proj, 4), "cap_usd": cap}
+    if proj > cap + 1e-9:
+        raise Refused(f"D-071 (k) projection {proj:.2f} = spend {spend:.2f} + main plan {plan:.2f} + "
+                      f"session {k} worst case {this:.2f} > ${cap:g}: STOP to the owner")
+    return out
 
 
 def check_buffer(cfg: dict, log: list[dict], k: int = 0) -> list[str]:
@@ -234,8 +263,11 @@ def preflight(a, cfg: dict, lg, store, clock, head: str, pushed: bool, log: list
     buf = check_buffer(cfg, log, k)
     if lg._live(lg.list_ours()):
         raise Refused("a yct-* instance is alive: one instance at a time")
+    proj = check_projection(cfg, lg, price=price, max_hours=a.max_hours, now=clock(), k=k)
     ref.ensure_baseline(store, lg, cfg, clock)
     guard = ref.make_pre_launch(store, lg, cfg, clock, a.ack_cap_80)(price, a.max_hours)
+    if proj is not None:
+        guard = {**guard, "projection": proj}
     return {"buffer": buf, "price": price, "pre_launch": guard}
 
 
