@@ -156,28 +156,34 @@ def check_session_k(cfg: dict, log: list[dict], k: int) -> list[str]:
 
 def check_projection(cfg: dict, lg, *, price: float, max_hours: float, now: float, k: int) -> dict | None:
     """Council D-084 (watchdog): before each continuation session k >= 1, restate the D-071 (k) campaign
-    projection = campaign spend so far + the main reference campaign's plan (not yet started) + this
-    session's worst case (price x max_hours). Over the cap -> STOP to the owner; NAT sessions never eat the
-    main campaign's headroom. Valid only while no non-NAT yct-p4b-ref launch exists (else re-plan)."""
+    projection = campaign spend so far + the main reference campaign's plan (not yet started) + the D-085
+    TALKFACE session's worst case + this session's worst case (price x max_hours). Over the cap -> STOP to
+    the owner; NAT sessions never eat the main campaign's headroom. Valid only while no non-NAT, non-TALKFACE
+    yct-p4b-ref launch exists (else re-plan)."""
     if k < 1:
         return None
     rc, d = cfg["controls"]["refclips"], cfg["controls"]["refclips_d084"]
     prefix, cap = rc["ledger_name_prefix"], float(rc["campaign_cap_usd"])
     _lines, records = ref._ledger(lg)
     names = [str(r.get("name", "")) for r in records if r.get("event") == "launch"]
-    main = [n for n in names if n.startswith(prefix) and not n.startswith(prefix + "-nat")]
+    tk = cfg["controls"].get("refclips_d085", {}).get("talkface", {})
+    talk_prefix = tk.get("session_prefix", prefix + "-talk")
+    main = [n for n in names if n.startswith(prefix) and not n.startswith(prefix + "-nat")
+            and not n.startswith(talk_prefix)]
     if main:
         raise Refused(f"the main campaign has started ({main[0]}): the D-084 projection plan is stale, "
                       "STOP to the owner")
     spend = ref.rcmp.campaign_spend(records, prefix, now)
     plan = float(d["main_campaign_plan_usd"])
+    talk = float(tk.get("session_worst_usd", 0.0))      # council D-085 (watchdog): TALKFACE's own session
     this = price * max_hours
-    proj = spend + plan + this
-    out = {"campaign_spend_usd": round(spend, 4), "main_campaign_plan_usd": plan,
+    proj = spend + plan + talk + this
+    out = {"campaign_spend_usd": round(spend, 4), "main_campaign_plan_usd": plan, "talkface_plan_usd": talk,
            "this_session_planned_usd": this, "projection_usd": round(proj, 4), "cap_usd": cap}
     if proj > cap + 1e-9:
         raise Refused(f"D-071 (k) projection {proj:.2f} = spend {spend:.2f} + main plan {plan:.2f} + "
-                      f"session {k} worst case {this:.2f} > ${cap:g}: STOP to the owner")
+                      f"TALKFACE session {talk:.2f} + session {k} worst case {this:.2f} > ${cap:g}: "
+                      "STOP to the owner")
     return out
 
 

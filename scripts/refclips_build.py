@@ -31,6 +31,7 @@ sys.path.insert(0, str(ROOT / "src"))
 from yct.config import load_config  # noqa: E402
 from yct.tribe_run import locimg  # noqa: E402
 from yct.tribe_run import refclips58 as R  # noqa: E402,N812
+from yct.tribe_run import refclips_qc85  # noqa: E402
 
 SPEECH = {"SPK", "BURST", "TALKFACE"}
 DEFAULT = ["GREY_CTRL", "FLASH", "LOC", "LOC_SCR", "MOT", "MOT_STAT"]
@@ -96,13 +97,22 @@ def verify_s3_sources(mans: dict[str, list[dict]], get) -> dict[str, str]:
     return out
 
 
+def rebuild_mismatches(recs: dict[str, dict], files: dict[str, str]) -> list[str]:
+    """Watchdog C3: every rebuilt clip that build 1 recorded must reproduce its mp4/wav/tsv sha256 exactly."""
+    bad = []
+    for name, rec in recs.items():
+        for kind in ("mp4", "wav", "tsv"):
+            want = files.get(f"{name}.{kind}")
+            if want is not None and rec["sha256"][kind] != want:
+                bad.append(f"{name}.{kind}")
+    return bad
+
+
 def build_all(clips: list, out: Path, cfg: dict, images=None, sources: dict | None = None,
               qc: str = "d071", yunet=None) -> int:
     """qc="d071": the original frozen D-071 (a) QC (build 1). qc="d085": the amended QC
     (yct.tribe_run.refclips_qc85), refused until controls.refclips_d085 is frozen; needs the T-LIC YuNet."""
     if qc == "d085":
-        from yct.tribe_run import refclips_qc85
-
         refclips_qc85.require_frozen(cfg)
         if yunet is None:
             raise SystemExit("D-085 QC needs the frozen T-LIC YuNet detector")
@@ -115,6 +125,14 @@ def build_all(clips: list, out: Path, cfg: dict, images=None, sources: dict | No
         print(f"built {c.name}", flush=True)
     by = {c.name: c for c in clips}
     if qc == "d085":
+        rec1 = json.loads((ROOT / cfg["controls"]["refclips_d085"]["build1_sha_record"]).read_text())["files"]
+        mm = rebuild_mismatches(recs, rec1)
+        if mm:          # watchdog C3: the sha check runs before YuNet, in the same command
+            (out / "STOP_NOTE.md").write_text(
+                "# p4b_ref/v1 D-085 rebuild: sha mismatch against build 1, STOP to the owner (before YuNet)\n"
+                + "".join(f"- {n}\n" for n in mm))
+            print(f"STOP: rebuild sha mismatch {mm}", flush=True)
+            return 1
         res = refclips_qc85.run_qc(clips, out, cfg, recs, yunet, lambda c: R.clip_frames(c, images))
         (out / "qc.json").write_text(json.dumps(res, indent=1, default=float))
         bad = [r["name"] for r in res["rows"] if not r["pass"]]
@@ -253,8 +271,6 @@ def main() -> int:
                    "crop_box_edge_overrun_px": over}
     yunet = None
     if a.qc == "d085":
-        from yct.tribe_run import refclips_qc85
-
         refclips_qc85.require_frozen(cfg)
         yunet = refclips_qc85.t_lic_yunet(cfg, a.yunet_onnx)
     rc = build_all(clips, a.out, cfg, images=images, sources=sources, qc=a.qc, yunet=yunet)

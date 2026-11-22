@@ -12,6 +12,11 @@ Council-only completions of design_v2 §1.5: luminance / contrast constancy (LOC
 MOT static level outside events and in the static twin, FLASH luminance_change at the events only, and
 "no other regressor moves" (visual families carry the GREY_CTRL audio bit for bit; audio families show
 exactly the GREY_CTRL video features).
+Council D-085 (v2): SPK / BURST audio gate is constructive on the RENDERED 48 kHz int16 audio (identical to
+GREY_CTRL outside every utterance window; each window reconstructs from the logged utterance at its onset);
+speech_envelope is descriptive only. Decoded twin differences and decoded-vs-rendered at event mid-frames
+are descriptive only. TALKFACE face rule with a logged technical fallback. Two-part freeze: part 1
+(controls.refclips_d085.qc) unlocks the visual rebuild.
 """
 from __future__ import annotations
 
@@ -22,12 +27,17 @@ import numpy as np
 
 from yct.tribe_run import refclips58 as R  # noqa: N812
 
-KEY = "controls.refclips_d085"
+KEY = "controls.refclips_d085.qc"
 Yunet = Callable[[np.ndarray, float], list[dict]]
 
 
+def _frozen(cfg: dict, key: str) -> bool:
+    """A key is frozen if it, or an ancestor of it, has a frozen: row."""
+    return any(key == f.get("key") or key.startswith(f.get("key", "") + ".") for f in cfg.get("frozen", []))
+
+
 def require_frozen(cfg: dict) -> None:
-    if not any(f.get("key") == KEY for f in cfg.get("frozen", [])):
+    if not _frozen(cfg, KEY):
         raise SystemExit(f"{KEY} is not frozen: the D-085 QC rule must be frozen before YuNet runs on any "
                          "built frame")
 
@@ -140,6 +150,116 @@ def haar_descriptive(clip: R.Clip, face_area: np.ndarray) -> dict[str, Any]:
             "gating": False}
 
 
+def pcm16(x: np.ndarray) -> np.ndarray:
+    """The int16 samples refclips58._write_wav writes (the rendered 48 kHz audio)."""
+    return np.clip(np.rint(np.asarray(x, np.float64) * 32767), -32768, 32767).astype(np.int16)
+
+
+def speech_gate(clip_pcm: np.ndarray, ctrl_pcm: np.ndarray, bed: np.ndarray,
+                placements: Sequence[tuple[float, np.ndarray]], sr: int = R.SR) -> dict[str, Any]:
+    """Council D-085 (c), constructive gate on the rendered 48 kHz audio of an SPK / BURST clip:
+    (1) outside_identical: every sample outside the utterance windows equals the GREY_CTRL rendering;
+    (2) reconstructed: the whole clip equals refclips58.place_speech applied to the bed with each logged
+    (onset, utterance), so every utterance sits sample-exact at its logged onset.
+    window_rms_ratio (clip / control, per window) is reported, never gating."""
+    a, c = np.asarray(clip_pcm), np.asarray(ctrl_pcm)
+    if a.shape != c.shape:
+        return {"pass": False, "outside_identical": False, "reconstructed": False, "reason": "length differs",
+                "gating": ["outside_identical", "reconstructed"]}
+    inside = np.zeros(len(a), bool)
+    exp = np.asarray(bed, np.float64)
+    rms = []
+    for t0, u in placements:
+        s0 = int(round(t0 * sr))
+        inside[s0:s0 + len(u)] = True
+        exp = R.place_speech(exp, u, t0)
+        seg_a = a[s0:s0 + len(u)].astype(np.float64)
+        seg_c = c[s0:s0 + len(u)].astype(np.float64)
+        den = float(np.sqrt(np.mean(seg_c ** 2)))
+        rms.append(float(np.sqrt(np.mean(seg_a ** 2))) / den if den else float("nan"))
+    outside = bool(np.array_equal(a[~inside], c[~inside]))
+    recon = bool(np.array_equal(a, pcm16(exp)))
+    return {"pass": outside and recon, "outside_identical": outside, "reconstructed": recon,
+            "window_rms_ratio": rms, "gating": ["outside_identical", "reconstructed"]}
+
+
+Patches = Sequence[tuple[float, np.ndarray]]
+
+
+def twin_decoded_descriptive(dec_a: Patches, dec_b: Patches, clip: R.Clip, cfg: dict) -> dict[str, Any]:
+    """Council D-085 (d): decoded LOC vs LOC_SCR patches outside the windows. Descriptive, never gating."""
+    win = R.windows(clip, cfg)
+    mx, frac, n = 0, [], 0
+    for (t, pa), (_, pb) in zip(dec_a, dec_b, strict=False):
+        if any(lo <= t < hi for lo, hi in win):
+            continue
+        d = np.abs(pa.astype(np.int16) - pb.astype(np.int16))
+        mx = max(mx, int(d.max()))
+        frac.append(float((d > 0).mean()))
+        n += 1
+    mean_frac = float(np.mean(frac)) if frac else 0.0
+    return {"n_frames": n, "max_abs_diff": mx, "mean_frac_pixels_differing": mean_frac, "gating": False}
+
+
+def decoded_vs_rendered(dec: Patches, rendered: Sequence[np.ndarray], clip: R.Clip) -> dict[str, Any]:
+    """Council D-085 (d): decoded vs rendered central patch at each event mid-frame (onset + 0.5 s).
+    Descriptive, never gating (no x264 tolerance is ever set)."""
+    y0, x0 = (R.H - R.PATCH) // 2, (R.W - R.PATCH) // 2
+    out = []
+    for o in clip.onsets:
+        tm = o + 0.5
+        t, p = min(dec, key=lambda tp: abs(tp[0] - tm))
+        r = np.asarray(rendered[int(round(tm * R.FPS))])
+        rp = r[y0:y0 + R.PATCH, x0:x0 + R.PATCH] if r.shape == (R.H, R.W) else r
+        d = np.abs(p.astype(np.float64) - rp.astype(np.float64))
+        mse = float(np.mean(d ** 2))
+        out.append({"t": round(float(t), 3), "max_abs_diff": int(d.max()),
+                    "psnr_db": float("inf") if mse == 0 else float(10 * np.log10(255 ** 2 / mse))})
+    return {"frames": out, "max_abs_diff": max((f["max_abs_diff"] for f in out), default=0), "gating": False}
+
+
+def row_pass(row: dict) -> bool:
+    """A row passes iff every gating check passes (checks marked gating False, and haar, never count)."""
+    return all(v.get("pass", True) for k, v in row["checks"].items()
+               if k != "haar" and v.get("gating", True) is not False)
+
+
+def talkface_face(passes: Sequence[dict], failures: dict[str, str], rule: dict) -> dict[str, Any]:
+    """Council D-085 (e): the TALKFACE face is the first face pass after v4 rank 492 (log order). A pass
+    with a technical failure in rule.skip_on is skipped and logged (no visual review); more than
+    rule.max_skips skips -> STOP to the owner."""
+    if any(p["rank"] <= 492 for p in passes):
+        raise ValueError("TALKFACE candidates must come after rank 492 (the 20 LOC faces)")
+    skipped = []
+    for p in sorted(passes, key=lambda p: p["rank"]):
+        why = failures.get(p["title"])
+        if why is None:
+            return {"face": p, "skipped": skipped}
+        if why not in rule["skip_on"]:
+            raise SystemExit(f"TALKFACE face {p['title']}: failure {why!r} is not a pre-stated skip: STOP")
+        skipped.append({"title": p["title"], "reason": why})
+        if len(skipped) >= rule["max_skips"]:
+            raise SystemExit(f"TALKFACE: {len(skipped)} skips, STOP to the owner")
+    raise SystemExit("TALKFACE: face passes exhausted, STOP to the owner")
+
+
+def assert_no_yunet_outputs(root) -> None:
+    """Watchdog C1: before the D-085 freeze, YuNet has never run on a built frame: no JSON under root carries
+    a refclip `yunet` check."""
+    import json
+    from pathlib import Path
+
+    for p in Path(root).rglob("*.json"):
+        if "refclips" not in str(p):
+            continue
+        try:
+            doc = json.loads(p.read_text())
+        except (ValueError, UnicodeDecodeError):
+            continue
+        if '"yunet"' in json.dumps(doc):
+            raise SystemExit(f"YuNet output found on built frames: {p}")
+
+
 def decoded_patches(mp4, fps: float) -> list[tuple[float, np.ndarray]]:
     """Decoded central PATCH x PATCH luma patches at native 640 x 360 (BT.709 tv, as every P2 output)."""
     from yct.media import iter_gray_frames
@@ -185,10 +305,15 @@ def run_qc(clips: list[R.Clip], out_dir, cfg: dict, records: dict[str, dict], yu
             fa = np.nan_to_num(vf[c.name]["face_area_crop_frac"])
             r["face_event_hits"] = [bool(fa[t] > 0) for t in face_event_trs(c, tr)]
             ck["haar"] = haar_descriptive(c, fa)
-            ck["yunet"] = yunet_gate(c, decode(out / f"{c.name}.mp4", q["yunet_sample_fps"]), tr, yunet,
-                                     q["yunet_score_threshold"], q["yunet_input_long_side"])
+            dec = decode(out / f"{c.name}.mp4", q["yunet_sample_fps"])
+            ck["yunet"] = yunet_gate(c, dec, tr, yunet, q["yunet_score_threshold"],
+                                     q["yunet_input_long_side"])
             if c.family == "LOC":
-                ck["twin_identity"] = twin_identity(frames_of(c), frames_of(by[c.control]), c, cfg)
+                fr = frames_of(c)
+                ck["twin_identity"] = twin_identity(fr, frames_of(by[c.control]), c, cfg)
+                ck["twin_decoded"] = twin_decoded_descriptive(
+                    dec, decode(out / f"{c.control}.mp4", q["yunet_sample_fps"]), c, cfg)
+                ck["decoded_vs_rendered"] = decoded_vs_rendered(dec, fr, c)
         if c.family in ("LOC", "LOC_SCR", "MOT", "MOT_STAT"):
             ck["luminance"] = constancy(vf[c.name]["luminance_crop"], q["constancy_tol"])
             ck["contrast"] = constancy(vf[c.name]["contrast_crop"], q["constancy_tol"])
@@ -201,7 +326,7 @@ def run_qc(clips: list[R.Clip], out_dir, cfg: dict, records: dict[str, dict], yu
             ck["audio_identity"] = audio_identity(records[c.name], records[ctrl])
         if c.family in R.AUDIO and ctrl in vf:
             ck["video_identity"] = video_identity(vf[c.name], vf[ctrl])
-        r["pass"] = all(v.get("pass", True) for k, v in ck.items() if k != "haar")
+        r["pass"] = row_pass(r)
         rows.append(r)
     fam = face_hit_family(rows, q["face_hit_min"]) if any(c.family == "LOC" for c in clips) else None
     ok = all(r["pass"] for r in rows) and (fam is None or fam["pass"])

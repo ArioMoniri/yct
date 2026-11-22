@@ -767,6 +767,7 @@ class RefClipsD084(M):                # D-084 draft: NAT continuation sessions k
 class D085Qc(M):
     face_hit_min: Literal[0.9]
     face_hit_scope: Literal["family"]
+    face_hit_scope_ruled_by: Literal["owner_2026-11-22"]
     no_face_detector: Literal["refclips_auto.face_detector"]
     yunet_score_threshold: Literal[0.5]
     yunet_input_long_side: Literal[640]
@@ -778,6 +779,12 @@ class D085Qc(M):
     flash_quiet_frac: Literal[0.01]
     other_regressors: dict[Literal["visual", "audio"], str]
     on_fail: Literal["stop_owner_redesign_h"]
+
+
+class D085Envelope(M):
+    gating: Literal[False]
+    report: list[str]
+    burst_kernel_envelope: Literal["per_utterance_pre_mix_hilbert"]
 
 
 class D085Speech(M):
@@ -796,10 +803,30 @@ class D085Speech(M):
     counts: dict[Literal["SPK", "BURST", "TALKFACE"], Annotated[int, Field(ge=0)]]
     ranges_s: dict[Literal["SPK", "BURST", "TALKFACE"],
                    Annotated[list[float], Field(min_length=2, max_length=2)]]
-    spk_words_rule: str
+    spk_words: Literal[3]
     burst_sentences: Literal[2]
     fill_order: list[Literal["SPK", "BURST", "TALKFACE"]]
     on_exhausted: Literal["stop_owner"]
+    licence_status: Literal["copyright_not_cleared_non_commercial_research"]
+    texts_public: Literal[False]
+    gate: dict[str, str]
+    envelope: D085Envelope
+    requires_frozen_before_build: list[str]
+
+
+class D085Tenv(M):
+    module: str | None
+    blob_sha1: Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")] | None
+
+
+class D085FaceRule(M):
+    rule: Literal["first_face_pass_after_v4_rank_492"]
+    licences: Literal["image_licences"]
+    skip_on: list[Literal["s3fd_no_face", "wav2lip_error", "licence_not_adaptable"]]
+    max_skips: Literal[5]
+    on_exhausted: Literal["stop_owner"]
+    visual_review: Literal[False]
+    disclose_loc_identity_match: Literal[True]
 
 
 class D085Talkface(M):
@@ -807,9 +834,23 @@ class D085Talkface(M):
     repo: str
     revision: Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
     licence: str
+    weights_file: Literal["wav2lip.pth"]
+    weights_url: str | None
     weights_sha256: Sha256 | None
     face_detector_sha256: Sha256 | None
-    face_rule: Literal["first_face_pass_after_v4_rank_492"]
+    readme_sha256: Sha256 | None
+    mirror_s3: Annotated[str, Field(pattern=r"^s3://yct-research-235229001983/.*private/$")]
+    fps: Literal[30]
+    publish: Literal[False]
+    synthetic_label: Literal[True]
+    face_rule: D085FaceRule
+    session_prefix: Literal["yct-p4b-ref-talk"]
+    session_worst_usd: Annotated[float, Field(gt=0)]
+
+
+class D085FreezePlan(M):
+    part1: list[str]
+    part2: list[str]
 
 
 class RefClipsD085(M):                # D-085 draft: LOC QC amendment, speech corpus, TALKFACE generator
@@ -820,7 +861,9 @@ class RefClipsD085(M):                # D-085 draft: LOC QC amendment, speech co
     build1_sha_record: str
     qc: D085Qc
     speech: D085Speech
+    tenv: D085Tenv
     talkface: D085Talkface
+    freeze_plan: D085FreezePlan
 
 
 class RefClipsD081Artifacts(M):       # D-081

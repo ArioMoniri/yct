@@ -2536,6 +2536,7 @@
   }
  ],
  "lexicon_sha256": "37654082942cea6862061621f81c82c388b13110c97a6c7ff0487380d6281ad6",
+ "licence_status": "copyright_not_cleared_non_commercial_research",
  "queue": [
   {
    "item": 5,
@@ -4617,7 +4618,7 @@
    ]
   },
   "span_dbfs": -40.0,
-  "spk_words_rule": "2 if (k + i // 2) % 2 == 0 else 3"
+  "spk_words": 3
  },
  "source": {
   "citation": "IEEE Recommended Practice for Speech Quality Measurements, IEEE Trans. Audio Electroacoust. 17(3):225-246, 1969, Appendix C (IEEE Std 297-1969, doi:10.1109/IEEESTD.1969.7405210)",

@@ -394,8 +394,8 @@ def test_projection_includes_the_d085_talkface_session_worst_case(env):
     assert pr["talkface_plan_usd"] == dcfg()["controls"]["refclips_d085"]["talkface"]["session_worst_usd"]
     c = dcfg()
     c["controls"]["refclips_d084"]["main_campaign_plan_usd"] = 75 - 1.99 * 1.75 - 1.0   # fits w/o TALKFACE
-    rc2, res2 = runk(env, 1, c=c)
-    assert rc2 == 1 and "TALKFACE" in res2["error"]
+    with pytest.raises(nat0.Refused, match="TALKFACE"):
+        nat0.check_projection(c, env.lg, price=1.99, max_hours=1.75, now=env.clock(), k=1)
 
 
 def test_talkface_session_does_not_count_as_the_main_campaign(env):

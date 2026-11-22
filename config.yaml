@@ -430,7 +430,7 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     image_manifest_sha256: 322f8a4211b6b76b7a626c6a2a78acdb1629f479117ea2b8233faf04be02f425   # D-081 v4 finalise: concat sha of image_{face,body,place}_manifest.json
     nat_manifest_sha256: null
     manifest_sha256: null      # refclips_manifest.json, set by T-STIM before upload
-    speech_corpus_sha256: ef88b4eb247a3670cd70591c48abbcdd6ea7148bc32e220da7786d23fda8db06 # D-085 draft: sha256 of refclips_d085.speech.corpus_file (hash-only; set, NOT frozen)
+    speech_corpus_sha256: 252c83acb85f2203c51aea62cd9f2f4b88860833d79e6b2b3575e50305db40c3 # D-085 v2: sha256 of refclips_d085.speech.corpus_file (hash-only, 3-word SPK; set, NOT frozen)
   refclips_d074:              # D-074 (owner-approved 2026-11-19): image candidate source; replaces refclips.image_queries for images
     decision: D-074
     image_sources:
@@ -542,6 +542,8 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     qc:
       face_hit_min: 0.9          # D-071 (a), unchanged
       face_hit_scope: family     # pooled over the 20 LOC face-event TRs (one per clip), not per clip
+      face_hit_scope_ruled_by: owner_2026-11-22   # owner ruling, made AFTER build 1 (pooled 19/20 passes,
+                                 # per clip loc_00 / face_00 fails); face_00 disclosed either way
       no_face_detector: refclips_auto.face_detector   # the frozen T-LIC YuNet (yunet_sha256)
       yunet_score_threshold: 0.5 # = refclips_auto.face_detector.exclusion_score_threshold (B3 / P2)
       yunet_input_long_side: 640 # = refclips_auto.face_detector.input_long_side (ra.resize_long)
@@ -568,18 +570,56 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
       span_dbfs: -40.0           # speech span = first..last sample with |x| >= 10^(-40/20) of full scale
       counts: {SPK: 60, BURST: 15, TALKFACE: 3}
       ranges_s: {SPK: [1.0, 1.5], BURST: [4.0, 6.0], TALKFACE: [1.0, 6.0]}
-      spk_words_rule: "2 if (k + i // 2) % 2 == 0 else 3"   # 15/15 two/three-word items in each half
+      spk_words: 3               # owner 2026-11-22: 3-word leads only at 175 wpm (2-word spans ~0.69 s < 1.0 s
+                                 # floor); the design_v2 2/3 word balance is dropped and disclosed
       burst_sentences: 2         # a BURST item = two consecutive queue sentences, synthesised as one text
       fill_order: [SPK, BURST, TALKFACE]
       on_exhausted: stop_owner
+      licence_status: copyright_not_cleared_non_commercial_research   # owner 2026-11-22: NOT public domain;
+                                 # IEEE Std 297-1969 compilation, short phrases (37 CFR 202.1(a)), <= 93 used
+      texts_public: false        # ids + sha256s only in git; texts and any text-bearing log stay private
+      gate:                      # council D-085 (c): constructive, on the RENDERED 48 kHz int16 audio
+        outside_identical: grey_ctrl_rendered_audio   # every sample outside the utterance windows
+        reconstructed: place_speech_from_private_utterance   # each window = the logged utterance at its onset
+        window_rms_ratio: descriptive
+      envelope:                  # speech_envelope never gates (matched-RMS replacement: no a-priori sign)
+        gating: false
+        report: [event_nonevent_ratio, point_biserial_r]
+        burst_kernel_envelope: per_utterance_pre_mix_hilbert   # BURST kernel (x) envelope r: pre-mix envelope
+      requires_frozen_before_build: [controls.refclips_d085.speech, controls.refclips_d085.talkface,
+                                     controls.refclips_artifacts.speech_corpus_sha256, controls.refclips_d085.tenv]
+    tenv:                        # ENH-002 / T-ENV speech_envelope code; set and frozen before any speech build
+      module: null
+      blob_sha1: null
     talkface:
       generator: wav2lip
       repo: "https://github.com/Rudrabha/Wav2Lip"
       revision: bac9a81e63ecc153202353372e5724b83d9e6322
       licence: "README 'License and Citation': personal/research/non-commercial use only; trained on LRS2"
-      weights_sha256: null       # set at the T-TALK setup step (mirrored to s3_root/models/), frozen in the next commit
+      weights_file: wav2lip.pth  # council D-085 (e), 3 of 5 (referee, neuro, QA): the README's "highly accurate
+                                 # lip-sync" model; mouth timing is the construct (wav2lip_gan.pth: watchdog, biostat)
+      weights_url: null          # official Google Drive link; URL, fetch date and sha recorded at T-TALK setup
+      weights_sha256: null       # set at the T-TALK setup step, frozen in the next commit (no author-published hash)
       face_detector_sha256: null # Wav2Lip s3fd weights, same procedure
-      face_rule: first_face_pass_after_v4_rank_492   # next pass of the frozen face rules, v4 log order
+      readme_sha256: null        # sha of the README licence text at the pinned revision (T-TALK setup)
+      mirror_s3: s3://yct-research-235229001983/refstim/talkface/private/   # weights + clip, never public
+      fps: 30                    # run Wav2Lip at the clip frame rate (no 25 -> 30 duplication)
+      publish: false             # owner 2026-11-22: internal only; TRIBE input; numbers + sha only, no video/still
+      synthetic_label: true      # every report mention labels it a synthetic animation of a real person
+      face_rule:
+        rule: first_face_pass_after_v4_rank_492   # next pass of the frozen face rules, v4 log order
+        licences: image_licences  # frozen D-071 list (CC0, PD-*, CC-BY-*): all permit adaptation, none ND
+        skip_on: [s3fd_no_face, wav2lip_error, licence_not_adaptable]
+        max_skips: 5
+        on_exhausted: stop_owner
+        visual_review: false
+        disclose_loc_identity_match: true
+      session_prefix: yct-p4b-ref-talk
+      session_worst_usd: 3.4825  # 1.99 $/h x 1.75 h: joins the D-084 projection (council D-085, watchdog)
+    freeze_plan:                 # council D-085 (referee): two freeze commits
+      part1: [controls.refclips_d085.qc, controls.refclips_d085.build1_sha_record]   # unlocks the visual rebuild
+      part2: [controls.refclips_d085.speech, controls.refclips_d085.talkface,
+              controls.refclips_artifacts.speech_corpus_sha256]
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host

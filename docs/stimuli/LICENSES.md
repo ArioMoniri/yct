@@ -76,3 +76,30 @@ Per file: URL, page id, revision id, licence (config label), licence template, a
 | place_17.org&utm_campaign=imageinfo&utm_content=original | https://commons.wikimedia.org/wiki/File:Beer-Shava-Avrahams-Well-436.jpg | 118331273 | 831905176 | CC-BY-4.0 | Template:Cc-by-4.0 | Bukvoed (Own work) | e26e9f8b3c58fa1b5c27a744dea6c150b0e82538bbab0ac881988b798fc07a5e |
 | place_18.org&utm_campaign=imageinfo&utm_content=original | https://commons.wikimedia.org/wiki/File:Harbour_Worker_Hotel_in_Hanko_1952_(JOKAVN4A1C01-3).tif | 147529381 | 1292529557 | CC-BY-4.0 | Template:CC-BY-4.0 | Bror Brandt (https://finna.fi/Record/museovirasto.2d21eb1d-14a1-477d-a423-cee00e568df4) | c3286d14d5949970c2e615a9e3f504af3c6eefd5c60fcb2feac63ddb48f7cc94 |
 | place_19.org&utm_campaign=imageinfo&utm_content=original | https://commons.wikimedia.org/wiki/File:L%C3%A4ndliche_Massagepraxis_in_Thailand.JPG | 4669988 | 1268100550 | PD-* | Template:PD-Layout | User:Mattes (Own work) | 39b13627a58efd0aeeaab4b2bf94efaf37f4a8dc9bf39b626590ec6da25912d5 |
+
+## Speech corpus (D-085)
+
+- **Source:** the IEEE/Harvard sentences, IEEE Recommended Practice for Speech Quality Measurements, IEEE Trans.
+  Audio Electroacoust. 17(3):225-246, 1969, Appendix C (IEEE Std 297-1969, doi:10.1109/IEEESTD.1969.7405210);
+  origin Harvard Psycho-Acoustic Laboratory (Egan 1948). Text fetched 2026-11-22 from
+  https://www.cs.columbia.edu/~hgs/audio/harvard.html (raw page sha256
+  f8c981aed97020642fd2423de787b3ccd2a7233f32fe07ebd26d2279c195cb75).
+- **Copyright status: copyright not cleared; not asserted public domain.** A 1969 US publication had its renewal
+  made automatic by the 1992 Copyright Renewal Act, so the compilation is presumed in copyright (IEEE). Basis for
+  use: individual sentences are short phrases, not copyrightable on their own (37 CFR 202.1(a)); use is
+  non-commercial research; at most 93 of the 720 sentences are synthesised (SPK uses 3-word leads only).
+- **Not redistributed:** the public repo holds only (list, item, sha256) per sentence and the raw page sha256
+  (owner decision 2026-11-22). The sentence texts, the raw page and any text-bearing synthesis log or word-timing
+  tsv are kept in the private yct bucket.
+
+## TALKFACE generator (D-085)
+
+- **Wav2Lip** (Prajwal et al., ACM MM 2020), https://github.com/Rudrabha/Wav2Lip at
+  bac9a81e63ecc153202353372e5724b83d9e6322, weights `wav2lip.pth`. Licence per the README: personal / research /
+  non-commercial use only; the model is trained on LRS2 (BBC, research-only terms). This study is non-commercial
+  (owner, 2026-11-22). The weights and the s3fd detector are mirrored to the private yct bucket only; the repo
+  records their sha256s and the README sha256. No author-published hash exists for the weights.
+- **The TALKFACE clip is internal only:** it is used only as TRIBE input and never published. No video or still
+  appears in the repo or the report: numbers and the clip sha256 only, labelled as a synthetic animation of a
+  real person. The source portrait follows the frozen face rules (CC0 / PD / CC-BY: all permit adaptation; no ND);
+  its CC licence covers copyright, not personality rights, which is why the clip is never published.

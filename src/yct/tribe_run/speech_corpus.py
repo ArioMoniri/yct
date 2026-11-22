@@ -11,7 +11,7 @@
   any rule is excluded with its reasons; nobody edits a sentence.
 - Order: ascending sha256(text) over the kept sentences (the queue).
 - Selection (at synthesis time, only after speech_corpus_sha256 is frozen): families are filled in
-  fill_order; each slot pops the next queue item(s) (SPK: the leading 2 or 3 words by spk_words; BURST: two
+  fill_order; each slot pops the next queue item(s) (SPK: the leading 3 words, owner 2026-11-22; BURST: two
   sentences as one text; TALKFACE: one sentence), synthesises it, and keeps it iff its -40 dBFS speech span
   lies inside the family range. A failure is logged and the next queue item takes the same slot. Exhaustion
   is a STOP to the owner. Nobody listens to choose items.
@@ -85,8 +85,9 @@ def build_corpus(rows: list[dict], lexicon: dict, spec: dict, source: dict) -> d
             "source": {**source, "n_sentences": len(rows)},
             "lexicon_sha256": lexicon.get("_sha256"),
             "synthesis": {k: spec[k] for k in ("engine", "voice", "rate_wpm", "pitch", "amplitude")},
-            "rules": {k: spec[k] for k in ("order", "span_dbfs", "counts", "ranges_s", "spk_words_rule",
+            "rules": {k: spec[k] for k in ("order", "span_dbfs", "counts", "ranges_s", "spk_words",
                                            "burst_sentences", "fill_order", "on_exhausted")},
+            "licence_status": spec["licence_status"],
             "queue": kept, "excluded": excluded}
 
 
@@ -116,9 +117,10 @@ def public_record(obj: Any) -> Any:
     return obj
 
 
-def spk_words(i: int, k: int) -> int:
-    """SPK clip i, event k (utterance 3i + k): 15/15 two/three-word items within each half (i % 2)."""
-    return 2 if (k + i // 2) % 2 == 0 else 3
+def spk_words(i: int, k: int, n: int = 3) -> int:
+    """SPK clip i, event k: owner 2026-11-22, 3-word leads only at 175 wpm (a 2-word span, ~0.69 s, can never
+    reach the 1.0 s floor). The design_v2 2/3 balance is dropped and disclosed."""
+    return n
 
 
 def speech_span(x: np.ndarray, sr: int, dbfs: float) -> tuple[int, int]:
@@ -137,6 +139,8 @@ def select(queue: list[dict], synth: Synth, spec: dict) -> dict[str, Any]:
     pos = 0
     items: dict[str, list[dict]] = {f: [] for f in spec["fill_order"]}
     rejects: list[dict] = []
+    rates = {f: {"tried": 0, "kept": 0} for f in spec["fill_order"]}
+    n_spk = int(spec.get("spk_words", 3))
 
     def pop(n: int) -> list[dict]:
         nonlocal pos
@@ -152,7 +156,7 @@ def select(queue: list[dict], synth: Synth, spec: dict) -> dict[str, Any]:
             while True:
                 if fam == "SPK":
                     src = pop(1)
-                    nw = spk_words(u // 3, u % 3)
+                    nw = spk_words(u // 3, u % 3, n_spk)
                     text = " ".join(tokens(src[0]["text"])[:nw])
                 elif fam == "BURST":
                     src = pop(spec["burst_sentences"])
@@ -167,16 +171,34 @@ def select(queue: list[dict], synth: Synth, spec: dict) -> dict[str, Any]:
                 d = (s1 - s0) / sr
                 rec = {"slot": u, "text": text, "n_words": nw, "span_s": round(d, 4),
                        "source_sha256": [s["sha256"] for s in src]}
+                rates[fam]["tried"] += 1
                 if lo <= d <= hi:
                     items[fam].append(rec)
+                    rates[fam]["kept"] += 1
                     break
                 rejects.append({**rec, "family": fam, "reason": "duration"})
-    return {"items": items, "rejects": rejects, "queue_used": pos}
+    return {"items": items, "rejects": rejects, "queue_used": pos, "pass_rates": rates}
 
 
 def require_frozen(cfg: dict) -> None:
     if not any(f.get("key") == KEY for f in cfg.get("frozen", [])):
         raise SystemExit(f"{KEY} is not frozen: no synthesis before the corpus freeze (D-085)")
+
+
+def _frozen(cfg: dict, key: str) -> bool:
+    """A key is frozen if it, or an ancestor of it, has a frozen: row."""
+    return any(key == f.get("key") or key.startswith(f.get("key", "") + ".") for f in cfg.get("frozen", []))
+
+
+def speech_build_preconditions(cfg: dict) -> None:
+    """Council D-085 (c): no SPK / BURST / TALKFACE build before the speech and TALKFACE keys, the corpus sha
+    and the T-ENV code are all frozen (T-ENV set: module + blob sha1)."""
+    d = cfg["controls"]["refclips_d085"]
+    miss = [k for k in d["speech"]["requires_frozen_before_build"] if not _frozen(cfg, k)]
+    if not d["tenv"]["module"] or not d["tenv"]["blob_sha1"]:
+        miss.append("controls.refclips_d085.tenv (module / blob_sha1 unset)")
+    if miss:
+        raise SystemExit(f"speech build refused, not frozen: {miss} (D-085)")
 
 
 def corpus_sha(path: Path) -> str:

@@ -2,7 +2,7 @@
 
 Offline only: parsing a source page of the IEEE/Harvard layout, the frozen exclusion lexicon, sha256(text)
 ordering, the hash-only public corpus file (no sentence text in the repo; owner 2026-11-22), resolving the
-texts from the private raw page with fail-closed sha checks, the SPK 2/3-word balance rule, the -40 dBFS
+texts from the private raw page with fail-closed sha checks, the SPK 3-word lead rule, the -40 dBFS
 span gate and the in-order replacement selector (with an injected fake synthesiser; nothing is synthesised
 before speech_corpus_sha256 is frozen). The sentences below are synthetic test sentences written for this
 file, not items of the IEEE/Harvard list."""
@@ -116,11 +116,11 @@ def test_resolve_texts_fails_closed_on_a_wrong_raw_page_or_item_sha():
         S.resolve_texts(gone, RAW)
 
 
-def test_spk_word_count_rule_balances_2_and_3_words_within_each_half():
+def test_spk_word_count_is_three_for_every_slot():
+    # owner 2026-11-22 (council D-085 (b)(ii)): 3-word leads only; the design_v2 2/3 balance is dropped
     n = CFG["controls"]["refclips"]["families"]["SPK"]
-    for half in (0, 1):
-        counts = [S.spk_words(i, k) for i in range(n) if i % 2 == half for k in range(3)]
-        assert counts.count(2) == counts.count(3) == len(counts) // 2
+    counts = [S.spk_words(i, k, SPEC["spk_words"]) for i in range(n) for k in range(3)]
+    assert counts == [3] * (3 * n)
 
 
 def test_speech_span_trims_at_minus_40_dbfs():
@@ -153,16 +153,16 @@ def _queue(n):
 def test_select_fills_families_in_order_with_in_order_replacement_and_logs_rejects():
     q = _queue(200)
     spec = dict(SPEC, counts={"SPK": 4, "BURST": 1, "TALKFACE": 1})
-    durs = {"w0a w0b": 0.6}                               # slot SPK u=0 (2 words) -> too short -> replaced
+    durs = {"w0a w0b w0c": 0.6}                           # slot SPK u=0 (3 words) -> too short -> replaced
     for j in range(200):
         durs.setdefault(f"w{j}a w{j}b w{j}c w{j}d w{j}e. w{j + 1}a w{j + 1}b w{j + 1}c w{j + 1}d w{j + 1}e.",
                         5.0)
         durs.setdefault(f"w{j}a w{j}b w{j}c w{j}d w{j}e.", 3.0)
     sel = S.select(q, _fake(durs), spec)
     spk = sel["items"]["SPK"]
-    assert [it["n_words"] for it in spk] == [S.spk_words(u // 3, u % 3) for u in range(4)]
-    assert spk[0]["text"] == "w1a w1b"                    # w0 rejected, the next queue item took slot 0
-    assert sel["rejects"][0]["text"] == "w0a w0b" and sel["rejects"][0]["reason"] == "duration"
+    assert [it["n_words"] for it in spk] == [3] * 4
+    assert spk[0]["text"] == "w1a w1b w1c"                # w0 rejected, the next queue item took slot 0
+    assert sel["rejects"][0]["text"] == "w0a w0b w0c" and sel["rejects"][0]["reason"] == "duration"
     used = [s for fam in sel["items"].values() for it in fam for s in it["source_sha256"]]
     assert len(used) == len(set(used))                    # each source sentence used at most once
     assert len(sel["items"]["BURST"][0]["source_sha256"]) == 2
@@ -172,7 +172,7 @@ def test_select_fills_families_in_order_with_in_order_replacement_and_logs_rejec
 def test_select_stops_when_the_queue_is_exhausted():
     spec = dict(SPEC, counts={"SPK": 3, "BURST": 0, "TALKFACE": 0})
     with pytest.raises(S.CorpusStopError, match="exhausted"):
-        S.select(_queue(5), _fake({f"w{j}a w{j}b": 0.5 for j in range(5)}), spec)
+        S.select(_queue(5), _fake({f"w{j}a w{j}b w{j}c": 0.5 for j in range(5)}), spec)
 
 
 def test_committed_corpus_file_matches_config_sha_and_is_deterministic():
