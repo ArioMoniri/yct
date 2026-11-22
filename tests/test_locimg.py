@@ -32,9 +32,27 @@ def test_patch_is_crop_box_bt709_inter_area_316():
     assert np.array_equal(p, cv2.resize(g, (316, 316), interpolation=cv2.INTER_AREA))
 
 
-def test_patch_refuses_box_outside_image():
+def test_patch_refuses_box_origin_outside_image():
     with pytest.raises(ValueError):
-        L.patch(_rgb(2, 300, 300), (0, 0, 400))
+        L.patch(_rgb(2, 300, 300), (300, 0, 100))
+    with pytest.raises(ValueError):
+        L.patch(_rgb(2, 300, 300), (-1, 0, 100))
+
+
+def test_patch_clips_an_edge_overrun_exactly_as_the_tlic_crop_did():
+    """The frozen crop_box comes from a <=1600-px Haar pass scaled back with rounding, so it can overrun the
+    image edge by a few px (face_05: side 3939 on a 3937-px-wide image). T-LIC sliced with numpy (silent
+    clip) before the square resize; the stimulus patch must use the same pixels."""
+    import cv2
+
+    rgb = _rgb(4, 300, 298)
+    p = L.patch(rgb, (0, 2, 300))
+    g = L.grey709(rgb[2:302, 0:300])
+    assert g.shape == (298, 298)
+    assert np.array_equal(p, cv2.resize(g, (316, 316), interpolation=cv2.INTER_AREA))
+    assert L.overrun(rgb, (0, 2, 300)) == 4
+    with pytest.raises(ValueError):
+        L.patch(rgb, (0, 0, 400), max_overrun=8)
 
 
 def _set(n=6):
