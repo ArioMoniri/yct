@@ -54,13 +54,32 @@ def check_baseline(ledger_lines: list[str], baseline: dict, prefix: str) -> None
             raise CampaignCapError(f"a {prefix} instance was launched before the baseline")
 
 
+def _frozen(cfg: dict, key: str) -> bool:
+    return any(key == f.get("key") or key.startswith(f.get("key", "") + ".") for f in cfg.get("frozen", []))
+
+
+def campaign_cap(cfg: dict) -> float:
+    """T-DRV-V2 (D-087): once controls.refclips_d087 is frozen, the p4b_ref/v2 campaign has its own
+    owner-approved cap (cost_cap_usd); before that, the D-071 (k) cap. Both are $75 as approved."""
+    d = cfg["controls"].get("refclips_d087")
+    if d and _frozen(cfg, "controls.refclips_d087"):
+        return float(d["cost_cap_usd"])
+    return float(cfg["controls"]["refclips"]["campaign_cap_usd"])
+
+
 def guard_launch(cfg: dict, records: list[dict], ledger_lines: list[str], baseline: dict, *,
                  price: float, max_hours: float, now: float, ack: bool = False) -> dict:
     rc = cfg["controls"]["refclips"]
     prefix = rc["ledger_name_prefix"]
-    cap, warn = float(rc["campaign_cap_usd"]), float(rc["campaign_warn_usd"])
+    cap, warn = campaign_cap(cfg), float(rc["campaign_warn_usd"])
     check_baseline(ledger_lines, baseline, prefix)
     spend = campaign_spend(records, prefix, now)
+    d = cfg["controls"].get("refclips_d087")
+    if d and _frozen(cfg, "controls.refclips_d087"):
+        carried = float(d["spend_carried_usd"])   # the NAT session-0 spend, counted against the v2 cap
+        if spend < carried - 0.01:
+            raise CampaignCapError(f"ledger campaign spend {spend:.2f} < the carried ${carried:.2f} (D-087): "
+                                   "the ledger does not hold the spend the v2 cap carries")
     planned = price * max_hours
     if spend + planned > cap + 1e-9:
         raise CampaignCapError(f"campaign cap: spend {spend:.2f} + planned {planned:.2f} > ${cap:g} "

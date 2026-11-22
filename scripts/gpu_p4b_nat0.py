@@ -163,7 +163,7 @@ def check_projection(cfg: dict, lg, *, price: float, max_hours: float, now: floa
     if k < 1:
         return None
     rc, d = cfg["controls"]["refclips"], cfg["controls"]["refclips_d084"]
-    prefix, cap = rc["ledger_name_prefix"], float(rc["campaign_cap_usd"])
+    prefix, cap = rc["ledger_name_prefix"], ref.rcmp.campaign_cap(cfg)   # T-DRV-V2: the v2 cap once frozen
     _lines, records = ref._ledger(lg)
     names = [str(r.get("name", "")) for r in records if r.get("event") == "launch"]
     tk = cfg["controls"].get("refclips_d085", {}).get("talkface", {})

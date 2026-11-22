@@ -876,12 +876,40 @@ class D087Screen(M):
     slot_rule: Literal["replace_in_slot"]
     flagged_never_return: Literal[True]
     categories: list[Literal["face", "body", "place"]]
+    face_intact: Literal["descriptive"]
+    scramble_kinds: list[Literal["scramble", "swap"]]
+    scramble_categories: list[Literal["face", "body", "place"]]
+    render: Literal["refclips58.loc_frames"]
 
 
 class D087Continuation(M):
     logs: Literal["v4"]
     mode: Literal["target_passes"]
-    max_extra_per_category: Annotated[int, Field(ge=1, le=100)]
+    max_extra_per_category: Annotated[int, Field(ge=0, le=100)]
+    committed_before_rescreen: Literal[True]
+    cap_or_exhaustion: Literal["stop_owner_final"]
+
+
+class D087PreExcluded(M):
+    category: Literal["face", "body", "place"]
+    slot: Annotated[int, Field(ge=0)]
+    title: str
+    trigger: str
+
+
+class D087RebuildBuild1(M):
+    families: list[Literal["GREY_CTRL", "FLASH", "MOT", "MOT_STAT"]]
+    checks: list[Literal["mp4_decoded", "wav_bytes", "tsv_bytes"]]
+
+
+class D087RebuildLoc(M):
+    families: list[Literal["LOC", "LOC_SCR"]]
+    against: Literal["screen_record.patch_sha256"]
+
+
+class D087RebuildIdentity(M):
+    build1: D087RebuildBuild1
+    loc: D087RebuildLoc
 
 
 class RefClipsD087(M):                # D-087 draft: p4b_ref/v2 (the single D-071 (h) redesign)
@@ -895,6 +923,9 @@ class RefClipsD087(M):                # D-087 draft: p4b_ref/v2 (the single D-07
     cost_cap_usd: Annotated[float, Field(gt=0, le=75)]
     spend_carried_usd: Annotated[float, Field(ge=0)]
     screen: D087Screen
+    pre_excluded: list[D087PreExcluded]
+    screen_record: str
+    rebuild_identity: D087RebuildIdentity
     continuation: D087Continuation
     manifests: dict[Literal["face", "body", "place"], str]
     scrambles: Literal["same_seed_rule"]

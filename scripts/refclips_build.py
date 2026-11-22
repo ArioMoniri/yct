@@ -54,6 +54,56 @@ def check_image_manifests(cfg: dict, root: Path = ROOT) -> dict[str, list[dict]]
     return {c: json.loads(p.read_text()) for c, p in zip(cats, paths, strict=True)}
 
 
+V2_IMG_KEY = "controls.refclips_d087_artifacts.image_manifest_v2_sha256"
+V2_SCREEN_KEY = "controls.refclips_d087_artifacts.screen_record_sha256"
+
+
+def _frozen_tree(cfg: dict, key: str) -> bool:
+    return any(key == f.get("key") or key.startswith(f.get("key", "") + ".") for f in cfg.get("frozen", []))
+
+
+def check_image_manifests_v2(cfg: dict, root: Path = ROOT) -> tuple[dict[str, list[dict]], dict]:
+    """D-087 (p4b_ref/v2): the v2 manifests and the screen record, each refused unless its sha is frozen and
+    matches the committed file (concatenated in loc_categories order for the manifests)."""
+    if not _frozen_tree(cfg, "controls.refclips_d087"):
+        raise SystemExit("controls.refclips_d087 is not frozen")
+    for k in (V2_IMG_KEY, V2_SCREEN_KEY):
+        if not _frozen(cfg, k):
+            raise SystemExit(f"{k} is not frozen")
+    d, art = cfg["controls"]["refclips_d087"], cfg["controls"]["refclips_d087_artifacts"]
+    cats = cfg["controls"]["refclips"]["loc_categories"]
+    paths = [root / d["manifests"][c] for c in cats]
+    sha = hashlib.sha256(b"".join(p.read_bytes() for p in paths)).hexdigest()
+    if sha != art["image_manifest_v2_sha256"]:
+        raise SystemExit(f"v2 image manifest sha mismatch: {sha} != frozen value")
+    sp = root / d["screen_record"]
+    if hashlib.sha256(sp.read_bytes()).hexdigest() != art["screen_record_sha256"]:
+        raise SystemExit("v2 screen record sha mismatch")
+    mans = {c: json.loads(p.read_text()) for c, p in zip(cats, paths, strict=True)}
+    return mans, json.loads(sp.read_text())
+
+
+def patch_identity_mismatches(images: dict[str, list[np.ndarray]], screen: dict) -> list[str]:
+    """D-087 rebuild_identity.loc: each post-SHINE patch the builder draws must equal the screened patch."""
+    from yct.tribe_run.locscreen import patch_sha
+
+    want = screen["patch_sha256"]
+    return [f"{c}[{k}]" for c in want for k, p in enumerate(images[c]) if patch_sha(p) != want[c][k]]
+
+
+def _family(name: str) -> str:
+    return name.rsplit("_", 1)[0].upper()
+
+
+def restrict_build1(rec1: dict[str, str], _decoded: dict, fams: list[str]) -> dict[str, str]:
+    """D-087 rebuild_identity.build1: only these families are compared with build 1 (LOC/LOC_SCR are new)."""
+    return {k: v for k, v in rec1.items() if _family(k.rsplit(".", 1)[0]) in fams}
+
+
+def restrict_recs(recs: dict[str, dict], fams: list[str]) -> dict[str, dict]:
+    return {k: v for k, v in recs.items() if _family(k) in fams}
+
+
 def select_families(cfg: dict, fams: list[str] | None) -> list[str]:
     allf = set(cfg["controls"]["refclips"]["families"])
     out = list(fams) if fams else list(DEFAULT)
@@ -161,7 +211,7 @@ def git_head() -> str:
 
 
 def build_all(clips: list, out: Path, cfg: dict, images=None, sources: dict | None = None,
-              qc: str = "d071", yunet=None) -> int:
+              qc: str = "d071", yunet=None, build1_families: list[str] | None = None) -> int:
     """qc="d071": the original frozen D-071 (a) QC (build 1). qc="d085": the amended QC
     (yct.tribe_run.refclips_qc85), refused until controls.refclips_d085 is frozen; needs the T-LIC YuNet."""
     if qc == "d085":
@@ -184,7 +234,12 @@ def build_all(clips: list, out: Path, cfg: dict, images=None, sources: dict | No
         for name in recs:
             mp4 = out / f"{name}.mp4"
             recs[name]["decoded_sha256"] = R.decoded_sha(mp4) if mp4.exists() else None
-        mm = name_set_mismatches(recs, rec1) + rebuild_mismatches(recs, rec1, dec1)
+        cmp = recs
+        if build1_families is not None:    # D-087 rebuild_identity.build1: LOC/LOC_SCR are new in v2
+            rec1 = restrict_build1(rec1, dec1, build1_families)
+            dec1 = restrict_build1(dec1, {}, build1_families)
+            cmp = restrict_recs(recs, build1_families)
+        mm = name_set_mismatches(cmp, rec1) + rebuild_mismatches(cmp, rec1, dec1)
         write_rebuild_record(out, sorted(recs), mm)
         if mm:          # watchdog C3: the sha check runs before YuNet, in the same command
             (out / "STOP_NOTE.md").write_text(
@@ -311,13 +366,22 @@ def main() -> int:
                     help="d085 = the amended QC, refused until controls.refclips_d085 is frozen")
     ap.add_argument("--yunet-onnx", type=Path,
                     default=Path("/work/yct/refstim_models/face_detection_yunet_2023mar.onnx"))
+    ap.add_argument("--images", choices=["v1", "v2"], default="v1",
+                    help="v2 = the D-087 p4b_ref/v2 manifests + screen record (refused until frozen)")
     a = ap.parse_args()
     cfg = load_config()
     fams = select_families(cfg, a.families)
     clips = [c for c in R.plan(cfg) if c.family in fams]
-    images, sources = None, {}
+    images, sources, screen, b1 = None, {}, None, None
+    if a.images == "v2":
+        if a.qc != "d085":
+            raise SystemExit("--images v2 needs --qc d085 (D-087: the frozen D-085 QC, rebuild once)")
+        b1 = list(cfg["controls"]["refclips_d087"]["rebuild_identity"]["build1"]["families"])
     if "LOC" in fams:
-        mans = check_image_manifests(cfg)
+        if a.images == "v2":
+            mans, screen = check_image_manifests_v2(cfg)
+        else:
+            mans = check_image_manifests(cfg)
         base = fetch_sources(mans, cfg, a.sources, local=a.local)
         over: dict[str, int] = {}
 
@@ -329,11 +393,24 @@ def main() -> int:
         images = locimg.loc_images(mans, load, cfg)
         sources = {"image_manifest_sha256": cfg["controls"]["refclips_artifacts"]["image_manifest_sha256"],
                    "crop_box_edge_overrun_px": over}
+        if screen is not None:
+            mm = patch_identity_mismatches(images, screen)   # D-087 rebuild_identity.loc, before any build
+            if mm:
+                a.out.mkdir(parents=True, exist_ok=True)
+                (a.out / "STOP_NOTE.md").write_text(
+                    "# p4b_ref/v2 build: post-SHINE patch != screen record, final STOP to the owner\n"
+                    + "".join(f"- {m}\n" for m in mm))
+                print(f"STOP: patch identity {mm}", flush=True)
+                return 1
+            art = cfg["controls"]["refclips_d087_artifacts"]
+            sources = {"image_manifest_v2_sha256": art["image_manifest_v2_sha256"],
+                       "screen_record_sha256": art["screen_record_sha256"], "crop_box_edge_overrun_px": over}
     yunet = None
     if a.qc == "d085":
         refclips_qc85.require_frozen(cfg)
         yunet = refclips_qc85.t_lic_yunet(cfg, a.yunet_onnx)
-    rc = build_all(clips, a.out, cfg, images=images, sources=sources, qc=a.qc, yunet=yunet)
+    rc = build_all(clips, a.out, cfg, images=images, sources=sources, qc=a.qc, yunet=yunet,
+                   build1_families=b1)
     if rc == 0 and "LOC" in fams:
         contact_sheet(a.out, clips, cfg, a.out / "loc_contact_sheet.png")
     return rc

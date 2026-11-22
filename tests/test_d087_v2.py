@@ -232,7 +232,8 @@ def _write_logs(root, n_pass):
         for j in range(n_pass[c]):
             rows.append({"title": f"{c}_{j}", "decision": "reject", "url": "u.jpg"})
             rows.append({"title": f"{c}_p{j}", "decision": "pass", "url": f"https://x/{c}{j}.jpg",
-                         "descriptionurl": "d", "pageid": j, "revid": 1, "snapshot_revid": 1, "licence": "CC0",
+                         "descriptionurl": "d", "pageid": j, "revid": 1, "snapshot_revid": 1,
+                         "licence": "CC0",
                          "licence_template": "Cc-zero", "artist": "a", "credit": "c",
                          "source_sha256": hashlib.sha256(f"{c}{j}".encode()).hexdigest(),
                          "crop_box": [0, 0, 8], "source": "s"})
@@ -252,7 +253,7 @@ def _driver_fakes(scr_bad=()):
 
 
 def test_driver_runs_continuation_then_asks_for_a_commit_before_rescreening(tmp_path):
-    D = _mod("locscreen_v2", "scripts/locscreen_v2.py")
+    drv = _mod("locscreen_v2", "scripts/locscreen_v2.py")
     _write_logs(tmp_path, {"face": 20, "body": 20, "place": 20})
     cfg = _cfg_frozen()
     cfg["controls"]["refclips_d087"]["pre_excluded"] = [{"category": "place", "slot": 14,
@@ -266,15 +267,15 @@ def test_driver_runs_continuation_then_asks_for_a_commit_before_rescreening(tmp_
                                                  "url": "https://x/z.jpg", "crop_box": [0, 0, 8],
                                                  "source_sha256": "0" * 64}) + "\n")
     patch_from, yunet = _driver_fakes()
-    rc = D.run_screen(cfg, tmp_path, patch_from, ident, yunet, cont, committed=lambda paths: True,
+    rc = drv.run_screen(cfg, tmp_path, patch_from, ident, yunet, cont, committed=lambda paths: True,
                       to_bgr=to_bgr, render=None)
     assert rc == 75 and calls == [("place", 21)]
     rec = json.loads((tmp_path / "data/refstim/loc_screen_v2_continuation.json").read_text())
     assert rec["category"] == "place" and rec["target"] == 21 and rec["prefix_identical"] is True
     with pytest.raises(SystemExit, match="commit"):
-        D.run_screen(cfg, tmp_path, patch_from, ident, yunet, cont, committed=lambda paths: False,
+        drv.run_screen(cfg, tmp_path, patch_from, ident, yunet, cont, committed=lambda paths: False,
                      to_bgr=to_bgr, render=None)
-    rc = D.run_screen(cfg, tmp_path, patch_from, ident, yunet, cont, committed=lambda paths: True,
+    rc = drv.run_screen(cfg, tmp_path, patch_from, ident, yunet, cont, committed=lambda paths: True,
                       to_bgr=to_bgr, render=None)
     assert rc == 0
     scr = json.loads((tmp_path / "data/refstim/loc_screen_v2.json").read_text())
@@ -286,7 +287,7 @@ def test_driver_runs_continuation_then_asks_for_a_commit_before_rescreening(tmp_
 
 
 def test_driver_refuses_a_continuation_that_rewrites_existing_rows(tmp_path):
-    D = _mod("locscreen_v2", "scripts/locscreen_v2.py")
+    drv = _mod("locscreen_v2", "scripts/locscreen_v2.py")
     _write_logs(tmp_path, {"face": 20, "body": 20, "place": 20})
     cfg = _cfg_frozen()
     cfg["controls"]["refclips_d087"]["pre_excluded"] = [{"category": "place", "slot": 14,
@@ -297,12 +298,12 @@ def test_driver_refuses_a_continuation_that_rewrites_existing_rows(tmp_path):
         p.write_text("x" + p.read_text())
     patch_from, yunet = _driver_fakes()
     with pytest.raises(SystemExit, match="byte-identical"):
-        D.run_screen(cfg, tmp_path, patch_from, ident, yunet, bad_cont, committed=lambda paths: True,
+        drv.run_screen(cfg, tmp_path, patch_from, ident, yunet, bad_cont, committed=lambda paths: True,
                      to_bgr=to_bgr, render=None)
 
 
 def test_driver_continuation_cap_is_a_final_stop(tmp_path):
-    D = _mod("locscreen_v2", "scripts/locscreen_v2.py")
+    drv = _mod("locscreen_v2", "scripts/locscreen_v2.py")
     _write_logs(tmp_path, {"face": 20, "body": 20, "place": 20})
     cfg = _cfg_frozen()
     cfg["controls"]["refclips_d087"]["continuation"]["max_extra_per_category"] = 0
@@ -310,16 +311,16 @@ def test_driver_continuation_cap_is_a_final_stop(tmp_path):
                                                          "title": "place_p14", "trigger": "t"}]
     patch_from, yunet = _driver_fakes()
     with pytest.raises(SystemExit, match="final STOP"):
-        D.run_screen(cfg, tmp_path, patch_from, ident, yunet, lambda c, n: None,
+        drv.run_screen(cfg, tmp_path, patch_from, ident, yunet, lambda c, n: None,
                      committed=lambda paths: True, to_bgr=to_bgr, render=None)
 
 
 def test_driver_refuses_until_d087_is_frozen(tmp_path):
-    D = _mod("locscreen_v2", "scripts/locscreen_v2.py")
+    drv = _mod("locscreen_v2", "scripts/locscreen_v2.py")
     cfg = load_config()
     cfg["frozen"] = [f for f in cfg["frozen"] if not f["key"].startswith("controls.refclips_d087")]
     with pytest.raises(SystemExit, match="not frozen"):
-        D.run_screen(cfg, tmp_path, None, None, None, None, committed=lambda p: True)
+        drv.run_screen(cfg, tmp_path, None, None, None, None, committed=lambda p: True)
 
 
 # ---- builder v2 path (scripts/refclips_build.py) ----
@@ -328,31 +329,31 @@ def _builder():
 
 
 def test_v2_manifests_refused_until_frozen_and_sha_matches(tmp_path):
-    B = _builder()
+    bld = _builder()
     cfg = load_config()
     with pytest.raises(SystemExit, match="not frozen"):
-        B.check_image_manifests_v2(cfg, tmp_path)
+        bld.check_image_manifests_v2(cfg, tmp_path)
 
 
 def test_v2_patch_identity_mismatch_is_reported():
-    B = _builder()
+    bld = _builder()
     ims = {c: [np.full((3, 3), j, np.uint8) for j in range(2)] for c in CATS}
     rec = {"patch_sha256": {c: [L.patch_sha(p) for p in ims[c]] for c in CATS}}
-    assert B.patch_identity_mismatches(ims, rec) == []
+    assert bld.patch_identity_mismatches(ims, rec) == []
     rec["patch_sha256"]["body"][1] = "0" * 64
-    assert B.patch_identity_mismatches(ims, rec) == ["body[1]"]
+    assert bld.patch_identity_mismatches(ims, rec) == ["body[1]"]
 
 
 def test_v2_rebuild_identity_compares_only_the_build1_families():
-    B = _builder()
+    bld = _builder()
     recs = {"loc_00": {"sha256": {"mp4": "a", "wav": "b", "tsv": "c"}},
             "mot_00": {"sha256": {"mp4": "m", "wav": "w", "tsv": "t"}}}
     rec1 = {"loc_00.mp4": "Z", "loc_00.wav": "Z", "loc_00.tsv": "Z",
             "mot_00.mp4": "m", "mot_00.wav": "w", "mot_00.tsv": "t", "grey_ctrl_00.mp4": "g"}
-    r1, d1 = B.restrict_build1(rec1, {}, ["MOT"]), {}
+    r1, d1 = bld.restrict_build1(rec1, {}, ["MOT"]), {}
     assert set(r1) == {"mot_00.mp4", "mot_00.wav", "mot_00.tsv"}
-    sub = B.restrict_recs(recs, ["MOT"])
-    assert B.name_set_mismatches(sub, r1) == [] and B.rebuild_mismatches(sub, r1, d1) == []
+    sub = bld.restrict_recs(recs, ["MOT"])
+    assert bld.name_set_mismatches(sub, r1) == [] and bld.rebuild_mismatches(sub, r1, d1) == []
 
 
 # ---- T-DRV-V2: the v2 cap in guard_launch ----

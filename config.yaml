@@ -650,12 +650,28 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
       order: v4_log_rank         # candidates = v4 log passes in log order; never re-ordered
       slot_rule: replace_in_slot # a flagged slot gets the next unused pass of its category; seeds stay per slot
       flagged_never_return: true
-      categories: [body, place]  # council Q1 (draft): face patches carry a face by design; their YuNet
-                                 # detections are recorded descriptively, never replaced
+      categories: [body, place]  # owner 2026-11-23 "Body + place only" (council Q1): intact face patches carry a
+                                 # face by design; their YuNet detections are recorded descriptively, never replaced
+      face_intact: descriptive   # face_absent (no detection on a face slot's intact patch) also recorded (biostat)
+      scramble_kinds: [scramble, swap]           # owner 2026-11-23 "Screen scrambles too": the rendered scramble
+      scramble_categories: [face, body, place]   # and swap patches of every slot (per-slot seeds) gate; a hit
+                                                 # replaces that slot's image, face slots included
+      render: refclips58.loc_frames  # locscreen.rendered_loc_patches = the patches loc_frames draws (tested)
+    pre_excluded:                # owner 2026-11-23 "Pre-exclude place_14": round 0, replaced by the same rule;
+                                 # post_hoc (the build-2 hit was on the decoded patch, which the screen never sees)
+      - {category: place, slot: 14, title: "File:Naantali, Kultaranta 1 kerros, presidentin työhuone 1974 (HK10000-5797).tif",
+         trigger: outputs/runs/refclips_v1_d085_build2/STOP_NOTE.md}
+    screen_record: data/refstim/loc_screen_v2.json   # rounds, flags, replacements, descriptive, patch_sha256
+    rebuild_identity:            # council B2: the v2 rebuild check, before YuNet, in the same command
+      build1: {families: [GREY_CTRL, FLASH, MOT, MOT_STAT], checks: [mp4_decoded, wav_bytes, tsv_bytes]}
+      loc: {families: [LOC, LOC_SCR], against: screen_record.patch_sha256}
     continuation:                # v4 filter run past rank 20 under the same frozen rules (refstim_auto_run --target)
       logs: v4
       mode: target_passes
       max_extra_per_category: 20 # a priori: more than 20 extra passes needed in a category -> STOP to the owner
+      committed_before_rescreen: true   # the appended log rows are committed (existing rows byte-identical)
+                                        # before the screen re-runs from round 1
+      cap_or_exhaustion: stop_owner_final   # cap reached or snapshot exhausted -> final STOP, no v3 (biostat B5)
     manifests:
       face: data/refstim/image_face_manifest_v2.json
       body: data/refstim/image_body_manifest_v2.json
