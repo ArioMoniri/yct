@@ -1,0 +1,2088 @@
+[
+ {
+  "name": "loc_00",
+  "n_hit_trs": 18,
+  "hits": [
+   {
+    "tr": 39,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 40,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 41,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 42,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 43,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 44,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 45,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 46,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 47,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 48,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 50,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 51,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 52,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 53,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 54,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 55,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 56,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 57,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_00",
+  "n_hit_trs": 18,
+  "hits": [
+   {
+    "tr": 39,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 40,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 41,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 42,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 43,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 44,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 45,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 46,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 47,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 48,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 50,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 51,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 52,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 53,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 54,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 55,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 56,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   },
+   {
+    "tr": 57,
+    "face_area": 0.0309,
+    "shows": "scramble of place_00"
+   }
+  ]
+ },
+ {
+  "name": "loc_01",
+  "n_hit_trs": 2,
+  "hits": [
+   {
+    "tr": 9,
+    "face_area": 0.4411,
+    "shows": "intact face_01"
+   },
+   {
+    "tr": 29,
+    "face_area": 0.0269,
+    "shows": "intact body_01"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_01",
+  "n_hit_trs": 1,
+  "hits": [
+   {
+    "tr": 29,
+    "face_area": 0.16,
+    "shows": "swap-scramble body_01"
+   }
+  ]
+ },
+ {
+  "name": "loc_02",
+  "n_hit_trs": 18,
+  "hits": [
+   {
+    "tr": 0,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 1,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 2,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 3,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 4,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 5,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 6,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 7,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 9,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 10,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 11,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 12,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 13,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 14,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 15,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 16,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 17,
+    "face_area": 0.0088,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 48,
+    "face_area": 0.2781,
+    "shows": "intact face_02"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_02",
+  "n_hit_trs": 17,
+  "hits": [
+   {
+    "tr": 0,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 1,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 2,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 3,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 4,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 5,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 6,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 7,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 9,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 10,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 11,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 12,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 13,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 14,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 15,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 16,
+    "face_area": 0.0176,
+    "shows": "scramble of body_02"
+   },
+   {
+    "tr": 17,
+    "face_area": 0.0088,
+    "shows": "scramble of body_02"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_03",
+  "n_hit_trs": 1,
+  "hits": [
+   {
+    "tr": 8,
+    "face_area": 0.1195,
+    "shows": "swap-scramble body_03"
+   }
+  ]
+ },
+ {
+  "name": "loc_04",
+  "n_hit_trs": 19,
+  "hits": [
+   {
+    "tr": 0,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 1,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 2,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 3,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 4,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 5,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 6,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 7,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 8,
+    "face_area": 0.0108,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 10,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 11,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 12,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 13,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 14,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 15,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 16,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 17,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 18,
+    "face_area": 0.0108,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 29,
+    "face_area": 0.2461,
+    "shows": "intact face_04"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_04",
+  "n_hit_trs": 18,
+  "hits": [
+   {
+    "tr": 0,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 1,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 2,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 3,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 4,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 5,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 6,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 7,
+    "face_area": 0.0106,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 8,
+    "face_area": 0.0496,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 10,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 11,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 12,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 13,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 14,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 15,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 16,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 17,
+    "face_area": 0.011,
+    "shows": "scramble of place_04"
+   },
+   {
+    "tr": 18,
+    "face_area": 0.0108,
+    "shows": "scramble of place_04"
+   }
+  ]
+ },
+ {
+  "name": "loc_05",
+  "n_hit_trs": 19,
+  "hits": [
+   {
+    "tr": 0,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 1,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 2,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 3,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 4,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 5,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 6,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 7,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 8,
+    "face_area": 0.0549,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 10,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 11,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 12,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 13,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 14,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 15,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 16,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 17,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 18,
+    "face_area": 0.0587,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 29,
+    "face_area": 0.3619,
+    "shows": "intact face_05"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_05",
+  "n_hit_trs": 19,
+  "hits": [
+   {
+    "tr": 0,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 1,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 2,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 3,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 4,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 5,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 6,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 7,
+    "face_area": 0.0531,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 8,
+    "face_area": 0.0266,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 10,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 11,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 12,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 13,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 14,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 15,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 16,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 17,
+    "face_area": 0.0568,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 18,
+    "face_area": 0.0587,
+    "shows": "scramble of place_05"
+   },
+   {
+    "tr": 49,
+    "face_area": 0.0445,
+    "shows": "swap-scramble body_05"
+   }
+  ]
+ },
+ {
+  "name": "loc_06",
+  "n_hit_trs": 3,
+  "hits": [
+   {
+    "tr": 8,
+    "face_area": 0.2822,
+    "shows": "intact face_06"
+   },
+   {
+    "tr": 28,
+    "face_area": 0.0751,
+    "shows": "intact body_06"
+   },
+   {
+    "tr": 48,
+    "face_area": 0.0587,
+    "shows": "intact place_06"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_06",
+  "n_hit_trs": 1,
+  "hits": [
+   {
+    "tr": 48,
+    "face_area": 0.0513,
+    "shows": "swap-scramble place_06"
+   }
+  ]
+ },
+ {
+  "name": "loc_07",
+  "n_hit_trs": 10,
+  "hits": [
+   {
+    "tr": 8,
+    "face_area": 0.2579,
+    "shows": "intact face_07"
+   },
+   {
+    "tr": 9,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 10,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 11,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 12,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 13,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 14,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 15,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 16,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 17,
+    "face_area": 0.0898,
+    "shows": "scramble of face_07"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_07",
+  "n_hit_trs": 10,
+  "hits": [
+   {
+    "tr": 8,
+    "face_area": 0.0257,
+    "shows": "swap-scramble face_07"
+   },
+   {
+    "tr": 9,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 10,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 11,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 12,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 13,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 14,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 15,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 16,
+    "face_area": 0.1796,
+    "shows": "scramble of face_07"
+   },
+   {
+    "tr": 17,
+    "face_area": 0.0898,
+    "shows": "scramble of face_07"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_08",
+  "n_hit_trs": 1,
+  "hits": [
+   {
+    "tr": 9,
+    "face_area": 0.053,
+    "shows": "swap-scramble body_08"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_09",
+  "n_hit_trs": 1,
+  "hits": [
+   {
+    "tr": 49,
+    "face_area": 0.0198,
+    "shows": "swap-scramble face_09"
+   }
+  ]
+ },
+ {
+  "name": "loc_10",
+  "n_hit_trs": 21,
+  "hits": [
+   {
+    "tr": 28,
+    "face_area": 0.2461,
+    "shows": "intact face_10"
+   },
+   {
+    "tr": 38,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 39,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 40,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 41,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 42,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 43,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 44,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 45,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 46,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 47,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 48,
+    "face_area": 0.0083,
+    "shows": "intact body_10"
+   },
+   {
+    "tr": 49,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 50,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 51,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 52,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 53,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 54,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 55,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 56,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 57,
+    "face_area": 0.0464,
+    "shows": "scramble of body_10"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_10",
+  "n_hit_trs": 20,
+  "hits": [
+   {
+    "tr": 8,
+    "face_area": 0.0492,
+    "shows": "swap-scramble place_10"
+   },
+   {
+    "tr": 38,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 39,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 40,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 41,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 42,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 43,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 44,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 45,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 46,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 47,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 49,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 50,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 51,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 52,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 53,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 54,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 55,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 56,
+    "face_area": 0.0452,
+    "shows": "scramble of body_10"
+   },
+   {
+    "tr": 57,
+    "face_area": 0.0464,
+    "shows": "scramble of body_10"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_11",
+  "n_hit_trs": 1,
+  "hits": [
+   {
+    "tr": 8,
+    "face_area": 0.0087,
+    "shows": "swap-scramble place_11"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_12",
+  "n_hit_trs": 1,
+  "hits": [
+   {
+    "tr": 9,
+    "face_area": 0.0381,
+    "shows": "swap-scramble face_12"
+   }
+  ]
+ },
+ {
+  "name": "loc_14",
+  "n_hit_trs": 21,
+  "hits": [
+   {
+    "tr": 18,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 19,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 20,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 21,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 22,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 23,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 24,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 25,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 26,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 27,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 28,
+    "face_area": 0.0625,
+    "shows": "intact place_14"
+   },
+   {
+    "tr": 29,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 30,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 31,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 32,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 33,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 34,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 35,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 36,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 37,
+    "face_area": 0.0522,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 48,
+    "face_area": 0.2948,
+    "shows": "intact face_14"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_14",
+  "n_hit_trs": 20,
+  "hits": [
+   {
+    "tr": 18,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 19,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 20,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 21,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 22,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 23,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 24,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 25,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 26,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 27,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 28,
+    "face_area": 0.165,
+    "shows": "swap-scramble place_14"
+   },
+   {
+    "tr": 29,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 30,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 31,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 32,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 33,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 34,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 35,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 36,
+    "face_area": 0.0513,
+    "shows": "scramble of place_14"
+   },
+   {
+    "tr": 37,
+    "face_area": 0.0522,
+    "shows": "scramble of place_14"
+   }
+  ]
+ },
+ {
+  "name": "loc_15",
+  "n_hit_trs": 38,
+  "hits": [
+   {
+    "tr": 0,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 1,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 2,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 3,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 4,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 5,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 6,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 7,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 8,
+    "face_area": 0.0169,
+    "shows": "intact body_15"
+   },
+   {
+    "tr": 9,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 10,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 11,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 12,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 13,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 14,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 15,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 16,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 17,
+    "face_area": 0.0283,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 38,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 39,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 40,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 41,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 42,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 43,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 44,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 45,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 46,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 47,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 48,
+    "face_area": 0.2606,
+    "shows": "intact face_15"
+   },
+   {
+    "tr": 49,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 50,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 51,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 52,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 53,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 54,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 55,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 56,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 57,
+    "face_area": 0.0577,
+    "shows": "scramble of face_15"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_15",
+  "n_hit_trs": 37,
+  "hits": [
+   {
+    "tr": 0,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 1,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 2,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 3,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 4,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 5,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 6,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 7,
+    "face_area": 0.0485,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 8,
+    "face_area": 0.0128,
+    "shows": "swap-scramble body_15"
+   },
+   {
+    "tr": 9,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 10,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 11,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 12,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 13,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 14,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 15,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 16,
+    "face_area": 0.0455,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 17,
+    "face_area": 0.0283,
+    "shows": "scramble of body_15"
+   },
+   {
+    "tr": 38,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 39,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 40,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 41,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 42,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 43,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 44,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 45,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 46,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 47,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 49,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 50,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 51,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 52,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 53,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 54,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 55,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 56,
+    "face_area": 0.1155,
+    "shows": "scramble of face_15"
+   },
+   {
+    "tr": 57,
+    "face_area": 0.0577,
+    "shows": "scramble of face_15"
+   }
+  ]
+ },
+ {
+  "name": "loc_16",
+  "n_hit_trs": 19,
+  "hits": [
+   {
+    "tr": 0,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 1,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 2,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 3,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 4,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 5,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 6,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 7,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 8,
+    "face_area": 0.0397,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 10,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 11,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 12,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 13,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 14,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 15,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 16,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 17,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 18,
+    "face_area": 0.0397,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 29,
+    "face_area": 0.2161,
+    "shows": "intact face_16"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_16",
+  "n_hit_trs": 18,
+  "hits": [
+   {
+    "tr": 0,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 1,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 2,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 3,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 4,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 5,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 6,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 7,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 8,
+    "face_area": 0.0408,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 10,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 11,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 12,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 13,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 14,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 15,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 16,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 17,
+    "face_area": 0.04,
+    "shows": "scramble of place_16"
+   },
+   {
+    "tr": 18,
+    "face_area": 0.0397,
+    "shows": "scramble of place_16"
+   }
+  ]
+ },
+ {
+  "name": "loc_17",
+  "n_hit_trs": 2,
+  "hits": [
+   {
+    "tr": 29,
+    "face_area": 0.2864,
+    "shows": "intact face_17"
+   },
+   {
+    "tr": 49,
+    "face_area": 0.0366,
+    "shows": "intact body_17"
+   }
+  ]
+ },
+ {
+  "name": "loc_18",
+  "n_hit_trs": 3,
+  "hits": [
+   {
+    "tr": 8,
+    "face_area": 0.312,
+    "shows": "intact face_18"
+   },
+   {
+    "tr": 28,
+    "face_area": 0.0579,
+    "shows": "intact body_18"
+   },
+   {
+    "tr": 48,
+    "face_area": 0.0809,
+    "shows": "intact place_18"
+   }
+  ]
+ },
+ {
+  "name": "loc_scr_18",
+  "n_hit_trs": 1,
+  "hits": [
+   {
+    "tr": 8,
+    "face_area": 0.0813,
+    "shows": "swap-scramble face_18"
+   }
+  ]
+ },
+ {
+  "name": "loc_19",
+  "n_hit_trs": 2,
+  "hits": [
+   {
+    "tr": 8,
+    "face_area": 0.188,
+    "shows": "intact face_19"
+   },
+   {
+    "tr": 28,
+    "face_area": 0.2842,
+    "shows": "intact body_19"
+   }
+  ]
+ }
+]

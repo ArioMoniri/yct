@@ -71,7 +71,8 @@ def select_families(cfg: dict, fams: list[str] | None) -> list[str]:
 
 
 def toolchain() -> dict[str, str]:
-    v = subprocess.run(["ffmpeg", "-version"], capture_output=True, text=True, check=True).stdout.splitlines()
+    v = subprocess.run(["ffmpeg", "-nostdin", "-version"], capture_output=True, text=True,
+                       check=True).stdout.splitlines()
     return {"ffmpeg": v[0], "ffmpeg_libs": " | ".join(x.strip() for x in v if x.strip().startswith("lib"))}
 
 
