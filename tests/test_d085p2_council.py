@@ -265,3 +265,36 @@ def test_part2_keys_still_unfrozen_until_council_resign():
     for k in D85["freeze_plan"]["part2"]:
         fr = [f for f in CFG.get("frozen", []) if f.get("key") == k]
         assert fr == [], k
+
+
+# ------------------------------------------------------------------ re-sign-off (wf_77475312-b35)
+def test_loader_blob_and_check_record_shas_are_pinned():
+    import subprocess
+
+    ld = TF["loader"]
+    blob = subprocess.run(["git", "hash-object", str(ROOT / ld["module"])], capture_output=True, text=True,
+                          check=True).stdout.strip()
+    assert ld["blob_sha1"] == blob
+    assert ld["check_record_sha256"] == _sha((ROOT / ld["check_record"]).read_bytes())
+
+
+def test_select_refuses_an_unverified_synth():
+    from yct.tribe_run import speech_corpus as S  # noqa: N812
+
+    def bare(text):
+        return np.zeros(10), 48000
+
+    with pytest.raises(SystemExit, match="verified"):
+        S.select([], bare, SP)
+
+
+def test_target_above_21_needs_a_logged_skip_per_extra_pass():
+    r = _load_script("refstim_auto_run")
+    frozen = _cfg_frozen(["controls.refclips_d085.talkface"])
+    with pytest.raises(SystemExit, match="skip"):
+        r.effective_need("face", {"face": 23}, 20, frozen, purpose="talkface", skips=[])
+    ok = [{"title": "File:a.jpg", "reason": "s3fd_no_face"}, {"title": "File:b.jpg", "reason": "wav2lip_error"}]
+    assert r.effective_need("face", {"face": 23}, 20, frozen, purpose="talkface", skips=ok) == 23
+    bad = [{"title": "File:a.jpg", "reason": "looked_wrong"}, ok[1]]
+    with pytest.raises(SystemExit, match="skip"):
+        r.effective_need("face", {"face": 23}, 20, frozen, purpose="talkface", skips=bad)
