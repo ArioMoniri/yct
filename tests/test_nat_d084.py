@@ -334,12 +334,79 @@ def test_session_k_refused_over_max_sessions(env):
 
 def test_session_k_refused_on_overlap(env):
     # a buffer-1 id already evaluated (e.g. a hand-written row) -> refused, never re-evaluated
-    rows = logged(env) + [{"stage": ns.STAGE_SK, "session": 9, "t1_name": IDS[45], "decision": "reject",
+    # council D-084 (biostat): the row carries the session-0 stage so the sequencing check passes and the
+    # overlap check itself is the one that refuses (it runs before the selection's gap check)
+    rows = logged(env) + [{"stage": ns.STAGE_S0, "t1_name": IDS[45], "decision": "reject",
                            "rule": "N1", "reason": "not_english", "values": {}}]
     env.log.write_text("".join(json.dumps(r) + "\n" for r in rows))
     rc, res = runk(env, 1)
-    assert rc == 1 and ("already evaluated" in res["error"] or "not logged" in res["error"])
+    assert rc == 1 and "already evaluated" in res["error"] and IDS[45] in res["error"]
     assert env.lg.launched == []
+
+
+def test_finish_k_stops_at_max_sessions(env):
+    # council D-084 (biostat): k = max_sessions with < nat_n cumulative passes -> exit 1, STOP to the owner
+    c = dcfg()
+    c["controls"]["refclips_d084"]["max_sessions"] = 1
+    rc, res = runk(env, 1, c=c, box=Box({IDS[40]}))
+    assert rc == 1 and res["status"] == "stop" and "STOP to the owner" in res["error"]
+    assert len([r for r in logged(env) if r.get("session") == 1]) == 40      # rows logged before the STOP
+    assert res["n_pass_total"] == 5
+
+
+def test_finish_k_stops_when_snapshot_exhausted(env):
+    # council D-084 (biostat): a short last buffer (snapshot exhausted) evaluated with < nat_n -> exit 1
+    rows = [r for r in logged(env) if not (r["stage"] == "cpu" and r["t1_name"] in IDS[70:80])]
+    rows.append({"stage": ns.STAGE_CPU_END, "reason": "snapshot_exhausted", "n_evaluated": 70, "n_pass": 70})
+    env.log.write_text("".join(json.dumps(r) + "\n" for r in rows))
+    rc, res = runk(env, 1, box=Box({IDS[40]}))
+    assert rc == 1 and res["status"] == "stop" and "snapshot exhausted" in res["error"]
+    assert len([r for r in logged(env) if r.get("session") == 1]) == 30
+
+
+def test_snapshot_exhausted_at_buffer_boundary_refuses_without_launch(env):
+    # D-084 §2.5: the CPU stage reaches the snapshot end only after buffer k-1 was full (exhaustion exactly at
+    # a buffer boundary), so buffer k is empty: session k is refused and nothing is launched
+    c = dcfg()
+    assert runk(env, 1, c=c, box=Box(set()))[0] == 0      # buffer 1 evaluated: 4 passes, k < max_sessions
+    rows = logged(env) + [{"stage": ns.STAGE_CPU_END, "reason": "snapshot_exhausted", "n_evaluated": 80,
+                           "n_pass": 80}]
+    env.log.write_text("".join(json.dumps(r) + "\n" for r in rows))
+    rc, res = runk(env, 2, c=c, ext_off=1500)
+    assert rc == 1 and "buffer 2 is empty" in res["error"] and len(env.lg.launched) == 1
+
+
+# ---------------------------------------------------------------- council D-084 (watchdog): projection
+def test_projection_recorded_in_pre_launch(env):
+    rc, res = runk(env, 1, box=Box(set()))
+    pr = res["pre_launch"]["projection"]
+    plan = dcfg()["controls"]["refclips_d084"]["main_campaign_plan_usd"]
+    assert pr["main_campaign_plan_usd"] == plan and abs(pr["this_session_planned_usd"] - 1.99 * 1.75) < 1e-6
+    assert abs(pr["projection_usd"] - (pr["campaign_spend_usd"] + plan + pr["this_session_planned_usd"])) < 1e-6
+    assert pr["cap_usd"] == 75
+
+
+def test_projection_over_cap_is_a_stop_before_launch(env):
+    c = dcfg()
+    c["controls"]["refclips_d084"]["main_campaign_plan_usd"] = 72.0      # 72 + 3.48 > 75
+    rc, res = runk(env, 1, c=c)
+    assert rc == 1 and res["status"] == "refused" and "projection" in res["error"]
+    assert "STOP to the owner" in res["error"] and env.lg.launched == []
+
+
+def test_projection_refused_once_main_campaign_started(env):
+    # the plan figure holds only before any non-NAT yct-p4b-ref launch; afterwards a human re-plans
+    gt = dcfg()["p4"]["gpu_type"]
+    rec = env.lg.launch(gt, "yct-p4b-ref-s1", 0.1, "yct-pod", None, name_deadline=True)
+    env.lg.terminate(rec["id"], "job_done")
+    rc, res = runk(env, 1)
+    assert rc == 1 and "main campaign" in res["error"] and len(env.lg.launched) == 1
+
+
+def test_projection_not_applied_to_session0(env):
+    c = dcfg()
+    c["controls"]["refclips_d084"]["main_campaign_plan_usd"] = 72.0
+    assert nat0.check_projection(c, env.lg, price=1.99, max_hours=1.75, now=env.clock(), k=0) is None
 
 
 def test_session0_path_unchanged_for_k0_default(env, tmp_path):
