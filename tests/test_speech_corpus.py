@@ -14,6 +14,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _pre_d085p2 import pre_d085p2  # noqa: E402
 
 from yct.config import load_config
 from yct.tribe_run import speech_corpus as S  # noqa: N812
@@ -192,4 +193,5 @@ def test_committed_corpus_file_matches_config_sha_and_is_deterministic():
 
 def test_synthesis_refused_until_the_corpus_sha_is_frozen():
     with pytest.raises(SystemExit, match="not frozen"):
-        S.require_frozen(CFG)
+        S.require_frozen(pre_d085p2(CFG))
+    S.require_frozen(CFG)                     # frozen at the D-085 part-2 commit

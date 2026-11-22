@@ -27,8 +27,17 @@ def test_talkface_detector_readme_and_council_weights_pins():
 
 
 def test_part2_keys_are_not_frozen_yet_and_synthesis_stays_refused():
-    for k in CFG["controls"]["refclips_d085"]["freeze_plan"]["part2"]:
-        assert not speech_corpus._frozen(CFG, k), k
+    """Before the part-2 freeze (config without its rows) synthesis is refused; after it, allowed."""
+    import copy
+
     import pytest
+
+    pre = copy.deepcopy(CFG)
+    p2 = "84d741d3d4a5dc3d4e7045ed5e0e4416e0cdc2c2"   # D-085 part-2 entry
+    pre["frozen"] = [f for f in pre["frozen"] if f.get("frozen_at") != p2]
+    for k in CFG["controls"]["refclips_d085"]["freeze_plan"]["part2"]:
+        assert not speech_corpus._frozen(pre, k), k
+        assert speech_corpus._frozen(CFG, k), k
     with pytest.raises(SystemExit, match="not frozen"):
-        speech_corpus.require_frozen(CFG)
+        speech_corpus.require_frozen(pre)
+    speech_corpus.require_frozen(CFG)

@@ -219,7 +219,8 @@ def test_face_continuation_key_terms():
 def _cfg_frozen(keys):
     c = copy.deepcopy(CFG)
     c["frozen"] = [f for f in c.get("frozen", [])
-                   if not f.get("key", "").startswith("controls.refclips_d087")]
+                   if not f.get("key", "").startswith(("controls.refclips_d087",
+                                                       "controls.refclips_d085.talkface"))]
     c["frozen"] += [{"key": k, "frozen_at": "x"} for k in keys]
     return c
 
@@ -264,9 +265,10 @@ def test_face_log_append_only_check(tmp_path):
 
 
 def test_part2_keys_still_unfrozen_until_council_resign():
+    """Frozen only at the D-085 part-2 entry commit, i.e. after the 5/5 re-sign-off (D-084 note)."""
     for k in D85["freeze_plan"]["part2"]:
         fr = [f for f in CFG.get("frozen", []) if f.get("key") == k]
-        assert fr == [], k
+        assert fr == [{"key": k, "frozen_at": "84d741d3d4a5dc3d4e7045ed5e0e4416e0cdc2c2"}], k
 
 
 # ------------------------------------------------------------------ re-sign-off (wf_77475312-b35)

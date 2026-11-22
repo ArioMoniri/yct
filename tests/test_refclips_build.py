@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from _pre_d085p2 import pre_d085p2  # noqa: E402
 
 from yct.config import load_config
 
@@ -45,7 +46,7 @@ def test_family_selection_refuses_nat_and_unfrozen_speech():
         B.select_families(CFG, ["NAT"])
     for f in ("SPK", "BURST", "TALKFACE"):
         with pytest.raises(SystemExit, match="speech corpus"):
-            B.select_families(CFG, [f])
+            B.select_families(pre_d085p2(CFG), [f])
     with pytest.raises(SystemExit, match="unknown"):
         B.select_families(CFG, ["OBJ"])
 

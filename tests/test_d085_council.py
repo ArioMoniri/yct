@@ -16,6 +16,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _pre_d085p2 import pre_d085p2  # noqa: E402
 
 from yct.config import load_config
 from yct.tribe_run import refclips58 as R  # noqa: N812
@@ -135,7 +136,7 @@ def test_speech_envelope_is_descriptive_and_tenv_must_be_frozen_before_speech_bu
     assert env["gating"] is False and env["burst_kernel_envelope"] == "per_utterance_pre_mix_hilbert"
     assert "controls.refclips_d085.tenv" in SPEC["requires_frozen_before_build"]
     with pytest.raises(SystemExit, match="not frozen"):
-        S.speech_build_preconditions(CFG)
+        S.speech_build_preconditions(pre_d085p2(CFG))
 
 
 # ---------------------------------------------------------------- (d) decoded twin differences descriptive
@@ -257,7 +258,7 @@ def test_two_part_freeze_plan():
                            "controls.refclips_d085.build1_decoded_sha_record"]   # D-086 S-22
     assert set(fp["part2"]) == {"controls.refclips_d085.speech", "controls.refclips_d085.talkface",
                                 "controls.refclips_artifacts.speech_corpus_sha256"}
-    cfg = copy.deepcopy(CFG)
+    cfg = pre_d085p2(CFG)
     cfg["frozen"] = list(cfg["frozen"]) + [{"key": k, "frozen_at": "x"} for k in fp["part1"]]
     Q.require_frozen(cfg)                                 # part 1 alone unlocks the visual rebuild
     with pytest.raises(SystemExit, match="not frozen"):
