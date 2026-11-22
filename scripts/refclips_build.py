@@ -106,18 +106,48 @@ def build_all(clips: list, out: Path, cfg: dict, images=None, sources: dict | No
     return 0
 
 
-def fetch_sources(mans: dict[str, list[dict]], cfg: dict, d: Path):
+def _sha_file(p: Path) -> str:
+    return hashlib.sha256(p.read_bytes()).hexdigest()
+
+
+def fetch_sources(mans: dict[str, list[dict]], cfg: dict, d: Path, local: list[Path] | None = None):
+    """Loader of the sha-verified source images. BUG-044: the T-LIC finalise wrote s3_key into the frozen
+    manifests but never uploaded. So: S3 copy at s3_key if present; else the pod T-LIC scratch file whose
+    content sha256 equals the manifest sha256 (matched by content only), which is then uploaded to s3_key."""
+    import shutil
+
     import cv2
 
     root = cfg["controls"]["refclips"]["s3_root"]
     d.mkdir(parents=True, exist_ok=True)
+    index: dict[str, Path] | None = None
+
+    def local_index() -> dict[str, Path]:
+        nonlocal index
+        if index is None:
+            index = {}
+            for base in local or []:
+                for f in sorted(Path(base).rglob("*")):
+                    if f.is_file():
+                        index.setdefault(_sha_file(f), f)
+        return index
 
     def load(row: dict) -> np.ndarray:
         p = d / hashlib.sha256(row["s3_key"].encode()).hexdigest()[:16]
-        if not p.exists():
-            subprocess.run(["aws", "s3", "cp", "--only-show-errors", root + row["s3_key"], str(p)],
+        if not p.exists() or _sha_file(p) != row["sha256"]:
+            try:
+                subprocess.run(["aws", "s3", "cp", "--only-show-errors", root + row["s3_key"], str(p)],
+                               check=True)
+            except subprocess.CalledProcessError:
+                pass
+        if not p.exists() or _sha_file(p) != row["sha256"]:
+            src = local_index().get(row["sha256"])
+            if src is None:
+                raise SystemExit(f"no source with the manifest sha256 for {row['title']!r}")
+            shutil.copyfile(src, p)
+            subprocess.run(["aws", "s3", "cp", "--only-show-errors", str(p), root + row["s3_key"]],
                            check=True)
-        if hashlib.sha256(p.read_bytes()).hexdigest() != row["sha256"]:
+        if _sha_file(p) != row["sha256"]:
             raise SystemExit(f"source sha256 mismatch for {row['title']!r}")
         bgr = cv2.imread(str(p), cv2.IMREAD_COLOR)
         if bgr is None:
@@ -157,6 +187,8 @@ def main() -> int:
     ap.add_argument("out", type=Path)
     ap.add_argument("--families", nargs="*")
     ap.add_argument("--sources", type=Path, default=Path("/work/yct/refclips_sources"))
+    ap.add_argument("--local", type=Path, nargs="*", default=[Path("/work/yct/refstim_auto_scratch")],
+                    help="T-LIC scratch dirs searched by content sha256 (BUG-044)")
     a = ap.parse_args()
     cfg = load_config()
     fams = select_families(cfg, a.families)
@@ -164,7 +196,7 @@ def main() -> int:
     images, sources = None, {}
     if "LOC" in fams:
         mans = check_image_manifests(cfg)
-        images = locimg.loc_images(mans, fetch_sources(mans, cfg, a.sources), cfg)
+        images = locimg.loc_images(mans, fetch_sources(mans, cfg, a.sources, local=a.local), cfg)
         sources = {"image_manifest_sha256": cfg["controls"]["refclips_artifacts"]["image_manifest_sha256"]}
     rc = build_all(clips, a.out, cfg, images=images, sources=sources)
     if rc == 0 and "LOC" in fams:
