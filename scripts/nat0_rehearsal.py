@@ -114,7 +114,9 @@ def main(argv: list[str] | None = None) -> int:
     if r.returncode != 0:
         return 1
     py = str(box / "wxvenv" / "bin" / "python")
-    env = {**os.environ, "PYTHONPATH": str(box / "src")}
+    # as `source wxvenv/bin/activate` on the box: yct.transcribe runs the venv's `whisperx` CLI
+    env = {**os.environ, "PYTHONPATH": str(box / "src"), "VIRTUAL_ENV": str(box / "wxvenv"),
+           "PATH": f"{box / 'wxvenv' / 'bin'}:{os.environ.get('PATH', '')}"}
     # c: exact mirror sync + check_mirror on the frozen shas
     mirror = box / "nat" / "mirror"
     r = sh(f"mkdir -p {mirror} && {drv.mirror_sync_cmd(cfg, str(mirror) + '/')}")

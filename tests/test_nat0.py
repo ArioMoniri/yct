@@ -106,7 +106,7 @@ def test_patched_config_points_at_mirror(tmp_path):
         (m / nb.REPOS["plda"] / "plda" / f).write_bytes(b"x")
     f = nb.patched_config(m, tmp_path / "w")
     p = yaml.safe_load(f.read_text())["pipeline"]["params"]
-    assert p["segmentation"].startswith(str(m)) and p["embedding"].endswith("pytorch_model.bin")
+    assert p["segmentation"].startswith(str(m)) and p["embedding"]["checkpoint"].endswith("pytorch_model.bin")
 
 
 def test_patched_config_refuses_unexpected_models(tmp_path):

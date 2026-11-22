@@ -1,0 +1,63 @@
+{
+ "git_head": "f4211eaae292c1262b3960d1c0eaccfe82f18dd5",
+ "ok": false,
+ "steps": {
+  "a_buffer_files": {
+   "bad": [],
+   "complete": true,
+   "n_buffer": 40,
+   "ok": true
+  },
+  "b_ship_uv_venv": {
+   "err": "downloading uv 0.13.9 x86_64-unknown-linux-gnu\nWARN: The following commands are shadowed by other commands in your PATH: uv uvx\n",
+   "n_files": 30,
+   "ok": true,
+   "tarball_sha256": "54493872765afc574a103d6f84afaac2786081fca64dce6e7fc898c144f374f2",
+   "work": "/work/yct/nat0_rehearsal/r_4zoh2u16"
+  },
+  "c_mirror": {
+   "err": "",
+   "ok": true,
+   "shas": {
+    "diarization": "0f66ffc1f5de057eb8d0a6a16d01e49695a43457484b3301f407780208d05af2",
+    "embedding": "519a3249b87205b64910678ac968c27fa91d1deb252d15136f12cf4a5ce8f84e",
+    "plda": "53df9c188dd21b02cd629aff5f63b1509958aad5251f2fcdea0ef8c02c75835e",
+    "segmentation": "702a51c693b35998715c383c11bd5678791367772e3b5c124a52bac778ee7733"
+   }
+  },
+  "d_nat0_box_cpu": {
+   "err": "audio/pipelines/speaker_verification.py\", line 768, in PretrainedSpeakerEmbedding\n    return ONNXWeSpeakerPretrainedSpeakerEmbedding(\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/work/yct/nat0_rehearsal/r_4zoh2u16/yct/wxvenv/lib/python3.11/site-packages/pyannote/audio/pipelines/speaker_verification.py\", line 443, in __init__\n    self.to(device or torch.device(\"cpu\"))\n  File \"/work/yct/nat0_rehearsal/r_4zoh2u16/yct/wxvenv/lib/python3.11/site-packages/pyannote/audio/pipelines/speaker_verification.py\", line 472, in to\n    self.session_ = ort.InferenceSession(\n                    ^^^^^^^^^^^^^^^^^^^^^\n  File \"/work/yct/nat0_rehearsal/r_4zoh2u16/yct/wxvenv/lib/python3.11/site-packages/onnxruntime/capi/onnxruntime_inference_collection.py\", line 694, in __init__\n    self._create_inference_session(providers, provider_options, disabled_optimizers)\n  File \"/work/yct/nat0_rehearsal/r_4zoh2u16/yct/wxvenv/lib/python3.11/site-packages/onnxruntime/capi/onnxruntime_inference_collection.py\", line 753, in _create_inference_session\n    sess = C.InferenceSession(session_options, self._model_path, True, self._read_config_from_model)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nonnxruntime.capi.onnxruntime_pybind11_state.InvalidProtobuf: [ONNXRuntimeError] : 7 : INVALID_PROTOBUF : Load model from /work/yct/nat0_rehearsal/r_4zoh2u16/yct/nat/mirror/wespeaker-voxceleb-resnet34-LM/pytorch_model.bin failed:Protobuf parsing failed.\n",
+   "n": 3,
+   "n_turns": {},
+   "ok": false,
+   "out_bytes": 0,
+   "p_en": {},
+   "rc": 1,
+   "stdout": "",
+   "whisper_model": null
+  },
+  "e_offline": {
+   "err": "  File \"/work/yct/nat0_rehearsal/r_4zoh2u16/yct/src/yct/curate/nat0_box.py\", line 79, in enforce_offline\n    importlib.import_module(\"huggingface_hub\").constants.HF_HUB_OFFLINE = True\n    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/work/yct/nat0_rehearsal/r_4zoh2u16/yct/wxvenv/lib/python3.11/site-packages/huggingface_hub/__init__.py\", line 1059, in __getattr__\n    raise AttributeError(f\"No {package_name} attribute {name}\")\nAttributeError: No huggingface_hub attribute constants\n",
+   "ok": false,
+   "out": ""
+  },
+  "f_transcribe_cpu": {
+   "err": "call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"/work/yct/nat0_rehearsal/r_4zoh2u16/yct/src/yct/transcribe/__main__.py\", line 65, in <module>\n    raise SystemExit(main())\n                     ^^^^^^\n  File \"/work/yct/nat0_rehearsal/r_4zoh2u16/yct/src/yct/transcribe/__main__.py\", line 50, in main\n    res = transcribe_whisperx_batch(a.wavs, a.out_dir, cfg)\n          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/work/yct/nat0_rehearsal/r_4zoh2u16/yct/src/yct/transcribe/core.py\", line 210, in transcribe_whisperx_batch\n    run(cmd)\n  File \"/work/yct/nat0_rehearsal/r_4zoh2u16/yct/src/yct/transcribe/core.py\", line 208, in <lambda>\n    run = runner or (lambda c: subprocess.run(c, check=True))\n                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.local/share/uv/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/subprocess.py\", line 548, in run\n    with Popen(*popenargs, **kwargs) as process:\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/root/.local/share/uv/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/subprocess.py\", line 1026, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/root/.local/share/uv/python/cpython-3.11.18-linux-x86_64-gnu/lib/python3.11/subprocess.py\", line 1955, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'whisperx'\n",
+   "files": [],
+   "ok": false,
+   "rc": 1
+  },
+  "g_n3": {
+   "err": "",
+   "ok": true,
+   "value": 0.2
+  },
+  "h_session0_rows_dry": {
+   "decisions": [],
+   "log_unchanged": true,
+   "n_rows": 0,
+   "ok": false,
+   "stop": null
+  }
+ }
+}

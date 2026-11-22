@@ -406,3 +406,55 @@ def test_setup_verify_requires_one_speaker_on_the_single_voice_fixture():
     assert setup.fixture_ok(one, 1) and not setup.fixture_ok(two, 1)
     assert setup.fixture_ok(two, 2) and not setup.fixture_ok(one, 2)
     assert hasattr(setup, "one_voice_fixture")
+
+
+# ---------------------------------------------------------------- BUG-042 (pod rehearsal): embedding loader
+def test_patched_config_passes_the_embedding_as_a_checkpoint_dict(tmp_path):
+    """pyannote.audio 4.1.0 PretrainedSpeakerEmbedding picks the loader by substring: a str path containing
+    'wespeaker' but not 'pyannote' goes to the ONNX WeSpeaker loader and fails on the pinned .bin. A dict
+    {checkpoint: path} always takes the pyannote Model loader, whatever the mirror dir is called."""
+    import yaml
+
+    from tests.test_nat0_d082 import mirror
+
+    m = mirror(tmp_path / "nat")                         # a box-like path with no 'pyannote' in it
+    p = yaml.safe_load(nb.patched_config(m, tmp_path / "w").read_text())["pipeline"]["params"]
+    assert p["embedding"] == {"checkpoint": str(m / nb.REPOS["embedding"] / "pytorch_model.bin")}
+    assert "pyannote" not in str(m)
+
+
+def test_load_pipeline_refuses_a_non_pyannote_embedding_loader(monkeypatch, tmp_path):
+    torch = types.ModuleType("torch")
+    torch.device = lambda d: d
+    pa = types.ModuleType("pyannote.audio")
+
+    class Onnx:
+        pass
+
+    class Pipe:
+        _embedding = Onnx()
+
+        def to(self, d):
+            return self
+
+    pa.Pipeline = types.SimpleNamespace(from_pretrained=lambda p: Pipe())
+    monkeypatch.setitem(sys.modules, "torch", torch)
+    monkeypatch.setitem(sys.modules, "pyannote", types.ModuleType("pyannote"))
+    monkeypatch.setitem(sys.modules, "pyannote.audio", pa)
+    monkeypatch.setattr(nb, "enforce_offline", lambda: None)
+    monkeypatch.setattr(nb, "patched_config", lambda m, w: tmp_path / "c.yaml")
+    with pytest.raises(SystemExit, match="embedding loader"):
+        nb.load_pipeline(tmp_path, tmp_path, "cpu")
+    Onnx.__name__ = "PyannoteAudioPretrainedSpeakerEmbedding"
+    assert isinstance(nb.load_pipeline(tmp_path, tmp_path, "cpu"), Pipe)
+
+
+def test_enforce_offline_imports_the_constants_submodule(monkeypatch):
+    """huggingface_hub is a lazy module: `huggingface_hub.constants` is not an attribute until the submodule
+    is imported (the pod rehearsal hit AttributeError)."""
+    consts = types.SimpleNamespace(HF_HUB_OFFLINE=False)
+    hub = types.ModuleType("huggingface_hub")         # no .constants attribute, like the lazy module
+    monkeypatch.setitem(sys.modules, "huggingface_hub", hub)
+    monkeypatch.setitem(sys.modules, "huggingface_hub.constants", consts)
+    nb.enforce_offline()
+    assert consts.HF_HUB_OFFLINE is True

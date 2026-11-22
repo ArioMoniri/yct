@@ -61,7 +61,9 @@ def patched_config(mirror: Path, out_dir: Path) -> Path:
     if missing:
         raise SystemExit(f"incomplete plda mirror {plda}: missing {missing}")
     p["segmentation"] = str(mirror / REPOS["segmentation"] / "pytorch_model.bin")
-    p["embedding"] = str(mirror / REPOS["embedding"] / "pytorch_model.bin")
+    # BUG-042: 4.1.0 PretrainedSpeakerEmbedding picks its loader by substring ("pyannote" -> pyannote Model,
+    # else "wespeaker" -> ONNX). A dict always takes the pyannote Model loader, whatever the mirror path is.
+    p["embedding"] = {"checkpoint": str(mirror / REPOS["embedding"] / "pytorch_model.bin")}
     p["plda"] = str(plda)     # explicit, so 4.1.0 never reaches for the unpinned hub default
     out_dir.mkdir(parents=True, exist_ok=True)
     f = out_dir / "config.yaml"
@@ -76,7 +78,8 @@ def enforce_offline() -> None:
     os.environ["HF_HUB_OFFLINE"] = "1"
     import importlib
 
-    importlib.import_module("huggingface_hub").constants.HF_HUB_OFFLINE = True
+    # huggingface_hub is a lazy module: import the submodule itself (BUG-042, pod rehearsal)
+    importlib.import_module("huggingface_hub.constants").HF_HUB_OFFLINE = True
 
 
 def load_pipeline(mirror: Path, work: Path, device: str = "cpu"):
@@ -87,6 +90,9 @@ def load_pipeline(mirror: Path, work: Path, device: str = "cpu"):
     pipe = Pipeline.from_pretrained(str(patched_config(mirror, work)))
     if pipe is None:
         raise SystemExit("pyannote Pipeline.from_pretrained returned None")
+    emb = type(getattr(pipe, "_embedding", None)).__name__
+    if emb != "PyannoteAudioPretrainedSpeakerEmbedding":     # BUG-042: the pinned .bin, pyannote loader
+        raise SystemExit(f"unexpected pyannote embedding loader {emb}")
     return pipe.to(torch.device(device))
 
 
