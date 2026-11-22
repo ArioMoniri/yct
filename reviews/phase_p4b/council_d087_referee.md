@@ -38,3 +38,10 @@ Verdict: **REVISE**, with one blocking item. I read d087_v2.md, the response mat
   - check that `refstim_auto_run.py run --target <cat>=20` is a no-op.
 
   Also default `--local` to include `SCRATCH`.
+
+## Final sign-off (smoke be85468/d7a416c, fixes 2f7e071, record bfa0abe)
+
+Verdict: **APPROVE**. I read d087_smoke.md, outputs/runs/d087_smoke/, d087_v2.md §9 and the four commits. I read nothing sealed. The d087 tests pass (37).
+- R1 is closed. Part (a) loaded and sha-checked 60/60 sources through the real loader. Part (b) found all 180 real patches equal to `loc_images` and `loc_frames`. Part (c) used the pinned `t_lic_yunet` only on reject rows (5/5) and a grey patch, never on a slot patch. Part (d) was a byte-identical no-op. `--local` now includes SCRATCH. smoke_meta.txt pins run commit d7a416c and the unchanged v4 shas.
+- No re-smoke is needed after 2f7e071. The url-path suffix changes only `file`/`s3_key`. `load` keys its cache on the s3_key hash, misses on S3 either way, and falls back by content sha256. It then decodes with cv2 regardless of extension, so the screen gets the same bytes and the same pixels. `upload=False` in `main()` is the same flag the smoke already ran. Neither fix touches patch, SHINE, render or YuNet.
+- Non-blocking: the builder's v2 upload and name path is still unrun. `rebuild_identity.loc` (patch sha = screen record) catches any slip there, so a slip ends in a STOP, not a silent error. An optional cheap check is to re-run part (a) at HEAD before the screen.

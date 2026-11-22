@@ -48,3 +48,10 @@ Without (ii), the build is not tied to what was screened. Any mismatch is a fina
    - Run the driver's `t_lic_yunet` and `to_bgr640` path on non-candidate v4 rows with a known T-LIC YuNet result: place P2 `face_detected` (2 rows) must detect, and a few face F1 `no_face_detected` rows must not.
    - Run the real `fetch_sources`, `patch`, `shine` and `rendered_loc_patches` once on synthetic or v1 inputs, with no YuNet call on candidates.
    - Write the cv2, onnxruntime and ffmpeg versions and the result into the screen record's `inputs`.
+
+## Final sign-off (d087_smoke.md, outputs/runs/d087_smoke/, d087_v2.md §9, be85468 d7a416c 2f7e071 bfa0abe; tests/test_d087*.py: 57 passed)
+
+**Verdict: APPROVE.** The real-path smoke closes my blocking item. Run at d7a416c on the pod: (a) 60/60 passes load and sha-check, (b) 180 rendered entries are pixel-equal to `loc_images`/`loc_frames`, (c) the sha-pinned `t_lic_yunet` reproduces 5/5 logged T-LIC counts (F1 0/3/5, P2 1/1) and gives 0 on grey, (d) `--target` is a no-op. The v4 logs and `data/refstim` are unchanged, and the cv2, ffmpeg and onnxruntime(none) versions are recorded.
+- **No re-smoke needed after 2f7e071.** It changes only the v2 `file`/`s3_key` suffix (`urlparse`, tested) and adds `upload=False` to the screen loader, which the smoke itself already ran with. Neither change touches patch, SHINE, render, `to_bgr640` or YuNet, and the loader matches sources by content sha, not by name. The new names are first exercised by the builder, and a failure there is a crash, so it is recoverable.
+- The positive YuNet rows go through `resize_long` rather than `to_bgr640`. That is acceptable because the screen and the final decoded QC share `refclips_qc85.to_bgr640`, and patches are grey, so a channel-order error is impossible. The silent screen-vs-QC under-detection I was worried about cannot come from that shared code.
+- Nit (non-blocking): d087_smoke.md and §9 date the smoke and the owner notice "2026-11-23", but the commits are dated 2026-11-22 (UTC). Correct the date or give its timezone in the record.
