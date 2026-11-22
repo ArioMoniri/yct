@@ -1,0 +1,23 @@
+# Council D-082 + T-NAT0 session-0 readiness: referee (2026-11-22)
+
+**Verdict: REVISE.** D-082 itself is acceptable as drafted. Session 0 is not ready to launch: the real PodBox path has defects that the fakes cannot see. Tests pass locally (test_gpu_p4b_nat0 + test_nat0_d082: 31 passed).
+
+## (1) D-082: accept as drafted
+- Owner chose (a) and accepted the gate. The pin is an immutable 40-hex sha, only `plda/*` is mirrored, and the PLDA is passed explicitly, so 4.1.0 never needs the hub default. `patched_config` refuses non-Agglomerative clustering and an incomplete PLDA dir, and the schema pins the repo/subfolder/clustering literals. The verify gate is now stricter (exactly 2 speakers). The disclosure (§5) and the two-commit freeze plan (§6) are right.
+- The soundfile -> `wave` change is a needed fix. Side effect: `read_wav` now refuses non-PCM16. normalize writes `pcm_s16le`, so this is fine, but N1/N2 now depend on it (it fails closed).
+- Non-blocking: in the v1 report, say that "PLDA unused" rests on a reading of the 4.1.0 source plus the `plda_loaded`/`clustering` log, not on an A/B run.
+
+## (2) Session 0: blocking items
+1. **Code is not shipped to the box.** `PodBox` ships `gpu_p0_rerun.SHIP` + `infra/gpu_deadman.sh`. That list has no `src/yct/curate/` (so `python -m yct.curate.nat0_box` fails with ModuleNotFoundError) and no `outputs/runs/wave1p2b_20261117T234829Z/wx_pip_freeze.txt` (so `setup_wx` `-r` fails). Add both, plus a test that checks the ship list.
+2. **uv is never installed.** `setup_wx` runs `$HOME/.uvbin/uv`, but only `remote_setup.sh` (the TRIBE setup step, which PodBox does not run) installs it. A fresh box exits at step 1. Install it the way remote_setup.sh lines 18-21 do.
+3. **The P2b CUDA/NLTK env is missing.** P2b's asr step exported `LD_LIBRARY_PATH` with the wxvenv cudnn/cublas libs and downloaded `punkt_tab`. PodBox's `nat0` (faster-whisper on cuda) and `asr` steps do neither. Copy the P2b lines.
+4. **"Offline" is not actually in force on the box.** `nat0_box.main` imports faster_whisper (and with it huggingface_hub) before `load_pipeline` sets `os.environ["HF_HUB_OFFLINE"]`. huggingface_hub reads that variable at import time. The pod verify did not import faster_whisper first, so it did not test this order. Fix: also set `huggingface_hub.constants.HF_HUB_OFFLINE=True` before the pipeline loads, or load large-v3 from a local dir. Add a test for the order.
+5. **An asr failure is masked.** If `asr` raises after `nat0` returns, `gpu` is set, so the rows are logged and `status` is overwritten to "done" with exit 0. A re-run is then refused, because the rows are logged. Keep the step error, and return 1 (a human decides) when any step after nat0 failed. Add a test.
+6. **The partial-buffer launch must be refused.** `check_buffer` accepts 1..40 passes, while D-075 §3 says the fixed 40-buffer. Require `len == cpu_buffer`, or a logged snapshot-exhausted marker. Logged candidates are never re-evaluated, so an early launch on the still-filling buffer cannot be undone.
+7. **D-071 (k) L4 ledger reconciliation** is not in the driver or in t_nat0_ready.md. Before launch, record it as an explicit pre-launch step, with its output committed.
+8. Rewrite t_nat0_ready.md after D-082 is frozen: §2 still says STOP, and §3 still lists three shas, not four plus `refclips_d082`.
+
+## Minimum extra check before launch (the real path is untested)
+- Run one **pod-side CPU rehearsal of the exact PodBox command strings**: unpack the real `ship_code` tarball into a fresh dir with a fresh `$HOME`-style uv path, then run `setup_wx`, then `nat0_box --device cpu` on 2 real buffer wavs taken from the `push_buffer` source path, with the frozen four shas. Then run `yct.transcribe` on 1 wav.
+- In the same check, confirm that `/work/yct/nat_scratch/t1/{audio16k,*.mp4}` is the natcpu.sh scratch dir and holds all buffer files, and that the S3 mirror sync reproduces the four dir_shas.
+- Commit the log. This costs $0 and covers items 1-4. CUDA-only behaviour stays a risk, which exit 75 handles.
