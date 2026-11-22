@@ -195,3 +195,58 @@ About 8,300 units used of the daily ~10,000 (about 70 search.list calls plus abo
 - **Exa/LinkedIn is saturated**: most relevant posts had already been reviewed. Several promising posts had no native video, a dead short link (404 target), or a demo rather than a founder video.
 - **Old published applications**: some founder videos are now private or deleted, and some application PDFs omit the video URL.
 - **Unverified fields**: two of the conf-A rows rest on a directory batch match for the upload's application window, with no batch stated by the founder. One founder match goes through a channel name that differs from the directory's short form, and that name was confirmed via LinkedIn and an investor page. Details are in the sealed notes.
+
+## Round 7 (2026-11-22, append-only)
+
+Data Curator, blind to study hypotheses. Appended 6 new pool rows `yct_0728`..`yct_0733` (wave=2, collected_after_lock=PENDING). Every company is disjoint from `data/manifest.csv` and from all earlier pool rows. Disjointness was checked by company_id, by fuzzy company-name match (including YC-directory former names), and by video id / LinkedIn activity id / X status id against both manifests and both exclusion lists. Three fuzzy name hits were checked by hand and are different companies. One video per company: 6 rows = 6 companies. No outcome breakdowns appear in this file. Labels and evidence are only in `data/sealed/sealed_w2pool_part8.tar.age` (yct_0728..0732) and `data/sealed/sealed_w2pool_part9.tar.age` (yct_0733). The plaintext was shredded after each encryption.
+
+### Counts by label confidence x era (round-7 rows, one per company)
+
+| confidence | E1 | E2 | E3 | UNKNOWN | total |
+|---|---|---|---|---|---|
+| A (in_primary=True) | 0 | 0 | 5 | 1 | 6 |
+| not A | 0 | 0 | 0 | 0 | 0 |
+| total | 0 | 0 | 5 | 1 | 6 |
+
+The one-per-company counts are the same (6 distinct companies, 6 conf-A). The UNKNOWN-era row has no batch stated by the poster. Platforms: 4 rows from X (native video in a founder's own post) and 2 from LinkedIn (native video in a founder's own post). No YouTube row qualified this round.
+
+### Sources used
+- **X (new source this round)**:
+  - Candidate posts were found through Exa searches over X mirror pages (24vids, nitter-style mirrors, twstalker).
+  - Status ids were resolved from mirror profile and media pages. The mirrors' search page requires an interactive check, so it was not used.
+  - Each post was verified through the public `cdn.syndication.twimg.com` tweet-result JSON: author handle, date, native-video presence and duration, and post text.
+- **Exa web search**: about 25 queries, including LinkedIn founder posts, X mirror pages, Loom/Vimeo, and founder blogs.
+- **LinkedIn**: public post pages, checked through their VideoObject metadata (duration, author, text).
+- **YouTube Data API v3**:
+  - 14 order=date `Y Combinator` windows around 2022–2026 application deadlines (`videoDuration=short`).
+  - 11 order=date `application video` windows around 2024–2026 deadlines.
+  - 12 new phrasings, for example "Founders Video YCombinator", "Y-Combinator intro video" and "YC submission video".
+  - commentThreads.list on 144 new application-like candidates.
+  - Small videos/channels/playlistItems checks.
+  - All candidates were matched against the yc-oss directory dump, including former names. None reached conf-A: application-like uploads had no directory match and no founder-stated outcome.
+- **Other**:
+  - ycarena.com's public curated list (102 video ids). All were already in a manifest or an exclusion list.
+  - Hacker News Algolia (1 item lookup).
+  - YC directory company pages for batch and founders.
+  - Founder blogs (web fetch).
+
+### YouTube API units
+About 3,900 units used (about 37 search.list calls plus 144 commentThreads calls and small detail calls). No 403 quotaExceeded was hit.
+
+### Exclusions
+80 reviewed candidates were appended to `exclusions.csv`, with reason categories only and no outcome words in any written URL. The main reasons were:
+- no stated outcome / no directory match (C)
+- no native video in post
+- company already in a manifest
+- non-English metadata
+- unclear whether the attached clip is the submitted video
+
+### Blockers / caveats
+- **YouTube is saturated**: deadline-window and new-phrasing searches surfaced about 25 application-like uploads, and none had a directory match or a stated outcome.
+- **LinkedIn via Exa is saturated**: almost every relevant post had already been reviewed in earlier rounds.
+- **X**: posts are not indexed by the standard web search. Discovery depends on Exa coverage of mirror sites. Old status ids could only be resolved by paging a founder's mirror profile.
+- **Unverified fields**:
+  - Three conf-A rows rest on the founder presenting the clip as their YC founder video, plus a directory batch match. The batch is not stated in the post text; for two rows it comes from the founder's profile bio.
+  - One row's format is unusual: a sung video that the founder says they applied with.
+  - Audio language of the X/LinkedIn rows is recorded as UNKNOWN, following the earlier convention.
+  - Details are in the sealed notes.
