@@ -283,10 +283,12 @@ def _sha_file(p: Path) -> str:
     return hashlib.sha256(p.read_bytes()).hexdigest()
 
 
-def fetch_sources(mans: dict[str, list[dict]], cfg: dict, d: Path, local: list[Path] | None = None):
+def fetch_sources(mans: dict[str, list[dict]], cfg: dict, d: Path, local: list[Path] | None = None,
+                  upload: bool = True):
     """Loader of the sha-verified source images. BUG-044: the T-LIC finalise wrote s3_key into the frozen
     manifests but never uploaded. So: S3 copy at s3_key if present; else the pod T-LIC scratch file whose
-    content sha256 equals the manifest sha256 (matched by content only), which is then uploaded to s3_key."""
+    content sha256 equals the manifest sha256 (matched by content only), which is then uploaded to s3_key.
+    upload=False (D-087 smoke): read only, never writes to S3."""
     import shutil
 
     import cv2
@@ -318,8 +320,9 @@ def fetch_sources(mans: dict[str, list[dict]], cfg: dict, d: Path, local: list[P
             if src is None:
                 raise SystemExit(f"no source with the manifest sha256 for {row['title']!r}")
             shutil.copyfile(src, p)
-            subprocess.run(["aws", "s3", "cp", "--only-show-errors", str(p), root + row["s3_key"]],
-                           check=True)
+            if upload:
+                subprocess.run(["aws", "s3", "cp", "--only-show-errors", str(p), root + row["s3_key"]],
+                               check=True)
         if _sha_file(p) != row["sha256"]:
             raise SystemExit(f"source sha256 mismatch for {row['title']!r}")
         bgr = cv2.imread(str(p), cv2.IMREAD_COLOR)

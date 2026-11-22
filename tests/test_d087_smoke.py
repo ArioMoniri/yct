@@ -90,7 +90,7 @@ def _v1_world():
     cfg = load_config()
     n = int(cfg["controls"]["refclips"]["loc_per_category"])
     mans, rows = {}, {}
-    for j, c in enumerate(CATS):
+    for c in CATS:
         mans[c], rows[c] = [], []
         for k in range(n):
             t = f"{c}_{k}"
@@ -119,7 +119,7 @@ def test_smoke_render_equals_the_builder_path():
     drv = _mod("locscreen_v2", "scripts/locscreen_v2.py")
     cfg, mans, rows = _v1_world()
     load_v1, load_cand = _loaders()
-    res = drv.smoke_render(cfg, mans, rows, load_v1, load_cand)
+    res = drv.smoke_render(cfg, mans, rows, load_v1, load_cand, max_clips=1)
     assert res["equal_to_loc_images"] is True and res["equal_to_loc_frames"] is True
     n_loc = sum(c.family == "LOC" for c in R.plan(cfg))
     assert res["n_entries"] == 3 * n_loc * len(next(c for c in R.plan(cfg) if c.family == "LOC").events)
@@ -138,7 +138,7 @@ def test_smoke_render_fails_closed_on_a_different_patch():
             x[30, 30] ^= 1
         return x
     with pytest.raises(SystemExit, match="loc_images"):
-        drv.smoke_render(cfg, mans, rows, load_v1, bad)
+        drv.smoke_render(cfg, mans, rows, load_v1, bad, max_clips=1)
 
 
 def test_smoke_render_maps_v1_titles_to_v4_passes_by_source_sha():
@@ -146,7 +146,7 @@ def test_smoke_render_maps_v1_titles_to_v4_passes_by_source_sha():
     cfg, mans, rows = _v1_world()
     rows["place"] = [r for r in rows["place"] if r.get("source_sha256") != "place7"]
     with pytest.raises(SystemExit, match="not a v4 pass"):
-        drv.smoke_render(cfg, mans, rows, *_loaders())
+        drv.smoke_render(cfg, mans, rows, *_loaders(), max_clips=1)
 
 
 # ---- smoke (c): YuNet only on non-candidate reject rows and a uniform grey patch ----
@@ -228,5 +228,5 @@ def test_locimg_patch_is_used_by_smoke_render(monkeypatch):
     called = []
     real = locimg.patch
     monkeypatch.setattr(locimg, "patch", lambda *a, **k: called.append(1) or real(*a, **k))
-    drv.smoke_render(cfg, mans, rows, *_loaders())
+    drv.smoke_render(cfg, mans, rows, *_loaders(), max_clips=1)
     assert len(called) >= 60
