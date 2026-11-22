@@ -208,11 +208,15 @@ def assert_byte_prefix(prefix_sha256: str, prefix_len: int, log: Path) -> None:
                          "STOP to the owner")
 
 
+TALKFACE_SKIPS = Path("data/refstim/talkface_skips.jsonl")   # committed s3fd/Wav2Lip skip log (watchdog)
+
+
 def _frozen_key(cfg: dict, key: str) -> bool:
     return any(key == f.get("key") or key.startswith(f.get("key", "") + ".") for f in cfg.get("frozen", []))
 
 
-def effective_need(cat: str, targets: dict[str, int], need: int, cfg: dict, purpose: str = "loc") -> int:
+def effective_need(cat: str, targets: dict[str, int], need: int, cfg: dict, purpose: str = "loc",
+                   skips: list[dict] | None = None) -> int:
     """Passes to reach in `cat`: the frozen loc_per_category, or a continuation target past it (the same v4
     log, same order, same frozen rules; only a larger stop count). purpose "loc": D-087 (frozen) and its cap.
     purpose "talkface": D-085 part 2 `talkface.face_continuation` (frozen), face only, its own budget:
@@ -231,6 +235,14 @@ def effective_need(cat: str, targets: dict[str, int], need: int, cfg: dict, purp
         top = min(fc["first_target"] + fc["max_skips"], need + fc["max_extra_passes"])
         if t > top:
             raise SystemExit(f"face: target {t} > {top} (first_target + max_skips): STOP to the owner")
+        allowed = set(cfg["controls"]["refclips_d085"]["talkface"]["face_rule"]["skip_on"])
+        sk = list(skips or [])
+        extra = t - fc["first_target"]
+        if extra > 0 and (len(sk) != extra or any(x.get("reason") not in allowed or not x.get("title")
+                                                  for x in sk)):
+            raise SystemExit(f"face: target {t} needs {extra} logged skip(s) with a skip_on reason: STOP")
+        if sk:
+            print("talkface skips:", json.dumps(sk), flush=True)
         return t
     if not _frozen_key(cfg, "controls.refclips_d087"):
         raise SystemExit("controls.refclips_d087 is not frozen: no continuation past the frozen count")
@@ -282,7 +294,9 @@ def run(model_dir: Path, scratch: Path, targets: dict[str, int] | None = None, p
     targets = targets or {}
     ran: list[str] = []
     for cat in d9["category_order"]:
-        need = effective_need(cat, targets, rc["loc_per_category"], cfg, purpose)
+        sk_path = ROOT / TALKFACE_SKIPS
+        skips = _read_jsonl(sk_path) if purpose == "talkface" and sk_path.exists() else []
+        need = effective_need(cat, targets, rc["loc_per_category"], cfg, purpose, skips)
         log_path = ROOT / rs.image_log_v2(cat, cfg)
         pre = log_path.read_bytes() if log_path.exists() else b""   # append-only: checked after the category
         priors = [(Path(q).name, {r["title"]: r for r in _read_jsonl(ROOT / q)})

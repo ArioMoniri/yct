@@ -209,7 +209,8 @@ def test_face_continuation_key_terms():
     fc = TF["face_continuation"]
     assert fc == {
         "authority": "D-085 part 2", "separate_from": "D-087", "log": "v4_face_log",
-        "first_target": 21, "plus_one_per_skip": True, "max_skips": 5, "max_extra_passes": 20,
+        "first_target": 21, "plus_one_per_skip": True, "max_skips": 5,
+        "skips_log": "required_above_first_target", "max_extra_passes": 20,
         "after_rank": 492, "same_frozen_rules": True, "append_only": True,
         "existing_rows_byte_identical": True, "committed_before_wav2lip": True,
         "yunet_replacement": False, "on_exhausted": "stop_owner"}
@@ -230,7 +231,8 @@ def test_talkface_purpose_needs_part2_frozen_and_has_its_own_budget():
         r.effective_need("face", {"face": 21}, 20, unfrozen, purpose="talkface")
     frozen = _cfg_frozen(["controls.refclips_d085.talkface"])
     assert r.effective_need("face", {"face": 21}, 20, frozen, purpose="talkface") == 21
-    assert r.effective_need("face", {"face": 26}, 20, frozen, purpose="talkface") == 26   # 21 + 5 skips
+    five = [{"title": f"File:{i}.jpg", "reason": "s3fd_no_face"} for i in range(5)]
+    assert r.effective_need("face", {"face": 26}, 20, frozen, purpose="talkface", skips=five) == 26
     with pytest.raises(SystemExit, match="STOP"):
         r.effective_need("face", {"face": 27}, 20, frozen, purpose="talkface")   # > 5 skips
     with pytest.raises(SystemExit, match="face only"):
@@ -293,7 +295,8 @@ def test_target_above_21_needs_a_logged_skip_per_extra_pass():
     frozen = _cfg_frozen(["controls.refclips_d085.talkface"])
     with pytest.raises(SystemExit, match="skip"):
         r.effective_need("face", {"face": 23}, 20, frozen, purpose="talkface", skips=[])
-    ok = [{"title": "File:a.jpg", "reason": "s3fd_no_face"}, {"title": "File:b.jpg", "reason": "wav2lip_error"}]
+    ok = [{"title": "File:a.jpg", "reason": "s3fd_no_face"},
+          {"title": "File:b.jpg", "reason": "wav2lip_error"}]
     assert r.effective_need("face", {"face": 23}, 20, frozen, purpose="talkface", skips=ok) == 23
     bad = [{"title": "File:a.jpg", "reason": "looked_wrong"}, ok[1]]
     with pytest.raises(SystemExit, match="skip"):

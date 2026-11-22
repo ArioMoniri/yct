@@ -634,6 +634,8 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
         jit_fallback: false      # a strict failure is a STOP, never a silent jit wrapper
         gan_allowed: false
         check_record: outputs/runs/d085p2_loader_check/loader_check.json   # 352/352 keys, max |diff| 0.0
+        blob_sha1: 43f805e8e1a3066ca138251a47aea814639fdc3b   # hash-object of the loader module (neuro)
+        check_record_sha256: d4e7d0389ec4712865e8ec4612d8e40b6f314edaf1a31161c53039863b65898a
       face_continuation:         # council part 2: named here, separate from D-087 (LOC screen only)
         authority: D-085 part 2
         separate_from: D-087
@@ -641,6 +643,7 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
         first_target: 21         # refstim_auto_run.py run ... --purpose talkface --target face=21
         plus_one_per_skip: true
         max_skips: 5
+        skips_log: required_above_first_target   # watchdog: each pass above 21 needs a logged skip_on reason
         max_extra_passes: 20
         after_rank: 492
         same_frozen_rules: true

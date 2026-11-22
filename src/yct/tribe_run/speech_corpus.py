@@ -136,6 +136,8 @@ Synth = Callable[[str], tuple[np.ndarray, int]]
 
 
 def select(queue: list[dict], synth: Synth, spec: dict) -> dict[str, Any]:
+    if not getattr(synth, "verified", None):     # watchdog: only a pin-verified engine (EspeakSynth) selects
+        raise SystemExit("select needs a pin-verified synth (no .verified): STOP")
     pos = 0
     items: dict[str, list[dict]] = {f: [] for f in spec["fill_order"]}
     rejects: list[dict] = []

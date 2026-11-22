@@ -854,6 +854,8 @@ class D085Loader(M):
     jit_fallback: Literal[False]
     gan_allowed: Literal[False]
     check_record: str
+    blob_sha1: Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
+    check_record_sha256: Sha256
 
 
 class D085FaceContinuation(M):       # council part 2: TALKFACE face continuation (not D-087's)
@@ -863,6 +865,7 @@ class D085FaceContinuation(M):       # council part 2: TALKFACE face continuatio
     first_target: Literal[21]
     plus_one_per_skip: Literal[True]
     max_skips: Literal[5]
+    skips_log: Literal["required_above_first_target"]
     max_extra_passes: Literal[20]
     after_rank: Literal[492]
     same_frozen_rules: Literal[True]

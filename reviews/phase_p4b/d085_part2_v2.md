@@ -87,9 +87,38 @@ No synthesis before step 1 and no listening at any step.
 
 ## 6. Draft DECISIONS part-2 text (to be appended after re-sign-off; not written yet)
 
-> D-085 part 2 (speech + TALKFACE; amends D-085 (e)). Council cycle 1 REVISE ×5 → v2 → re-sign-off.
-> T-ENV disclosure (§1). Engine pin espeak-ng 1.51+dfsg-12build1, verified at synthesis (§2). Wav2Lip:
-> option (b) ruled; no upstream SD-loader commit exists (master = bac9a81, 113 commits), so the pre-fixed
-> fallback (a) applies: Wav2Lip-SD-NOGAN.pt (7ab92491…8999) loaded strict into the pinned class, decided on
-> a synthetic fixture (352/352 keys, max |diff| 0.0); GAN never; `wav2lip.pth` → `Wav2Lip-SD-NOGAN.pt` is a
-> disclosed amendment (§3). TALKFACE face continuation authority (§4), separate from D-087. Freeze order (§5).
+> D-085 part 2 (speech + TALKFACE; amends D-085 (e)). Council cycle 1 REVISE ×5 → v2 → re-sign-off (4
+> APPROVE, neuro REVISE → v2 addendum §7 → neuro re-sign-off).
+>
+> - **T-ENV disclosure.** `controls.refclips_d085.tenv` (module `src/yct/confounds/envelope.py`, blob
+>   c81eae2b…) was frozen at 62c3806 **before** the council ratified it. The filter is an author-filled
+>   detail of the frozen D-086 R-ENV op: Butterworth order 4 low-pass at 10 Hz, applied forward-backward
+>   (`sosfiltfilt`), so the effective order is 8, zero phase, with a squared magnitude response (−6 dB at
+>   10 Hz, not −3 dB). A silent clip (SD 0) gives an all-zero envelope. The envelope never gates. The
+>   council ratifies it now; any later change, above all after an envelope has been seen, needs a new
+>   decision.
+> - **Engine pin.** espeak-ng 1.51+dfsg-12build1 (binary 34191438…, library a18be542…, data tree f35962c8…,
+>   488 files), verified at synthesis before any call, fail closed; `select` refuses an unverified synth.
+>   Selection span measured on the build's band-limited 48 kHz path.
+> - **Wav2Lip weights (amends D-085 (e)).** The literal changes from `wav2lip.pth` to `Wav2Lip-SD-NOGAN.pt`
+>   for two reasons: (1) `wav2lip.pth` is no longer in the README-linked official folder at bac9a81, which
+>   now holds only the two May 2023 TorchScript archives; (2) option (b) was ruled, but no upstream commit
+>   with an SD loader exists (master = bac9a81, 113 commits), so the pre-fixed fallback (a) applies. NOGAN
+>   (7ab92491…8999) loads strict into the pinned class, decided on a synthetic fixture only (352/352 keys,
+>   max |diff| 0.0; record sha d4e7d038…, loader blob 43f805e8…, both frozen in the part-2 commit). GAN is
+>   never used; no jit fallback.
+> - **TALKFACE face continuation** (authority here, separate from D-087): v4 face log, target 21, +1 per
+>   logged s3fd/Wav2Lip skip (`data/refstim/talkface_skips.jsonl`, committed; each pass above 21 needs one
+>   skip_on entry), at most 5 skips, at most 20 extra passes, append-only with byte-identical rows,
+>   committed before any Wav2Lip run; exhaustion is a STOP to the owner.
+> - **Freeze order** as §5.
+
+## 7. Re-sign-off addendum (wf_77475312-b35)
+
+- Neuro: `talkface.loader.blob_sha1` (43f805e8e1a3066ca138251a47aea814639fdc3b, the loader module) and
+  `talkface.loader.check_record_sha256` (d4e7d038…898a, the fixture record) are now part-2 keys, frozen in
+  the part-2 commit; the full §1 T-ENV text is in §6.
+- Watchdog: `speech_corpus.select` refuses a synth with no `.verified` (only `EspeakSynth`, which verifies
+  the pin in its constructor, has it). A face target above 21 needs exactly one committed skip entry per
+  extra pass, each with a `face_rule.skip_on` reason (`talkface.face_continuation.skips_log`); the runner
+  prints the skip list into the run log. The second reason for the D-085 (e) literal change is in §6.

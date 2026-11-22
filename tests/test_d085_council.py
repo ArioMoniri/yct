@@ -46,6 +46,7 @@ def _fake(durs, default=1.2):
         x = np.zeros(int(sr * (d + 0.4)))
         x[int(0.2 * sr):int(0.2 * sr) + int(round(d * sr))] = 0.3
         return x, sr
+    synth.verified = {"fake": "pin"}     # select needs a pin-verified synth (D-085 part 2, watchdog)
     return synth
 
 
