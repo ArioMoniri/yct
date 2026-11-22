@@ -18,10 +18,11 @@ def test_espeak_engine_is_pinned_to_the_pod_build():
     assert eng["native_sr"] == 22050 and eng["deterministic"] is True
 
 
-def test_talkface_detector_and_readme_pins_and_weights_left_for_the_council():
+def test_talkface_detector_readme_and_council_weights_pins():
     assert TF["face_detector_sha256"] == "619a31681264d3f7f7fc7a16a42cbbe8b23f31a256f75a366e5a1bcd59b33543"
     assert TF["readme_sha256"] == "8019ca16cf27529731bebed3c2f542046d6db1797cf38042cd1d27f4793ecd34"
-    assert TF["weights_sha256"] is None          # wav2lip.pth is not at the pinned README link (council)
+    assert TF["weights_file"] == "Wav2Lip-SD-NOGAN.pt"   # council part 2: wav2lip.pth gone from README link
+    assert TF["weights_sha256"] == "7ab9249147fd8d7884983567883222b7a86b6f94282354887825dfee7d608999"
     assert TF["mirror_s3"].endswith("private/") and TF["publish"] is False
 
 

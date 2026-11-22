@@ -804,7 +804,9 @@ class D085Speech(M):
     lexicon_file: str
     order: Literal["sha256_text_ascending"]
     engine: Literal["espeak-ng"]
-    engine_pin: D085EnginePin | None = None
+    engine_pin: D085EnginePin          # council part 2 B1: required, checked at synthesis (fail closed)
+    engine_paths: dict[Literal["binary", "lib", "data_dir"], str]
+    selection_sr: Literal[48000]       # selection span on the build's band-limited 48 kHz path
     voice: Literal["en-us"]
     rate_wpm: Literal[175]
     pitch: Literal[50]
@@ -839,14 +841,49 @@ class D085FaceRule(M):
     disclose_loc_identity_match: Literal[True]
 
 
+class D085WeightsOption(M):          # council part 2: (b) ruled, fixed fallback (a) applied
+    council: Literal["b"]
+    applied: Literal["a"]
+    reason: Literal["no_upstream_sd_loader"]
+    decided_before_real_face: Literal[True]
+
+
+class D085Loader(M):
+    module: str
+    path: Literal["strict_state_dict"]
+    jit_fallback: Literal[False]
+    gan_allowed: Literal[False]
+    check_record: str
+
+
+class D085FaceContinuation(M):       # council part 2: TALKFACE face continuation (not D-087's)
+    authority: Literal["D-085 part 2"]
+    separate_from: Literal["D-087"]
+    log: Literal["v4_face_log"]
+    first_target: Literal[21]
+    plus_one_per_skip: Literal[True]
+    max_skips: Literal[5]
+    max_extra_passes: Literal[20]
+    after_rank: Literal[492]
+    same_frozen_rules: Literal[True]
+    append_only: Literal[True]
+    existing_rows_byte_identical: Literal[True]
+    committed_before_wav2lip: Literal[True]
+    yunet_replacement: Literal[False]
+    on_exhausted: Literal["stop_owner"]
+
+
 class D085Talkface(M):
     generator: Literal["wav2lip"]
     repo: str
     revision: Annotated[str, Field(pattern=r"^[0-9a-f]{40}$")]
     licence: str
-    weights_file: Literal["wav2lip.pth"]
+    weights_file: Literal["Wav2Lip-SD-NOGAN.pt"]   # D-085 (e) amendment (council part 2), disclosed
     weights_url: str | None
-    weights_sha256: Sha256 | None
+    weights_sha256: Sha256
+    weights_option: D085WeightsOption
+    loader: D085Loader
+    face_continuation: D085FaceContinuation
     face_detector_sha256: Sha256 | None
     readme_sha256: Sha256 | None
     mirror_s3: Annotated[str, Field(pattern=r"^s3://yct-research-235229001983/.*private/$")]

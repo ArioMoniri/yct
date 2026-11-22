@@ -51,7 +51,7 @@ def _sha(b: bytes) -> str:
 
 def test_data_tree_hash_equals_the_recorded_shell_method(tmp_path):
     """The pod value was `cd DATA && find . -type f | LC_ALL=C sort | xargs sha256sum | sha256sum`."""
-    from yct.tribe_run import espeak_engine as E
+    from yct.tribe_run import espeak_engine as E  # noqa: N812
 
     p = _fake_tree(tmp_path)
     rels = sorted(["./en_dict", "./phontab", "./voices/!v/f1"], key=lambda s: s.encode())
@@ -60,7 +60,7 @@ def test_data_tree_hash_equals_the_recorded_shell_method(tmp_path):
 
 
 def test_engine_pin_mismatch_is_a_stop_and_match_passes(tmp_path):
-    from yct.tribe_run import espeak_engine as E
+    from yct.tribe_run import espeak_engine as E  # noqa: N812
 
     p = _fake_tree(tmp_path)
     pin = {"binary_sha256": _sha(b"bin"), "lib_sha256": _sha(b"lib"),
@@ -79,7 +79,7 @@ def test_engine_pin_mismatch_is_a_stop_and_match_passes(tmp_path):
 
 
 def test_synth_verifies_the_pin_before_any_call_and_never_reinstalls(tmp_path, monkeypatch):
-    from yct.tribe_run import espeak_engine as E
+    from yct.tribe_run import espeak_engine as E  # noqa: N812
 
     p = _fake_tree(tmp_path)
     pin = {"binary_sha256": _sha(b"WRONG"), "lib_sha256": _sha(b"lib"),
@@ -93,7 +93,7 @@ def test_synth_verifies_the_pin_before_any_call_and_never_reinstalls(tmp_path, m
 
 
 def test_synth_args_and_selection_rate(tmp_path, monkeypatch):
-    from yct.tribe_run import espeak_engine as E
+    from yct.tribe_run import espeak_engine as E  # noqa: N812
 
     p = _fake_tree(tmp_path)
     pin = {"binary_sha256": _sha(b"bin"), "lib_sha256": _sha(b"lib"),
@@ -125,7 +125,9 @@ def test_synth_args_and_selection_rate(tmp_path, monkeypatch):
 def test_engine_pin_is_required_by_the_schema():
     cfg = copy.deepcopy(CFG)
     del cfg["controls"]["refclips_d085"]["speech"]["engine_pin"]
-    with pytest.raises(Exception):
+    from pydantic import ValidationError
+
+    with pytest.raises(ValidationError):
         validate_config(cfg)
     assert SP["engine_paths"]["data_dir"] == "/usr/lib/x86_64-linux-gnu/espeak-ng-data"
 
@@ -144,12 +146,13 @@ def test_talkface_weights_pinned_to_nogan_and_the_fallback_record():
     assert TF["weights_file"] == "Wav2Lip-SD-NOGAN.pt" and TF["weights_sha256"] == NOGAN
     w = TF["weights_option"]
     assert w["council"] == "b" and w["applied"] == "a"
-    assert w["reason"] == "no_upstream_sd_loader"       # master HEAD == pinned revision; no SD loader in history
+    assert w["reason"] == "no_upstream_sd_loader"   # master HEAD == pinned revision; no SD loader
     assert TF["revision"] == "bac9a81e63ecc153202353372e5724b83d9e6322"
     assert TF["loader"]["path"] == "strict_state_dict"   # decided on the synthetic fixture only
     assert TF["loader"]["gan_allowed"] is False
     rec = json.loads((ROOT / TF["loader"]["check_record"]).read_text())
-    assert rec["weights_sha256"] == NOGAN and rec["strict_load"] == "ok" and rec["keys_equal"] is True
+    assert rec["weights_sha256"] == NOGAN and rec["strict_load"] == "ok"
+    assert rec["keys_equal"] is True
     assert rec["strict_out_shape"] == [2, 3, 96, 96] and rec["fixture"] == "synthetic"
     assert rec["max_abs_diff_pinned_vs_jit"] == 0.0
 
@@ -175,7 +178,7 @@ def _fake_torch(sd_keys, want_keys, strict_ok=True):
 
 
 def test_loader_refuses_a_wrong_sha_and_gan(tmp_path):
-    from yct.tribe_run import wav2lip_loader as L
+    from yct.tribe_run import wav2lip_loader as L  # noqa: N812
 
     w = tmp_path / "Wav2Lip-SD-NOGAN.pt"
     w.write_bytes(b"not the archive")
@@ -189,7 +192,7 @@ def test_loader_refuses_a_wrong_sha_and_gan(tmp_path):
 
 
 def test_loader_strict_state_dict_into_the_pinned_class(tmp_path):
-    from yct.tribe_run import wav2lip_loader as L
+    from yct.tribe_run import wav2lip_loader as L  # noqa: N812
 
     w = tmp_path / "Wav2Lip-SD-NOGAN.pt"
     w.write_bytes(b"archive")
@@ -214,7 +217,8 @@ def test_face_continuation_key_terms():
 
 def _cfg_frozen(keys):
     c = copy.deepcopy(CFG)
-    c["frozen"] = [f for f in c.get("frozen", []) if not f.get("key", "").startswith("controls.refclips_d087")]
+    c["frozen"] = [f for f in c.get("frozen", [])
+                   if not f.get("key", "").startswith("controls.refclips_d087")]
     c["frozen"] += [{"key": k, "frozen_at": "x"} for k in keys]
     return c
 
@@ -228,7 +232,7 @@ def test_talkface_purpose_needs_part2_frozen_and_has_its_own_budget():
     assert r.effective_need("face", {"face": 21}, 20, frozen, purpose="talkface") == 21
     assert r.effective_need("face", {"face": 26}, 20, frozen, purpose="talkface") == 26   # 21 + 5 skips
     with pytest.raises(SystemExit, match="STOP"):
-        r.effective_need("face", {"face": 27}, 20, frozen, purpose="talkface")          # > 5 skips
+        r.effective_need("face", {"face": 27}, 20, frozen, purpose="talkface")   # > 5 skips
     with pytest.raises(SystemExit, match="face only"):
         r.effective_need("body", {"body": 21}, 20, frozen, purpose="talkface")
     # the D-087 path is unchanged and needs D-087, not D-085 part 2
@@ -239,7 +243,8 @@ def test_talkface_purpose_needs_part2_frozen_and_has_its_own_budget():
 def test_parse_purpose_flag():
     r = _load_script("refstim_auto_run")
     cats = ["face", "body", "place"]
-    assert r.parse_run_args(["--purpose", "talkface", "--target", "face=21"], cats) == ({"face": 21}, "talkface")
+    got = r.parse_run_args(["--purpose", "talkface", "--target", "face=21"], cats)
+    assert got == ({"face": 21}, "talkface")
     assert r.parse_run_args(["--target", "place=22"], cats) == ({"place": 22}, "loc")
     with pytest.raises(SystemExit):
         r.parse_run_args(["--purpose", "other"], cats)

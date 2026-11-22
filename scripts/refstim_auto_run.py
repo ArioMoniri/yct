@@ -188,18 +188,50 @@ def parse_targets(argv: list[str], cats) -> dict[str, int]:
     return out
 
 
+def parse_run_args(argv: list[str], cats) -> tuple[dict[str, int], str]:
+    """`run` options: [--purpose loc|talkface] then --target <category>=<n> ... (D-087 / D-085 part 2)."""
+    purpose, rest = "loc", list(argv)
+    if rest[:1] == ["--purpose"]:
+        if len(rest) < 2 or rest[1] not in ("loc", "talkface"):
+            raise SystemExit("--purpose must be loc or talkface")
+        purpose, rest = rest[1], rest[2:]
+    return parse_targets(rest, cats), purpose
+
+
+def assert_byte_prefix(prefix_sha256: str, prefix_len: int, log: Path) -> None:
+    """Continuation append-only rule: the log's first prefix_len bytes must hash to the pre-run sha."""
+    import hashlib
+
+    head = Path(log).read_bytes()[:prefix_len]
+    if len(head) != prefix_len or hashlib.sha256(head).hexdigest() != prefix_sha256:
+        raise SystemExit(f"{Path(log).name}: existing rows changed during the continuation: "
+                         "STOP to the owner")
+
+
 def _frozen_key(cfg: dict, key: str) -> bool:
     return any(key == f.get("key") or key.startswith(f.get("key", "") + ".") for f in cfg.get("frozen", []))
 
 
-def effective_need(cat: str, targets: dict[str, int], need: int, cfg: dict) -> int:
-    """Passes to reach in `cat`: the frozen loc_per_category, or a D-087 continuation target past it (the
-    same v4 log, same order, same frozen rules; only a larger stop count). Needs D-087 frozen and the cap."""
+def effective_need(cat: str, targets: dict[str, int], need: int, cfg: dict, purpose: str = "loc") -> int:
+    """Passes to reach in `cat`: the frozen loc_per_category, or a continuation target past it (the same v4
+    log, same order, same frozen rules; only a larger stop count). purpose "loc": D-087 (frozen) and its cap.
+    purpose "talkface": D-085 part 2 `talkface.face_continuation` (frozen), face only, its own budget:
+    first_target + up to max_skips, within max_extra_passes; beyond that a STOP to the owner."""
     t = targets.get(cat, need)
     if t < need:
         raise SystemExit(f"{cat}: target {t} < loc_per_category {need}")
     if t == need:
         return need
+    if purpose == "talkface":
+        if cat != "face":
+            raise SystemExit(f"{cat}: the TALKFACE continuation is face only")
+        if not _frozen_key(cfg, "controls.refclips_d085.talkface"):
+            raise SystemExit("controls.refclips_d085.talkface is not frozen: no TALKFACE face continuation")
+        fc = cfg["controls"]["refclips_d085"]["talkface"]["face_continuation"]
+        top = min(fc["first_target"] + fc["max_skips"], need + fc["max_extra_passes"])
+        if t > top:
+            raise SystemExit(f"face: target {t} > {top} (first_target + max_skips): STOP to the owner")
+        return t
     if not _frozen_key(cfg, "controls.refclips_d087"):
         raise SystemExit("controls.refclips_d087 is not frozen: no continuation past the frozen count")
     cap = cfg["controls"]["refclips_d087"]["continuation"]["max_extra_per_category"]
@@ -208,7 +240,7 @@ def effective_need(cat: str, targets: dict[str, int], need: int, cfg: dict) -> i
     return t
 
 
-def run(model_dir: Path, scratch: Path, targets: dict[str, int] | None = None) -> None:
+def run(model_dir: Path, scratch: Path, targets: dict[str, int] | None = None, purpose: str = "loc") -> None:
     """D-079: evaluate face, body, place (category_order) into the v2 logs only, from rank 1, resuming from
     the v2 logs. The superseded v1 logs are read only by the determinism audit (audit_v2)."""
     import cv2
@@ -250,8 +282,9 @@ def run(model_dir: Path, scratch: Path, targets: dict[str, int] | None = None) -
     targets = targets or {}
     ran: list[str] = []
     for cat in d9["category_order"]:
-        need = effective_need(cat, targets, rc["loc_per_category"], cfg)
+        need = effective_need(cat, targets, rc["loc_per_category"], cfg, purpose)
         log_path = ROOT / rs.image_log_v2(cat, cfg)
+        pre = log_path.read_bytes() if log_path.exists() else b""   # append-only: checked after the category
         priors = [(Path(q).name, {r["title"]: r for r in _read_jsonl(ROOT / q)})
                   for q in d9["superseded_logs"][cat]]
         dry_revids = ((dry["categories"].get(cat) or {}).get("read_revids") or {}) if dry else None
@@ -328,6 +361,8 @@ def run(model_dir: Path, scratch: Path, targets: dict[str, int] | None = None) -
             print(cat, "evaluated", i, "passes", n_pass, flush=True)
         if n_pass < need:
             raise ra.StopError(f"{cat}: {n_pass} passes < {need} in the full snapshot: STOP to the owner")
+        if log_path.exists():
+            assert_byte_prefix(hashlib.sha256(pre).hexdigest(), len(pre), log_path)
         ran.append(cat)
 
 
@@ -403,8 +438,8 @@ if __name__ == "__main__":
         artifacts(Path(sys.argv[2]))
     elif cmd == "run":
         _cfg = load_config()
-        run(Path(sys.argv[2]), Path(sys.argv[3]),
-            parse_targets(sys.argv[4:], _cfg["controls"]["refclips"]["loc_categories"]))
+        _t, _p = parse_run_args(sys.argv[4:], _cfg["controls"]["refclips"]["loc_categories"])
+        run(Path(sys.argv[2]), Path(sys.argv[3]), _t, _p)
     elif cmd == "finalise":
         finalise(Path(sys.argv[2]))
     else:
