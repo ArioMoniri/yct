@@ -75,11 +75,12 @@ class Refused(SystemExit):
     """Exit 1 before any launch: a human decides."""
 
 
-def check_frozen(cfg: dict) -> None:
+def check_frozen(cfg: dict, k: int = 0) -> None:
     rows = {r["key"] for r in cfg.get("frozen") or []}
     need = ["controls.refclips_auto", "controls.refclips_d082",
             "controls.refclips_artifacts.nat_snapshot_sha256"] + \
-        [f"controls.refclips_auto_artifacts.{k}" for k in PYANNOTE_KEYS]
+        [f"controls.refclips_auto_artifacts.{k}" for k in PYANNOTE_KEYS] + \
+        (["controls.refclips_d084"] if k >= 1 else [])          # D-084: continuation sessions
     missing = [k for k in need if k not in rows]
     unset = [k for k in PYANNOTE_KEYS if not cfg["controls"]["refclips_auto_artifacts"].get(k)]
     if missing or unset:
@@ -117,7 +118,43 @@ def check_commit(head: str, ci_green_sha: str | None, pushed: bool) -> None:
         raise Refused(f"HEAD {head[:12]} is not on the remote branch (launch only from a pushed commit)")
 
 
-def check_buffer(cfg: dict, log: list[dict]) -> list[str]:
+def check_session_k(cfg: dict, log: list[dict], k: int) -> list[str]:
+    """D-084 continuation session k >= 1: sessions 0..k-1 logged and k not; k <= max_sessions; the selection
+    still incomplete; buffer k complete and none of its ids evaluated before."""
+    d = cfg["controls"]["refclips_d084"]
+    done = ns.sessions_logged(log)
+    if k in done:
+        raise Refused(f"session {k} rows are already logged (a logged candidate is never re-evaluated)")
+    if done != list(range(k)):
+        missing = [j for j in range(k) if j not in done]
+        raise Refused(f"session {missing[0] if missing else k - 1} not logged before session {k} "
+                      f"(logged: {done})")
+    if k > d["max_sessions"]:
+        raise Refused(f"session {k} > max_sessions {d['max_sessions']}: STOP to the owner")
+    need = cfg["controls"]["refclips"]["nat_n"]
+    try:
+        sel = ns.nat_selection(log, cfg)
+    except ra.StopError as exc:
+        raise Refused(str(exc)) from None
+    if len(sel) >= need:
+        raise Refused(f"the NAT selection is complete ({need} passes): no session {k}")
+    buf = ns.buffer_ids(log, cfg, k)
+    if not buf:
+        raise Refused(f"NAT buffer {k} is empty: run the CPU stage (--buffers {k + 1}) first")
+    per = cfg["controls"]["refclips_auto"]["nat"]["cpu_buffer"]
+    if not ns.buffer_complete(log, cfg, k):
+        raise Refused(f"NAT buffer {k} holds {len(buf)} of {per} CPU passes and the log has no matching "
+                      "snapshot_exhausted record: finish the CPU stage first")
+    seen = {r["t1_name"] for r in ns.gpu_rows(log)}
+    again = [i for i in buf if i in seen]
+    if again:
+        raise Refused(f"NAT buffer {k} ids already evaluated: {again[:5]}")
+    return buf
+
+
+def check_buffer(cfg: dict, log: list[dict], k: int = 0) -> list[str]:
+    if k >= 1:
+        return check_session_k(cfg, log, k)
     if any(r.get("stage") == ns.STAGE_S0 for r in log):
         raise Refused("session-0 rows are already logged (a logged candidate is never re-evaluated)")
     buf = ns.buffer_ids(log, cfg)
@@ -187,13 +224,14 @@ def preflight(a, cfg: dict, lg, store, clock, head: str, pushed: bool, log: list
     """All pre-launch checks, in order; the baseline is written last-but-one (only once every other check
     passed), then the cap guard. Returns the plan."""
     price = lg.types()[cfg["p4"]["gpu_type"]]["usd_per_hour"]
-    check_frozen(cfg)
+    k = int(getattr(a, "session", 0) or 0)
+    check_frozen(cfg, k)
     check_limits(cfg, a.max_hours, a.usd_limit, price)
     check_terminator(cfg, store, a.external_terminator_at, clock(), a.max_hours)
     check_commit(head, a.ci_green_sha, pushed)
     check_reconcile(recon, lg)
     check_cpu_stage(cpu_state, log_path)
-    buf = check_buffer(cfg, log)
+    buf = check_buffer(cfg, log, k)
     if lg._live(lg.list_ours()):
         raise Refused("a yct-* instance is alive: one instance at a time")
     ref.ensure_baseline(store, lg, cfg, clock)
@@ -204,14 +242,16 @@ def preflight(a, cfg: dict, lg, store, clock, head: str, pushed: bool, log: list
 def run_session0(a, cfg: dict, lg, store, box, clock, log_path: Path, head: str,
                  pushed: bool, recon: dict | None = None, cpu_state: dict | None = None) -> tuple[int, dict]:
     log = ns.load_log(log_path)
-    res: dict = {"session": SESSION, "git_sha": head, "steps": {}}
+    k = int(getattr(a, "session", 0) or 0)
+    session = f"nat{k}"
+    res: dict = {"session": session, "k": k, "git_sha": head, "steps": {}}
     try:
         plan = preflight(a, cfg, lg, store, clock, head, pushed, log, recon, cpu_state, log_path)
     except SystemExit as exc:
         res.update(status="refused", error=str(exc))
         return 1, res
     res.update(pre_launch=plan["pre_launch"], n_buffer=len(plan["buffer"]))
-    name = cfg["controls"]["refclips"]["ledger_name_prefix"] + "-" + SESSION
+    name = cfg["controls"]["refclips"]["ledger_name_prefix"] + "-" + session
     try:
         rec = lg.launch(cfg["p4"]["gpu_type"], name, a.max_hours, "yct-pod", None, name_deadline=True)
     except SystemExit as exc:
@@ -246,6 +286,8 @@ def run_session0(a, cfg: dict, lg, store, box, clock, log_path: Path, head: str,
     store.s3_put_text(f"runs/{a.run_id}/child_metrics.json", json.dumps(res, default=str))
     if gpu is None or any(res["steps"].get(st) != "ok" for st in STEPS):
         return 75, res
+    if k >= 1:
+        return _finish_k(k, plan["buffer"], gpu, box, cfg, log_path, res)
     try:
         rows = ns.session0_rows(plan["buffer"], gpu["results"], box.n3, cfg)
     except ns.Session0Stop as stop:
@@ -259,6 +301,33 @@ def run_session0(a, cfg: dict, lg, store, box, clock, log_path: Path, head: str,
     for r in rows:
         ra.append_jsonl(log_path, r)
     res.update(status="done", n_pass=sum(r["decision"] == "pass" for r in rows), n_rows=len(rows))
+    return 0, res
+
+
+def _finish_k(k: int, buffer: list[str], gpu: dict, box, cfg: dict, log_path: Path, res: dict):
+    """D-084: log every row of session k, then the cumulative selection decides: selected (exit 0), next
+    buffer (exit 0, status next_buffer), or STOP to the owner (exit 1: max_sessions reached or the snapshot
+    exhausted with < nat_n passes)."""
+    try:
+        rows = ns.session_rows(k, buffer, gpu["results"], box.n3, cfg)
+    except Exception as exc:  # noqa: BLE001 - fail-closed post-session error: a human decides
+        res.update(status="failed", error=f"{type(exc).__name__}: {exc}"[-2000:])
+        return 1, res
+    for r in rows:
+        ra.append_jsonl(log_path, r)
+    log = ns.load_log(log_path)
+    sel = ns.nat_selection(log, cfg)
+    need = cfg["controls"]["refclips"]["nat_n"]
+    res.update(n_rows=len(rows), n_pass=sum(r["decision"] == "pass" for r in rows),
+               n_pass_total=ns.gpu_passes(log), n_selected=len(sel))
+    if len(sel) >= need:
+        res.update(status="selected")
+        return 0, res
+    if k >= cfg["controls"]["refclips_d084"]["max_sessions"] or ns.snapshot_exhausted(log):
+        res.update(status="stop", error=f"{len(sel)} NAT passes < nat_n {need} after session {k} "
+                                        "(max_sessions reached or snapshot exhausted): STOP to the owner")
+        return 1, res
+    res.update(status="next_buffer")
     return 0, res
 
 
@@ -478,6 +547,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--ci-green-sha", help="the commit whose CI run is green (checked by the orchestrator); "
                                            "must equal HEAD")
     ap.add_argument("--ack-cap-80", action="store_true")
+    ap.add_argument("--session", type=int, default=0,
+                    help="0 = session 0 (D-075); k >= 1 = D-084 continuation session on NAT buffer k")
     ap.add_argument("--reconcile-only", action="store_true",
                     help=f"write the L4 ledger reconciliation record to {RECONCILE_PATH}, then exit")
     a = ap.parse_args(argv)
@@ -494,7 +565,8 @@ def main(argv: list[str] | None = None) -> int:
     if not a.external_terminator_at or not a.ci_green_sha:
         raise SystemExit("--external-terminator-at and --ci-green-sha are required for a launch")
     p4 = ref.p4
-    run_dir = Path(os.environ.get("YCT_RUN_DIR") or ROOT / "outputs" / "runs" / f"p4bnat0_{int(time.time())}")
+    run_dir = Path(os.environ.get("YCT_RUN_DIR")
+                   or ROOT / "outputs" / "runs" / f"p4bnat{a.session}_{int(time.time())}")
     run_dir.mkdir(parents=True, exist_ok=True)
     a.external_terminator_at = p4._parse_when(a.external_terminator_at)
     a.run_id = run_dir.name

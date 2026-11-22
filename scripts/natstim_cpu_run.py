@@ -1,6 +1,8 @@
 """T-NAT0 CPU stage runner (yct pod CPU only; D-075 §3; src/yct/curate/natstim.py).
 
-  run SCRATCH     fill the 40-candidate NAT buffer from the frozen NAT snapshot (resumes from the log)
+  run SCRATCH [--buffers K]   fill K x 40 CPU passes (K = 1: the session-0 buffer; K >= 2: the D-084
+                              continuation buffer K-1, at most one ahead) from the frozen NAT snapshot
+                              (resumes from the log)
 
 Downloads + normalised T1 clips stay out of the repo (SCRATCH, then S3 under controls.refclips.s3_root:
 sources/nat/<file> and nat_t1/<t1_name>.mp4 + nat_t1/audio16k/<t1_name>.wav). Writes only the append-only
@@ -86,7 +88,7 @@ def fetch_normalise_fn(scratch: Path, cfg: dict):
     return fn
 
 
-def run(scratch: Path) -> int:
+def run(scratch: Path, n_buffers: int = 1) -> int:
     cfg = load_config()
     a = cfg["controls"]["refclips_auto"]
     ra.check_frozen(cfg)          # controls.refclips_auto frozen (D-075)
@@ -96,8 +98,9 @@ def run(scratch: Path) -> int:
                                   ROOT / "data" / "wave2_pool" / "pool_manifest.csv"])
     log = ROOT / a["logs"]["nat"]
     try:
+        ns.check_cpu_target(ns.load_log(log), cfg, n_buffers)    # D-084: at most one buffer ahead
         buf = ns.run_cpu(order, cfg, log, rs.page_meta_c4, fetch_normalise_fn(scratch, cfg), keys, longest,
-                         known)
+                         known, n_buffers=n_buffers)
     except (ra.StopError, rs.CurationError) as exc:
         print(json.dumps({"status": "STOP", "error": str(exc)[:2000]}))
         return 2
@@ -108,7 +111,13 @@ def run(scratch: Path) -> int:
     return 0
 
 
-if __name__ == "__main__":
-    if len(sys.argv) != 3 or sys.argv[1] != "run":
+def parse(argv: list[str]) -> tuple[Path, int]:
+    """run SCRATCH [--buffers K] (K >= 1; K > 1 is a D-084 continuation buffer, refused by check_cpu_target
+    unless at most one buffer ahead of the evaluated sessions)."""
+    if len(argv) not in (2, 4) or argv[0] != "run" or (len(argv) == 4 and argv[2] != "--buffers"):
         raise SystemExit(__doc__)
-    sys.exit(run(Path(sys.argv[2])))
+    return Path(argv[1]), int(argv[3]) if len(argv) == 4 else 1
+
+
+if __name__ == "__main__":
+    sys.exit(run(*parse(sys.argv[1:])))

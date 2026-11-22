@@ -100,9 +100,10 @@ def check_prefix(done: list[dict], order: list[dict]) -> None:
 
 def run_cpu(order: list[dict], cfg: dict, log_path: Path, page_meta: Callable[[list[str]], dict],
             fetch_normalise: Callable[[dict, dict], dict], key_hashes: set[str], longest: int,
-            known_url_hashes: set[str], batch: int = 50) -> list[dict]:
-    """Fill the cpu_buffer in order; append one row per evaluated candidate. Returns the buffer rows."""
-    need = cfg["controls"]["refclips_auto"]["nat"]["cpu_buffer"]
+            known_url_hashes: set[str], batch: int = 50, n_buffers: int = 1) -> list[dict]:
+    """Fill n_buffers * cpu_buffer CPU passes in order (D-084: n_buffers > 1 only via check_cpu_target);
+    append one row per evaluated candidate. Returns the pass rows."""
+    need = cfg["controls"]["refclips_auto"]["nat"]["cpu_buffer"] * n_buffers
     done = cpu_rows(load_log(log_path))
     check_prefix(done, order)
     passes = [r for r in done if r["decision"] == "pass"]
@@ -158,22 +159,25 @@ def snapshot_exhausted(log: list[dict]) -> bool:
                and r.get("n_evaluated") == len(rows) and r.get("n_pass") == n_pass for r in log)
 
 
-def buffer_complete(log: list[dict], cfg: dict) -> bool:
-    """Session 0 may launch only on a complete buffer (council D-082 W2/B1): exactly cpu_buffer passes, or a
-    short buffer whose CPU stage logged snapshot_exhausted."""
-    n = len(buffer_ids(log, cfg))
+def cpu_passes(log: list[dict]) -> list[str]:
+    """t1_names of the CPU passes in log order (= snapshot order, check_prefix); index = CPU rank."""
+    return [r["t1_name"] for r in cpu_rows(log) if r["decision"] == "pass"]
+
+
+def buffer_complete(log: list[dict], cfg: dict, k: int = 0) -> bool:
+    """Session k may launch only on a complete buffer (council D-082 W2/B1; D-084): exactly cpu_buffer passes,
+    or a short LAST buffer whose CPU stage logged snapshot_exhausted."""
+    n = len(buffer_ids(log, cfg, k))
     return n == cfg["controls"]["refclips_auto"]["nat"]["cpu_buffer"] or (n > 0 and snapshot_exhausted(log))
 
 
-def buffer_ids(log: list[dict], cfg: dict) -> list[str]:
-    """The fixed buffer: the cpu passes, in log order. A short buffer (snapshot exhausted) is returned as
-    is; the driver launches only if buffer_complete (a short buffer needs the logged terminal record), and
-    session 0 then STOPs if it yields fewer than nat_n passes (nat_select)."""
-    p = [r["t1_name"] for r in cpu_rows(log) if r["decision"] == "pass"]
+def buffer_ids(log: list[dict], cfg: dict, k: int = 0) -> list[str]:
+    """Buffer k: CPU passes [k*cpu_buffer, (k+1)*cpu_buffer) in log order (k = 0 is the session-0 buffer). A
+    short buffer is returned as is; the driver launches only if buffer_complete."""
+    if k < 0:
+        raise ra.StopError(f"buffer index {k} < 0")
     buf = cfg["controls"]["refclips_auto"]["nat"]["cpu_buffer"]
-    if len(p) > buf:
-        raise ra.StopError(f"{len(p)} cpu passes > cpu_buffer {buf}")
-    return p
+    return cpu_passes(log)[k * buf:(k + 1) * buf]
 
 
 def sha1_file(path: Path) -> str:
@@ -233,6 +237,7 @@ def stream_get(url: str, dest: Path, opener=None, clock=None) -> Path:
 
 # ---------------------------------------------------------------- session 0 (GPU results -> selection)
 STAGE_S0 = "session0"
+STAGE_SK = "session"     # D-084 continuation rows: {"stage": "session", "session": k >= 1, ...}
 N3_MIN = 0.5    # D-071 (c): face_present_crop >= 0.5 over W (unchanged by D-075)
 
 
@@ -286,18 +291,100 @@ def session0_rows(buffer: list[str], gpu: dict[str, dict], n3: Callable[[str], f
     return rows
 
 
-def nat_manifest(log: list[dict], cfg: dict) -> list[dict]:
-    """The NAT set: the session-0 passes (exactly nat_n), each joined to its CPU-stage row."""
-    cpu = {r["t1_name"]: r for r in cpu_rows(log) if r["decision"] == "pass"}
-    s0 = [r for r in log if r.get("stage") == STAGE_S0 and r["decision"] == "pass"]
+def session_rows(k: int, buffer: list[str], gpu: dict[str, dict], n3: Callable[[str], float],
+                 cfg: dict) -> list[dict]:
+    """D-084 continuation session k >= 1: N1, N2, then N3 (only for N1/N2 passes) on EVERY buffer id, in
+    buffer order (no early stop at nat_n, so the selection never depends on session boundaries). A buffer id
+    without output is a STOP. Returns the stage-session rows; never raises on a low pass count."""
+    if k < 1:
+        raise ra.StopError(f"continuation session k >= 1 required (got {k}); session 0 is session0_rows")
+    missing = [i for i in buffer if i not in gpu]
+    if missing:
+        raise ra.StopError(f"session {k} returned no N1/N2 output for {missing[:5]} (fail-closed)")
+    rows = []
+    for i in buffer:
+        d = ra.nat_decide(gpu[i]["lang_probs"], [tuple(s) for s in gpu[i]["segments"]], cfg)
+        if d["decision"] == "pass":
+            v = n3(i)
+            d["values"]["face_present_crop_w"] = round(v, 6)
+            if v < N3_MIN:
+                d.update(decision="reject", rule="N3", reason="low_face_present")
+        rows.append({"stage": STAGE_SK, "session": k, "t1_name": i, **d})
+    return rows
+
+
+def gpu_rows(log: list[dict]) -> list[dict]:
+    """Session-0 and continuation rows (N1/N2/N3 decisions)."""
+    return [r for r in log if r.get("stage") in (STAGE_S0, STAGE_SK)]
+
+
+def session_of(r: dict) -> int:
+    return 0 if r["stage"] == STAGE_S0 else int(r["session"])
+
+
+def sessions_logged(log: list[dict]) -> list[int]:
+    return sorted({session_of(r) for r in gpu_rows(log)})
+
+
+def gpu_passes(log: list[dict]) -> int:
+    return sum(r["decision"] == "pass" for r in gpu_rows(log))
+
+
+def nat_selection(log: list[dict], cfg: dict) -> list[str]:
+    """D-084: the first nat_n passes by CPU rank over every evaluated row (session 0 and k >= 1). Fail-closed:
+    an id evaluated twice, an evaluated id that is not a CPU pass, or an evaluated set that is not a prefix of
+    the CPU passes (a gap) is a STOP. Returns <= nat_n ids (fewer while the selection is incomplete)."""
+    rank = {t: j for j, t in enumerate(cpu_passes(log))}
+    seen: dict[str, dict] = {}
+    for r in gpu_rows(log):
+        t = r["t1_name"]
+        if t in seen:
+            raise ra.StopError(f"NAT candidate {t} evaluated twice (sessions {session_of(seen[t])}, "
+                               f"{session_of(r)})")
+        if t not in rank:
+            raise ra.StopError(f"NAT candidate {t} evaluated but not a CPU pass")
+        seen[t] = r
+    if sorted(rank[t] for t in seen) != list(range(len(seen))):
+        raise ra.StopError("evaluated NAT candidates are not a prefix of the CPU passes (a gap)")
     need = cfg["controls"]["refclips"]["nat_n"]
-    if len(s0) != need:
-        raise ra.StopError(f"{len(s0)} session-0 passes logged != nat_n {need}")
+    return sorted((t for t, r in seen.items() if r["decision"] == "pass"), key=rank.__getitem__)[:need]
+
+
+def check_cpu_target(log: list[dict], cfg: dict, n_buffers: int) -> int:
+    """D-084: the CPU stage may fill n_buffers buffers only if that is at most cpu_ahead_max beyond the
+    evaluated sessions, within max_sessions, and while the selection is incomplete. Returns the pass
+    target."""
+    d = cfg["controls"]["refclips_d084"]
+    need = cfg["controls"]["refclips"]["nat_n"]
+    done = sessions_logged(log)
+    if n_buffers < 1:
+        raise ra.StopError(f"n_buffers {n_buffers} < 1")
+    if n_buffers > 1:
+        if len(nat_selection(log, cfg)) >= need:
+            raise ra.StopError(f"the NAT selection is complete ({need} passes): no further CPU stage")
+        if n_buffers > len(done) + d["cpu_ahead_max"]:
+            raise ra.StopError(f"{n_buffers} buffers is more than {d['cpu_ahead_max']} ahead of the "
+                               f"{len(done)} evaluated sessions")
+        if n_buffers - 1 > d["max_sessions"]:
+            raise ra.StopError(f"buffer {n_buffers - 1} exceeds max_sessions {d['max_sessions']}: "
+                               "STOP to the owner")
+    return n_buffers * cfg["controls"]["refclips_auto"]["nat"]["cpu_buffer"]
+
+
+def nat_manifest(log: list[dict], cfg: dict) -> list[dict]:
+    """The NAT set: the first nat_n passes by CPU rank over all sessions (D-084), joined to their CPU rows."""
+    cpu = {r["t1_name"]: r for r in cpu_rows(log) if r["decision"] == "pass"}
+    g = {r["t1_name"]: r for r in gpu_rows(log)}
+    sel = nat_selection(log, cfg)
+    need = cfg["controls"]["refclips"]["nat_n"]
+    if len(sel) != need:
+        raise ra.StopError(f"{len(sel)} NAT passes logged != nat_n {need}")
     keep = ("title", "pageid", "read_revid", "url", "source_sha1", "source_sha256", "t1_name", "t1_sha256",
             "wav_sha256", "attribution")
     out = []
-    for r in s0:
-        c = cpu[r["t1_name"]]
+    for t in sel:
+        c, r = cpu[t], g[t]
         out.append({**{k: c.get(k) for k in keep}, "licence": c["values"]["licence"],
-                    "licence_template": c["values"]["licence_template"], "values": r["values"]})
+                    "licence_template": c["values"]["licence_template"], "values": r["values"],
+                    "session": session_of(r)})
     return out

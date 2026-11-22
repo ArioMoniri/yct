@@ -520,6 +520,15 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
       subfolder: plda
       files: [plda.npz, xvec_transform.npz]
     clustering_must_be: AgglomerativeClustering   # nat0_box refuses VBxClustering (the only path that uses the PLDA)
+  refclips_d084:               # D-084 draft (owner "Continue same list", 2026-11-22; decided AFTER seeing session 0 = 4/40)
+    decision: D-084
+    amends: [D-075]
+    post_hoc: true               # disclosed: chosen after the session-0 outcome (STOP_NOTE p4bnat0_1795336302)
+    buffer_per_session: 40       # = refclips_auto.nat.cpu_buffer; buffer k = CPU passes [40k, 40k+40) in log order
+    evaluate_full_buffer: true   # sessions k >= 1 evaluate every buffer id (no early stop at nat_n)
+    selection: first_nat_n_by_cpu_rank   # the first nat_n passes by CPU-log (= snapshot) rank, over all sessions
+    max_sessions: 6              # continuation sessions k = 1..6; then (or on snapshot exhaustion) STOP to the owner
+    cpu_ahead_max: 1             # the CPU stage never fills beyond the next unevaluated buffer
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host

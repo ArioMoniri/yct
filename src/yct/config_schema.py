@@ -751,6 +751,17 @@ class RefClipsD082(M):                # D-082 draft (BUG-040): pinned community-
     clustering_must_be: Literal["AgglomerativeClustering"]
 
 
+class RefClipsD084(M):                # D-084 draft: NAT continuation sessions k >= 1 (post hoc, disclosed)
+    decision: Literal["D-084"]
+    amends: list[Literal["D-075"]]
+    post_hoc: Literal[True]
+    buffer_per_session: Literal[40]
+    evaluate_full_buffer: Literal[True]
+    selection: Literal["first_nat_n_by_cpu_rank"]
+    max_sessions: Annotated[int, Field(ge=0, le=10)]
+    cpu_ahead_max: Literal[1]
+
+
 class RefClipsD081Artifacts(M):       # D-081
     dry_audit_sha256: Sha256 | None
     reaudit_sha256: Sha256 | None
@@ -926,6 +937,7 @@ class Controls(M):
     refclips_d081: RefClipsD081
     refclips_d081_artifacts: RefClipsD081Artifacts
     refclips_d082: RefClipsD082
+    refclips_d084: RefClipsD084
     curation_http: CurationHttp
     refclips_auto: RefClipsAuto
     refclips_auto_artifacts: RefClipsAutoArtifacts
