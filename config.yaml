@@ -872,3 +872,9 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   # the one that sets them
   - {key: controls.partial_out_nuisance, frozen_at: 1a3cff74f8a4b3fb866ae0ee07c58563be1112a4}
   - {key: controls.regressors.speech_envelope, frozen_at: 1a3cff74f8a4b3fb866ae0ee07c58563be1112a4}
+  # D-085 part 1: QC amendment + build-1 sha records (set in the D-085 entry commit), and the D-085 p1
+  # descriptive intercept-only partial r; frozen in the commit after the one that sets them
+  - {key: controls.refclips_d085.qc, frozen_at: 0d01a59d8b60b3185b98c3db9ad3b97b8b71fbde}
+  - {key: controls.refclips_d085.build1_sha_record, frozen_at: 0d01a59d8b60b3185b98c3db9ad3b97b8b71fbde}
+  - {key: controls.refclips_d085.build1_decoded_sha_record, frozen_at: 0d01a59d8b60b3185b98c3db9ad3b97b8b71fbde}
+  - {key: controls.partial_out_nuisance_descriptive, frozen_at: 0d01a59d8b60b3185b98c3db9ad3b97b8b71fbde}

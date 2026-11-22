@@ -150,6 +150,11 @@ D075_FROZEN += [(k, D071_SHA) for k in (
 D086_SHA = "1a3cff74f8a4b3fb866ae0ee07c58563be1112a4"   # D-086 entry (sets the two keys below)
 D075_FROZEN += [("controls.partial_out_nuisance", D086_SHA),
                 ("controls.regressors.speech_envelope", D086_SHA)]   # D-086 step 2
+D085_SHA = "0d01a59d8b60b3185b98c3db9ad3b97b8b71fbde"   # D-085 part-1 DECISIONS entry
+D075_FROZEN += [(k, D085_SHA) for k in (
+    "controls.refclips_d085.qc", "controls.refclips_d085.build1_sha_record",
+    "controls.refclips_d085.build1_decoded_sha_record",
+    "controls.partial_out_nuisance_descriptive")]   # D-085 part 1
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():

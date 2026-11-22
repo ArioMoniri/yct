@@ -54,5 +54,8 @@ def test_toolchain_records_the_libx264_package_version(monkeypatch):
 
 
 def test_d085_qc_path_is_refused_until_frozen(tmp_path):
+    import copy   # the repo config is frozen since D-085 part 1: test the unfrozen state on a copy
+    cfg = copy.deepcopy(CFG)
+    cfg["frozen"] = [f for f in cfg["frozen"] if not f["key"].startswith("controls.refclips_d085")]
     with pytest.raises(SystemExit, match="not frozen"):
-        B.build_all([], tmp_path, CFG, qc="d085")
+        B.build_all([], tmp_path, cfg, qc="d085")

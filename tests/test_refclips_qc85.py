@@ -22,9 +22,11 @@ CLIPS = {c.name: c for c in R.plan(CFG)}
 
 
 def test_refuses_unless_d085_is_frozen():
+    unfrozen = copy.deepcopy(CFG)   # the repo config is frozen since D-085 part 1: test the unfrozen state
+    unfrozen["frozen"] = [f for f in unfrozen["frozen"] if not f["key"].startswith("controls.refclips_d085")]
     with pytest.raises(SystemExit, match="not frozen"):
-        Q.require_frozen(CFG)
-    cfg = copy.deepcopy(CFG)
+        Q.require_frozen(unfrozen)
+    cfg = copy.deepcopy(unfrozen)
     cfg["frozen"] = list(cfg["frozen"]) + [{"key": "controls.refclips_d085", "frozen_at": "x"}]
     Q.require_frozen(cfg)
 
