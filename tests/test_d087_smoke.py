@@ -230,3 +230,19 @@ def test_locimg_patch_is_used_by_smoke_render(monkeypatch):
     monkeypatch.setattr(locimg, "patch", lambda *a, **k: called.append(1) or real(*a, **k))
     drv.smoke_render(cfg, mans, rows, *_loaders(), max_clips=1)
     assert len(called) >= 60
+
+
+def test_v2_row_file_name_drops_the_url_query_string():
+    drv = _mod("locscreen_v2", "scripts/locscreen_v2.py")
+    url = ("https://upload.wikimedia.org/wikipedia/commons/9/99/A_%28B%29.tif?utm_source=commons.wikimedia.org"
+           "&utm_campaign=imageinfo&utm_content=original")
+    r = drv.v2_row("face", 3, {"title": "t", "rank": 7, "row": {"url": url}})
+    assert r["file"] == "face_v2_03_r0007.tif"
+    assert r["s3_key"] == "sources/images/face/v2/face_v2_03_r0007.tif"
+    assert r["download_url"] == url
+
+
+def test_screen_loader_never_uploads_slot0_orphan_keys():
+    src = (ROOT / "scripts" / "locscreen_v2.py").read_text()
+    calls = [ln for ln in src.splitlines() if "bld.fetch_sources(" in ln]
+    assert len(calls) == 3 and all("upload=False" in ln for ln in calls)

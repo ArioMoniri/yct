@@ -40,6 +40,7 @@ import subprocess
 import sys
 from collections.abc import Callable
 from pathlib import Path
+from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -61,7 +62,8 @@ def read_rows(p: Path) -> list[dict]:
 
 def v2_row(cat: str, k: int, cand: dict) -> dict:
     r = cand["row"]
-    fname = f"{cat}_v2_{k:02d}_r{cand['rank']:04d}{Path(str(r.get('url', ''))).suffix.lower()}"
+    # smoke finding: the Commons url carries a ?utm_... query string; the suffix comes from the url path only
+    fname = f"{cat}_v2_{k:02d}_r{cand['rank']:04d}{Path(urlparse(str(r.get('url', ''))).path).suffix.lower()}"
     return {"file": fname, "category": cat, "slot": k, "rank": cand["rank"], "title": cand["title"],
             "url": r.get("descriptionurl"), "download_url": r.get("url"), "pageid": r.get("pageid"),
             "revid": r.get("revid"), "snapshot_revid": r.get("snapshot_revid"), "licence": r.get("licence"),
@@ -373,7 +375,9 @@ def main() -> int:
     cats = list(rc["loc_categories"])
     rows = {c: read_rows(log_path(ROOT, c)) for c in cats}
     srcrows = {c: [v2_row(c, 0, cand) for cand in L.pass_candidates(rows[c], c)] for c in cats}
-    load = bld.fetch_sources(srcrows, cfg, a.sources, local=local_dirs(a.local, a.scratch))
+    # watchdog re-check: no upload during the screen (slot-0 keys would be orphans); the builder uploads each
+    # final v2 source to its manifest s3_key
+    load = bld.fetch_sources(srcrows, cfg, a.sources, local=local_dirs(a.local, a.scratch), upload=False)
 
     def patch_of(cand: dict):
         return locimg.patch(load(v2_row(cand["category"], 0, cand)), cand["row"]["crop_box"])
