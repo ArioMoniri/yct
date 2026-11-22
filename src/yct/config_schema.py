@@ -787,6 +787,15 @@ class D085Envelope(M):
     burst_kernel_envelope: Literal["per_utterance_pre_mix_hilbert"]
 
 
+class D085EnginePin(M):            # D-085 part 2: the pod espeak-ng build (recorded, frozen with part 2)
+    package: str
+    binary_sha256: Sha256
+    lib_sha256: Sha256
+    data_tree_sha256: Sha256           # sha256 of `sha256sum` over the data dir files, LC_ALL=C sorted paths
+    native_sr: Literal[22050]
+    deterministic: bool
+
+
 class D085Speech(M):
     source: Literal["ieee_harvard_1969"]
     source_url: str
@@ -795,6 +804,7 @@ class D085Speech(M):
     lexicon_file: str
     order: Literal["sha256_text_ascending"]
     engine: Literal["espeak-ng"]
+    engine_pin: D085EnginePin | None = None
     voice: Literal["en-us"]
     rate_wpm: Literal[175]
     pitch: Literal[50]
