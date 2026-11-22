@@ -245,7 +245,8 @@ def test_rebuild_sha_check_runs_before_yunet_and_stops_on_mismatch(tmp_path, mon
 
 def test_two_part_freeze_plan():
     fp = D85["freeze_plan"]
-    assert fp["part1"] == ["controls.refclips_d085.qc", "controls.refclips_d085.build1_sha_record"]
+    assert fp["part1"] == ["controls.refclips_d085.qc", "controls.refclips_d085.build1_sha_record",
+                           "controls.refclips_d085.build1_decoded_sha_record"]   # D-086 S-22
     assert set(fp["part2"]) == {"controls.refclips_d085.speech", "controls.refclips_d085.talkface",
                                 "controls.refclips_artifacts.speech_corpus_sha256"}
     cfg = copy.deepcopy(CFG)

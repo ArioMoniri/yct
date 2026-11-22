@@ -859,6 +859,7 @@ class RefClipsD085(M):                # D-085 draft: LOC QC amendment, speech co
     post_hoc: Literal[True]
     consumes_redesign: Literal[False]
     build1_sha_record: str
+    build1_decoded_sha_record: str    # D-086 (R-11 S-22)
     qc: D085Qc
     speech: D085Speech
     tenv: D085Tenv
@@ -1020,6 +1021,7 @@ class Controls(M):
     rois: dict[str, Roi]
     regressors: dict[str, Regressor]
     partial_out: list[str]
+    partial_out_nuisance: list[Literal["intercept", "legendre_1"]]   # D-086 (owner Q1)
     kernel: Kernel
     aud_selectivity_run: str
     readout_lag_tr: Annotated[list[int], Field(min_length=2, max_length=2)]

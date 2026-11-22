@@ -349,12 +349,17 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     luminance_change: {source: derived, from: luminance_crop, op: abs_first_difference, roi: V1_V3, gating: false}
     # D-039 (Referee P0 4a/b): luminance-change energy is partialled out of every within-video control,
     # because AUD responded to the black->white flash more than to speech in P0.
-    speech_envelope: {source: derived, from: audio16k, op: hilbert_broadband_envelope_mean, roi: AUD, gating: true}
-    # speech envelope is not a yct.confounds column yet: implemented with the P4b controls code (ticket ENH-002)
+    speech_envelope: {source: derived, from: audio16k, op: abs_hilbert_of_clip_z_lp10hz_bin0p5s_mean_to_tr, roi: AUD,
+                      gating: true}
+    # D-086 (R-11 A-21, R-ENV): |hilbert| of the per-clip z-scored 16 kHz sidecar (one chunk = one clip, TRIBE's
+    # input space), low-pass 10 Hz, mean per 0.5 s bin, then mean onto the 1 s TR grid of yct.confounds.
+    # Implemented in T-ENV (controls.refclips_d085.tenv); was op hilbert_broadband_envelope_mean (no code existed)
   descriptive:                 # D-063 Q4: reported beside the gating controls, never gate (V1-V3 non-retinotopic)
     - {regressor: motion, roi: V1_V3}
     - {regressor: luminance_change, roi: V1_V3}
   partial_out: [face, motion, luminance_change, speech_envelope]   # partial r controls for all other regressors
+  partial_out_nuisance: [intercept, legendre_1]   # D-086 (owner Q1 2026-11-22, R-11 A-18): D-071 (a) "plus an
+  # intercept" amended pre-run with one Legendre order-1 drift term (yct.controls.partial); never extended after a FAIL
   kernel:                      # NO canonical HRF and NO separate shift by L (the kernel already holds the timing)
     type: measured_impulse_per_roi
     window_tr: [-4, 8]         # control-subtracted course over output lags -4..+8 TR, peak-normalised
@@ -539,6 +544,9 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     post_hoc: true               # the LOC QC amendment is chosen AFTER the build-1 QC result (STOP 97af7ec)
     consumes_redesign: false     # D-071 (h) not consumed: stimuli, detectors, seeds, thresholds unchanged
     build1_sha_record: outputs/runs/refclips_v1_nonnat_build1/build1_sha256.json   # committed before any D-085 text
+    build1_decoded_sha_record: outputs/runs/refclips_v1_nonnat_build1/build1_decoded_sha256.json   # D-086 S-22:
+    # decoded video+audio stream sha of every build-1 mp4 (refclips58.decoded_sha), recorded on the pod from the
+    # build-1 files; the rebuild (now bt709/tv-tagged) must match it, wav/tsv must still match byte for byte
     qc:
       face_hit_min: 0.9          # D-071 (a), unchanged
       face_hit_scope: family     # pooled over the 20 LOC face-event TRs (one per clip), not per clip
@@ -617,7 +625,8 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
       session_prefix: yct-p4b-ref-talk
       session_worst_usd: 3.4825  # 1.99 $/h x 1.75 h: joins the D-084 projection (council D-085, watchdog)
     freeze_plan:                 # council D-085 (referee): two freeze commits
-      part1: [controls.refclips_d085.qc, controls.refclips_d085.build1_sha_record]   # unlocks the visual rebuild
+      part1: [controls.refclips_d085.qc, controls.refclips_d085.build1_sha_record,
+              controls.refclips_d085.build1_decoded_sha_record]   # unlocks the visual rebuild
       part2: [controls.refclips_d085.speech, controls.refclips_d085.talkface,
               controls.refclips_artifacts.speech_corpus_sha256]
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
@@ -832,3 +841,28 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   - {key: controls.refclips_auto_artifacts.pyannote_plda_sha256, frozen_at: 0c3057cdb33aeb33a51f187ba2eed5f23f6894fe}
   # D-084 (NAT continuation, post hoc): frozen in the commit after the DECISIONS entry, before session 1
   - {key: controls.refclips_d084, frozen_at: 7deeeff74a323857a936e740729b3ff6dad21dcc}
+  # D-086 FIX-NORM-0 (R-11 X-01): P2/P3-consumed keys frozen at the D-060 wave-1 run commit (values verified
+  # identical to that commit), WhisperX at its D-061 P2b pin, and the D-071 control keys unchanged since 976e8ab
+  - {key: normalize, frozen_at: b24fc1cf1a697d5345354fe36836c787a98715bb}
+  - {key: stimulus.fps, frozen_at: b24fc1cf1a697d5345354fe36836c787a98715bb}
+  - {key: stimulus.min_short_side_px, frozen_at: b24fc1cf1a697d5345354fe36836c787a98715bb}
+  - {key: stimulus.center_crop_px, frozen_at: b24fc1cf1a697d5345354fe36836c787a98715bb}
+  - {key: stimulus.t1_trim_s, frozen_at: b24fc1cf1a697d5345354fe36836c787a98715bb}
+  - {key: stimulus.t1_max_probe_s, frozen_at: b24fc1cf1a697d5345354fe36836c787a98715bb}
+  - {key: vad, frozen_at: b24fc1cf1a697d5345354fe36836c787a98715bb}
+  - {key: confounds, frozen_at: b24fc1cf1a697d5345354fe36836c787a98715bb}
+  - {key: atlases, frozen_at: b24fc1cf1a697d5345354fe36836c787a98715bb}
+  - {key: localize, frozen_at: b24fc1cf1a697d5345354fe36836c787a98715bb}
+  - {key: transcribe.whisperx, frozen_at: 4db5895d5b85b0e7f293852d0a6bc4e80abe54f8}
+  - {key: controls.kernel.window_tr, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.kernel.type, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.kernel.shift_by_L, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.readout_lag_tr, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.rois.FFC, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.rois.PH, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.rois.AUD, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.rois.V1_V3, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.regressors.face, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.regressors.motion, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.regressors.luminance_change, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}
+  - {key: controls.partial_out, frozen_at: 976e8abdb07aa0c4b8f1c1b7eb45f3e598f99542}

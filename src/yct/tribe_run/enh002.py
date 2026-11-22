@@ -41,11 +41,14 @@ def roi_masks(cfg: dict | None = None) -> tuple[dict[str, np.ndarray], np.ndarra
 
 
 def standardise(pred: np.ndarray, medial: np.ndarray) -> np.ndarray:
-    """Spatially standardised map: each TR z-scored over the non-medial-wall vertices."""
-    keep = ~medial
-    mu = pred[:, keep].mean(axis=1, keepdims=True)
-    sd = pred[:, keep].std(axis=1, keepdims=True)
-    return (pred - mu) / np.where(sd > 0, sd, 1.0)
+    """Spatially standardised map: each TR z-scored over the non-medial-wall vertices.
+
+    R-11 M-12b: delegates to the single M-12 implementation (yct.features.networks.spatial_standardize),
+    which sets the medial wall to NaN and raises on non-finite or spatially constant TRs. Bit-identical on
+    cortex to the former local copy (ENH-002 read only cortical ROI vertices)."""
+    from yct.features.networks import spatial_standardize
+
+    return spatial_standardize(pred, medial)
 
 
 def event_courses(course: np.ndarray, times: np.ndarray, onsets: list[float], lags: range) -> np.ndarray:

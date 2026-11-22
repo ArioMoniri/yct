@@ -1,0 +1,11 @@
+{
+  "decision": "D-086 (R-11 X-02 / FIX-NORM-P4B item 7): toolchain of the NAT CPU normalisation stage (D-084 buffer 1)",
+  "host": "yct pod i-02dc0aef7260534ee",
+  "recorded_utc": "2026-11-22",
+  "process": "/work/yct/venv/bin/python scripts/natstim_cpu_run.py run /work/yct/nat_scratch --buffers 2",
+  "ffmpeg_path": "/usr/bin/ffmpeg",
+  "ffmpeg_version": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+  "ffmpeg_sha256": "ed16af623947494a72e284b6eb8ff225f2da22b38b5d5069c2fd4b4ba3384e41",
+  "libs": "libavutil 58.29.100 | libavcodec 60.31.102 | libavformat 60.16.100 | libavdevice 60.3.100 | libavfilter 9.12.100 | libswscale 7.5.100 | libswresample 4.12.100 | libpostproc 57.3.100",
+  "note": "Same /usr/bin/ffmpeg for session 0 and buffer 1; future run dirs write this via yct.provenance.toolchain_record()"
+}

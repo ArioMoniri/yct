@@ -134,6 +134,19 @@ D075_FROZEN += [("controls.refclips_d082", D082_SHA)] + [
     for k in ("diarization", "segmentation", "embedding", "plda")]   # D-082 step 2
 D084_SHA = "7deeeff74a323857a936e740729b3ff6dad21dcc"   # D-084 DECISIONS entry (council v2)
 D075_FROZEN += [("controls.refclips_d084", D084_SHA)]   # D-084 step 2
+P2RUN_SHA = "b24fc1cf1a697d5345354fe36836c787a98715bb"   # D-060 wave-1 P2/P3 run commit
+P2B_SHA = "4db5895d5b85b0e7f293852d0a6bc4e80abe54f8"     # D-061 WhisperX 3.8.6 pin
+D075_FROZEN += [(k, P2RUN_SHA) for k in (
+    "normalize", "stimulus.fps", "stimulus.min_short_side_px", "stimulus.center_crop_px",
+    "stimulus.t1_trim_s", "stimulus.t1_max_probe_s", "vad", "confounds", "atlases",
+    "localize")]   # D-086 FIX-NORM-0
+D075_FROZEN += [("transcribe.whisperx", P2B_SHA)]
+D075_FROZEN += [(k, D071_SHA) for k in (
+    "controls.kernel.window_tr", "controls.kernel.type", "controls.kernel.shift_by_L",
+    "controls.readout_lag_tr",
+    "controls.rois.FFC", "controls.rois.PH", "controls.rois.AUD", "controls.rois.V1_V3",
+    "controls.regressors.face", "controls.regressors.motion", "controls.regressors.luminance_change",
+    "controls.partial_out")]   # D-086 FIX-NORM-P4B item 6 (unchanged since T-D071 commit 1)
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():

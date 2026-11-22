@@ -157,7 +157,8 @@ def _tone(dur, f=220.0):
 
 def _speech(family, u):
     lo, hi = R.UTTER_RANGE[family]
-    return _tone(lo + (hi - lo) * ((u % 5) / 5))
+    return _tone(lo + (hi - lo) * ((u % 5 + 0.5) / 5))   # strictly inside the range: the R-11 span trim
+    # (D-086 S-24) drops the zero-valued first sample of a sine, so a tone of exactly `lo` falls just below it
 
 
 def test_speech_replaces_bed_at_matched_rms_and_chunk_sd_within_1pct():

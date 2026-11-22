@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 import yaml
 
-from yct.tribe_run import refclips58 as R
+from yct.tribe_run import refclips58 as R  # noqa: N812
 
 ROOT = Path(__file__).resolve().parents[1]
 CFG = yaml.safe_load((ROOT / "config.yaml").read_text())
@@ -129,7 +129,8 @@ def test_only_networks_defines_spatial_standardisation():
 def test_enh002_standardise_calls_spatial_standardize():
     tree = ast.parse((ROOT / "src/yct/tribe_run/enh002.py").read_text())
     fn = next(n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == "standardise")
-    names = {getattr(c.func, "id", getattr(c.func, "attr", None)) for c in ast.walk(fn) if isinstance(c, ast.Call)}
+    names = {getattr(c.func, "id", getattr(c.func, "attr", None))
+             for c in ast.walk(fn) if isinstance(c, ast.Call)}
     assert "spatial_standardize" in names
     assert not any(isinstance(c, ast.Attribute) and c.attr == "std" for c in ast.walk(fn))
 
@@ -150,10 +151,10 @@ def test_partial_out_nuisance_config():
 def test_legendre_design():
     from yct.controls.partial import nuisance_design
 
-    X = nuisance_design(41, ["intercept", "legendre_1"])
-    assert X.shape == (41, 2)
-    assert np.allclose(X[:, 0], 1)
-    assert np.isclose(X[0, 1], -1) and np.isclose(X[-1, 1], 1) and np.isclose(X[:, 1].mean(), 0)
+    x = nuisance_design(41, ["intercept", "legendre_1"])
+    assert x.shape == (41, 2)
+    assert np.allclose(x[:, 0], 1)
+    assert np.isclose(x[0, 1], -1) and np.isclose(x[-1, 1], 1) and np.isclose(x[:, 1].mean(), 0)
     with pytest.raises(ValueError):
         nuisance_design(41, ["intercept", "cubic"])
 
@@ -178,8 +179,8 @@ def test_partial_r_matches_residual_correlation():
     rng = np.random.default_rng(2)
     n = 40
     y, x, o = rng.standard_normal(n), rng.standard_normal(n), rng.standard_normal((n, 2))
-    N = np.column_stack([nuisance_design(n, ["intercept", "legendre_1"]), o])
-    res = lambda v: v - N @ np.linalg.lstsq(N, v, rcond=None)[0]   # noqa: E731
+    nmat = np.column_stack([nuisance_design(n, ["intercept", "legendre_1"]), o])
+    res = lambda v: v - nmat @ np.linalg.lstsq(nmat, v, rcond=None)[0]   # noqa: E731
     want = np.corrcoef(res(y), res(x))[0, 1]
     assert np.isclose(partial_r(y, x, o, ["intercept", "legendre_1"]), want)
 
@@ -222,7 +223,8 @@ def test_rebuild_compares_mp4_by_decoded_stream():
     spec.loader.exec_module(rb)
     recs = {"c": {"sha256": {"mp4": "NEW", "wav": "w", "tsv": "t"}, "decoded_sha256": "D"}}
     assert rb.rebuild_mismatches(recs, {"c.mp4": "OLD", "c.wav": "w", "c.tsv": "t"}, {"c.mp4": "D"}) == []
-    assert rb.rebuild_mismatches(recs, {"c.mp4": "OLD", "c.wav": "w", "c.tsv": "t"}, {"c.mp4": "X"}) == ["c.mp4"]
+    files = {"c.mp4": "OLD", "c.wav": "w", "c.tsv": "t"}
+    assert rb.rebuild_mismatches(recs, files, {"c.mp4": "X"}) == ["c.mp4"]
     assert rb.rebuild_mismatches(recs, {"c.mp4": "OLD", "c.wav": "w", "c.tsv": "t"}, {}) == ["c.mp4"]
 
 

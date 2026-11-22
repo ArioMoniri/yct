@@ -97,11 +97,20 @@ def verify_s3_sources(mans: dict[str, list[dict]], get) -> dict[str, str]:
     return out
 
 
-def rebuild_mismatches(recs: dict[str, dict], files: dict[str, str]) -> list[str]:
-    """Watchdog C3: every rebuilt clip that build 1 recorded must reproduce its mp4/wav/tsv sha256 exactly."""
+def rebuild_mismatches(recs: dict[str, dict], files: dict[str, str],
+                       decoded: dict[str, str] | None = None) -> list[str]:
+    """Watchdog C3: every rebuilt clip that build 1 recorded must reproduce its wav/tsv sha256 exactly.
+    D-086 (R-11 S-22): the bt709/tv tags change the mp4 bytes only, so the mp4 is compared by its decoded
+    video+audio stream sha (refclips58.decoded_sha) against the build-1 decoded record; a missing decoded
+    record fails closed."""
+    decoded = decoded or {}
     bad = []
     for name, rec in recs.items():
-        for kind in ("mp4", "wav", "tsv"):
+        if f"{name}.mp4" in files and rec["sha256"]["mp4"] != files[f"{name}.mp4"]:   # identical bytes pass
+            want = decoded.get(f"{name}.mp4")
+            if want is None or rec.get("decoded_sha256") != want:
+                bad.append(f"{name}.mp4")
+        for kind in ("wav", "tsv"):
             want = files.get(f"{name}.{kind}")
             if want is not None and rec["sha256"][kind] != want:
                 bad.append(f"{name}.{kind}")
@@ -125,8 +134,14 @@ def build_all(clips: list, out: Path, cfg: dict, images=None, sources: dict | No
         print(f"built {c.name}", flush=True)
     by = {c.name: c for c in clips}
     if qc == "d085":
-        rec1 = json.loads((ROOT / cfg["controls"]["refclips_d085"]["build1_sha_record"]).read_text())["files"]
-        mm = rebuild_mismatches(recs, rec1)
+        d85 = cfg["controls"]["refclips_d085"]
+        rec1 = json.loads((ROOT / d85["build1_sha_record"]).read_text())["files"]
+        dec = ROOT / d85["build1_decoded_sha_record"]
+        dec1 = json.loads(dec.read_text())["files"] if dec.exists() else {}   # absent -> every mp4 STOPs
+        for name in recs:
+            mp4 = out / f"{name}.mp4"
+            recs[name]["decoded_sha256"] = R.decoded_sha(mp4) if mp4.exists() else None
+        mm = rebuild_mismatches(recs, rec1, dec1)
         if mm:          # watchdog C3: the sha check runs before YuNet, in the same command
             (out / "STOP_NOTE.md").write_text(
                 "# p4b_ref/v1 D-085 rebuild: sha mismatch against build 1, STOP to the owner (before YuNet)\n"

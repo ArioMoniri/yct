@@ -1,0 +1,11 @@
+{
+  "decision": "D-086 Q2 (owner 2026-11-22: rule fixed before the count)",
+  "rule": "dynamic-loudnorm share of the analysis set < 10% -> keep the frozen normalize.loudness mode, add the S-QC exclusion sensitivity (outside alpha); >= 10% -> capped pure gain for BOTH waves (wave-1 P2->P4 rerun). Never wave 2 alone.",
+  "scope": "p4.run_set_t3 (analysis set, N = 52); pooled; label-free; no per-group split (D-060 precedent, stimulus-side QC count; not a prediction, D-063 B2 not engaged)",
+  "source": "pod /work/yct/norm/runlog + records (P2 run wave1_p2p3_20261117T202935Z, code b24fc1c); script: field loudnorm_mode, silent_audio_no_loudnorm flag",
+  "counted_utc": "2026-11-22",
+  "n": 52,
+  "loudnorm_mode": {"linear": 49, "dynamic": 3},
+  "dynamic_share": 0.0577,
+  "consequence": "3/52 = 5.8% < 10%: frozen mode kept; the 3 dynamic-mode clips enter the S-QC exclusion sensitivity (R-11 X-04); no rerun, no GPU spend"
+}

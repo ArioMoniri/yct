@@ -46,6 +46,7 @@ PATCH_RMS = 32.0               # = controls.refclips.shine.rms_contrast
 UTTER_RANGE = {"SPK": (1.0, 1.5), "BURST": (4.0, 6.0), "TALKFACE": (1.0, 6.0)}
 VISUAL = {"LOC", "LOC_SCR", "MOT", "MOT_STAT", "FLASH"}
 AUDIO = {"SPK", "BURST"}
+SPAN_DBFS = -40.0              # = controls.refclips_d085.speech.span_dbfs (R-11 S-23/S-24)
 
 
 # ---------------------------------------------------------------- schedule
@@ -316,6 +317,38 @@ def place_speech(base: np.ndarray, utter: np.ndarray, t0: float) -> np.ndarray:
 # ---------------------------------------------------------------- per-clip content
 # (family, utterance index) -> (48 kHz waveform, words)
 SpeechProvider = Callable[[str, int], tuple[np.ndarray, list[str]]]
+# raw engine output: (family, utterance index) -> (waveform at its native rate, rate, words)
+RawSpeech = Callable[[str, int], tuple[np.ndarray, int, list[str]]]
+
+
+def trim_to_span(x: np.ndarray, sr: int, dbfs: float = SPAN_DBFS) -> np.ndarray:
+    """R-11 S-24: cut an utterance to its -40 dBFS speech span (the corpus selection span), dropping the
+    engine's leading/trailing silence padding before placement. Idempotent."""
+    from yct.tribe_run.speech_corpus import speech_span
+
+    s0, s1 = speech_span(x, sr, dbfs)
+    return np.asarray(x, np.float64)[s0:s1]
+
+
+def resample_bandlimited(x: np.ndarray, sr_in: int, sr_out: int) -> np.ndarray:
+    """R-11 S-24: polyphase (Kaiser-windowed FIR) resampling, never nearest-sample."""
+    from math import gcd
+
+    from scipy.signal import resample_poly
+
+    if sr_in == sr_out:
+        return np.asarray(x, np.float64)
+    g = gcd(int(sr_in), int(sr_out))
+    return resample_poly(np.asarray(x, np.float64), int(sr_out) // g, int(sr_in) // g)
+
+
+def make_speech_provider(raw: RawSpeech) -> SpeechProvider:
+    """Wrap an engine (espeak-ng, 22.05 kHz) as a SpeechProvider: band-limited resample to 48 kHz, then trim
+    to the -40 dBFS span. The length gate, RMS match and word times then all act on the span (S-23)."""
+    def prov(family: str, idx: int) -> tuple[np.ndarray, list[str]]:
+        x, sr, words = raw(family, idx)
+        return trim_to_span(resample_bandlimited(x, sr, SR), SR), list(words)
+    return prov
 
 
 def clip_audio(clip: Clip, speech: SpeechProvider | None) -> tuple[np.ndarray, list[tuple]]:
@@ -327,6 +360,7 @@ def clip_audio(clip: Clip, speech: SpeechProvider | None) -> tuple[np.ndarray, l
         lo, hi = UTTER_RANGE[clip.family]
         for e in clip.events:
             wav, words = speech(clip.family, e["utterance"])
+            wav = trim_to_span(wav, SR)          # S-23: length, RMS and word times on the span
             d = len(wav) / SR
             if not lo <= d <= hi:
                 raise ValueError(f"{clip.name} event {e['k']}: utterance {d:.2f} s outside [{lo}, {hi}]")
@@ -381,6 +415,7 @@ def encode(frames: list[np.ndarray], audio: np.ndarray, rows: list[tuple], out_d
            "-i", str(wav48), "-map", "0:v", "-map", "1:a",
            "-c:v", v["codec"], "-crf", str(v["crf"]), "-preset", v["preset"], "-pix_fmt", v["pix_fmt"],
            "-threads", str(v["threads"]),
+           *_color_tags(cfg),
            "-c:a", a["codec"], "-ar", str(a["sample_rate"]), "-b:a", str(a["bitrate"]),
            "-fflags", "+bitexact", "-flags:v", "+bitexact", "-flags:a", "+bitexact", "-map_metadata", "-1",
            "-t", f"{DUR:.3f}", str(mp4)]
@@ -396,6 +431,25 @@ def encode(frames: list[np.ndarray], audio: np.ndarray, rows: list[tuple], out_d
         for wd, s, d, q, sent in rows:
             f.write(f"{wd}\t{s:.3f}\t{d:.3f}\t{q}\t{sent}\n")
     return {k: _sha(p) for k, p in (("mp4", mp4), ("wav", wav16), ("tsv", tsv))}
+
+
+def _color_tags(cfg: dict) -> list[str]:
+    """R-11 S-22: the P2 bt709/tv bitstream tags (normalize.color). Metadata only: the grey frames are not
+    re-matrixed, so decoded pixels are unchanged; mp4 bytes differ from build 1 (D-086)."""
+    from yct.normalize.core import color_tags
+
+    return color_tags(cfg["normalize"]["color"])
+
+
+def decoded_sha(mp4: Path) -> str:
+    """sha256 of the decoded video (yuv420p raw) + audio (s16le) streams: equal decoded content <=> equal
+    stimulus, independent of container/bitstream metadata such as the S-22 colour tags."""
+    h = hashlib.sha256()
+    for args in (["-map", "0:v:0", "-f", "rawvideo", "-pix_fmt", "yuv420p"],
+                 ["-map", "0:a:0", "-f", "s16le", "-acodec", "pcm_s16le"]):
+        out = subprocess.run([*FF, "-i", str(mp4), *args, "-"], capture_output=True, check=True).stdout
+        h.update(hashlib.sha256(out).digest())
+    return h.hexdigest()
 
 
 def _sha(p: Path) -> str:
