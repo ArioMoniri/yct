@@ -86,8 +86,15 @@ def args(env, **kw):
 
 
 def run(env, c=None, box=None, head=HEAD, pushed=True, **kw):
-    return nat0.run_session0(args(env, **kw), c or cfg(), env.lg, env.store, box or Box(env.ids), env.clock,
-                             env.log, head, pushed)
+    # council D-082: a fresh L4 reconciliation record and a finished pod CPU stage whose log is the
+    # committed one (their refusals are tested in tests/test_nat0_council_d082.py)
+    import hashlib
+
+    c = c or cfg()
+    recon = nat0.reconcile(env.lg, c, env.clock)
+    cpu_state = {"alive": False, "pod_log_sha256": hashlib.sha256(env.log.read_bytes()).hexdigest()}
+    return nat0.run_session0(args(env, **kw), c, env.lg, env.store, box or Box(env.ids), env.clock,
+                             env.log, head, pushed, recon=recon, cpu_state=cpu_state)
 
 
 def rows(env, stage="session0"):

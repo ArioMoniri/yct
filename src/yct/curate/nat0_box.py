@@ -69,8 +69,18 @@ def patched_config(mirror: Path, out_dir: Path) -> Path:
     return f
 
 
-def load_pipeline(mirror: Path, work: Path, device: str = "cpu"):
+def enforce_offline() -> None:
+    """HF offline mode for everything loaded after this call (council D-082, referee 4). huggingface_hub
+    reads HF_HUB_OFFLINE once at import, and faster_whisper has already imported it, so the env var alone is
+    not enough: the module constant that hf_hub_download checks at call time is set too."""
     os.environ["HF_HUB_OFFLINE"] = "1"
+    import importlib
+
+    importlib.import_module("huggingface_hub").constants.HF_HUB_OFFLINE = True
+
+
+def load_pipeline(mirror: Path, work: Path, device: str = "cpu"):
+    enforce_offline()
     import torch
     from pyannote.audio import Pipeline
 
@@ -150,17 +160,23 @@ def main(argv: list[str] | None = None) -> int:
     mirror = Path(a.mirror)
     check_mirror(mirror, json.loads(a.shas))
     from faster_whisper import WhisperModel
+    from faster_whisper.utils import download_model
 
     ct = "float16" if a.device == "cuda" else "int8"
-    model = WhisperModel("large-v3", device=a.device, compute_type=ct)
+    # N1 model: the public large-v3 resolved ONLINE (D-075 pins faster-whisper 1.2.1 + large-v3; the HF
+    # snapshot hash is recorded), then everything else OFFLINE (pyannote from the frozen mirror only)
+    wpath = download_model("large-v3")
+    model = WhisperModel(wpath, device=a.device, compute_type=ct)
+    enforce_offline()
     pipe = load_pipeline(mirror, Path(a.out).parent / "pyannote_cfg", a.device)
     samples = [float(s) for s in a.samples_s.split(",")]
-    res = {"versions": vers, "results": {}}
+    res = {"versions": vers, "whisper_model": {"name": "large-v3", "snapshot": Path(wpath).name},
+           "results": {}}
     for w in sorted(Path(a.wavs).glob("*.wav")):
         x = read_wav(w)
         res["results"][w.stem] = {"lang_probs": lang_probs(model, x, samples),
                                   "segments": diarize(pipe, x), "n_samples": int(len(x))}
-    Path(a.out).write_text(json.dumps(res, indent=1, sort_keys=True))
+    Path(a.out).write_text(json.dumps(res, sort_keys=True, separators=(",", ":")))     # compact
     print(json.dumps({"n": len(res["results"]), **vers}))
     return 0
 

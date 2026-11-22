@@ -13,7 +13,11 @@ Every check below runs BEFORE the launch and refuses with exit 1 (a human decide
   * a driver-independent external terminator between planned deadline + p4.terminator_margin_s and + 1 h more,
     never a fire time an earlier session already used (re-armed on every retry);
   * the code is the pushed, CI-green commit: HEAD == --ci-green-sha and HEAD is on the remote branch;
-  * the buffer: the NAT log's CPU-stage passes (1..cpu_buffer), no session-0 row logged yet;
+  * the L4 ledger reconciliation record (data/refstim/ledger_reconcile_nat0.json, written by
+    --reconcile-only and committed) matches the ledger now: no open launch, no live yct-* instance;
+  * the pod NAT CPU stage has ended and the committed NAT log is the pod's log byte for byte;
+  * the buffer is complete: exactly cpu_buffer (40) CPU passes, or a short buffer with the logged
+    snapshot_exhausted record (council D-082); no session-0 row logged yet;
   * the campaign baseline (entries/campaign_baseline.json) is written ONCE, before the first yct-p4b-ref
     launch (refused if any yct-p4b-ref instance predates it), and the $75 cap guard
     (ref_campaign.guard_launch) passes.
@@ -25,11 +29,15 @@ dead-man switch.
 from __future__ import annotations
 
 import argparse
+import base64
+import hashlib
 import importlib.util
+import io
 import json
 import os
 import subprocess
 import sys
+import tarfile
 import time
 import urllib.error
 from pathlib import Path
@@ -115,10 +123,67 @@ def check_buffer(cfg: dict, log: list[dict]) -> list[str]:
     buf = ns.buffer_ids(log, cfg)
     if not buf:
         raise Refused("the NAT buffer is empty: run the CPU stage first")
+    need = cfg["controls"]["refclips_auto"]["nat"]["cpu_buffer"]
+    if not ns.buffer_complete(log, cfg):        # council D-082 W2/B1: never fix a partial buffer
+        raise Refused(f"the NAT buffer holds {len(buf)} of {need} CPU passes and the log has no matching "
+                      "snapshot_exhausted record: finish the CPU stage first")
     return buf
 
 
-def preflight(a, cfg: dict, lg, store, clock, head: str, pushed: bool, log: list[dict]) -> dict:
+def check_cpu_stage(state: dict | None, log_path: Path) -> None:
+    """The pod CPU stage must have ended, and the committed log must be the pod's log byte for byte."""
+    if state is None:
+        raise Refused("no CPU-stage state (pod natstim_cpu_run liveness + log sha): refused")
+    if state.get("alive"):
+        raise Refused("the pod NAT CPU stage is still running (natcpu.rc absent or natstim_cpu_run alive)")
+    local = hashlib.sha256(Path(log_path).read_bytes()).hexdigest() if Path(log_path).exists() else None
+    if state.get("pod_log_sha256") != local:
+        raise Refused(f"the pod NAT log sha {str(state.get('pod_log_sha256'))[:12]} != the committed log "
+                      f"{str(local)[:12]}: commit the pod log first")
+
+
+# ---------------------------------------------------------------- L4 ledger reconciliation (D-071 k)
+def _ledger_lines(lg) -> list[str]:
+    path = Path(lg.LEDGER)
+    return [x for x in (path.read_text().splitlines() if path.exists() else []) if x.strip()]
+
+
+def _lines_sha(lines: list[str]) -> str:
+    return hashlib.sha256("\n".join(lines).encode()).hexdigest()
+
+
+def reconcile(lg, cfg: dict, clock) -> dict:
+    """L4: every ledger launch has a terminate record, no yct-* instance is alive on the Lambda API, and the
+    spend figures (global, budget cap, campaign by prefix) are recorded against the ledger's line count and
+    sha. Refuses (exit 1) on an open launch or a live instance. The committed record must match the ledger
+    at launch time (check_reconcile). The D-071 (k) $ tolerance needs an external invoice, which no API in
+    this project exposes: disclosed in t_nat0_ready.md."""
+    lines = _ledger_lines(lg)
+    recs = [json.loads(x) for x in lines]
+    ended = {r["id"] for r in recs if r.get("event") == "terminate"}
+    open_ = [r["id"] for r in recs if r.get("event") == "launch" and r["id"] not in ended]
+    live = [i.get("id") for i in lg._live(lg.list_ours())]
+    if open_ or live:
+        raise Refused(f"ledger not reconciled: open launches {open_}, live yct-* instances {live}")
+    prefix = cfg["controls"]["refclips"]["ledger_name_prefix"]
+    return {"ledger_n_lines": len(lines), "ledger_sha256": _lines_sha(lines), "open_launches": open_,
+            "live": live, "spent_usd": round(lg.spent_usd(), 4), "budget_cap_usd": lg.budget_cap(),
+            "campaign_spend_usd": round(ref.rcmp.campaign_spend(recs, prefix, clock()), 4), "t": clock()}
+
+
+def check_reconcile(rec: dict | None, lg) -> None:
+    if rec is None:
+        raise Refused("no L4 ledger reconciliation record: run --reconcile-only and commit it")
+    lines = _ledger_lines(lg)
+    if rec.get("ledger_n_lines") != len(lines) or rec.get("ledger_sha256") != _lines_sha(lines):
+        raise Refused(f"the ledger reconciliation record is stale ({rec.get('ledger_n_lines')} lines vs "
+                      f"{len(lines)} now): re-run --reconcile-only")
+    if rec.get("open_launches") or rec.get("live"):
+        raise Refused("the ledger reconciliation record shows open launches or live instances")
+
+
+def preflight(a, cfg: dict, lg, store, clock, head: str, pushed: bool, log: list[dict],
+              recon: dict | None = None, cpu_state: dict | None = None, log_path: Path | None = None) -> dict:
     """All pre-launch checks, in order; the baseline is written last-but-one (only once every other check
     passed), then the cap guard. Returns the plan."""
     price = lg.types()[cfg["p4"]["gpu_type"]]["usd_per_hour"]
@@ -126,6 +191,8 @@ def preflight(a, cfg: dict, lg, store, clock, head: str, pushed: bool, log: list
     check_limits(cfg, a.max_hours, a.usd_limit, price)
     check_terminator(cfg, store, a.external_terminator_at, clock(), a.max_hours)
     check_commit(head, a.ci_green_sha, pushed)
+    check_reconcile(recon, lg)
+    check_cpu_stage(cpu_state, log_path)
     buf = check_buffer(cfg, log)
     if lg._live(lg.list_ours()):
         raise Refused("a yct-* instance is alive: one instance at a time")
@@ -135,11 +202,11 @@ def preflight(a, cfg: dict, lg, store, clock, head: str, pushed: bool, log: list
 
 
 def run_session0(a, cfg: dict, lg, store, box, clock, log_path: Path, head: str,
-                 pushed: bool) -> tuple[int, dict]:
+                 pushed: bool, recon: dict | None = None, cpu_state: dict | None = None) -> tuple[int, dict]:
     log = ns.load_log(log_path)
     res: dict = {"session": SESSION, "git_sha": head, "steps": {}}
     try:
-        plan = preflight(a, cfg, lg, store, clock, head, pushed, log)
+        plan = preflight(a, cfg, lg, store, clock, head, pushed, log, recon, cpu_state, log_path)
     except SystemExit as exc:
         res.update(status="refused", error=str(exc))
         return 1, res
@@ -169,6 +236,7 @@ def run_session0(a, cfg: dict, lg, store, box, clock, log_path: Path, head: str,
                 gpu = out
     except Exception as exc:  # noqa: BLE001 - nothing logged yet: a re-run (75) with a new terminator
         res.update(status="box_failed", error=f"{type(exc).__name__}: {exc}"[-2000:])
+        gpu = None      # council D-082 (biostat B2): the selection is logged only when EVERY step is ok
     finally:
         try:
             lg.terminate(iid, "job_done")
@@ -176,7 +244,7 @@ def run_session0(a, cfg: dict, lg, store, box, clock, log_path: Path, head: str,
             lg.reap()
         res["alive_after"] = lg._live(lg.list_ours())
     store.s3_put_text(f"runs/{a.run_id}/child_metrics.json", json.dumps(res, default=str))
-    if gpu is None:
+    if gpu is None or any(res["steps"].get(st) != "ok" for st in STEPS):
         return 75, res
     try:
         rows = ns.session0_rows(plan["buffer"], gpu["results"], box.n3, cfg)
@@ -194,12 +262,72 @@ def run_session0(a, cfg: dict, lg, store, box, clock, log_path: Path, head: str,
     return 0, res
 
 
-# ---------------------------------------------------------------- real pod/box backend (not used in tests)
+# ---------------------------------------------------------------- real pod/box backend
+FREEZE = "outputs/runs/wave1p2b_20261117T234829Z/wx_pip_freeze.txt"
+# council D-082 B1: the box steps run yct.curate.nat0_box and yct.transcribe from the shipped tree and
+# install the pinned env from the freeze file, so all of them ship (tests/test_nat0_council_d082.py checks
+# the import closure against the tarball)
+EXTRA_SHIP = ["infra/gpu_deadman.sh", "src/yct/curate/__init__.py", "src/yct/curate/nat0_box.py", FREEZE]
+# P2b precedent (scripts/gpu_wave1_p2b.py): the pinned WhisperX env's cudnn/cublas for ctranslate2 on cuda
+CUDA_LIBS = ("SP=$(python -c 'import site; print(site.getsitepackages()[0])')\n"
+             "export LD_LIBRARY_PATH=$SP/nvidia/cudnn/lib:$SP/nvidia/cublas/lib:${LD_LIBRARY_PATH:-}\n")
+
+
+T1_DIR = "/work/yct/nat_scratch/t1"     # natcpu.sh runs scripts/natstim_cpu_run.py run /work/yct/nat_scratch
+WAV_DIR = f"{T1_DIR}/audio16k"
+
+
+def box_shas(cfg: dict) -> str:
+    """The --shas JSON the nat0 box step passes to yct.curate.nat0_box (also used by the pod rehearsal)."""
+    return json.dumps({k.removeprefix("pyannote_").removesuffix("_sha256"):
+                       cfg["controls"]["refclips_auto_artifacts"][k] for k in PYANNOTE_KEYS})
+
+
+def mirror_src(cfg: dict) -> str:
+    root = cfg["controls"]["refclips"]["s3_root"].rstrip("/")
+    return f"{root}/{cfg['controls']['refclips_auto']['nat']['weights_mirror'].strip('/')}/pyannote/"
+
+
+def mirror_sync_cmd(cfg: dict, dest: str) -> str:
+    """The exact push_buffer mirror sync (also used by the pod rehearsal)."""
+    return f"aws s3 sync --only-show-errors --region eu-central-1 {mirror_src(cfg)} {dest}"
+
+
+def n3_cmd(t1_name: str, repo: str = "/work/yct/repo") -> str:
+    """N3 (P3 face_present_crop over the T1 clip) on the pod CPU, printing the per-TR list."""
+    return (f"cd {repo} && /work/yct/venv/bin/python -c \"import json,sys; "
+            "sys.path.insert(0,'src'); from yct.config import load_config; "
+            "from yct.confounds.core import tr_grid, video_features; "
+            "from yct.normalize.core import probe_source; c=load_config(); "
+            f"p='{T1_DIR}/{t1_name}.mp4'; "
+            "g=tr_grid(probe_source(p)['duration_s'], c['tribe']['tr_s']); "
+            "print(json.dumps(list(map(float, video_features(p, g, c)['face_present_crop']))))\"")
+
+
+def ship_list() -> list[str]:
+    """gpu_p0_rerun.SHIP (copied, never mutated) + the session-0 extras, de-duplicated in order."""
+    import gpu_p0_rerun as g
+
+    out: list[str] = []
+    for p in [*g.SHIP, *EXTRA_SHIP]:
+        if p not in out:
+            out.append(p)
+    return out
+
+
+def ship_tarball(paths: list[str]) -> bytes:
+    buf = io.BytesIO()
+    with tarfile.open(fileobj=buf, mode="w:gz") as tf:
+        for rel in paths:
+            tf.add(ROOT / rel, arcname=rel, filter=lambda ti: None if "__pycache__" in ti.name else ti)
+    return buf.getvalue()
+
+
 class PodBox:
     """The P2b box pattern (scripts/gpu_wave1_p2b.py): pod-driven ssh, dead-man switch, heartbeat, pinned
     WhisperX env from the committed freeze file, pyannote OFFLINE from the S3 mirror. Never sees a token."""
 
-    FREEZE = "outputs/runs/wave1p2b_20261117T234829Z/wx_pip_freeze.txt"
+    FREEZE = FREEZE
 
     def __init__(self, cfg: dict, run_id: str, max_hours: float):
         import gpu_p0_rerun as g
@@ -227,42 +355,66 @@ class PodBox:
             if g.pod(f"{self.box.ssh} true && echo up", 120, check=False).strip().endswith("up"):
                 break
             time.sleep(20)
-        g.SHIP.append("infra/gpu_deadman.sh")
-        g.ship_code(self.box, self.pod_dir)
+        self.ship()
         hard = int(min(self.max_hours * 3600, deadline - time.time()))
         self.box.run(f"touch ~/yct_driver_touch; nohup bash {g.B}/infra/gpu_deadman.sh ~/yct_driver_touch "
                      f"1200 {hard} >/dev/null 2>&1 </dev/null & sleep 1; "
                      "pgrep -f gpu_deadman.sh >/dev/null && echo dm")
 
+    def ship(self) -> str:
+        """gpu_p0_rerun.ship_code with the session-0 ship list (ship_list); returns the tarball sha256."""
+        g, data = self.g, ship_tarball(ship_list())
+        b64 = base64.b64encode(data).decode()
+        g.pod(f"mkdir -p {self.pod_dir} && rm -f {self.pod_dir}/code.b64", 120)
+        for i in range(0, len(b64), 20000):
+            g.pod(f"echo -n {b64[i:i + 20000]} >> {self.pod_dir}/code.b64", 120)
+        g.pod(f"base64 -d {self.pod_dir}/code.b64 > {self.pod_dir}/code.tgz && cat {self.pod_dir}/code.tgz | "
+              f"{self.box.ssh} 'mkdir -p {g.B} && tar xzf - -C {g.B}'", 300)
+        return hashlib.sha256(data).hexdigest()
+
     def step(self, name: str, buffer: list[str]):
         g, b = self.g, self.g.B
-        n = self.cfg["controls"]["refclips_auto"]
         root = self.cfg["controls"]["refclips"]["s3_root"].rstrip("/")
         if name == "setup_wx":
-            self.box.start("wxsetup", f"cd {b}; UV=$HOME/.uvbin/uv; "
-                                      "[ -d wxvenv ] || $UV venv -q -p 3.11 wxvenv\n"
-                                      f"$UV pip install -q --python wxvenv/bin/python -r {b}/{self.FREEZE}\n")
+            # a fresh box has no uv (only tribe_run's setup script installs it) and maybe no ffmpeg (WhisperX
+            # load_audio); P2b's env also needs nltk punkt_tab (council D-082 referee 2/3, QA B2)
+            self.box.start("wxsetup", f"cd {b}\n"
+                           "for i in $(seq 1 60); do sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 "
+                           "|| break; sleep 5; done\n"
+                           "APT='sudo DEBIAN_FRONTEND=noninteractive apt-get -qq'\n"
+                           "command -v ffmpeg >/dev/null || "
+                           "{ $APT update && $APT install -y ffmpeg >/dev/null; }\n"
+                           "if [ ! -x \"$HOME/.uvbin/uv\" ]; then curl -LsSf https://astral.sh/uv/install.sh "
+                           "| env UV_INSTALL_DIR=\"$HOME/.uvbin\" UV_NO_MODIFY_PATH=1 sh >/dev/null; fi\n"
+                           "UV=$HOME/.uvbin/uv\n"
+                           "[ -d wxvenv ] || $UV venv -q -p 3.11 wxvenv\n"
+                           f"$UV pip install -q --python wxvenv/bin/python -r {b}/{self.FREEZE}\n"
+                           "wxvenv/bin/python -c \"import nltk; nltk.download('punkt_tab', quiet=True)\"\n")
             if self.box.wait("wxsetup", 2400) != 0:
-                raise RuntimeError("wxsetup failed")
+                raise RuntimeError("wxsetup failed:\n" + self.box.cat("~/steps/wxsetup.log")[-2000:])
         elif name == "push_buffer":
             names = " ".join(f"{i}.wav" for i in buffer)
-            g.pod(f"mkdir -p /work/yct/nat_box && aws s3 sync --only-show-errors --region eu-central-1 "
-                  f"{root}/{n['nat']['weights_mirror'].strip('/')}/pyannote/ /work/yct/nat_box/mirror/ && "
-                  f"cd /work/yct/nat_scratch/t1/audio16k && tar cf - {names} | {self.box.ssh} "
+            sync = mirror_sync_cmd(self.cfg, "/work/yct/nat_box/mirror/")
+            g.pod(f"mkdir -p /work/yct/nat_box && {sync} && "
+                  f"cd {WAV_DIR} && tar cf - {names} | {self.box.ssh} "
                   f"'mkdir -p {b}/nat/wavs && tar xf - -C {b}/nat/wavs' && cd /work/yct/nat_box && "
                   f"tar cf - mirror | {self.box.ssh} 'tar xf - -C {b}/nat'", 3600)
         elif name == "nat0":
-            shas = json.dumps({k.removeprefix("pyannote_").removesuffix("_sha256"):
-                               self.cfg["controls"]["refclips_auto_artifacts"][k] for k in PYANNOTE_KEYS})
-            self.box.start("nat0", f"cd {b}; export PYTHONPATH={b}/src\n"
-                                   "wxvenv/bin/python -m yct.curate.nat0_box --wavs nat/wavs "
-                                   "--mirror nat/mirror "
+            shas = box_shas(self.cfg)
+            self.box.start("nat0", f"cd {b}; source wxvenv/bin/activate; export PYTHONPATH={b}/src\n"
+                                   + CUDA_LIBS +
+                                   "python -m yct.curate.nat0_box --wavs nat/wavs --mirror nat/mirror "
                                    f"--shas '{shas}' --out nat/nat0.json > nat/nat0.log 2>&1\n")
             if self.box.wait("nat0", 3600) != 0:
                 raise RuntimeError("nat0 failed:\n" + self.box.cat(f"{b}/nat/nat0.log")[-2000:])
-            return json.loads(self.box.run(f"cat {b}/nat/nat0.json"))
+            # QA B3: SSM stdout is truncated at 24,000 chars, so the result is copied box -> pod over ssh
+            # and read back with the chunked pod_file, never from a `cat` through pod()
+            local = f"{self.pod_dir}/nat0.json"
+            g.pod(f"{self.box.ssh} 'cat {b}/nat/nat0.json' > {local}", 300)
+            return json.loads(g.pod_file(local))
         elif name == "asr":
             self.box.start("asr", f"cd {b}; source wxvenv/bin/activate; export PYTHONPATH={b}/src\n"
+                                  + CUDA_LIBS +
                                   "mkdir -p nat/asr\n"
                                   "python -m yct.transcribe --out-dir nat/asr --record nat/asr_run.json "
                                   "nat/wavs/*.wav > nat/asr.log 2>&1\n")
@@ -273,15 +425,7 @@ class PodBox:
                   f"/work/yct/nat_asr {root}/nat_asr/", 1800)
 
     def n3(self, t1_name: str) -> float:
-        out = self.g.pod(f"cd /work/yct/repo && /work/yct/venv/bin/python -c \"import json,sys; "
-                         f"sys.path.insert(0,'src'); from yct.config import load_config; "
-                         f"from yct.confounds.core import tr_grid, video_features; "
-                         f"from yct.normalize.core import probe_source; c=load_config(); "
-                         f"p='/work/yct/nat_scratch/t1/{t1_name}.mp4'; "
-                         f"g=tr_grid(probe_source(p)['duration_s'], c['tribe']['tr_s']); "
-                         "print(json.dumps(list(map(float, "
-                         "video_features(p, g, c)['face_present_crop']))))\"",
-                         1800)
+        out = self.g.pod(n3_cmd(t1_name), 1800)
         return ns.n3_value(json.loads(out.strip().splitlines()[-1]), self.cfg)
 
 
@@ -312,20 +456,43 @@ def _git(*args: str) -> str:
     return subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True).stdout.strip()
 
 
+RECONCILE_PATH = "data/refstim/ledger_reconcile_nat0.json"     # committed L4 record (D-071 k)
+POD_NAT_LOG = "/work/yct/repo/data/refstim/nat_auto_log.jsonl"
+
+
+def pod_cpu_state() -> dict:
+    """Liveness of the pod NAT CPU stage and the sha of the pod's NAT log (read-only)."""
+    import gpu_p0_rerun as g
+
+    out = g.pod("if pgrep -f 'natstim_cpu_run.py run' >/dev/null || { [ -f /work/yct/natcpu.sh ] && "
+                "[ ! -f /work/yct/natcpu.rc ]; }; then echo alive; else echo done; fi; "
+                f"sha256sum {POD_NAT_LOG} | cut -d' ' -f1", 120).split()
+    return {"alive": out[0] == "alive", "pod_log_sha256": out[1] if len(out) > 1 else None}
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("--max-hours", type=float, default=1.75)
     ap.add_argument("--usd-limit", type=float, default=USD_LIMIT_MAX)
-    ap.add_argument("--external-terminator-at", required=True)
-    ap.add_argument("--ci-green-sha", required=True, help="the commit whose CI run is green (checked by the "
-                                                          "orchestrator); must equal HEAD")
+    ap.add_argument("--external-terminator-at")
+    ap.add_argument("--ci-green-sha", help="the commit whose CI run is green (checked by the orchestrator); "
+                                           "must equal HEAD")
     ap.add_argument("--ack-cap-80", action="store_true")
+    ap.add_argument("--reconcile-only", action="store_true",
+                    help=f"write the L4 ledger reconciliation record to {RECONCILE_PATH}, then exit")
     a = ap.parse_args(argv)
     if os.environ.get("AWS_DEFAULT_REGION", "eu-central-1") != "eu-central-1":
         raise SystemExit("AWS_DEFAULT_REGION must be eu-central-1 (yct resources only)")
     cfg = load_config()
     from infra import lambda_gpu as lg
 
+    if a.reconcile_only:
+        rec = reconcile(lg, cfg, time.time)
+        (ROOT / RECONCILE_PATH).write_text(json.dumps(rec, indent=1, sort_keys=True) + "\n")
+        print(json.dumps(rec))
+        return 0
+    if not a.external_terminator_at or not a.ci_green_sha:
+        raise SystemExit("--external-terminator-at and --ci-green-sha are required for a launch")
     p4 = ref.p4
     run_dir = Path(os.environ.get("YCT_RUN_DIR") or ROOT / "outputs" / "runs" / f"p4bnat0_{int(time.time())}")
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -334,8 +501,11 @@ def main(argv: list[str] | None = None) -> int:
     head = _git("rev-parse", "HEAD")
     pushed = bool(_git("branch", "-r", "--contains", head))
     os.environ["YCT_HB_VIA_POD"] = "1"
+    rp = ROOT / RECONCILE_PATH
+    recon = json.loads(rp.read_text()) if rp.exists() else None
     rc, res = run_session0(a, cfg, lg, S3Store(cfg), PodBox(cfg, a.run_id, a.max_hours), time.time,
-                           ROOT / cfg["controls"]["refclips_auto"]["logs"]["nat"], head, pushed)
+                           ROOT / cfg["controls"]["refclips_auto"]["logs"]["nat"], head, pushed,
+                           recon=recon, cpu_state=pod_cpu_state())
     (run_dir / "child_metrics.json").write_text(json.dumps(res, indent=1, default=str))
     keys = ("status", "error", "n_pass", "n_buffer", "pre_launch")
     print(json.dumps({k: res.get(k) for k in keys}, default=str))

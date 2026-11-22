@@ -83,3 +83,20 @@ D-082 is accepted, `controls.refclips_d082` is frozen and `pyannote_plda_sha256`
 2. **Commit k+1:** freeze rows for `controls.refclips_d082` and the four sha keys, with the expected
    rows in `tests/test_guards_frozen_config.py`.
 3. **Then:** the T-NAT0 session 0 under D-071 (k) launch rules, once the NAT CPU buffer is full.
+
+## 7. Council (wf_f6c3f08d-716) note, appended 2026-11-22
+- **Accepted as drafted** by all five members (watchdog, referee, biostat, neuro, QA). The REVISE items
+  were all session-0 readiness (scripts/gpu_p4b_nat0.py), applied test-first in
+  tests/test_nat0_council_d082.py; see t_nat0_ready.md.
+- **W1, token-rule deviation (BUG-041):** the §1 "Gate check on the pod" line records a gate-access test
+  with the owner's token, which D-075 §3 forbids. It is logged as a deviation and is **withdrawn as
+  acceptance evidence**: D-082 rests on the pinned revision, the mirror `dir_sha`s (§1) and the offline
+  pod verify (§4). The token was never echoed or persisted (BUG-041: 0 token-shaped strings in pod files
+  or in the 72 SSM command texts/outputs since 2026-11-21T18:00Z). The community-1 `config.yaml` fetched
+  in that check is not mirrored and never used; only `plda/*` is mirrored.
+- **Neuro (non-blocking):** the verify now also diarizes a single-voice espeak-ng fixture and requires
+  exactly 1 speaker (`fixture_ok(segs, 1)`), besides 2 on the A-B-A fixture. Disclosure for the v1
+  report: the 3.1-under-4.1.0 verify ran on the pod CPU; N2 in session 0 runs the same pipeline on CUDA
+  (A100), and CPU/GPU numerical differences in segment boundaries are possible.
+- **QA (non-blocking):** "PLDA never applied" rests on the 4.1.0 code path (§2) plus the code guard; the
+  report also states the community-1 pin is its head sha on 2026-11-22.

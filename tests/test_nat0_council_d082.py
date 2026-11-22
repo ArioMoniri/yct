@@ -386,8 +386,8 @@ def test_main_resolves_whisper_then_goes_offline_before_loading_pyannote(monkeyp
     (tmp_path / "w").mkdir()
     nb.write_wav(tmp_path / "w" / "a.wav", np.zeros(16000, np.float32))
     out = tmp_path / "o.json"
-    assert nb.main(["--wavs", str(tmp_path / "w"), "--mirror", str(tmp_path), "--shas", "{}", "--out", str(out),
-                    "--device", "cpu"]) == 0
+    assert nb.main(["--wavs", str(tmp_path / "w"), "--mirror", str(tmp_path), "--shas", "{}",
+                    "--out", str(out), "--device", "cpu"]) == 0
     tags = [o[0] for o in order]
     assert tags == ["download", "whisper", "offline", "pyannote"], order
     res = json.loads(out.read_text())
@@ -397,7 +397,8 @@ def test_main_resolves_whisper_then_goes_offline_before_loading_pyannote(monkeyp
 
 # ---------------------------------------------------------------- neuro non-blocking: single-voice fixture
 def test_setup_verify_requires_one_speaker_on_the_single_voice_fixture():
-    spec2 = importlib.util.spec_from_file_location("nat0_setup_c", ROOT / "scripts" / "nat0_pyannote_setup.py")
+    spec2 = importlib.util.spec_from_file_location("nat0_setup_c",
+                                                   ROOT / "scripts" / "nat0_pyannote_setup.py")
     setup = importlib.util.module_from_spec(spec2)
     spec2.loader.exec_module(setup)
     one = [[0.0, 3.0, "A"], [3.5, 6.0, "A"]]

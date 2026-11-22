@@ -25,6 +25,7 @@ from yct.curate import refstim as rs
 from yct.curate import refstim_auto as ra
 
 STAGE_CPU = "cpu"
+STAGE_CPU_END = "cpu_end"     # terminal record: the snapshot was exhausted before cpu_buffer passes
 CPU_RULES = {"C1": ["licence", "personality_rights"], "T58": "too_short", "C4": "yc_link", "P2": "too_short"}
 
 
@@ -142,12 +143,32 @@ def run_cpu(order: list[dict], cfg: dict, log_path: Path, page_meta: Callable[[l
             i += 1
             if row["decision"] == "pass":
                 passes.append(row)
+    if len(passes) < need and i >= len(order) and \
+            not any(r.get("stage") == STAGE_CPU_END for r in load_log(log_path)):
+        ra.append_jsonl(log_path, {"stage": STAGE_CPU_END, "reason": "snapshot_exhausted", "n_evaluated": i,
+                                   "n_pass": len(passes), "n_order": len(order)})
     return passes
+
+
+def snapshot_exhausted(log: list[dict]) -> bool:
+    """True iff the log carries the run_cpu terminal record and its counts match the logged cpu rows."""
+    rows = cpu_rows(log)
+    n_pass = sum(r["decision"] == "pass" for r in rows)
+    return any(r.get("stage") == STAGE_CPU_END and r.get("reason") == "snapshot_exhausted"
+               and r.get("n_evaluated") == len(rows) and r.get("n_pass") == n_pass for r in log)
+
+
+def buffer_complete(log: list[dict], cfg: dict) -> bool:
+    """Session 0 may launch only on a complete buffer (council D-082 W2/B1): exactly cpu_buffer passes, or a
+    short buffer whose CPU stage logged snapshot_exhausted."""
+    n = len(buffer_ids(log, cfg))
+    return n == cfg["controls"]["refclips_auto"]["nat"]["cpu_buffer"] or (n > 0 and snapshot_exhausted(log))
 
 
 def buffer_ids(log: list[dict], cfg: dict) -> list[str]:
     """The fixed buffer: the cpu passes, in log order. A short buffer (snapshot exhausted) is returned as
-    is; session 0 then STOPs if it yields fewer than nat_n passes (nat_select)."""
+    is; the driver launches only if buffer_complete (a short buffer needs the logged terminal record), and
+    session 0 then STOPs if it yields fewer than nat_n passes (nat_select)."""
     p = [r["t1_name"] for r in cpu_rows(log) if r["decision"] == "pass"]
     buf = cfg["controls"]["refclips_auto"]["nat"]["cpu_buffer"]
     if len(p) > buf:

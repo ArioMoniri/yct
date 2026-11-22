@@ -7,8 +7,8 @@
                        MIRROR/<repo>; print the shas
   upload MIRROR        mirror -> controls.refclips.s3_root/<refclips_auto.nat.weights_mirror>pyannote/
   verify MIRROR WORK   load 3.1 OFFLINE (HF_HUB_OFFLINE=1) under pyannote.audio 4.1.0 from the mirror on
-                       CPU and diarize a synthetic two-voice espeak-ng fixture; exit 0 iff it loads
-                       and returns exactly two speakers
+                       CPU and diarize a synthetic two-voice espeak-ng fixture and a single-voice one;
+                       exit 0 iff it loads and returns exactly two and one speakers
                        (a load failure is a STOP to the council: no switch to another pipeline)
 """
 from __future__ import annotations
@@ -38,9 +38,10 @@ def allow_patterns(k: str) -> list[str] | None:
     return ["plda/*"] if k == "plda" else None
 
 
-def fixture_ok(segs: list) -> bool:
-    """The A-B-A two-voice fixture must come back as exactly two speakers (diarisation is correct)."""
-    return bool(segs) and len({s[2] for s in segs}) == 2
+def fixture_ok(segs: list, n: int = 2) -> bool:
+    """A synthetic fixture must come back as exactly n speakers: the A-B-A two-voice fixture as 2, the
+    single-voice fixture as 1 (council D-082, neuro non-blocking)."""
+    return bool(segs) and len({s[2] for s in segs}) == n
 
 
 def download(mirror: Path) -> dict:
@@ -63,23 +64,35 @@ def upload(mirror: Path) -> None:
     print(dest)
 
 
+TWO_VOICE = [("en-us+m3", "The quick brown fox jumps over the lazy dog. " * 2),
+             ("en-us+f4", "Pack my box with five dozen liquor jugs, she said. " * 2),
+             ("en-us+m3", "Then the fox ran into the forest and was gone. " * 2)]
+ONE_VOICE = [("en-us+m3", t) for _, t in TWO_VOICE]
+
+
 def two_voice_fixture(work: Path) -> Path:
     """Two espeak-ng voices, A-B-A (synthetic; no real recording)."""
+    return _fixture(work, TWO_VOICE, "two_voice")
+
+
+def one_voice_fixture(work: Path) -> Path:
+    """The same three sentences in one espeak-ng voice (synthetic): must come back as 1 speaker."""
+    return _fixture(work, ONE_VOICE, "one_voice")
+
+
+def _fixture(work: Path, texts: list[tuple[str, str]], stem: str) -> Path:
     import numpy as np
 
     work.mkdir(parents=True, exist_ok=True)
     parts = []
-    texts = [("en-us+m3", "The quick brown fox jumps over the lazy dog. " * 2),
-             ("en-us+f4", "Pack my box with five dozen liquor jugs, she said. " * 2),
-             ("en-us+m3", "Then the fox ran into the forest and was gone. " * 2)]
     for i, (voice, text) in enumerate(texts):
-        f = work / f"part{i}.wav"
+        f = work / f"{stem}_part{i}.wav"
         subprocess.run(["espeak-ng", "-v", voice, "-s", "150", "-w", str(f), text], check=True)
         subprocess.run(["ffmpeg", "-y", "-nostdin", "-v", "error", "-i", str(f), "-ac", "1", "-ar",
                         str(nb.SR), str(f.with_suffix(".16k.wav"))], check=True)
         x = nb.read_wav(f.with_suffix(".16k.wav"))
         parts += [x, np.zeros(nb.SR // 2, np.float32)]
-    out = work / "two_voice.wav"
+    out = work / f"{stem}.wav"
     nb.write_wav(out, np.concatenate(parts))
     return out
 
@@ -95,13 +108,14 @@ def verify(mirror: Path, work: Path) -> dict:
         raise SystemExit(f"mirror shas {shas} != config {want}")
     pipe = nb.load_pipeline(mirror, work / "cfg", "cpu")
     segs = nb.diarize(pipe, nb.read_wav(two_voice_fixture(work)))
+    one = nb.diarize(pipe, nb.read_wav(one_voice_fixture(work)))
     res = {"pyannote.audio": md.version("pyannote.audio"), "n_turns": len(segs),
            "n_speakers": len({s[2] for s in segs}), "speech_s": round(sum(e - s for s, e, _ in segs), 3),
-           "mirror_shas": shas}
+           "one_voice_n_speakers": len({s[2] for s in one}), "device": "cpu", "mirror_shas": shas}
     res["plda_loaded"] = getattr(pipe, "_plda", None) is not None
     res["clustering"] = getattr(pipe, "klustering", None)
     print(json.dumps(res))
-    if md.version("pyannote.audio") != "4.1.0" or not fixture_ok(segs):
+    if md.version("pyannote.audio") != "4.1.0" or not fixture_ok(segs, 2) or not fixture_ok(one, 1):
         raise SystemExit(f"STOP: 3.1 under pyannote.audio 4.1.0 did not run cleanly: {res}")
     return res
 
