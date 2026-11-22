@@ -30,6 +30,11 @@ def cfg(pyannote=True):
             c["controls"]["refclips_auto_artifacts"][k] = "a" * 64
             c["frozen"].append({"key": f"controls.refclips_auto_artifacts.{k}", "frozen_at": "x"})
         c["frozen"].append({"key": "controls.refclips_d082", "frozen_at": "x"})     # D-082 draft
+    else:   # the repo config has the real D-082 shas set + frozen (0c3057c): the unset case clears them
+        drop = {f"controls.refclips_auto_artifacts.{k}" for k in nat0.PYANNOTE_KEYS}
+        for k in nat0.PYANNOTE_KEYS:
+            c["controls"]["refclips_auto_artifacts"][k] = None
+        c["frozen"] = [r for r in c["frozen"] if r["key"] not in drop]
     return c
 
 

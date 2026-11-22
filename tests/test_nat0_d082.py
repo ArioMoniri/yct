@@ -110,6 +110,10 @@ def test_session0_refuses_without_the_plda_sha():
     nat0 = _load("nat0_drv", "scripts/gpu_p4b_nat0.py")
     assert "pyannote_plda_sha256" in nat0.PYANNOTE_KEYS
     c = copy.deepcopy(CFG)
+    # the repo config has the real plda sha set + frozen (D-082, 0c3057c): this case clears it
+    c["controls"]["refclips_auto_artifacts"]["pyannote_plda_sha256"] = None
+    c["frozen"] = [r for r in c["frozen"]
+                   if r["key"] != "controls.refclips_auto_artifacts.pyannote_plda_sha256"]
     for k in nat0.PYANNOTE_KEYS:
         if k != "pyannote_plda_sha256":
             c["controls"]["refclips_auto_artifacts"][k] = "a" * 64
