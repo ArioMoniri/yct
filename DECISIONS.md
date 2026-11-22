@@ -509,3 +509,28 @@ Append-only log. Format: date | phase | id | summary | evidence.
   - **Rebuild identity (before YuNet, in the same command):** GREY_CTRL, FLASH, MOT, MOT_STAT match build 1 (decoded mp4, wav and tsv bytes); LOC/LOC_SCR rendered patches match the per-patch sha256s in the screen record.
   - **Smoke precondition met:** outcome-blind real-path pod smoke at d7a416c (`reviews/phase_p4b/d087_smoke.md`): 60/60 sources, 180 patches equal the builder, YuNet reproduces 5/5 T-LIC reject rows and finds nothing on grey, `--target` no-op; no YuNet call on any v2 slot or candidate patch. Post-smoke wiring fixes 2f7e071 (file name from the URL path; the screen never uploads) judged not to need a re-smoke.
   - **Council:** draft REVISE ×5 → v2 → re-check QA APPROVE, four REVISE (real-path smoke) → smoke → final sign-off APPROVE 5/5 (`reviews/phase_p4b/council_d087_*.md`, d5d8787). Not adopted, disclosed: a lower screen threshold (QA) and a compressed-image screen (biostat).
+- D-085 part 2 (speech + TALKFACE; amends D-085 (e)). Council cycle 1 REVISE ×5 → v2 → re-sign-off (4
+  APPROVE, neuro REVISE → v2 addendum §7 → neuro re-sign-off).
+  - **T-ENV disclosure.** `controls.refclips_d085.tenv` (module `src/yct/confounds/envelope.py`, blob
+    c81eae2b…) was frozen at 62c3806 **before** the council ratified it. The filter is an author-filled
+    detail of the frozen D-086 R-ENV op: Butterworth order 4 low-pass at 10 Hz, applied forward-backward
+    (`sosfiltfilt`), so the effective order is 8, zero phase, with a squared magnitude response (−6 dB at
+    10 Hz, not −3 dB). A silent clip (SD 0) gives an all-zero envelope. The envelope never gates. The
+    council ratifies it now; any later change, above all after an envelope has been seen, needs a new
+    decision.
+  - **Engine pin.** espeak-ng 1.51+dfsg-12build1 (binary 34191438…, library a18be542…, data tree f35962c8…,
+    488 files), verified at synthesis before any call, fail closed; `select` refuses an unverified synth.
+    Selection span measured on the build's band-limited 48 kHz path.
+  - **Wav2Lip weights (amends D-085 (e)).** The literal changes from `wav2lip.pth` to `Wav2Lip-SD-NOGAN.pt`
+    for two reasons: (1) `wav2lip.pth` is no longer in the README-linked official folder at bac9a81, which
+    now holds only the two May 2023 TorchScript archives; (2) option (b) was ruled, but no upstream commit
+    with an SD loader exists (master = bac9a81, 113 commits), so the pre-fixed fallback (a) applies. NOGAN
+    (7ab92491…8999) loads strict into the pinned class, decided on a synthetic fixture only (352/352 keys,
+    max |diff| 0.0; record sha d4e7d038…, loader blob 43f805e8…, both frozen in the part-2 commit). GAN is
+    never used; no jit fallback.
+  - **TALKFACE face continuation** (authority here, separate from D-087): v4 face log, target 21, +1 per
+    logged s3fd/Wav2Lip skip (`data/refstim/talkface_skips.jsonl`, committed; each pass above 21 needs one
+    skip_on entry), at most 5 skips, at most 20 extra passes, append-only with byte-identical rows,
+    committed before any Wav2Lip run; exhaustion is a STOP to the owner.
+  - **Freeze order:** (1) these keys; (2) selection (record sha frozen next; queue exhaustion = STOP); (3) TALKFACE face continuation, face sha frozen; (4) SPK/BURST/TALKFACE build + frozen QC; (5) clip manifest sha.
+  - **Record:** reviews/phase_p4b/d085_part2.md, d085_part2_v2.md (+ response matrix), council_d085p2_*.md (cycle 1 REVISE ×5; re-sign-off 4 APPROVE + neuro REVISE; neuro final APPROVE 256baf6). Keys frozen in the next commit: `controls.refclips_d085.speech`, `controls.refclips_d085.talkface`, `controls.refclips_artifacts.speech_corpus_sha256`.
