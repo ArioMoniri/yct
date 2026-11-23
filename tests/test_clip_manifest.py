@@ -1,7 +1,7 @@
 """Full p4b_ref/v1 clip manifest assembly (D-071 (d)): every family present at its frozen count, every part
-frozen-QC-passed, GREY_CTRL identical across the two builds, the 15 NAT rows from the frozen NAT manifest with
-the pod dry-run shas, TALKFACE from its finish record, and the BUG-048 concrete PD template. The real committed
-parts are used where they exist; TALKFACE (not built yet) is a fixture."""
+frozen-QC-passed, GREY_CTRL identical across the two builds, the 15 NAT rows from the frozen NAT manifest
+with the pod dry-run shas, TALKFACE from its finish record, and the BUG-048 concrete PD template. The real
+committed parts are used where they exist; TALKFACE (not built yet) is a fixture."""
 from __future__ import annotations
 
 import copy
@@ -34,7 +34,8 @@ def test_assembles_120_clips_with_the_frozen_family_counts(parts):
     counts = {f: sum(c["family"] == f for c in doc["clips"]) for f in fam}
     assert counts == fam and len(doc["clips"]) == sum(fam.values()) == 120
     assert len({c["name"] for c in doc["clips"]}) == 120
-    assert doc["sources"]["nat_manifest_sha256"] == CFG["controls"]["refclips_artifacts"]["nat_manifest_sha256"]
+    art = CFG["controls"]["refclips_artifacts"]
+    assert doc["sources"]["nat_manifest_sha256"] == art["nat_manifest_sha256"]
 
 
 def test_nat_entries_carry_the_manifest_and_dry_run_shas(parts):
