@@ -1021,6 +1021,7 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   # D-081 v4 finalise: image manifest sha frozen in the commit after it was set (two-commit freeze)
   - {key: controls.refclips_artifacts.image_manifest_sha256, frozen_at: 376966a7aed15ac7db4aa3fd4d7e7a4cb4d9b665}
   - {key: controls.refclips_artifacts.nat_manifest_sha256, frozen_at: a50225347624bcea511ae352551cde31b431fc12}
+  - {key: controls.refclips_artifacts.manifest_sha256, frozen_at: 6440ebf84f27b3a0e646656d11c58884cc51ff86}
   # D-082 (BUG-040 community-1 PLDA pin): frozen in the commit after the DECISIONS entry, before session 0
   - {key: controls.refclips_d082, frozen_at: 0c3057cdb33aeb33a51f187ba2eed5f23f6894fe}
   - {key: controls.refclips_auto_artifacts.pyannote_diarization_sha256, frozen_at: 0c3057cdb33aeb33a51f187ba2eed5f23f6894fe}
