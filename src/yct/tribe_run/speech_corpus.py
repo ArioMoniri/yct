@@ -282,7 +282,8 @@ def select(queue: list[dict], synth: Synth, spec: dict) -> dict[str, Any]:
                 x, sr = synth(text, rate_wpm=by_fam[fam]) if by_fam else synth(text)
                 s0, s1 = speech_span(x, sr, spec["span_dbfs"])
                 d = (s1 - s0) / sr
-                rec = {"slot": u, "text": text, "n_words": nw, "span_s": round(d, 4),
+                rec = {"slot": u, "text": text, "n_words": nw, "span_s": round(d, 4),   # span_s: display only
+                       "span_samples": int(s1 - s0), "sr": int(sr),     # the QC compares these integers
                        "source_sha256": [s["sha256"] for s in src]}
                 if by_fam:
                     rec["rate_wpm"] = int(by_fam[fam])       # D-089 v2: the rate this item was measured at
