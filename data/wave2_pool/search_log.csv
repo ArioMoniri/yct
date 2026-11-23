@@ -507,3 +507,38 @@ timestamp,source,query,n_results,n_new_candidates
 2026-11-22T08:34:42Z,exa_search,"""application closes today"" attaching our founder video YC tweet",20,0
 2026-11-22T08:34:42Z,nitter_mirror_profile_pages,xitter.cf media-tab pagination of one founder profile (7 pages) to resolve a 2025 tweet id,7,1
 2026-11-22T08:34:42Z,linkedin_fetch,public LinkedIn post pages (VideoObject check) for 4 more Exa hits,4,0
+2026-11-23T08:23:56Z,exa_search,"founder tweet: ""this is the 1 minute video we recorded for our YC application"" video",25,0
+2026-11-23T08:23:56Z,exa_search,techtwitter.com tweet founder sharing the video we submitted with our YC application,30,0
+2026-11-23T08:23:56Z,exa_search,"24vids founder video YC W25 application, got in",40,0
+2026-11-23T08:23:56Z,exa_search,"xitter.cf founder: our YC founder video from the application, we are now in the batch",40,0
+2026-11-23T08:23:56Z,exa_search,roast my YC founder video tweet with video,40,0
+2026-11-23T08:23:56Z,exa_search,"24vids ""YC said no"" founder video we submitted",40,0
+2026-11-23T08:23:56Z,exa_search,nitter.rdrama.net founder video for our YC application,20,1
+2026-11-23T08:23:56Z,exa_search,Joaquin Del Pego founder YC (founder-identity follow-up),8,0
+2026-11-23T08:23:56Z,nitter_mirror_profile_pages,xitter.cf with_replies+media tab pagination of one founder profile (20 pages) to resolve 2026 tweet ids,20,1
+2026-11-23T08:23:56Z,x_syndication_api,"cdn.syndication.twimg.com tweet-result lookups (video presence, duration, author) + poster-frame thumbnail check",8,1
+2026-11-23T08:23:56Z,exa_search,"""Just applied to YC"" with my cofounder, Download video",30,0
+2026-11-23T08:23:56Z,exa_fetch,nitter.rdrama.net profile pages of 2 HOPE founders (outcome check),2,0
+2026-11-23T08:23:56Z,ycombinator_directory,yc-oss companies dump (refreshed 2026-11-23) for batch/name checks,6407,0
+2026-11-23T08:23:56Z,exa_search,"nitter founder post: the video we sent YC, now backed by Y Combinator, Download video",25,0
+2026-11-23T08:23:56Z,exa_search,"tweet: applied to YC Winter 2027, here is our founder video (video)",25,0
+2026-11-23T08:23:56Z,webfetch,rohanbalkondekar.com YC W27 + F24 published applications (founder video links; no explicit outcome),3,0
+2026-11-23T08:23:56Z,exa_search,nitter.jaydenha.uk founder video that got us into YC,25,0
+2026-11-23T08:23:56Z,exa_search,"medial.app post: our YC application founder video, we got into Y Combinator",15,0
+2026-11-23T08:23:56Z,exa_search,"threads.net post: here is our YC application video, we got rejected / we got in",15,0
+2026-11-23T08:23:56Z,exa_search,"reddit r/ycombinator post with video: my YC founder video, got rejected, feedback?",15,0
+2026-11-23T08:23:56Z,linkedin_fetch,public LinkedIn post pages (VideoObject check) for 2 Exa hits,2,0
+2026-11-23T08:27:05Z,exa_search,"24vids ""just applied to YC"" founder video",30,0
+2026-11-23T08:27:06Z,exa_search,tweet by founder (YC P25) sharing the founder video from our Spring 2025 application,12,0
+2026-11-23T08:27:06Z,exa_search,founder (YC S26) posts the raw founder video from their YC application on X,12,0
+2026-11-23T08:27:06Z,exa_search,"peerlist.io post: our YC application video, got rejected / got accepted into Y Combinator",12,0
+2026-11-23T08:27:06Z,exa_search,superr.bio Vivek Gautam YC application video (follow-up),8,0
+2026-11-23T08:27:06Z,exa_search,"""we filmed this"" for our YC application, one year later we are a YC company (video tweet)",12,1
+2026-11-23T08:27:06Z,linkedin_fetch,public LinkedIn post page (VideoObject check) + ycombinator.com/companies founder check (HYBRD),2,1
+2026-11-23T08:27:06Z,exa_search,LinkedIn: I dug up the intro video we submitted with our Y Combinator application,15,0
+2026-11-23T08:27:06Z,nitter_mirror_profile_pages,"nitter.gq media/with_replies tabs of 3 founder profiles (Traket, Lantern AI) for outcome/video posts; mirrors returned 530 for ~30 min mid-session (backed off)",20,0
+2026-11-23T08:27:06Z,exa_search,"nitter.gq status: our YC founder video, we got in",15,0
+2026-11-23T08:27:06Z,exa_search,"""this is our founder video"" applying to YC tweet",15,0
+2026-11-23T08:27:06Z,exa_search,"post LinkedIn: notre vidéo de candidature Y Combinator, nous avons été acceptés (vidéo des fondateurs)",12,0
+2026-11-23T08:27:06Z,exa_search,"24vids: got rejected from YC F26, here is the founder video we submitted",12,0
+2026-11-23T08:27:06Z,linkedin_fetch,public LinkedIn post pages (VideoObject check) for 2 F26-rejection posts,2,0

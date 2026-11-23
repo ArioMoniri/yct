@@ -250,3 +250,54 @@ About 3,900 units used (about 37 search.list calls plus 144 commentThreads calls
   - One row's format is unusual: a sung video that the founder says they applied with.
   - Audio language of the X/LinkedIn rows is recorded as UNKNOWN, following the earlier convention.
   - Details are in the sealed notes.
+
+## Round 8 (2026-11-23, append-only)
+
+Data Curator, blind to study hypotheses. Appended 2 new pool rows `yct_0734`..`yct_0735` (wave=2, collected_after_lock=PENDING). Both companies are disjoint from `data/manifest.csv` and from all earlier pool rows. Disjointness was checked by company_id, by fuzzy company-name match (including YC-directory former names), and by video id / LinkedIn activity id / X status id against both manifests and both exclusion lists. One video per company: 2 rows = 2 companies. No outcome breakdowns appear in this file. Labels and evidence are only in `data/sealed/sealed_w2pool_part10.tar.age` (yct_0734..0735). The plaintext was shredded after encryption.
+
+### Counts by label confidence x era (round-8 rows, one per company)
+
+| confidence | E1 | E2 | E3 | UNKNOWN | total |
+|---|---|---|---|---|---|
+| A (in_primary=True) | 0 | 0 | 2 | 0 | 2 |
+| not A | 0 | 0 | 0 | 0 | 0 |
+| total | 0 | 0 | 2 | 0 | 2 |
+
+The one-per-company counts are the same (2 distinct companies, 2 conf-A). Platforms: 1 row from X (native video in a founder's own post) and 1 from LinkedIn (native video in a founder's own post). For one row, claimed_batch is the batch code the founder wrote in the post. For the other, it comes from the post text ("fall batch") together with the founder's profile headline. No YouTube row was added this round.
+
+### Sources used
+- **Exa web search**: about 30 new phrasings, none repeated from either search log. They targeted:
+  - X mirror sites not used before: nitter.rdrama.net, nitter.gq, nitter.cf, nitter.jaydenha.uk and techtwitter.com.
+  - 24vids, using "just applied", "YC said no" and F26-rejection phrasings.
+  - LinkedIn, using "dug up the intro video" and anniversary phrasings.
+  - Other platforms: Medial, Threads/Bluesky, Reddit, Peerlist and French-language posts.
+  - Spring-batch (P25/P26) phrasing.
+- **X**:
+  - Status ids were resolved by paging founders' profile media and with_replies tabs on xitter.cf and nitter.gq.
+  - Each post was checked through the public `cdn.syndication.twimg.com` tweet-result JSON: author, date, native-video presence and duration, and text.
+  - The video poster frame was viewed to confirm founders talking to camera.
+- **LinkedIn**: public post pages, checked through their VideoObject metadata (author, date, duration, text).
+- **Founder blogs**: published YC applications on personal sites, which gave founder-video links but no stated outcome.
+- **YC directory**:
+  - yc-oss companies dump, refreshed 2026-11-23 (6,407 companies, including 19 Winter 2027 early-decision companies).
+  - ycombinator.com company pages, for batch and founder checks.
+
+### YouTube API units
+0 units used. The Data API was not called this round because YouTube is saturated (rounds 3–7 covered phrasings, batch codes, deadline windows and roughly 1,000 uploader channels). The quota is untouched.
+
+### Exclusions
+17 reviewed candidates were appended to `exclusions.csv`, with reason categories only and no outcome words in any written URL. The reasons were:
+- no stated outcome / no directory match (C), including W27 applicants whose decisions are not yet out
+- no native video in post
+- not the application video
+
+### Blockers / caveats
+- **Saturation**: almost every relevant X, 24vids and LinkedIn post that Exa returns was already in a manifest or an exclusion list.
+- **W27**: decisions are due by 2026-12-11. Founders' W27 application videos posted in Oct–Nov 2026 cannot be labelled yet unless the company is already listed as an early decision.
+- **X mirrors**:
+  - xitter.cf, teapawt.org and nitter.gq returned HTTP 530 for about 30 minutes mid-session. I backed off and used other sources until they recovered.
+  - The mirrors' search endpoints are gated (403) and were not used.
+  - nitter.jaydenha.uk and nitter.rdrama.net returned 403 for direct fetches.
+- **Unverified fields**:
+  - One row's application was posted on 2026-02-10, which falls in the Spring 2026 deadline window, but the founder wrote "W26". claimed_batch records the founder's own wording; details are in the sealed notes.
+  - Audio language of the X/LinkedIn rows is recorded as UNKNOWN, following the earlier convention.
