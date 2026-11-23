@@ -202,6 +202,9 @@ def test_qc_failure_is_a_final_stop(env):
 
 def test_launch_is_disabled_until_the_council(monkeypatch):
     monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-central-1")
+    c = copy.deepcopy(load_config())        # D-090 launch gate: refused while refclips_d090 is unfrozen
+    c["frozen"] = [f for f in c["frozen"] if not f["key"].startswith("controls.refclips_d090")]
+    monkeypatch.setattr(talk, "load_config", lambda: c)
     with pytest.raises(SystemExit, match="council"):
         talk.main(["--external-terminator-at", "2026-01-01T00:00:00Z", "--ci-green-sha", HEAD])
 
@@ -288,3 +291,9 @@ def test_classify_failure_and_skip_record():
 def test_public_numbers_never_serialise_frames():
     s = T.public_numbers({"a": np.zeros((2, 2), np.uint8), "b": 1})
     assert '"a": null' in s and '"b": 1' in s
+
+
+def test_missing_gpu_type_in_listing_is_75_not_a_keyerror(env):
+    env.lg.types = lambda: {}
+    rc, res = run(env)
+    assert rc == 75 and res["status"] == "no_capacity" and not env.lg.launched
