@@ -166,7 +166,11 @@ def main() -> int:
     pod_dir = f"/work/yct/runs/{run_id}"
     steps = a.steps.split(",")
     sha = subprocess.run(["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
-    price = lg.types()[ITYPE]["usd_per_hour"]
+    avail = lg.types()
+    if ITYPE not in avail:                                   # BUG-047: capacity miss, retry later (exit 75)
+        print(f"no_capacity: {ITYPE} not in available types", file=sys.stderr)
+        return 75
+    price = avail[ITYPE]["usd_per_hour"]
     if price * a.max_hours > a.usd_limit:
         raise SystemExit(f"{price}*{a.max_hours} h exceeds the task limit ${a.usd_limit}")
     # BUG-027: any live yct-* instance now is an orphan of a dead driver (one instance at a time) -> terminate.

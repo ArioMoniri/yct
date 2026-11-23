@@ -1,0 +1,368 @@
+{
+ "manifest_sha256": "2fbe3421696d37a027d13dcf7d8b9116fa607b07a6e7ad3919fe5b6848da825e",
+ "n": 15,
+ "ok": true,
+ "problems": [],
+ "rows": [
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 2,
+    "duration_s": 58.0,
+    "height": 360,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 640
+   },
+   "record": true,
+   "session": 0,
+   "slot": "nat_00",
+   "t1_name": "a56e49da11940c0b",
+   "transcript_sha256": [
+    "041829c046457da2c59d171623fa4c799013ead3a9708dbab1a3cca04b3f79f9"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  },
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 2,
+    "duration_s": 58.0,
+    "height": 1012,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 1920
+   },
+   "record": true,
+   "session": 0,
+   "slot": "nat_01",
+   "t1_name": "d35c6b3682c363bf",
+   "transcript_sha256": [
+    "baec2b0cf6a5a9012d1e39cd907c379f3e396cfc60bbdcf9a0f09f428752d2bf"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  },
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 2,
+    "duration_s": 58.0,
+    "height": 480,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 854
+   },
+   "record": true,
+   "session": 0,
+   "slot": "nat_02",
+   "t1_name": "564c3eba65354c05",
+   "transcript_sha256": [
+    "48e4bbb57d0528df8f285478d3a29177c666fda7fd7390605bf75fa09c11b963"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  },
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 1,
+    "duration_s": 58.0,
+    "height": 480,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 640
+   },
+   "record": true,
+   "session": 0,
+   "slot": "nat_03",
+   "t1_name": "d055242f8c8a1443",
+   "transcript_sha256": [
+    "a610fb159051d23e9c7d280f67021655348b4a74e46a6c5764f452ca523dde8e"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  },
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 2,
+    "duration_s": 58.0,
+    "height": 480,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 854
+   },
+   "record": true,
+   "session": 1,
+   "slot": "nat_04",
+   "t1_name": "567874498d6d1fb5",
+   "transcript_sha256": [
+    "2672515300dd2f8b21c8e754f2e9874c941b26afc4d82b0d6e0126f12204bbf3"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  },
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 2,
+    "duration_s": 58.0,
+    "height": 1080,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 1920
+   },
+   "record": true,
+   "session": 1,
+   "slot": "nat_05",
+   "t1_name": "b975e0909a7dece5",
+   "transcript_sha256": [
+    "b1937ce12699946b8802bda86981157345de5a07cba5939a48881cb8b0bd6900"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  },
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 2,
+    "duration_s": 58.0,
+    "height": 300,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 400
+   },
+   "record": true,
+   "session": 1,
+   "slot": "nat_06",
+   "t1_name": "e892cafec1353bfb",
+   "transcript_sha256": [
+    "9df291921b1ee117e2dc2d0262c6c75456c88648044f4aa49d094a67a2b64cef"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  },
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 2,
+    "duration_s": 58.0,
+    "height": 1080,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 1920
+   },
+   "record": true,
+   "session": 1,
+   "slot": "nat_07",
+   "t1_name": "7aefedfb534a235d",
+   "transcript_sha256": [
+    "c2b735c7e844a729172400865672e8a716c9ffd8f3be8c02d9ef3409227901b8"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  },
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 2,
+    "duration_s": 58.0,
+    "height": 480,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 854
+   },
+   "record": true,
+   "session": 2,
+   "slot": "nat_08",
+   "t1_name": "088a2be4f7fa89c6",
+   "transcript_sha256": [
+    "b82616de2a74670264c51abfe112571bcc598d5aa77e15edaf85be1db41a4bf7"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  },
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 2,
+    "duration_s": 58.0,
+    "height": 1080,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 1920
+   },
+   "record": true,
+   "session": 2,
+   "slot": "nat_09",
+   "t1_name": "55a8e732ab2673e7",
+   "transcript_sha256": [
+    "51191dda56d2bd522d52cef6d6284c35501883eb9361c1e62a138b1c685c4bef"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  },
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 2,
+    "duration_s": 58.0,
+    "height": 1080,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 1920
+   },
+   "record": true,
+   "session": 2,
+   "slot": "nat_10",
+   "t1_name": "7601fee519651165",
+   "transcript_sha256": [
+    "4383a4b32cac8bcf7f9d5c5ee7c92ebea2b2d3c6bbe54fcb318b40cb0bc15a85"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  },
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 2,
+    "duration_s": 58.0,
+    "height": 1080,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 1920
+   },
+   "record": true,
+   "session": 2,
+   "slot": "nat_11",
+   "t1_name": "65956af7c4b852e6",
+   "transcript_sha256": [
+    "49a12c9daab6813cb442e9c658bc340d21f42c566ccce9fd6322a7d2aa38e4b3"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  },
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 2,
+    "duration_s": 58.0,
+    "height": 352,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 640
+   },
+   "record": true,
+   "session": 2,
+   "slot": "nat_12",
+   "t1_name": "ce9f9db3d604cf4f",
+   "transcript_sha256": [
+    "e6051c7b7009a8ce3553f1d66980a3dbdce10ff32be3f5e0804eb3c3c625eacd"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  },
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 2,
+    "duration_s": 58.0,
+    "height": 720,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 1280
+   },
+   "record": true,
+   "session": 2,
+   "slot": "nat_13",
+   "t1_name": "c13bb11951867155",
+   "transcript_sha256": [
+    "e14a9fe58035c844b11bb5e5536439cabe07ccd2473403eb35287aad7e6bc582"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  },
+  {
+   "mp4": true,
+   "mp4_sha_ok": true,
+   "probe": {
+    "a_codec": "aac",
+    "channels": 2,
+    "duration_s": 58.0,
+    "height": 720,
+    "r_frame_rate": "30/1",
+    "sample_rate": "48000",
+    "v_codec": "h264",
+    "width": 1280
+   },
+   "record": true,
+   "session": 2,
+   "slot": "nat_14",
+   "t1_name": "bbb0acb963603050",
+   "transcript_sha256": [
+    "96571b5cb7c925c3e3089c06b394980b679cace7cf52c489b646bbf050926b7d"
+   ],
+   "transcripts": 1,
+   "wav": true,
+   "wav_sha_ok": true
+  }
+ ]
+}

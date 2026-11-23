@@ -65,10 +65,6 @@ RESULT = "data/refstim/talkface_result.json"
 POD_INPUTS = "/work/yct/talkface_inputs"
 
 
-class NoCapacity(RuntimeError):  # noqa: N818
-    """The GPU type is not offered right now: exit 75 (re-run), nothing recorded."""
-
-
 class BoxExit(RuntimeError):  # noqa: N818 - a box exit, not an error class
     """talkface_box exited non-zero: rc 10 = the pinned 'Face not detected' (s3fd_no_face skip), anything
     else = STOP (D-090 skips.box_exit). Raised only for the box process exit, never for ssh / timeouts."""
@@ -160,10 +156,7 @@ def preflight(a, cfg: dict, lg, store, clock, head: str, pushed: bool, recon: di
         raise Refused("TALKFACE face licence does not permit adaptation: skip licence_not_adaptable")
     check_inputs(inputs, cfg)
     check_not_done(result_path)
-    types = lg.types()
-    if cfg["p4"]["gpu_type"] not in types:      # no capacity listed: re-run later (exit 75), never a KeyError
-        raise NoCapacity(f"{cfg['p4']['gpu_type']} not in the Lambda instance-types listing")
-    price = types[cfg["p4"]["gpu_type"]]["usd_per_hour"]
+    price = nat.gpu_price(lg, cfg["p4"]["gpu_type"])
     nat.check_limits(cfg, a.max_hours, a.usd_limit, price)
     nat.check_terminator(cfg, store, a.external_terminator_at, clock(), a.max_hours)
     nat.check_commit(head, a.ci_green_sha, pushed)
@@ -183,7 +176,7 @@ def run_session(a, cfg: dict, lg, store, box, clock, head: str, pushed: bool, re
     res: dict = {"session": "talk", "git_sha": head, "steps": {}}
     try:
         plan = preflight(a, cfg, lg, store, clock, head, pushed, recon, inputs, face_log, cont, result_path)
-    except NoCapacity as exc:
+    except nat.NoCapacityError as exc:
         res.update(status="no_capacity", error=str(exc))
         return 75, res
     except SystemExit as exc:

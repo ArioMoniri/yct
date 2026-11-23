@@ -180,7 +180,11 @@ def main() -> int:
         collect(pod_dir, run_dir, result)
         cm.write_text(json.dumps(result, indent=1, default=str))
         return 0
-    price = lg.types()[ITYPE]["usd_per_hour"]
+    avail = lg.types()
+    if ITYPE not in avail:                                   # BUG-047: capacity miss, retry later (exit 75)
+        print(f"no_capacity: {ITYPE} not in available types", file=sys.stderr)
+        return 75
+    price = avail[ITYPE]["usd_per_hour"]
     if price * a.max_hours > a.usd_limit:
         raise SystemExit(f"{price}*{a.max_hours} h exceeds the task limit ${a.usd_limit}")
     live = lg._live(lg.list_ours())
