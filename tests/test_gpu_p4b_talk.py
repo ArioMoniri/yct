@@ -288,3 +288,12 @@ def test_classify_failure_and_skip_record():
 def test_public_numbers_never_serialise_frames():
     s = T.public_numbers({"a": np.zeros((2, 2), np.uint8), "b": 1})
     assert '"a": null' in s and '"b": 1' in s
+
+
+def test_type_missing_from_types_is_exit_75_without_launch(env, monkeypatch):
+    """BUG-047: a GPU type missing from lg.types() is a capacity miss (exit 75), not a KeyError (exit 1)."""
+    monkeypatch.setattr(env.lg.mod, "types", lambda: {})
+    rc, res = run(env)
+    assert rc == 75 and res["status"] == "no_capacity"
+    assert "not in available types" in res["error"]
+    assert env.lg.api.inst == {}

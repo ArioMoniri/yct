@@ -204,3 +204,14 @@ def test_driver_has_no_tribe_job():
     src = (ROOT / "scripts" / "gpu_p4b_nat0.py").read_text()
     for word in ("run_clip", "remote_setup.sh", "tribe_run.run_clip", "Campaign("):
         assert word not in src
+
+
+def test_type_missing_from_types_is_exit_75_without_launch(env, monkeypatch):
+    """BUG-047: lg.types() briefly omitted gpu_1x_a100_sxm4 before NAT session 2 and the driver died with a
+    KeyError (exit 1). A type missing from the list is a capacity miss: exit 75, nothing launched or logged."""
+    monkeypatch.setattr(env.lg.mod, "types", lambda: {})
+    before = env.log.read_text()
+    rc, res = run(env)
+    assert rc == 75 and res["status"] == "no_capacity"
+    assert "not in available types" in res["error"]
+    assert env.lg.api.inst == {} and env.log.read_text() == before
