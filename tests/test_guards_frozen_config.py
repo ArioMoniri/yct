@@ -181,6 +181,8 @@ D090_SHA = "16bef847f289ba7e0282f686da035f50e74cb017"   # D-090 DECISIONS entry 
 D075_FROZEN += [("controls.refclips_d090", D090_SHA)]   # whole block
 NATTSV_SHA = "556f63798500a6947d8d1885ed55222b75fb1a70"   # D-091 U2: NAT word-tsv sidecar sha set
 D075_FROZEN += [("controls.refclips_artifacts.nat_tsv_manifest_sha256", NATTSV_SHA)]
+D091_SHA = "c4aed11202b109cded1fe2c635b18888cabc805d"   # D-091 re-sign-off conditions commit
+D075_FROZEN += [("controls.refclips_d091", D091_SHA)]   # whole block
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
