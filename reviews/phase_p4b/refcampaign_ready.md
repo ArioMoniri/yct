@@ -50,14 +50,22 @@ passed (tested); the count excluded per clip is in the run's drift record (`per_
   manifest, mutated copies refused, sidecar sha + provenance, plan = [GREY_CTRL_00, SPK_00, MOT_00], ffprobe
   duration parse, upload plan (360 files; NAT from T1 + sidecar tsv, TALKFACE from the private mirror),
   projection, shared launch gate, `--check-only`, D-038 STOP, P4-unchanged STOP, zero-word tsv, reliability.
-- `--check-only` against the real pod/S3/ledger: §4.
+- `--check-only` against the real pod/S3/ledger at 7ab9da6 (no launch; `outputs/runs/ref_checkonly_d091/`):
+  rc 0. The adapter + sidecar loaded the frozen manifest; `check_inputs` matched all 120 pod clips (mp4 +
+  tsv sha, ffprobe duration present); the L4 record matched the ledger (2817 lines, no open/live); the
+  baseline checks (n_lines 2807, sha 4261f62b…); P4 revisions seeded (74e75882…); P4 manifest sha
+  03322d84… recorded; plan first 3 = GREY_CTRL_00, SPK_00, MOT_00; price $1.99/h; projection $66.33 ≤ $75.
+  The check-only run used HEAD as the CI sha; the real launch passes `--ci-green-sha` after CI is green.
 
 ## 4. U2/U3 runs on the pod (numbers only)
 - **U2 (3e3c697):** `scripts/nat_tsv_build.py`: 15/15 valid, `stop: []`, two builds bit-identical; n_words
   139, 132, 193, 215, 142, 141, 130, 147, 115, 144, 111, 148, 100, 124, 99. The wave-1
   `/work/yct/transcripts/manifest.csv` sha (aa93a8c8…) is unchanged before and after. Tsvs at
   `/work/yct/p4b_ref/v1/nat_tsv` (pod) and, after U3, `<s3_root>clips/NAT_ii.tsv` (private bucket) only.
-- **U3 (24440be):** see `data/refstim/refclips_upload_record.json`.
+- **U3 (24440be):** `scripts/refclips_upload.py`: 120 clips / 360 files copied (never built) to
+  `/work/yct/p4b_ref/v1/clips/<CLIP_ID>.{mp4,wav,tsv}` and `<s3_root>clips/` (empty before; .sha256
+  sidecars), every pod copy re-hashed and every S3 object read back and re-hashed: 0 mismatches, `ok: true`.
+  Record (shas only): `data/refstim/refclips_upload_record.json` (sha c26fcf3c…).
 
 ## 5. For the council
 - `controls.refclips_d091` (projection rule, NAT tsv route, upload paths) is **not frozen**: the council

@@ -1,0 +1,34 @@
+{
+ "baseline": {
+  "decision": "D-071",
+  "n_lines": 2807,
+  "sha256": "4261f62bff542ee248c2eb520e8710fad43738ae51e0ffc4546606bd14e22525",
+  "sha256_of_record": "8b3cad61ac5fbf8d74353814e55d29d4291503888a1c895f5f3df8f55532394d",
+  "spent_usd_total": 51.85565126706693,
+  "t": 1795336310.1086879
+ },
+ "clip_manifest_sha256": "d1141cf18e8d2639d06f1397bb35dbc48b099570c9c4110641d17aab757637ea",
+ "launch_gate": {
+  "ci_green_sha": "7ab9da643362e67bdd6f93df18b68b4e2e41a8b7",
+  "head": "7ab9da643362e67bdd6f93df18b68b4e2e41a8b7",
+  "reconcile_ledger_sha256": "c389bac7edf854dbf095cbd0e4e60c78d7ed273fcd6d8ad8a1a4ffae24315c7b"
+ },
+ "n_clips": 120,
+ "p4_manifest_sha256": "03322d8497fae3f3a3a3b515b1ff0a5992160839483aa40ed1452c736d7da94e",
+ "plan_first3": [
+  "GREY_CTRL_00.ref",
+  "SPK_00.ref",
+  "MOT_00.ref"
+ ],
+ "price_usd_per_hour": 1.99,
+ "projection": {
+  "campaign_spend_usd": 1.8468,
+  "cap_usd": 75.0,
+  "n_done_full": 0,
+  "projection_usd": 66.3293,
+  "remaining_plan_usd": 61.0,
+  "this_session_planned_usd": 3.4825
+ },
+ "revisions_sha256": "74e75882c0135ee6702963d92c01fc488366144520618fee6c1f67741dc557d6",
+ "status": "check_only"
+}
