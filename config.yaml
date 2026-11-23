@@ -757,6 +757,65 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
       span_dbfs: -40
       sr: 48000
       gating: true
+  refclips_d090:               # D-090 draft (TALKFACE build rules, council wf_f194ca9f-6a0 REVISE x5 + owner 2026-11-23
+                               # "Accept both", "As reviewers propose"); layered over the frozen refclips_d085.talkface;
+                               # NOT frozen (council re-sign first). Outcome-blind: no GPU output exists.
+    decision: D-090
+    amends: [controls.refclips_d085.talkface]
+    static_frame:                # owner "Accept both": no SHINE (a joint 60-image op), disclosed
+      recipe: locimg_patch_no_shine_centered_640x360   # talkface.static_frame: crop_box, BT.709, INTER_AREA 316 px
+      crop_box_source: v4_face_log_row_crop_box        # row 499 crop_box, copied into talkface_inputs.json
+      png: three_channel_grey    # (v, v, v) so the pinned cv2.imread BGR read is the same grey frame
+      shine: false
+      luma_vs_loc: descriptive   # patch mean / RMS reported against shine.mean_luma 128 / rms_contrast 32
+    driving_audio:
+      source: rendered_48k_clip_audio   # refclips58.clip_audio (bed + speech at matched RMS), as SPK / BURST
+      resampler: refclips58.resample_bandlimited   # polyphase 48 kHz -> 16 kHz, then pcm16 (rint x 32767)
+      sr: 16000                  # exactly 16 kHz: the pinned audio.load_wav does not resample again
+      n_samples: 928000          # 58 s x 16 kHz
+    frame_time: {t_i: i_over_fps, window: half_open}   # frame i at i / fps; window [onset, onset + span)
+    composition:                 # owner "Accept both": Wav2Lip frames only inside the windows
+      in_window: wav2lip
+      out_window: static_bit_identical
+      edge_switch: disclosed_descriptive   # the face box switches static <-> Wav2Lip at each window edge
+      no_switch_to_full_length: true
+    frames: {format: npz_grey_uint8, luma: locimg.grey709}   # the box calls locimg.grey709 on BGR -> RGB
+    expected:                    # the pinned mel chunking (80 / fps, mel_step 16, hop 200) on 928000 samples
+      n_frames: 1740
+      n_mel_chunks: 1736
+      window_end_max_s: 57.8333  # (n_mel_chunks - 1) / fps: --prepare refuses a window ending later
+    encode: refclips58.encode    # the frozen SPK / BURST encoder (normalize.video / normalize.audio, bit-exact)
+    qc:
+      gating: [n_frames, n_mel_chunks, kept_frames, outside_window_static, outside_face_box_static,
+               w2l_rendered, inbox_articulation, decode_identity, speech_gate]
+      w2l_rendered: each_window_ge1_frame_differs_inside_face_box   # renamed from lip_motion (sanity only)
+      inbox_articulation: each_window_ge1_consecutive_diff_inside_face_box
+      decode_identity: second_encode_same_decoded_sha   # tolerance 0, as the SPK video identity
+      descriptive: [window_mean_abs_diff, edge_step, mouth_vs_upper_mad, decoded_vs_composed, static_luma_vs_loc]
+      on_fail: final_stop_owner_control_failed   # owner "As reviewers propose": never the next face on a QC fail
+    env:                         # disclosed deviation from upstream (torch 1.1 cannot load the archive)
+      python: "3.11"
+      requirements: infra/talkface_requirements.in
+      lock: infra/talkface_lock.txt   # uv pip compile --generate-hashes (pypi.org/simple, x86_64-manylinux_2_28)
+      lock_sha256: 14d343024e2b72867c3ad379472dadd5c6de22b32b0de3f0a2c86814d3c481db
+      index_url: https://pypi.org/simple
+      torch: {version: 2.8.0, local: cu128, cuda: "12.8", wheel_tag: cp311-cp311-manylinux_2_28_x86_64}
+      install: require_hashes_no_deps
+      reference_freeze: outputs/runs/talkface_rehearsal/w2l_pip_freeze.txt
+      reference_freeze_sha256: 3578d20d4daf81f22c0e5044f1bdb1ffcd75900f7f21d8049beb0be776abca27
+      on_freeze_mismatch: stop   # box pip freeze != the lock pins -> STOP (exit 1, nothing logged)
+    mirror:                      # confirmed on S3 2026-11-23: files at the mirror root (no weights/ prefix)
+      weights: Wav2Lip-SD-NOGAN.pt
+      s3fd: s3fd-619a316812.pth
+      inputs_prefix: inputs/
+      clip_prefix: clip/
+      gan_never_fetched: true
+    skips:                       # owner "As reviewers propose": only the pinned "Face not detected" uses a face
+      skip_on: [s3fd_no_face, licence_not_adaptable]   # narrows refclips_d085.talkface.face_rule.skip_on
+      box_exit: {ok: 0, s3fd_no_face: 10, stop: 30}   # talkface_box exit codes; any other non-zero = stop
+      stop: [loader_or_sha, mel_nan, import, oom, traceback, freeze_mismatch, input_sha]   # exit 1, nothing logged
+      infra_rerun: [timeout, ssh, transfer, no_capacity]   # exit 75, nothing logged
+      max_skips: 5
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host
