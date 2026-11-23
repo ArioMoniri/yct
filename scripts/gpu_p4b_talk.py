@@ -480,8 +480,47 @@ def main(argv: list[str] | None = None) -> int:
         (ROOT / nat.RECONCILE_PATH).write_text(json.dumps(rec, indent=1, sort_keys=True) + "\n")
         print(json.dumps(rec))
         return 0
-    raise SystemExit("launch disabled until the council pre-launch check "
-                     "(reviews/phase_p4b/talkface_ready.md)")
+    require_d090(cfg)
+    if not a.external_terminator_at or not a.ci_green_sha:
+        raise SystemExit("--external-terminator-at and --ci-green-sha are required for a launch")
+    p4 = ref.p4
+    run_dir = Path(os.environ.get("YCT_RUN_DIR") or ROOT / "outputs" / "runs" / f"p4btalk_{int(time.time())}")
+    run_dir.mkdir(parents=True, exist_ok=True)
+    a.external_terminator_at = p4._parse_when(a.external_terminator_at)
+    a.run_id = run_dir.name
+    head = _git("rev-parse", "HEAD")
+    pushed = bool(_git("branch", "-r", "--contains", head))
+    os.environ["YCT_HB_VIA_POD"] = "1"
+    rp = ROOT / nat.RECONCILE_PATH
+    recon = json.loads(rp.read_text()) if rp.exists() else None
+    ip = ROOT / INPUTS
+    inputs = json.loads(ip.read_text()) if ip.exists() else None
+    face_log = [json.loads(x) for x in (ROOT / "data/refstim/image_face_auto_log_v4.jsonl").read_text()
+                .splitlines() if x.strip()]
+    cont = json.loads((ROOT / T.CONT).read_text())
+    rc, res = run_session(a, cfg, lg, nat.S3Store(cfg), TalkBox(cfg, a.run_id, a.max_hours), time.time, head,
+                          pushed, recon, inputs, face_log, cont, lambda out: pod_finish(out, head),
+                          ROOT / SKIPS, ROOT / RESULT)
+    (run_dir / "child_metrics.json").write_text(T.public_numbers(res))
+    keys = ("status", "error", "box_rc", "skip_on", "qc", "pre_launch")
+    print(T.public_numbers({k: res.get(k) for k in keys}))
+    return rc
+
+
+POD_REPO = "/work/yct/repo_talk"
+
+
+def pod_finish(out: dict, head: str) -> dict:
+    """--finish on the pod CPU at the launch commit (the frames never leave the pod / private mirror);
+    returns the numbers-only result printed by finish_main."""
+    import gpu_p0_rerun as g
+
+    d = out["pod_dir"]
+    g.pod(f"cd {POD_REPO} && git fetch -q origin && git checkout -q {head} && "
+          f"AWS_DEFAULT_REGION=eu-central-1 /work/yct/venv/bin/python scripts/gpu_p4b_talk.py --finish {d} "
+          f"> {d}/finish.json 2> {d}/finish.log", 5400)
+    res = json.loads(g.pod_file(f"{d}/finish.json"))
+    return res["qc"]
 
 
 if __name__ == "__main__":

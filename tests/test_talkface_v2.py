@@ -406,6 +406,9 @@ def test_finish_refuses_a_frames_sha_mismatch(tmp_path):
 @pytest.mark.parametrize("argv", [["--prepare"], ["--finish", "/tmp/nowhere"]])
 def test_prepare_and_finish_refuse_until_d090_is_frozen(monkeypatch, argv):
     monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-central-1")
+    c = copy.deepcopy(load_config())        # the pre-freeze state: drop the D-090 freeze row
+    c["frozen"] = [f for f in c["frozen"] if not f["key"].startswith("controls.refclips_d090")]
+    monkeypatch.setattr(talk, "load_config", lambda: c)
     with pytest.raises(SystemExit, match="refclips_d090 is not frozen"):
         talk.main(argv)
 

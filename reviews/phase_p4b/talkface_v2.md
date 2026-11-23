@@ -96,9 +96,9 @@ Frames 1736–1739 are never in a window, so they are the static frame.
 
 ## 5. Box env (TALK_PIP → hashed lock)
 
-- **The lock:** `infra/talkface_requirements.in` holds the 10 pins. They are compiled on the pod with
+- **The lock:** `infra/talkface_requirements.in` holds the 10 pins plus setuptools 70.3.0 (BUG-046). They are compiled on the pod with
   `uv pip compile --generate-hashes --python-version 3.11 --python-platform x86_64-manylinux_2_28 --index-url
-  https://pypi.org/simple` into `infra/talkface_lock.txt` (51 packages, sha `14d34302…`).
+  https://pypi.org/simple` into `infra/talkface_lock.txt` (sha `258c44ec…`; the first lock 14d34302… lacked pkg_resources, BUG-046).
 - **Torch:** 2.8.0 from the PyPI default index, which is the CUDA 12.8 build (`2.8.0+cu128`; wheel tag
   `cp311-cp311-manylinux_2_28_x86_64`).
 - **Box install:** `uv pip install --require-hashes --no-deps -r infra/talkface_lock.txt` (the lock is
@@ -108,7 +108,7 @@ Frames 1736–1739 are never in a window, so they are the static frame.
   - the probe must report torch `2.8.0+cu128`, CUDA `12.8` and python 3.11;
   - otherwise STOP. This is QA's position; neuro had proposed exit 75.
 - **Reference freeze:** the rehearsal freeze (`outputs/runs/talkface_rehearsal/w2l_pip_freeze.txt`, sha
-  `3578d20d…`) is the reference, and it equals the lock.
+  `be658920…`, attempt 2/3; the attempt-1 freeze 3578d20d… is superseded) is the reference, and it equals the lock.
 
 ## 6. Council factual questions (answered)
 
