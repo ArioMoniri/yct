@@ -42,3 +42,10 @@ Owner rulings applied: SPK = 120 wpm by the stated rule (pinned in the schema an
 **Blocking: the SPK span QC fails byte-identical audio.** `select` stores `span_s = round(d, 4)`. At 48 kHz, 1e-4 s is 4.8 samples, so the rounding error alone can reach 2.4 samples. `spk_span_qc` compares against `round(sel_s*sr)` with `tol_samples: 1`. Repro: 60 random integer spans in [1.0, 1.5) s, rounded the same way as `select`, with the identical waveform as the built utterance: 20 of 60 are flagged as mismatches, `pass=False`. This is a guaranteed false STOP at the build.
 The existing test passes only because its spans (1.2, 1.05) are exact sample counts.
 Fix: store an integer `span_samples` per item in the selection record and compare it exactly or within ±1. Keep `span_s` for display. Add a test with non-round spans (e.g. 57601 samples).
+
+## Final sign-off (fix commits 9491d60, fda0675)
+
+Verdict: **APPROVE**. The span-rounding false STOP is fixed. `select` stores an integer `span_samples` and `sr` per item, and `span_s` is display only. `spk_span_qc` compares integers within ±1 and raises TypeError on a float or bool.
+The tests were written before the fix and cover the blocker: the off-grid 57601-sample span, 200 random integer spans with identical audio (0 mismatches), and the end-to-end path from selection items to rebuilt audio to the gate. The ±1 and out-of-range negatives still fail closed.
+Checks: `tests/test_d089_v2.py` and `tests/test_d089.py` pass (31 tests); `make guards` exits 0 with no weakening and the guard exceptions unchanged.
+Non-blocking, for the build ticket: assert that the item's `sr` equals the QC's `sr` before comparing (48 kHz is pinned in `build_qc` today). The frozen `controls.refclips_d089` row is still owed in the freeze commit, as §8 says.

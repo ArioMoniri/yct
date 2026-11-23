@@ -34,3 +34,9 @@ My earlier 5(a)–(d), 6 and 7 are met (per-item rate, RawSpeech binding test, g
 Rounding alone can put the two up to 2.4 samples apart, so a correct, bit-identical rebuild can fail this gate. Under the final-STOP ruling, that false failure would sink the speech control for good.
 Fix: store the span in integer samples (`span_n`) in the selection record and compare at ±1 sample, or set the tolerance to at least 3 samples. Add a test that uses a span which does not land on a 0.1 ms grid (e.g. 1.20003 s).
 Non-blocking: the freeze row and `require_d089` whole-block check go in at freeze, as planned.
+
+## Final sign-off (9491d60 + fda0675): APPROVE
+
+B1 is fixed. `select` stores the integer `span_samples` and `sr` for each item, and `spk_span_qc` compares integers within ±1. It raises a TypeError on a float, so a rounded `span_s` cannot reach the gate. With the 4 dp rounding gone, a correct rebuild can no longer fail the gate by itself.
+The tests cover the off-grid 57601-sample span, 200 random integer spans and an end-to-end check from selection items to the gate. 20/20 tests in test_d089_v2 pass.
+Non-blocking: no build caller exists yet. When it lands, it should pass `it["span_samples"]` and assert that `it["sr"]` equals the gate's `sr`. The freeze row is deferred to the freeze commit, as §8 states.

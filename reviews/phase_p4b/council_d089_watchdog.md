@@ -26,3 +26,8 @@ Owner questions:
 ## Re-sign-off (v2: d089_v2.md, 470418d, d8d02b0) - **REVISE (one blocking item)**
 Owner rulings applied as given: SPK 120 wpm by the stated rule (recomputed from the pinned STOP spans; schema pins 120), any-family exhaustion = final STOP, control reported failed, dependents dropped and named. My items 1-4 and 5a-5c are closed; 38 D-089 tests pass. Item 6 (freeze row) is deferred to the freeze commit, which is acceptable.
 1. **Blocking: the ±1-sample build QC (5d) fails identical spans.** `select` stores `span_s = round(d, 4)`, i.e. 0.1 ms = 4.8 samples at 48 kHz, and `spk_span_qc` compares `n` against `round(sel_s*sr)`. Rounding alone gives errors up to 2.4 samples. Over every span n in [1.0, 1.5] s, 9000/24001 (37%) bit-identical re-syntheses would be flagged as mismatch, a false gating STOP (e.g. n=50000 -> 1.0417 s -> off by 2). The test only uses round-millisecond spans. Fix: store `span_n` (int samples, plus sr) per item and compare integers with tol 1 (or store span_s unrounded), and add a test over off-grid n.
+
+## Final sign-off (9491d60, fda0675; d089_v2.md §8) - **APPROVE**
+The blocker is closed. `select` stores the integer `span_samples` and `sr` for each item. `spk_span_qc` compares integers within ±1 and raises a TypeError on a float, so a caller that passes the rounded `span_s` fails loudly instead of causing a false STOP.
+The tests cover the off-grid span (57601), 200 random integer spans and the end-to-end case where selection items rebuilt from identical audio pass the gate. All 20 tests in test_d089_v2.py pass.
+Non-blocking: no build caller exists yet. When it lands, it should assert `item["sr"] == sr` before calling the gate. Item 6 (freeze row) stays deferred to the freeze commit, as §8 states.
