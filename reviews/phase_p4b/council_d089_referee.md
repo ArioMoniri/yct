@@ -38,3 +38,9 @@ Verdict: **REVISE**, one blocking item. Everything else I asked for is closed. T
   - **Fix:** store the span in samples (`span_n`) in the selection record and compare integers within ±1. A rounded-seconds record cannot support the ±1 tolerance.
   - **Test needed:** add one where the span is not a multiple of 0.1 ms.
 - Non-blocking: §7 should say that the rule's form was written after the 120/115 figures were known.
+
+## Final sign-off (commits 9491d60, fda0675; d089_v2 §8)
+
+Verdict: **APPROVE**. The span-rounding blocker is closed. `select` now stores the integer `span_samples` and `sr` for each item, and `span_s` is display only. `spk_span_qc` compares integers within ±1 and raises a TypeError on a float, so the old path cannot come back silently. The tests landed before the fix and cover the off-grid case 57601, 200 random integer spans, and an end-to-end rebuild. 20/20 pass in `test_d089_v2.py`.
+- Non-blocking, for the build ticket: no production caller of `spk_span_qc` exists yet. The build should take pairs from `item["span_samples"]` and assert `item["sr"] == sr`.
+- Non-blocking, carried from the last round: the §7 disclosure that the rule's form was written after the 120/115 figures were known.
