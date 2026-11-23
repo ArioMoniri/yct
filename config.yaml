@@ -726,16 +726,35 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
   refclips_d087_artifacts:
     image_manifest_v2_sha256: e21d090dacb3092e2a778d48e792b49ffcd694cb64f2c18456f990921ac8b3cc   # concat face,body,place v2
     screen_record_sha256: ba85cbb7fd10c4fd28d53202842318593c13ce2efa8c31c4bed590c36e033f19       # loc_screen_v2.json
-  refclips_d089:               # D-089 draft: amends the frozen D-085 part-2 speech key (owner 2026-11-23 "Slower
-                               # rate for SPK", post hoc after the selection STOP c8fb46c); NOT frozen (council next)
+  refclips_d089:               # D-089 v2: amends the frozen D-085 part-2 speech key (owner 2026-11-23 "Slower rate
+                               # for SPK", then "120 wpm by rule" after the 140 wpm description was corrected);
+                               # post hoc after the selection STOP c8fb46c; NOT frozen (council re-sign first)
     decision: D-089
     amends: [D-085]
     post_hoc: true               # the rate was chosen after seeing the v1 SPK span distribution (median 0.79 s)
     trigger: outputs/runs/d085p2_selection/STOP_NOTE.md
-    rate_wpm_by_family: {SPK: 140, BURST: 175, TALKFACE: 175}   # layered over speech.rate_wpm (175, unchanged)
+    spk_rate_rule:               # stated before any D-089 synthesis; computed only from the committed v1 STOP spans
+      source: outputs/runs/d085p2_selection/speech_selection_v1_STOP.json
+      source_sha256: 25168ecaf438241afb40630aac7c48873db3a89c5f3b0cd7542ad16309d995d7
+      projection: linear         # span_at_w = span_at_175 * 175 / w (an approximation; sensitivity disclosed)
+      from_wpm: 175
+      step_wpm: 5                # candidate rates 170, 165, ... (multiples of 5 below 175)
+      range_s: [1.0, 1.5]
+      max_too_long_frac: 0.05    # the slowest candidate with <= 5% of projected spans above 1.5 s -> 120
+    rate_wpm_by_family: {SPK: 120, BURST: 175, TALKFACE: 175}   # layered over speech.rate_wpm (175, unchanged)
     restart_queue_at: 0          # selection re-runs from queue position 0 in the same frozen order
-    carry_over_v1_keeps: false   # the 31 v1 SPK keeps are re-measured at 140 wpm, never carried over
-    on_exhausted: final_stop_owner   # queue exhausted again -> final STOP to the owner, no third amendment
+    carry_over_v1_keeps: false   # the 31 v1 SPK keeps are re-measured at 120 wpm, never carried over
+    on_exhausted: final_stop_owner   # a queue exhaustion in ANY family -> final STOP, no further amendment
+    final_stop_families: [SPK, BURST, TALKFACE]   # owner 2026-11-23 "Final stop, report it"
+    on_final_stop:               # stated before the re-run
+      control_status: failed     # the speech positive control is reported as failed (not absent)
+      dependent_analyses: dropped_and_named_in_report   # every analysis that needs it is dropped and listed
+      amendment: false
+    build_qc:                    # the build re-measures every SPK utterance span (gating)
+      spk_span_tol_samples: 1    # built span == selection span within +/- 1 sample at 48 kHz, and in range_s
+      span_dbfs: -40
+      sr: 48000
+      gating: true
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host

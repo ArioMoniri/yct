@@ -183,6 +183,27 @@ def speech_gate(clip_pcm: np.ndarray, ctrl_pcm: np.ndarray, bed: np.ndarray,
             "window_rms_ratio": rms, "gating": ["outside_identical", "reconstructed"]}
 
 
+def spk_span_qc(pairs: Sequence[tuple[float, np.ndarray]], sr: int = R.SR,
+                rng: tuple[float, float] = (1.0, 1.5), tol_samples: int = 1,
+                dbfs: float = -40.0) -> dict[str, Any]:
+    """D-089 v2, gating: re-measure every built SPK utterance (the provider output before placement) at the
+    -40 dBFS span. Each must lie in rng and equal its selection-record span within tol_samples."""
+    from yct.tribe_run.speech_corpus import speech_span
+
+    lo, hi = rng
+    out_of_range, mismatch, spans = [], [], []
+    for j, (sel_s, utter) in enumerate(pairs):
+        s0, s1 = speech_span(np.asarray(utter, np.float64), sr, dbfs)
+        n = s1 - s0
+        spans.append(n / sr)
+        if not lo <= n / sr <= hi:
+            out_of_range.append(j)
+        if abs(n - round(sel_s * sr)) > tol_samples:
+            mismatch.append(j)
+    return {"pass": not out_of_range and not mismatch, "n": len(pairs), "built_span_s": spans,
+            "out_of_range": out_of_range, "mismatch": mismatch, "tol_samples": tol_samples, "gating": True}
+
+
 Patches = Sequence[tuple[float, np.ndarray]]
 
 

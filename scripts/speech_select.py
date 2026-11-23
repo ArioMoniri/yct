@@ -43,6 +43,8 @@ def public(sel: dict, verified: dict, corpus_sha: str, commit: str) -> dict:
         rates[f] = {**r, "rate": rate, "wilson95": [lo, hi]}
     return {"decision": "D-085 part 2 step 2", "corpus_sha256": corpus_sha, "engine_verified": verified,
             "code_commit": commit, "texts_public": False, "queue_used": sel["queue_used"],
+            "queue_used_by_family": sel.get("queue_used_by_family"),
+            "rate_wpm_by_family": sel.get("rate_wpm_by_family"),
             "pass_rates": rates, "items": S.public_record(sel["items"]),
             "rejects": S.public_record(sel["rejects"])}
 
@@ -50,7 +52,9 @@ def public(sel: dict, verified: dict, corpus_sha: str, commit: str) -> dict:
 def stop_record(partial: dict, verified: dict, corpus_sha: str, commit: str) -> dict:
     """Public STOP record on queue exhaustion: numbers and ids only (the frozen rule: STOP to the owner)."""
     rec = public(partial, verified, corpus_sha, commit)
-    rec.update(stop="queue_exhausted", stopped_at={"family": partial["family"], "slot": partial["slot"]},
+    rec.update(stop="queue_exhausted", final_stop=True,        # D-089 v2: final in every family
+               stopped_at={"family": partial["family"], "slot": partial["slot"],
+                           "queue_position": partial["queue_used"]},
                kept_counts={f: len(v) for f, v in partial["items"].items()})
     return rec
 

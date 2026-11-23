@@ -989,15 +989,42 @@ class RefClipsD087Artifacts(M):
     screen_record_sha256: Sha256 | None
 
 
-class RefClipsD089(M):                # D-089 draft: per-family speech rate (SPK 140 wpm), post hoc
+class RefClipsD089Rule(M):           # D-089 v2: the SPK rate rule, stated before any D-089 synthesis
+    source: Literal["outputs/runs/d085p2_selection/speech_selection_v1_STOP.json"]
+    source_sha256: Sha256
+    projection: Literal["linear"]
+    from_wpm: Literal[175]
+    step_wpm: Literal[5]
+    range_s: list[float]
+    max_too_long_frac: Literal[0.05]
+
+
+class RefClipsD089FinalStop(M):
+    control_status: Literal["failed"]
+    dependent_analyses: Literal["dropped_and_named_in_report"]
+    amendment: Literal[False]
+
+
+class RefClipsD089BuildQC(M):
+    spk_span_tol_samples: Literal[1]
+    span_dbfs: Literal[-40]
+    sr: Literal[48000]
+    gating: Literal[True]
+
+
+class RefClipsD089(M):                # D-089 v2: per-family speech rate (SPK 120 wpm by rule), post hoc
     decision: Literal["D-089"]
     amends: list[Literal["D-085"]]
     post_hoc: Literal[True]
     trigger: str
+    spk_rate_rule: RefClipsD089Rule
     rate_wpm_by_family: dict[Literal["SPK", "BURST", "TALKFACE"], int]
     restart_queue_at: Literal[0]
     carry_over_v1_keeps: Literal[False]
     on_exhausted: Literal["final_stop_owner"]
+    final_stop_families: list[Literal["SPK", "BURST", "TALKFACE"]]
+    on_final_stop: RefClipsD089FinalStop
+    build_qc: RefClipsD089BuildQC
 
     @model_validator(mode="after")
     def _rates(self):
@@ -1006,8 +1033,12 @@ class RefClipsD089(M):                # D-089 draft: per-family speech rate (SPK
             raise ValueError("refclips_d089.rate_wpm_by_family must name SPK, BURST and TALKFACE")
         if r["BURST"] != 175 or r["TALKFACE"] != 175:
             raise ValueError("D-089 changes SPK only: BURST and TALKFACE stay at the frozen 175 wpm")
-        if not 80 <= r["SPK"] < 175:
-            raise ValueError("D-089 SPK rate must be slower than 175 wpm")
+        if r["SPK"] != 120:            # the rule-derived rate (tests/test_d089_v2.py recomputes it)
+            raise ValueError("D-089 SPK rate must be the rule-derived 120 wpm")
+        if sorted(self.final_stop_families) != ["BURST", "SPK", "TALKFACE"]:
+            raise ValueError("D-089 final STOP covers SPK, BURST and TALKFACE")
+        if self.spk_rate_rule.range_s != [1.0, 1.5]:
+            raise ValueError("D-089 rule range must be the frozen SPK range [1.0, 1.5] s")
         return self
 
 

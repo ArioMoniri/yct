@@ -1,6 +1,7 @@
 """D-089 draft (owner 2026-11-23 "Slower rate for SPK", post hoc after the D-085 part-2 selection STOP):
-SPK speaks its 3-word leads at 140 wpm; BURST and TALKFACE stay at the frozen 175 wpm. Everything else in the
-frozen D-085 part-2 speech key is unchanged and the frozen key itself is never edited: the rates live in a new
+SPK speaks its 3-word leads at 120 wpm (D-089 v2: the rule-derived rate, replacing the draft 140); BURST and
+TALKFACE stay at the frozen 175 wpm. Everything else in the frozen D-085 part-2 speech key is unchanged and
+the frozen key itself is never edited: the rates live in a new
 `controls.refclips_d089` block layered over it by `speech_corpus.effective_spec`. Selection re-runs from queue
 position 0 (no carry-over of the 31 v1 keeps) and refuses to run until D-089 is frozen."""
 from __future__ import annotations
@@ -33,7 +34,7 @@ def _with_frozen(cfg, *keys):
 def test_d089_block_rates_and_policy():
     assert D089["decision"] == "D-089" and D089["post_hoc"] is True
     assert D089["amends"] == ["D-085"]
-    assert D089["rate_wpm_by_family"] == {"SPK": 140, "BURST": 175, "TALKFACE": 175}
+    assert D089["rate_wpm_by_family"] == {"SPK": 120, "BURST": 175, "TALKFACE": 175}
     assert D089["carry_over_v1_keeps"] is False and D089["restart_queue_at"] == 0
     assert D089["on_exhausted"] == "final_stop_owner"     # no third amendment
     assert D089["trigger"] == "outputs/runs/d085p2_selection/STOP_NOTE.md"
@@ -46,7 +47,7 @@ def test_frozen_d085_speech_key_is_not_edited():
 
 def test_effective_spec_layers_rates_and_keeps_everything_else():
     eff = S.effective_spec(CFG)
-    assert eff["rate_wpm_by_family"] == {"SPK": 140, "BURST": 175, "TALKFACE": 175}
+    assert eff["rate_wpm_by_family"] == {"SPK": 120, "BURST": 175, "TALKFACE": 175}
     for k, v in BASE.items():
         assert eff[k] == v                                 # corpus, order, lexicon, span gate, ranges, pin
     assert eff["rate_wpm"] == 175
@@ -59,7 +60,7 @@ def test_effective_spec_without_d089_is_the_frozen_key():   # pre-D-089 config c
 
 
 def test_schema_refuses_a_changed_burst_or_talkface_rate_or_missing_family():
-    for bad in ({"SPK": 140, "BURST": 160, "TALKFACE": 175}, {"SPK": 140, "BURST": 175}):
+    for bad in ({"SPK": 120, "BURST": 160, "TALKFACE": 175}, {"SPK": 120, "BURST": 175}):
         c = copy.deepcopy(CFG)
         c["controls"]["refclips_d089"]["rate_wpm_by_family"] = bad
         with pytest.raises(ValueError):           # pydantic ValidationError is a ValueError
@@ -88,11 +89,11 @@ def _queue(n):
 
 def test_select_passes_the_family_rate_to_the_synth():
     spec = dict(S.effective_spec(CFG), counts={"SPK": 2, "BURST": 1, "TALKFACE": 1})
-    durs = {140: lambda t: 1.2, 175: lambda t: 5.0 if t.count(".") == 2 else 3.0}
+    durs = {120: lambda t: 1.2, 175: lambda t: 5.0 if t.count(".") == 2 else 3.0}
     synth = _fake(durs)
     sel = S.select(_queue(50), synth, spec)
     fam_rate = [r for _, r in synth.calls]
-    assert fam_rate[:2] == [140, 140] and set(fam_rate[2:]) == {175}
+    assert fam_rate[:2] == [120, 120] and set(fam_rate[2:]) == {175}
     assert len(sel["items"]["SPK"]) == 2 and sel["rate_wpm_by_family"] == spec["rate_wpm_by_family"]
 
 
@@ -112,7 +113,7 @@ def test_select_without_by_family_rates_calls_the_synth_with_text_only():
 
 def test_selection_restarts_at_queue_zero_with_no_carry_over():
     spec = dict(S.effective_spec(CFG), counts={"SPK": 1, "BURST": 0, "TALKFACE": 0})
-    synth = _fake({140: lambda t: 1.2, 175: lambda t: 3.0})
+    synth = _fake({120: lambda t: 1.2, 175: lambda t: 3.0})
     sel = S.select(_queue(5), synth, spec)
     assert synth.calls[0][0] == "w0a w0b w0c"              # position 0, not after the v1 keeps
     assert sel["queue_used"] == 1
@@ -143,7 +144,8 @@ def test_speech_select_refuses_until_d089_frozen():
 
 
 def test_expected_pass_rate_from_the_v1_stop_record():
-    """Numbers only: v1 spans (175 wpm) scaled linearly by 175/140; the draft quotes these values."""
+    """Numbers only: v1 spans (175 wpm) scaled linearly by 175/140; the v1 draft quoted these values (the
+    superseded 140 wpm option, kept as the disclosed history)."""
     d = json.loads(STOP_REC.read_text())
     spans = [x["span_s"] for x in d["items"]["SPK"]]
     spans += [r["span_s"] for r in d["rejects"] if r["family"] == "SPK"]

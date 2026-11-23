@@ -160,6 +160,84 @@ def expected_spk_at_rate(spans: list[float], rate_from: int, rate_to: int, rng: 
             "rate": ok / n, "median_s": srt[n // 2], "min_s": srt[0], "max_s": srt[-1]}
 
 
+def spk_rate_by_rule(spans: list[float], from_wpm: int, step: int, max_too_long: float,
+                     rng: tuple[float, float]) -> int:
+    """D-089 v2 rule (stated before any D-089 synthesis): the slowest multiple of `step` below `from_wpm`
+    whose linear projection of the v1 spans puts <= max_too_long of them above rng[1]."""
+    best = None
+    for w in range(from_wpm - step, 0, -step):
+        e = expected_spk_at_rate(spans, from_wpm, w, rng)
+        if e["too_long"] / e["n"] <= max_too_long:
+            best = w
+        else:
+            break                     # slower only lengthens every span: the too-long share is monotone
+    if best is None:
+        raise SystemExit("D-089 rule: no rate satisfies the too-long cap (STOP)")
+    return best
+
+
+def spk_sensitivity(spans: list[float], from_wpm: int, to_wpm: int, rng: tuple[float, float],
+                    exponents: tuple[float, ...]) -> list[dict]:
+    """Disclosure only: pass counts if espeak slows down by (from/to)^e instead of linearly (e = 1)."""
+    lo, hi = rng
+    out = []
+    for e in exponents:
+        f = (from_wpm / to_wpm) ** e
+        sc = [x * f for x in spans]
+        ok = sum(lo <= x <= hi for x in sc)
+        out.append({"exponent": e, "factor": round(f, 4), "pass": ok, "rate": round(ok / len(sc), 4),
+                    "too_long": sum(x > hi for x in sc), "too_short": sum(x < lo for x in sc)})
+    return out
+
+
+def check_no_carry_over(sel: dict, v1_stop: dict) -> None:
+    """D-089 v2: every kept item was measured at the D-089 rate in this run (it carries rate_wpm); a v1 keep
+    copied in without re-measurement has no rate_wpm and is refused."""
+    v1 = {tuple(x["source_sha256"]) for x in v1_stop["items"].get("SPK", [])}
+    for fam, rows in sel["items"].items():
+        for it in rows:
+            if "rate_wpm" not in it:
+                tag = "a v1 keep" if tuple(it.get("source_sha256", [])) in v1 else "an item"
+                raise SystemExit(f"D-089 carry-over refused: {tag} in {fam} slot {it.get('slot')} has no "
+                                 "D-089 rate_wpm (not re-measured)")
+
+
+def build_rates(cfg: dict, sel_record: dict) -> dict[str, int]:
+    """D-089 v2 build guard: rates come from the frozen selection record and must equal effective_spec;
+    every kept item must carry that family's rate."""
+    want = effective_spec(cfg).get("rate_wpm_by_family")
+    got = sel_record.get("rate_wpm_by_family")
+    if want is None or got != want:
+        raise SystemExit(f"selection-record rates {got} != effective_spec {want}: "
+                         "speech build refused (STOP)")
+    for fam, rows in sel_record["items"].items():
+        for it in rows:
+            if it.get("rate_wpm") != want[fam]:
+                raise SystemExit(f"{fam} slot {it.get('slot')}: rate_wpm {it.get('rate_wpm')} != {want[fam]} "
+                                 "(STOP)")
+    return dict(want)
+
+
+def build_raw_speech(cfg: dict, sel_record: dict, synth: Synth):
+    """D-089 v2: the build's RawSpeech binding. Always passes the family rate from the selection record
+    (never the frozen 175 for SPK); refuses an unverified synth."""
+    if not getattr(synth, "verified", None):
+        raise SystemExit("speech build needs a pin-verified synth (no .verified): STOP")
+    rates = build_rates(cfg, sel_record)
+
+    def raw(family: str, idx: int):
+        it = sel_record["items"][family][idx]
+        x, sr = synth(it["text"], rate_wpm=rates[family])
+        return x, sr, tokens(it["text"])
+    return raw
+
+
+def clip_speech_meta(clip: str, family: str, cfg: dict, sel_record: dict) -> dict[str, Any]:
+    """D-089 v2: the clip manifest records the speech rate of each clip."""
+    rates = build_rates(cfg, sel_record)
+    return {"clip": clip, "family": family, "rate_wpm": rates[family], "rule": "D-089"}
+
+
 def select(queue: list[dict], synth: Synth, spec: dict) -> dict[str, Any]:
     if not getattr(synth, "verified", None):     # watchdog: only a pin-verified engine (EspeakSynth) selects
         raise SystemExit("select needs a pin-verified synth (no .verified): STOP")
@@ -170,16 +248,18 @@ def select(queue: list[dict], synth: Synth, spec: dict) -> dict[str, Any]:
     n_spk = int(spec.get("spk_words", 3))
     by_fam = spec.get("rate_wpm_by_family")       # D-089: per-family rate; absent -> synth(text) as frozen
     cur = {"family": None, "slot": None}
+    used = {f: 0 for f in spec["fill_order"]}     # D-089 v2: queue items consumed per family
 
     def pop(n: int) -> list[dict]:
         nonlocal pos
         if pos + n > len(queue):
             err = CorpusStopError(f"speech corpus queue exhausted at position {pos} (STOP to the owner)")
             err.partial = {"items": items, "rejects": rejects, "queue_used": pos, "pass_rates": rates,
-                           "family": cur["family"], "slot": cur["slot"]}
+                           "family": cur["family"], "slot": cur["slot"], "queue_used_by_family": used}
             raise err
         got = queue[pos:pos + n]
         pos += n
+        used[cur["family"]] += n
         return got
 
     for fam in spec["fill_order"]:
@@ -204,13 +284,16 @@ def select(queue: list[dict], synth: Synth, spec: dict) -> dict[str, Any]:
                 d = (s1 - s0) / sr
                 rec = {"slot": u, "text": text, "n_words": nw, "span_s": round(d, 4),
                        "source_sha256": [s["sha256"] for s in src]}
+                if by_fam:
+                    rec["rate_wpm"] = int(by_fam[fam])       # D-089 v2: the rate this item was measured at
                 rates[fam]["tried"] += 1
                 if lo <= d <= hi:
                     items[fam].append(rec)
                     rates[fam]["kept"] += 1
                     break
                 rejects.append({**rec, "family": fam, "reason": "duration"})
-    out = {"items": items, "rejects": rejects, "queue_used": pos, "pass_rates": rates}
+    out = {"items": items, "rejects": rejects, "queue_used": pos, "pass_rates": rates,
+           "queue_used_by_family": used}
     if by_fam:
         out["rate_wpm_by_family"] = dict(by_fam)
     return out

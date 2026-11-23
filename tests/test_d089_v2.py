@@ -6,7 +6,7 @@
   failed and every analysis that needs it is dropped and named (stated before the re-run).
 - The build condition is code: EspeakSynth refuses a missing rate when the spec is per-family; the build takes
   its rates from the frozen selection record and asserts they equal effective_spec; the clip manifest records
-  the rate per clip; QC re-measures every SPK span (in [1.0, 1.5] s and equal to the selection span +/- 1 sample).
+  the rate per clip; QC re-measures every SPK span (in [1.0, 1.5] s, equal to the selection span +/- 1).
 """
 from __future__ import annotations
 
@@ -32,7 +32,8 @@ SR = 48000
 
 def _v1_spans() -> list[float]:
     d = json.loads(STOP_REC.read_text())
-    return [x["span_s"] for x in d["items"]["SPK"]] + [r["span_s"] for r in d["rejects"] if r["family"] == "SPK"]
+    kept = [x["span_s"] for x in d["items"]["SPK"]]
+    return kept + [r["span_s"] for r in d["rejects"] if r["family"] == "SPK"]
 
 
 # ------------------------------------------------------------------ the rate rule
@@ -59,7 +60,7 @@ def test_rule_boundary_115_is_over_and_120_is_within():
 
 
 def test_sensitivity_projection_at_three_slowdown_exponents():
-    """Disclosed in d089_v2: pass counts at 120 wpm if espeak slows down by (175/120)^e, e in {1, 0.8, 0.6}."""
+    """Disclosed in d089_v2: pass counts at 120 wpm if espeak slows by (175/120)^e, e in {1, 0.8, 0.6}."""
     sens = S.spk_sensitivity(_v1_spans(), 175, 120, (1.0, 1.5), (1.0, 0.8, 0.6))
     assert [s["exponent"] for s in sens] == [1.0, 0.8, 0.6]
     assert sens[0]["pass"] == 298
@@ -221,7 +222,7 @@ def test_manifest_records_rate_per_clip():
 
 
 def test_spk_span_qc_remeasures_and_matches_selection_within_one_sample():
-    from yct.tribe_run import refclips_qc85 as Q
+    from yct.tribe_run import refclips_qc85 as Q  # noqa: N812
 
     def utter(d):
         return np.full(int(round(d * SR)), 0.3)
@@ -237,7 +238,7 @@ def test_qc_tolerance_is_stated_in_config():
     assert D089["build_qc"] == {"spk_span_tol_samples": 1, "span_dbfs": -40, "sr": 48000, "gating": True}
 
 
-# ------------------------------------------------------------------ descriptive envelope-rate check (neuro Q1)
+# ------------------------------------------------------------------ descriptive envelope-rate check (Q1)
 def test_modulation_peak_is_descriptive_only():
     from yct.confounds import modspec
 

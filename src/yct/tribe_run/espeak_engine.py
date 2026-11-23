@@ -66,6 +66,9 @@ class EspeakSynth:
 
     def args(self, text: str, rate_wpm: int | None = None) -> list[str]:
         s = self.spec
+        if rate_wpm is None and s.get("rate_wpm_by_family"):
+            raise SystemExit("per-family speech spec (D-089): rate_wpm must be given explicitly, never the "
+                             "frozen default (STOP)")
         rate = s["rate_wpm"] if rate_wpm is None else int(rate_wpm)   # D-089: per-family rate when given
         return [str(self.paths["binary"]), "-v", s["voice"], "-s", str(rate), "-p", str(s["pitch"]),
                 "-a", str(s["amplitude"]), "--stdout", text]
