@@ -47,6 +47,14 @@ def public(sel: dict, verified: dict, corpus_sha: str, commit: str) -> dict:
             "rejects": S.public_record(sel["rejects"])}
 
 
+def stop_record(partial: dict, verified: dict, corpus_sha: str, commit: str) -> dict:
+    """Public STOP record on queue exhaustion: numbers and ids only (the frozen rule: STOP to the owner)."""
+    rec = public(partial, verified, corpus_sha, commit)
+    rec.update(stop="queue_exhausted", stopped_at={"family": partial["family"], "slot": partial["slot"]},
+               kept_counts={f: len(v) for f, v in partial["items"].items()})
+    return rec
+
+
 def _s3(args: list[str]) -> None:
     subprocess.run(["aws", "s3", *args, "--only-show-errors"], check=True,
                    env={**os.environ, "AWS_DEFAULT_REGION": "eu-central-1"})
@@ -75,12 +83,19 @@ def main() -> int:
     synth = EspeakSynth(spec)                       # pin verified here, before any synthesis
     commit = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"], capture_output=True, text=True,
                             check=True).stdout.strip()
+    corpus_sha = hashlib.sha256((ROOT / spec["corpus_file"]).read_bytes()).hexdigest()
     try:
         sel = run(cfg, raw, synth)
     except S.CorpusStopError as e:
-        print(json.dumps({"stop": str(e)}))
+        if e.partial is None:
+            print(json.dumps({"stop": str(e)}))
+            return 1
+        rec = stop_record(e.partial, synth.verified, corpus_sha, commit)
+        stop_out = out.with_name(out.stem + "_STOP.json")
+        stop_out.write_text(json.dumps(rec, indent=1, sort_keys=True) + "\n")
+        print(json.dumps({"stop": str(e), "stopped_at": rec["stopped_at"], "kept": rec["kept_counts"],
+                          "pass_rates": rec["pass_rates"], "queue_used": rec["queue_used"]}))
         return 1
-    corpus_sha = hashlib.sha256((ROOT / spec["corpus_file"]).read_bytes()).hexdigest()
     with tempfile.TemporaryDirectory() as d:
         p = Path(d) / "selection_private.json"
         p.write_text(json.dumps({**sel, "code_commit": commit}, indent=1, sort_keys=True))

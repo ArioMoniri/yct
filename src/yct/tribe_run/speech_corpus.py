@@ -32,7 +32,10 @@ KEY = "controls.refclips_artifacts.speech_corpus_sha256"
 
 
 class CorpusStopError(RuntimeError):
-    """Fail-closed STOP to the owner (queue exhausted, or a private text that does not match its sha)."""
+    """Fail-closed STOP to the owner (queue exhausted, or a private text that does not match its sha).
+    On queue exhaustion `partial` holds the selection state so far (counts, kept/rejected records)."""
+
+    partial: dict | None = None
 
 
 def parse_harvard_html(text: str) -> list[dict[str, Any]]:
@@ -143,11 +146,15 @@ def select(queue: list[dict], synth: Synth, spec: dict) -> dict[str, Any]:
     rejects: list[dict] = []
     rates = {f: {"tried": 0, "kept": 0} for f in spec["fill_order"]}
     n_spk = int(spec.get("spk_words", 3))
+    cur = {"family": None, "slot": None}
 
     def pop(n: int) -> list[dict]:
         nonlocal pos
         if pos + n > len(queue):
-            raise CorpusStopError(f"speech corpus queue exhausted at position {pos} (STOP to the owner)")
+            err = CorpusStopError(f"speech corpus queue exhausted at position {pos} (STOP to the owner)")
+            err.partial = {"items": items, "rejects": rejects, "queue_used": pos, "pass_rates": rates,
+                           "family": cur["family"], "slot": cur["slot"]}
+            raise err
         got = queue[pos:pos + n]
         pos += n
         return got
@@ -155,6 +162,7 @@ def select(queue: list[dict], synth: Synth, spec: dict) -> dict[str, Any]:
     for fam in spec["fill_order"]:
         lo, hi = spec["ranges_s"][fam]
         for u in range(spec["counts"][fam]):
+            cur.update(family=fam, slot=u)
             while True:
                 if fam == "SPK":
                     src = pop(1)

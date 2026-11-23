@@ -56,7 +56,8 @@ def test_exhaustion_stop_carries_partial_counts_without_texts():
     st = e.value.partial
     assert st["pass_rates"] == {"SPK": {"tried": 3, "kept": 0}} and st["queue_used"] == 3
     assert st["family"] == "SPK" and st["slot"] == 0
-    assert "text" not in json.dumps(_mod().stop_record(st, {}, "c" * 64, "x"))
+    s = json.dumps(_mod().stop_record(st, {}, "c" * 64, "x"))
+    assert '"text"' not in s and 'a b c' not in s   # the key texts_public is fine
 
 
 def test_run_refuses_an_unfrozen_corpus(monkeypatch):
