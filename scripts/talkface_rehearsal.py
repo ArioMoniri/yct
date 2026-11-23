@@ -95,6 +95,66 @@ def box(a, d: Path, rec: dict, cfg: dict, tag: str, fixture_box: bool, face: Pat
     return res
 
 
+def _talk():
+    import importlib.util
+
+    if "gpu_p4b_talk" in sys.modules:
+        return sys.modules["gpu_p4b_talk"]
+    spec = importlib.util.spec_from_file_location("gpu_p4b_talk", ROOT / "scripts" / "gpu_p4b_talk.py")
+    mod = importlib.util.module_from_spec(spec)
+    sys.modules["gpu_p4b_talk"] = mod
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def real_invocation(a, d: Path, rec: dict, cfg: dict, tag: str, face_png: Path) -> dict:
+    """BUG-049 (coordinator): run the box EXACTLY as the session does. A box base dir b laid out as
+    setup_w2l + push_inputs leave it (b/Wav2Lip, b/w2lvenv, b/src, b/talk/mirror, b/talk/inputs), then the
+    literal gpu_p4b_talk.wav2lip_cmd(cfg, b, inputs) string under bash (cd b; relative paths; PYTHONPATH),
+    then the fetch_frames paths. CPU only (CUDA hidden)."""
+    import shutil
+
+    talk = _talk()
+    m = cfg["controls"]["refclips_d090"]["mirror"]
+    b = d / f"box_{tag}"
+    if b.exists():
+        shutil.rmtree(b)
+    (b / "talk" / "mirror").mkdir(parents=True)
+    (b / "talk" / "inputs").mkdir(parents=True)
+    subprocess.run(["git", "clone", "-q", a.repo, str(b / "Wav2Lip")], check=True)
+    subprocess.run(["git", "-C", str(b / "Wav2Lip"), "checkout", "-q",
+                    cfg["controls"]["refclips_d085"]["talkface"]["revision"]], check=True)
+    (b / "w2lvenv").symlink_to(Path(a.w2l_python).parents[1])
+    (b / "src").symlink_to(ROOT / "src")
+    for f in (m["weights"], m["s3fd"]):
+        shutil.copyfile(d / "w" / f, b / "talk" / "mirror" / f)
+    shutil.copyfile(face_png, b / "talk" / "inputs" / "static.png")
+    for f in ("clip16k.wav", "rendered48k.wav", "utterances.npz", "rows.json", "inputs_record.json"):
+        shutil.copyfile(d / f, b / "talk" / "inputs" / f)
+    inputs = {"windows": rec["windows"], "static_png_sha256": _sha(b / "talk" / "inputs" / "static.png"),
+              "clip16k_wav_sha256": _sha(b / "talk" / "inputs" / "clip16k.wav")}
+    cmd = talk.wav2lip_cmd(cfg, str(b), inputs)
+    env = {"PATH": "/usr/bin:/bin", "CUDA_VISIBLE_DEVICES": "", "HOME": str(d / "home")}
+    p = subprocess.run(["bash", "-c", "set -euo pipefail\n" + cmd], env=env, capture_output=True, text=True,
+                       cwd="/")
+    log = (b / "talk" / "w2l.log").read_text() if (b / "talk" / "w2l.log").exists() else ""
+    res = {"rc": p.returncode, "class": T.classify_box_exit(p.returncode), "cmd_sha256":
+           hashlib.sha256(cmd.encode()).hexdigest(), "relative_paths": "--weights talk/mirror/" in cmd,
+           "exit_lines": [x[:200] for x in log.splitlines() if "TALKFACE_BOX_EXIT" in x or "Error" in x][-3:]}
+    fetched = {f: (b / f).exists() for f in ("talk/frames.npz", "talk/w2l_record.json")}
+    res["fetch_paths_exist"] = fetched
+    if (b / "talk" / "w2l_record.json").exists():
+        r = json.loads((b / "talk" / "w2l_record.json").read_text())
+        res["record"] = {k: r.get(k) for k in ("n_mel_chunks", "n_frames_total", "n_frames_kept", "face_box",
+                                                "device", "s3fd_sha256")}
+    if p.returncode == 0:
+        fin = T.finish_local(cfg, b / "talk" / "inputs", b / "talk", b / "finish")
+        q = fin["qc"]
+        res["finish"] = {"qc_pass": q["pass"], "gates": {k: bool(v.get("pass")) for k, v in q["checks"].items()
+                                                         if v.get("gating", True) is not False}}
+    return res
+
+
 def luma_identity(d: Path, tag: str, face_box: list[int]) -> dict:
     import cv2
 
@@ -167,10 +227,21 @@ def main() -> int:
     res["box_s3fd_flat"] = box(a, d, rec, cfg, "s3fd_flat", False, face=flat / "flat.png")
     res["box_s3fd_flat"]["checks"] = {"classified_s3fd_no_face": res["box_s3fd_flat"]["class"] == "s3fd_no_face",
                                       "rc": res["box_s3fd_flat"]["rc"]}
+    # (5) BUG-049: the literal session invocation (cd b, relative paths) on the textured synthetic image
+    # (s3fd finds a box there -> full Wav2Lip path, exit 0, then finish) and on the flat grey image (exit 10)
+    res["real_textured"] = real_invocation(a, d, rec, cfg, "textured", d / "static.png")
+    res["real_flat"] = real_invocation(a, d, rec, cfg, "flat", d / "flat" / "flat.png")
+    res["real_checks"] = {
+        "textured_exit_0": res["real_textured"]["rc"] == 0,
+        "textured_finish_pass": bool(res["real_textured"].get("finish", {}).get("qc_pass")),
+        "textured_chunks_1736": (res["real_textured"].get("record") or {}).get("n_mel_chunks") == 1736,
+        "flat_exit_10_s3fd_no_face": res["real_flat"]["class"] == "s3fd_no_face",
+        "relative_paths": res["real_textured"]["relative_paths"]}
     Path(a.out).write_text(T.public_numbers(res) + "\n")
     print(T.public_numbers({"env_ok": ok, "fixture": res["box_fixture"]["checks"],
                             "s3fd": res["box_s3fd"]["checks"], "s3fd_flat": res["box_s3fd_flat"]["checks"],
-                            "finish_pass": res.get("finish", {}).get("qc_pass")}))
+                            "finish_pass": res.get("finish", {}).get("qc_pass"),
+                            "real": res["real_checks"]}))
     return 0
 
 

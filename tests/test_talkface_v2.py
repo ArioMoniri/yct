@@ -430,3 +430,46 @@ def test_bug049_box_resolves_relative_paths_before_chdir(monkeypatch, tmp_path):
     for k in ("repo", "weights", "face", "audio", "out", "record", "s3fd"):
         p = Path(getattr(a, k))
         assert p.is_absolute() and str(p).startswith(str(tmp_path)), k
+
+
+
+def test_bug049_every_path_in_the_real_wav2lip_cmd_resolves_under_the_box_base(monkeypatch, tmp_path):
+    """The exact wav2lip_cmd string the session runs, parsed by talkface_box from `cd {b}`: every path arg
+    (repo, weights, s3fd, face, audio, out, record) must land under b, not under the Wav2Lip checkout."""
+    import shlex
+
+    c = load_config()
+    b = tmp_path / "yct"
+    b.mkdir()
+    inp = {"windows": [[1.0, 2.0]], "static_png_sha256": "a" * 64, "clip16k_wav_sha256": "b" * 64}
+    cmd = talk.wav2lip_cmd(c, str(b), inp)
+    line = [x for x in cmd.splitlines() if "talkface_box" in x][0]
+    argv = shlex.split(line.split(" > ")[0])
+    argv = argv[argv.index("yct.tribe_run.talkface_box") + 1:]
+    assert cmd.startswith(f"cd {b};")
+    monkeypatch.chdir(b)
+    a = TB._args(argv)
+    want = {"repo": b / "Wav2Lip", "weights": b / "talk/mirror/Wav2Lip-SD-NOGAN.pt",
+            "s3fd": b / "talk/mirror/s3fd-619a316812.pth", "face": b / "talk/inputs/static.png",
+            "audio": b / "talk/inputs/clip16k.wav", "out": b / "talk/frames.npz",
+            "record": b / "talk/w2l_record.json"}
+    for k, p in want.items():
+        assert Path(getattr(a, k)) == p.resolve(), k
+
+
+def test_fetch_frames_reads_the_paths_the_box_wrote():
+    """The copy-back step must read exactly the files wav2lip_cmd / setup_script write under b."""
+    import inspect
+
+    c = load_config()
+    src = inspect.getsource(talk.TalkBox.step)
+    cmd = talk.wav2lip_cmd(c, "/B", {"windows": [], "static_png_sha256": "a" * 64,
+                                     "clip16k_wav_sha256": "b" * 64})
+    assert "--out talk/frames.npz" in cmd and "--record talk/w2l_record.json" in cmd
+    for p in ("{b}/talk/frames.npz", "{b}/talk/w2l_record.json", "{b}/w2l_pip_freeze.txt",
+              "{b}/w2l_env_probe.json"):
+        assert p in src, p
+    rec = c["controls"]["refclips_d085"]["talkface"]["loader"]["check_record"]
+    s = talk.setup_script(c, json.loads((ROOT / rec).read_text()), "/B")
+    assert "> w2l_pip_freeze.txt" in s and "> w2l_env_probe.json" in s and s.startswith("cd /B")
+    assert "mv {b}/talk/talkface_inputs {b}/talk/inputs" in talk.push_cmd(c, "{b}")
