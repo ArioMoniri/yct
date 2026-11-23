@@ -28,3 +28,11 @@ QC incl. 5a/5b + speech gate, private upload, commit numbers only), with a test 
 outside-box identity, n_chunks; plus one s3fd run on the synthetic image with the real mirrored s3fd, which must
 classify as s3fd_no_face; then finish end to end on those frames (numbers only, no real face);
 (v) confirm mirror_s3 weights/ path + NOGAN/s3fd shas from the pod. Then CI-green HEAD; launch per §3-4.
+
+## Re-sign-off (talkface_v2.md / D-090 draft at 132bdbe). Verdict: APPROVE (freeze may proceed)
+Read: talkface_v2.md, _response.md, 7d640ab..132bdbe, config controls.refclips_d090, infra/talkface_lock.txt, synthetic rehearsal.json. Sealed/face/predictions not read; still outcome-blind.
+Rules 1-7 met: resampler frozen (928000 pcm16); 1736-chunk guard + window_end_max 57.8333 (windows end <= 55 s); grey709 in box; outside_face_box_static + decode_identity gate; hashed lock sha 258c44ec.. = file = rehearsal freeze be658920..; only box exit 10 skips (<=5), any other box exit / EnvMismatch STOP, transport 75, frame copy-back own step; QC fail = final STOP. Rehearsal attempt 3 all pass incl. flat-grey s3fd -> exit 10.
+Departures judged: (a) mel-nan and freeze mismatch -> STOP over neuro's skip/75: AGREE (was my position; owner R2). (b) inbox_articulation gating, not descriptive: ACCEPT. It is a weak, outcome-blind sanity floor (>=1 consecutive in-box diff per window) whose fail is a STOP to the owner, never a face swap, so it cannot select a face.
+Non-blocking, fix in Commit A: talkface_v2.md §5 still cites the pre-BUG-046 shas (lock 14d34302.., freeze 3578d20d..). Config and files say 258c44ec.. / be658920..; correct the text, since D-090 cites it.
+Non-blocking: the driver's catch-all `except Exception` -> 75 also catches our own driver-code bugs (owner: code -> STOP). That is harmless for bias (nothing logged, no face used), but a repeated 75 needs a human, not an auto-rerun loop.
+Non-blocking: rehearsal decoded_vs_composed.frames is empty (descriptive); populate it at the real run.

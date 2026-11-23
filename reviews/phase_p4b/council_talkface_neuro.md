@@ -34,3 +34,13 @@ load, and the pip freeze written. Then `--prepare` on a synthetic face, followed
 to a scratch mirror prefix, and the result JSON with numbers and shas only. No real face before the freeze.
 Missing wiring (blocking): `--prepare` (main refuses), the post-session finish (compose/encode/QC/private upload),
 and the committed talkface_inputs.json.
+
+## Re-sign-off (talkface_v2.md, 7d640ab..132bdbe, config controls.refclips_d090): APPROVE
+Items 1-7 are frozen as keys: no-SHINE static with luma_vs_loc reported; resample_bandlimited at 928000 pcm16; in-window only, with no switch to full length and edge_step descriptive; box grey709 with outside_face_box_static gating; w2l_rendered renamed; hashed lock 258c44ec.. matches the file, and freeze be658920.. matches the rehearsal record. Rehearsal attempt 3 passed all checks, including 1736 = 1736 chunks, kept 213, outside-box identity 213/213 and flat-grey s3fd -> exit 10.
+On the departures from my positions, I accept both:
+- (a) Mel NaN -> STOP instead of wav2lip_error. This is stricter. The clip audio includes the bed, so the case should not arise, and a STOP makes an audio-altering retry impossible.
+- (b) Pip mismatch -> STOP instead of 75. This is also stricter, and the owner ruled it.
+inbox_articulation as a gate: I accept it. The bar is low (at least 1 consecutive-frame diff per window). A fail is a final STOP, never the next face, so it cannot select on the outcome. Its only cost is a possible false "control failed", which is acceptable for a descriptive control.
+Owner rulings R1 and R2 are implemented as disclosed.
+Non-blocking (Commit A): fix the stale shas in §5 (14d34302.. / 3578d20d..) and the attempt commit in §8; confirm that decoded_vs_composed fills on the real clip.
+Outcome-blind: I read nothing sealed, no labels, no faces and no predictions.

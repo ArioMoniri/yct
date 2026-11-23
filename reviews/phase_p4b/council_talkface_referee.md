@@ -32,3 +32,11 @@ env lock file sha; narrowed skip_on table; expected frame/mel-chunk counts; desc
   synthetic image (detection result ignored), talkface_box --fixture-box on a synthetic image with a FULL 58 s synthetic
   (non-corpus) audio -> frame count, then finish end-to-end on that output to a rehearsal mirror prefix; numbers only.
 - Confirm mirror_s3/weights/ paths + shas. No real face, no real TALKFACE audio until the freeze above is committed.
+
+## Re-sign-off (TALKFACE v2 / D-090 draft, 7d640ab..132bdbe) — APPROVE
+Read: talkface_v2.md, talkface_v2_response.md, config controls.refclips_d090, infra/talkface_lock.txt, driver/box/talkface diffs, synthetic rehearsal.json only.
+My rules 1-7 are met: static luma vs LOC (descriptive); resampler frozen (928000 samples); edge_step disclosed; box_grey == grey709 (test + 213/213 outside-box identity); outside_face_box_static, n_mel_chunks 1736, kept_frames gating; qc.on_fail = final STOP; hashed lock --require-hashes --no-deps, cu128 probe, s3fd proven under torch 2.8 (flat grey -> exit 10).
+Skip mapping as owner ruled: only box exit 10 ("Face not detected") skips (max 5); exit 30 / EnvMismatch / post-session error = STOP; timeout/ssh/copy-back = 75. Matches config and run_session.
+Departures judged: (a) mel-nan and freeze mismatch -> STOP, not 75/wav2lip_error: endorsed (audio is face-independent; env drift is not infrastructure luck). (b) inbox_articulation gating: endorsed; >=1 consecutive in-box diff per window is a weak floor that a working Wav2Lip clears, and because a fail is a final STOP it cannot become face selection.
+Lock sha 258c44ec.. and freeze sha be658920.. in config match the files on disk.
+Non-blocking, fix before Commit A: talkface_v2.md §5 cites stale shas (lock 14d34302.., freeze 3578d20d..) and §8 says ecf4830 for the passing run (attempt 3 = 6fb82b8); decoded_vs_composed was empty in the rehearsal (descriptive, but confirm it fills on the real clip).
