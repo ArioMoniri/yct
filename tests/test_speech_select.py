@@ -41,6 +41,24 @@ def test_public_record_has_no_text_and_carries_rates():
     assert rec["code_commit"] == "deadbeef" and rec["texts_public"] is False
 
 
+def test_exhaustion_stop_carries_partial_counts_without_texts():
+    from yct.tribe_run import speech_corpus as S  # noqa: N812
+
+    def synth(text):
+        return np.r_[np.zeros(100), np.full(4800 * 5, 0.3), np.zeros(100)], 48000   # 0.5 s span: too short
+
+    synth.verified = {"fake": "pin"}
+    spec = {"fill_order": ["SPK"], "ranges_s": {"SPK": [1.0, 1.5]}, "counts": {"SPK": 2}, "spk_words": 3,
+            "span_dbfs": -40.0, "burst_sentences": 2}
+    q = [{"list": 1, "item": i, "sha256": f"{i:064d}", "text": "a b c d"} for i in range(3)]
+    with pytest.raises(S.CorpusStopError) as e:
+        S.select(q, synth, spec)
+    st = e.value.partial
+    assert st["pass_rates"] == {"SPK": {"tried": 3, "kept": 0}} and st["queue_used"] == 3
+    assert st["family"] == "SPK" and st["slot"] == 0
+    assert "text" not in json.dumps(_mod().stop_record(st, {}, "c" * 64, "x"))
+
+
 def test_run_refuses_an_unfrozen_corpus(monkeypatch):
     m = _mod()
     from yct.config import load_config
