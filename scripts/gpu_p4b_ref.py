@@ -266,7 +266,11 @@ def run_ref_session(a, cfg: dict, lg, backend, p4_store, clock, run_dir: Path, m
         price = gpu_price_or_none(lg, cfg["p4"]["gpu_type"])
         proj = None if price is None else projection_or_refuse(cfg, records, price, a.max_hours, clock(),
                                                                 backend)
-        return 0, {"status": "check_only", "n_clips": len(manifest["clips"]), "launch_gate": gate_rec,
+        # no price = no capacity: the projection cannot be computed, so the check is not a pass (exit 75)
+        ok = proj is not None or "refclips_d091" not in cfg["controls"]
+        return (0 if ok else p4.EXIT_INCOMPLETE), {
+                   "status": "check_only" if ok else "check_only_no_capacity",
+                   "n_clips": len(manifest["clips"]), "launch_gate": gate_rec,
                    "baseline": None if base is None else {**base, "sha256_of_record":
                                                           sha256_text(json.dumps(base, sort_keys=True))},
                    "price_usd_per_hour": price, "projection": proj, "p4_manifest_sha256": p4_before,

@@ -355,6 +355,15 @@ def test_check_only_runs_every_precondition_and_launches_nothing(renv):
     assert res["projection"]["remaining_plan_usd"] == 61.0 and res["p4_manifest_sha256"]
 
 
+def test_check_only_without_capacity_is_not_a_pass(renv, monkeypatch):
+    monkeypatch.setattr(ref, "gpu_price_or_none", lambda lg, itype: None)
+    rc, res = ref.run_ref_session(p4.SessionArgs(1.75, 8.0, None, "chk"), _d091_frozen(renv["cfg"]),
+                                  renv["lg"], renv["backend"], renv["p4"], renv["clock"],
+                                  renv["tmp"] / "runs" / "chk", renv["text"], check_only=True)
+    assert rc == p4.EXIT_INCOMPLETE and res["status"] == "check_only_no_capacity"
+    assert res["projection"] is None
+
+
 # ---------------------------------------------------------------- non-blocking
 def test_d038_gate_failure_on_grey_ctrl_is_exit_1_and_a_latched_stop(renv):
     renv["backend"].faults["GREY_CTRL_00.ref"] = "rerun_differs"
