@@ -24,3 +24,11 @@ Read: talkface_ready.md, 6e47278 (driver, box, helpers, tests), config.yaml talk
 - B4: $0 CPU rehearsal (T-NAT0) of the exact box env and `talkface_box --fixture-box` on a synthetic image. Use a 58 s synthetic bed, not 3 s, so the 1740-frame/mel-chunk count and the window indices are exercised. Then run finish on that output end to end. Record numbers only.
 - B5: Confirm the weights and s3fd are at mirror_s3/weights/ with matching shas (listing + sha, no download into git).
 - B6: Implement the narrowed skip mapping (ruling 7) and add tests for each class.
+
+## Re-sign-off (D-090 draft, 7d640ab..132bdbe): APPROVE
+- B1-B6 met: `controls.refclips_d090` holds rulings 1-7 (resampler, crop_box source, exit map 0/10/30, hashed lock + cu128 tag). --prepare/--finish are wired and tested (71 pass). Rehearsal attempt 3 passes on synthetic data only: 1736/1736 chunks, 213 kept, outside-box identity 213/213, s3fd under torch 2.8, flat grey -> exit 10, every finish gate passes. Mirror at the root is confirmed.
+- The 1736 vs 1740 correction is right. I missed it in my B4.
+- Departure 1, mel-NaN and pip mismatch -> STOP: accepted. My concern was that an infrastructure error could use up a face. STOP never uses up a face and never logs a skip, so it removes the degree of freedom. Its only cost is availability. OOM -> STOP (I had 75) is accepted on the same grounds.
+- Departure 2, `inbox_articulation` gating: accepted. A QC fail is a final STOP, not a re-roll, so a gate cannot select on the outcome. Note that Wav2Lip resynthesises the whole box every frame, so the gate is close to vacuous. It is not mouth-specific, so "articulation" must not be read as lip-sync evidence. `mouth_vs_upper_mad` stays descriptive.
+- Non-blocking, fix before Commit A: talkface_v2.md §5 cites stale shas (lock `14d34302…`, freeze `3578d20d…`). The files and config are `258c44ec…` and `be658920…`, and config and tests agree with the files. Optional: match exit 10 on the ValueError type as well as the message substring.
+- Unchanged: TALKFACE is 1 clip and descriptive only. No inferential TALKFACE-vs-LOC contrast. The luma mismatch and the edge step are disclosed.
