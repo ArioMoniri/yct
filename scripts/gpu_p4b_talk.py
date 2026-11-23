@@ -58,16 +58,47 @@ def _nat0():
 nat = _nat0()
 ref = nat.ref
 Refused = nat.Refused
-STEPS = ("setup_w2l", "push_inputs", "wav2lip")
+STEPS = ("setup_w2l", "check_env", "push_inputs", "wav2lip", "fetch_frames")   # D-090: copy-back split out
 INPUTS = "data/refstim/talkface_inputs.json"          # committed numbers-only record of the prepared inputs
 SKIPS = "data/refstim/talkface_skips.jsonl"
 RESULT = "data/refstim/talkface_result.json"
 POD_INPUTS = "/work/yct/talkface_inputs"
-# the box env (pinned; the upstream requirements.txt (torch 1.1, librosa 0.7) cannot load the TorchScript
-# archive; librosa 0.9.2 still accepts the pinned audio.py positional filters.mel call)
-TALK_PIP = ["torch==2.8.0", "numpy==1.26.4", "scipy==1.11.4", "librosa==0.9.2", "numba==0.59.1",
-            "llvmlite==0.42.0", "resampy==0.4.3", "soundfile==0.12.1", "opencv-python-headless==4.11.0.86",
-            "tqdm==4.66.5"]
+
+
+class BoxExit(RuntimeError):  # noqa: N818 - a box exit, not an error class
+    """talkface_box exited non-zero: rc 10 = the pinned 'Face not detected' (s3fd_no_face skip), anything
+    else = STOP (D-090 skips.box_exit). Raised only for the box process exit, never for ssh / timeouts."""
+
+    def __init__(self, rc: int, log: str = ""):
+        super().__init__(f"talkface_box exit {rc}: {log[-1500:]}")
+        self.rc, self.log = int(rc), log
+
+
+class EnvMismatch(RuntimeError):  # noqa: N818
+    """The box `pip freeze` differs from the hashed lock (D-090 env.on_freeze_mismatch: stop)."""
+
+
+def env_lock(cfg: dict) -> str:
+    """The hashed box-env lock (D-090 env.lock; the former TALK_PIP list now lives in config), sha-checked."""
+    env = cfg["controls"]["refclips_d090"]["env"]
+    text = (ROOT / env["lock"]).read_text()
+    if hashlib.sha256(text.encode()).hexdigest() != env["lock_sha256"]:
+        raise Refused(f"{env['lock']} sha256 != refclips_d090.env.lock_sha256")
+    return text
+
+
+def check_env(cfg: dict, freeze_text: str, probe: dict) -> dict:
+    """D-090 env gate on the box: pip freeze == the lock pins, torch 2.8.0+cu128 / CUDA 12.8 / python 3.11."""
+    env = cfg["controls"]["refclips_d090"]["env"]
+    ok, diff = T.freeze_matches(env_lock(cfg), freeze_text)
+    want = env["torch"]
+    tv = f"{want['version']}+{want['local']}"
+    if probe.get("torch") != tv or str(probe.get("cuda")) != want["cuda"] or \
+            not str(probe.get("python", "")).startswith(env["python"] + "."):
+        diff.append(f"probe {probe} != torch {tv} cuda {want['cuda']} python {env['python']}")
+    if not ok or diff:
+        raise EnvMismatch("box env != the hashed lock: " + "; ".join(diff)[:1500])
+    return {"freeze_sha256": hashlib.sha256(freeze_text.encode()).hexdigest(), "probe": probe}
 PINNED_FILES = {"README.md": "readme_sha256", "models/wav2lip.py": "models_wav2lip_py_sha256",
                 "inference.py": "inference_py_sha256"}
 
@@ -164,20 +195,26 @@ def run_session(a, cfg: dict, lg, store, box, clock, head: str, pushed: bool, re
         return 75, res
     iid = res["instance_id"] = rec["id"]
     res["terminator"] = {"kind": "external_scheduled_session", "fire_at": a.external_terminator_at}
-    out, skip = None, None
+    out, skip, stop = None, None, None
     try:
         box.start(iid, float(rec["deadline"]))
         for step in STEPS:
-            try:
-                o = box.step(step, inputs)
-            except Exception as exc:  # noqa: BLE001
-                if step == "wav2lip":       # a Wav2Lip failure is a pre-stated face skip (face_rule.skip_on)
-                    skip = T.classify_failure(str(exc))
-                raise
+            o = box.step(step, inputs)
             res["steps"][step] = "ok"
-            if step == "wav2lip":
+            if step == "fetch_frames":
                 out = o
-    except Exception as exc:  # noqa: BLE001
+    except BoxExit as exc:              # D-090: only the box process exit is classified
+        if T.classify_box_exit(exc.rc) == "s3fd_no_face":
+            skip = "s3fd_no_face"
+        else:
+            stop = f"talkface_box exit {exc.rc}: STOP (nothing logged)"
+        res.update(box_rc=exc.rc, error=str(exc)[-2000:])
+        out = None
+    except EnvMismatch as exc:          # D-090 env.on_freeze_mismatch: stop
+        stop = "box env != the hashed lock: STOP (nothing logged)"
+        res.update(error=str(exc)[-2000:])
+        out = None
+    except Exception as exc:  # noqa: BLE001 - timeout / ssh / transfer: infrastructure, exit 75, never a skip
         res.update(status="box_failed", error=f"{type(exc).__name__}: {exc}"[-2000:])
         out = None
     finally:
@@ -187,6 +224,9 @@ def run_session(a, cfg: dict, lg, store, box, clock, head: str, pushed: bool, re
             lg.reap()
         res["alive_after"] = lg._live(lg.list_ours())
     store.s3_put_text(f"runs/{a.run_id}/child_metrics.json", json.dumps(res, default=str))
+    if stop is not None:
+        res.update(status="stop", stop=stop)
+        return 1, res
     if skip is not None:
         face = T.face_row(face_log, cfg, cont)
         r = T.skip_record(face, int(cont["talkface_face_rank"]), skip, a.run_id)
@@ -216,7 +256,7 @@ def run_session(a, cfg: dict, lg, store, box, clock, head: str, pushed: bool, re
 
 
 # ---------------------------------------------------------------- real pod/box backend
-EXTRA_SHIP = ["infra/gpu_deadman.sh"]          # src/yct/tribe_run (talkface_box, wav2lip_loader) is in SHIP
+EXTRA_SHIP = ["infra/gpu_deadman.sh", "infra/talkface_lock.txt"]   # src/yct/tribe_run is in SHIP
 
 
 def ship_list() -> list[str]:
@@ -231,6 +271,7 @@ def ship_list() -> list[str]:
 
 def setup_script(cfg: dict, check: dict, b: str) -> str:
     tk = cfg["controls"]["refclips_d085"]["talkface"]
+    env = cfg["controls"]["refclips_d090"]["env"]
     shas = "\n".join(f"echo '{check[k]}  {f}' >> pinned.sha256" for f, k in PINNED_FILES.items())
     return (f"cd {b}\n"
             "for i in $(seq 1 60); do sudo fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1 || break; "
@@ -240,24 +281,42 @@ def setup_script(cfg: dict, check: dict, b: str) -> str:
             "if [ ! -x \"$HOME/.uvbin/uv\" ]; then curl -LsSf https://astral.sh/uv/install.sh "
             "| env UV_INSTALL_DIR=\"$HOME/.uvbin\" UV_NO_MODIFY_PATH=1 sh >/dev/null; fi\n"
             "UV=$HOME/.uvbin/uv\n"
-            "[ -d w2lvenv ] || $UV venv -q -p 3.11 w2lvenv\n"
-            f"$UV pip install -q --python w2lvenv/bin/python {' '.join(TALK_PIP)}\n"
-            "w2lvenv/bin/python -m pip freeze > w2l_pip_freeze.txt 2>/dev/null || "
+            f"[ -d w2lvenv ] || $UV venv -q -p {env['python']} --python-preference only-managed w2lvenv\n"
+            f"$UV pip install -q --python w2lvenv/bin/python --require-hashes --no-deps "
+            f"--index-url {env['index_url']} -r {b}/{env['lock']}\n"
             "$UV pip freeze --python w2lvenv/bin/python > w2l_pip_freeze.txt\n"
+            "w2lvenv/bin/python -c \"import json,sys,torch;print(json.dumps({'torch': torch.__version__, "
+            "'cuda': torch.version.cuda, 'python': sys.version.split()[0]}))\" > w2l_env_probe.json\n"
             f"[ -d Wav2Lip ] || git clone -q {tk['repo']} Wav2Lip\n"
             f"cd Wav2Lip && git checkout -q {tk['revision']} && test \"$(git rev-parse HEAD)\" = "
             f"\"{tk['revision']}\"\n"
             "rm -f pinned.sha256\n" + shas + "\nsha256sum -c pinned.sha256\n")
 
 
-def wav2lip_cmd(cfg: dict, b: str, windows: list) -> str:
-    tk = cfg["controls"]["refclips_d085"]["talkface"]
+def push_cmd(cfg: dict, b: str) -> str:
+    """Pod -> box: ONLY the NOGAN weights and s3fd from the private mirror root (D-090 mirror; the GAN
+    archive is never fetched), plus the prepared inputs. __SSH__ is replaced by the box ssh command."""
+    tk, m = cfg["controls"]["refclips_d085"]["talkface"], cfg["controls"]["refclips_d090"]["mirror"]
+    root = tk["mirror_s3"]
+    cp = "aws s3 cp --only-show-errors --region eu-central-1"
+    return (f"mkdir -p /work/yct/talk_box/mirror && "
+            f"{cp} {root}{m['weights']} /work/yct/talk_box/mirror/{m['weights']} && "
+            f"{cp} {root}{m['s3fd']} /work/yct/talk_box/mirror/{m['s3fd']} && "
+            f"cd /work/yct/talk_box && tar cf - mirror -C {POD_INPUTS}/.. talkface_inputs | "
+            f"__SSH__ 'mkdir -p {b}/talk && tar xf - -C {b}/talk && "
+            f"rm -rf {b}/talk/inputs && mv {b}/talk/talkface_inputs {b}/talk/inputs'")
+
+
+def wav2lip_cmd(cfg: dict, b: str, inputs: dict) -> str:
+    tk, m = cfg["controls"]["refclips_d085"]["talkface"], cfg["controls"]["refclips_d090"]["mirror"]
     return (f"cd {b}; export PYTHONPATH={b}/src\n"
             f"w2lvenv/bin/python -m yct.tribe_run.talkface_box --repo Wav2Lip "
-            f"--weights talk/mirror/{tk['weights_file']} --weights-sha {tk['weights_sha256']} "
-            f"--s3fd talk/mirror/s3fd-619a316812.pth --s3fd-sha {tk['face_detector_sha256']} "
-            f"--face talk/inputs/static.png --audio talk/inputs/clip16k.wav --fps {tk['fps']} "
-            f"--windows '{json.dumps(windows)}' --out talk/frames.npz --record talk/w2l_record.json "
+            f"--weights talk/mirror/{m['weights']} --weights-sha {tk['weights_sha256']} "
+            f"--s3fd talk/mirror/{m['s3fd']} --s3fd-sha {tk['face_detector_sha256']} "
+            f"--face talk/inputs/static.png --face-sha {inputs['static_png_sha256']} "
+            f"--audio talk/inputs/clip16k.wav --audio-sha {inputs['clip16k_wav_sha256']} --fps {tk['fps']} "
+            f"--windows '{json.dumps(inputs['windows'])}' --out talk/frames.npz "
+            "--record talk/w2l_record.json "
             "> talk/w2l.log 2>&1\n")
 
 
@@ -284,21 +343,106 @@ class TalkBox(nat.PodBox):
             self.box.start("w2lsetup", setup_script(self.cfg, check, b))
             if self.box.wait("w2lsetup", 2400) != 0:
                 raise RuntimeError("w2lsetup failed:\n" + self.box.cat("~/steps/w2lsetup.log")[-2000:])
+        elif name == "check_env":
+            freeze = self.box.cat(f"{b}/w2l_pip_freeze.txt")
+            probe = json.loads(self.box.cat(f"{b}/w2l_env_probe.json"))
+            return check_env(self.cfg, freeze, probe)
         elif name == "push_inputs":
-            g.pod("mkdir -p /work/yct/talk_box/mirror && aws s3 sync --only-show-errors "
-                  f"--region eu-central-1 {tk['mirror_s3']}weights/ /work/yct/talk_box/mirror/ && "
-                  f"cd /work/yct/talk_box && tar cf - mirror -C {POD_INPUTS}/.. talkface_inputs | "
-                  f"{self.box.ssh} 'mkdir -p {b}/talk && tar xf - -C {b}/talk && "
-                  f"mv {b}/talk/talkface_inputs {b}/talk/inputs'", 3600)
+            g.pod(push_cmd(self.cfg, b).replace("__SSH__", self.box.ssh), 3600)
         elif name == "wav2lip":
-            self.box.start("w2l", wav2lip_cmd(self.cfg, b, inputs["windows"]))
-            if self.box.wait("w2l", 3600) != 0:
-                raise RuntimeError("wav2lip failed:\n" + self.box.cat(f"{b}/talk/w2l.log")[-2000:])
+            self.box.start("w2l", wav2lip_cmd(self.cfg, b, inputs))
+            rc = self.box.wait("w2l", 3600)          # TimeoutError -> infrastructure (exit 75)
+            if rc != 0:
+                raise BoxExit(rc, self.box.cat(f"{b}/talk/w2l.log")[-3000:])
+        elif name == "fetch_frames":                  # outside the classified block: a fault here is exit 75
             local = f"{self.pod_dir}/talk"
             g.pod(f"mkdir -p {local} && {self.box.ssh} 'cat {b}/talk/frames.npz' > {local}/frames.npz && "
                   f"{self.box.ssh} 'cat {b}/talk/w2l_record.json' > {local}/w2l_record.json && "
                   f"{self.box.ssh} 'cat {b}/w2l_pip_freeze.txt' > {local}/w2l_pip_freeze.txt", 1800)
             return {"pod_dir": local, "record": json.loads(g.pod_file(f"{local}/w2l_record.json"))}
+
+
+D090_KEY = "controls.refclips_d090"
+LOCAL_SCRATCH = "/work/yct/refstim_auto_scratch"
+
+
+def require_d090(cfg: dict) -> None:
+    if not T._frozen(cfg, D090_KEY):
+        raise SystemExit(f"{D090_KEY} is not frozen: --prepare / --finish refused (council re-sign first)")
+
+
+def face_source(row: dict, scratch: Path) -> Path:
+    """The sha-verified TALKFACE face source on the pod (matched by content sha256 only)."""
+    for f in sorted(Path(scratch).rglob("*")):
+        if f.is_file() and hashlib.sha256(f.read_bytes()).hexdigest() == row["source_sha256"]:
+            return f
+    raise SystemExit(f"no pod file with the TALKFACE face sha {row['source_sha256'][:12]}: STOP")
+
+
+def prepare_main(cfg: dict, out: Path, scratch: Path) -> dict:
+    """--prepare (pod CPU, after the D-090 freeze): texts from the private page (sha-checked), the
+    pin-verified espeak-ng at the D-089 TALKFACE rate, the face from the frozen rank-499 row, then
+    talkface.prepare_inputs; uploads the private inputs to the mirror and writes the public record."""
+    import tempfile
+
+    import cv2
+
+    from yct.tribe_run import refclips58 as R  # noqa: N812
+    from yct.tribe_run import speech_build as B  # noqa: N812
+    from yct.tribe_run import speech_corpus as S  # noqa: N812
+    from yct.tribe_run.espeak_engine import EspeakSynth
+
+    require_d090(cfg)
+    T.check_frozen(cfg, ROOT)
+    sel = B.check_selection_record(cfg, ROOT)
+    log = [json.loads(x) for x in (ROOT / "data/refstim/image_face_auto_log_v4.jsonl").read_text()
+           .splitlines() if x.strip()]
+    cont = json.loads((ROOT / T.CONT).read_text())
+    row = T.face_row(log, cfg, cont)
+    if not T.licence_adaptable(row.get("licence", ""), cfg["controls"]["refclips"]["image_licences"]):
+        raise SystemExit("TALKFACE face licence does not permit adaptation: skip licence_not_adaptable")
+    spec = S.effective_spec(cfg)
+    with tempfile.TemporaryDirectory() as d:
+        dst = Path(d) / "raw.html"
+        subprocess.run(["aws", "s3", "cp", "--only-show-errors", "--region", "eu-central-1",
+                        spec["private_raw_s3"], str(dst)], check=True)
+        raw = dst.read_bytes()
+    queue = S.resolve_texts(json.loads((ROOT / spec["corpus_file"]).read_text()), raw)
+    sel_t = B.reconstruct_texts(sel, queue, spk_words=int(spec["spk_words"]),
+                                burst_sentences=int(spec["burst_sentences"]))
+    synth = EspeakSynth(spec)
+    (clip,) = [c for c in R.plan(cfg) if c.family == "TALKFACE"]
+    B.utterance_map([clip], sel_t)
+    prov = R.make_speech_provider(S.build_raw_speech(cfg, sel_t, synth))
+    bgr = cv2.imread(str(face_source(row, scratch)), cv2.IMREAD_COLOR)
+    if bgr is None:
+        raise SystemExit("TALKFACE face source decode failed: STOP")
+    rec = T.prepare_inputs(cfg, clip, prov, bgr[..., ::-1], row["crop_box"], out)
+    tk = cfg["controls"]["refclips_d085"]["talkface"]
+    subprocess.run(["aws", "s3", "cp", "--only-show-errors", "--region", "eu-central-1", "--recursive",
+                    str(out), tk["mirror_s3"] + cfg["controls"]["refclips_d090"]["mirror"]["inputs_prefix"]],
+                   check=True)
+    a = cfg["controls"]["refclips_artifacts"]
+    pub = {**rec, "face_source_sha256": a["talkface_face_sha256"],
+           "face_rank": int(cont["talkface_face_rank"]),
+           "selection_sha256": a["speech_selection_sha256"], "engine_verified": synth.verified,
+           "rate_wpm": S.build_rates(cfg, sel)["TALKFACE"], "code_commit": _git("rev-parse", "HEAD")}
+    B.assert_no_text(pub, sel_t)
+    (ROOT / INPUTS).write_text(T.public_numbers(pub) + "\n")
+    return pub
+
+
+def finish_main(cfg: dict, talk_dir: Path, out: Path) -> dict:
+    """--finish (pod CPU, after the session): talkface.finish_local on the pulled frames, then the clip to
+    the private mirror; prints the numbers-only result (never the frames or the clip)."""
+    require_d090(cfg)
+    res = T.finish_local(cfg, Path(POD_INPUTS), talk_dir, out)
+    tk = cfg["controls"]["refclips_d085"]["talkface"]
+    dst = tk["mirror_s3"] + cfg["controls"]["refclips_d090"]["mirror"]["clip_prefix"]
+    for f in ("talkface_00.mp4", "talkface_00.wav", "talkface_00.tsv"):
+        subprocess.run(["aws", "s3", "cp", "--only-show-errors", "--region", "eu-central-1", str(out / f),
+                        dst + f], check=True)
+    return res
 
 
 def _git(*args: str) -> str:
@@ -314,12 +458,18 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--ack-cap-80", action="store_true")
     ap.add_argument("--reconcile-only", action="store_true")
     ap.add_argument("--prepare", action="store_true", help="pod CPU: build the TALKFACE inputs (no GPU)")
+    ap.add_argument("--finish", help="pod CPU: compose + encode + QC the pulled frames in this directory")
+    ap.add_argument("--local-scratch", default=LOCAL_SCRATCH)
     a = ap.parse_args(argv)
     if os.environ.get("AWS_DEFAULT_REGION", "eu-central-1") != "eu-central-1":
         raise SystemExit("AWS_DEFAULT_REGION must be eu-central-1 (yct resources only)")
     cfg = load_config()
     if a.prepare:
-        raise SystemExit("--prepare: not wired yet (council pre-launch check first, talkface_ready.md §4)")
+        print(T.public_numbers(prepare_main(cfg, Path(POD_INPUTS), Path(a.local_scratch))))
+        return 0
+    if a.finish:
+        print(T.public_numbers(finish_main(cfg, Path(a.finish), Path(a.finish) / "clip")))
+        return 0
     from infra import lambda_gpu as lg
 
     if a.reconcile_only:

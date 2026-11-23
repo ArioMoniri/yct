@@ -122,7 +122,8 @@ def test_qc_fails_without_articulation_or_rendering():
     assert not q["checks"]["w2l_rendered"]["pass"]
 
 
-@pytest.mark.parametrize("field,val", [("n_mel_chunks", 1740), ("n_frames_total", 1735), ("n_frames_kept", 3)])
+@pytest.mark.parametrize("field,val", [("n_mel_chunks", 1740), ("n_frames_total", 1735),
+                                       ("n_frames_kept", 3)])
 def test_qc_fails_on_chunk_or_kept_counts(field, val):
     static, w2l, rec = _fixture()
     rec = {**rec, field: val}
@@ -287,7 +288,8 @@ def test_reference_freeze_equals_the_lock_and_drift_is_detected():
 
 def test_setup_script_installs_the_hashed_lock_only():
     c = load_config()
-    check = json.loads((ROOT / c["controls"]["refclips_d085"]["talkface"]["loader"]["check_record"]).read_text())
+    rec = c["controls"]["refclips_d085"]["talkface"]["loader"]["check_record"]
+    check = json.loads((ROOT / rec).read_text())
     s = talk.setup_script(c, check, "/b")
     assert "--require-hashes" in s and "talkface_lock.txt" in s and "torch==" not in s
     assert "infra/talkface_lock.txt" in talk.ship_list()
@@ -320,7 +322,8 @@ def _prov(family, idx):
     rng = np.random.default_rng(100 + idx)
     n = int((1.2 + 0.4 * idx) * R.SR)
     t = np.arange(n) / R.SR
-    x = 0.3 * np.sin(2 * np.pi * 180 * t) * (0.5 + 0.5 * np.sin(2 * np.pi * 4 * t)) + 0.01 * rng.standard_normal(n)
+    env = 0.5 + 0.5 * np.sin(2 * np.pi * 4 * t)
+    x = 0.3 * np.sin(2 * np.pi * 180 * t) * env + 0.01 * rng.standard_normal(n)
     return x, ["w"] * 3
 
 
@@ -335,8 +338,9 @@ def test_prepare_writes_private_inputs_and_a_numbers_only_record(tmp_path):
     rec = T.prepare_inputs(c, clip, _prov, _face_rgb(), [50, 60, 600], tmp_path)
     for f in ("static.png", "clip16k.wav", "rendered48k.wav", "utterances.npz", "rows.json"):
         assert (tmp_path / f).exists(), f
-    import cv2
     import wave
+
+    import cv2
 
     png = cv2.imread(str(tmp_path / "static.png"))
     assert png.shape == (R.H, R.W, 3) and np.array_equal(png[..., 0], png[..., 1])
@@ -353,10 +357,9 @@ def test_prepare_writes_private_inputs_and_a_numbers_only_record(tmp_path):
 def test_prepare_refuses_a_window_past_the_last_mel_chunk(tmp_path):
     c, clip = _fixture_clip()
     clip = copy.deepcopy(clip)
-    clip.events[-1]["onset"] = 55.0
+    clip.events[-1]["onset"] = 56.7               # a 1.2 s utterance ends ~57.9 s > 1735 / 30 = 57.83 s
     with pytest.raises(SystemExit, match="after"):
-        T.prepare_inputs(c, clip, lambda f, i: (_prov(f, 2)[0][: int(4.0 * R.SR)], ["w"] * 3),
-                         _face_rgb(), [50, 60, 600], tmp_path)
+        T.prepare_inputs(c, clip, lambda f, i: _prov(f, 0), _face_rgb(), [50, 60, 600], tmp_path)
 
 
 def test_finish_on_fixture_frames_end_to_end(tmp_path):
@@ -398,3 +401,10 @@ def test_finish_refuses_a_frames_sha_mismatch(tmp_path):
     (talkd / "w2l_record.json").write_text(json.dumps({"frames_sha256": "0" * 64, "face_box": FACE_BOX}))
     with pytest.raises(SystemExit, match="frames.npz sha"):
         T.finish_local(c, inp, talkd, tmp_path / "out")
+
+
+@pytest.mark.parametrize("argv", [["--prepare"], ["--finish", "/tmp/nowhere"]])
+def test_prepare_and_finish_refuse_until_d090_is_frozen(monkeypatch, argv):
+    monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-central-1")
+    with pytest.raises(SystemExit, match="refclips_d090 is not frozen"):
+        talk.main(argv)
