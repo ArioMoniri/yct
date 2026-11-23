@@ -1,0 +1,16 @@
+{
+ "authority": "D-085 part 2 talkface.face_continuation",
+ "category": "face",
+ "target": 21,
+ "skips": 0,
+ "new_rows": 7,
+ "old_bytes": 1002432,
+ "old_sha256": "2ac34e9cae3ec3894ae300b6248452c2fc81b4d4fb0179771ded24c63bf84f02",
+ "new_sha256": "96b3ff528457b43c48ea234c6d446f974ccc2db3c7ba92fd787b11aab02c91cc",
+ "prefix_identical": true,
+ "run_commit": "d5380d06d96bbe0f17eea482c789e7449db0bed7",
+ "talkface_face_rank": 499,
+ "talkface_face_licence": "CC-BY-4.0",
+ "talkface_face_source_sha256": "fe734910824e0bb1247cd1f78c5416dbe6c8ba05939bfead95c671199728f2eb",
+ "rejects_493_498": {"licence": 4, "no_face_detected": 1, "face_not_frontal": 1}
+}
