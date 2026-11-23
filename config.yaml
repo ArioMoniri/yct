@@ -1082,3 +1082,5 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   - {key: controls.refclips_artifacts.speech_selection_sha256, frozen_at: febba467b7c7852b4369c4722a649fff09a2998a}
   # D-085 part 2 step 3: TALKFACE source image sha (v4 face rank 499), set in the commit named
   - {key: controls.refclips_artifacts.talkface_face_sha256, frozen_at: 28acddd5aaf5afe3b6a1b9b96cb61a61f3aa36d3}
+  # D-090 TALKFACE build rules (council talkface 5/5): whole block, set in the commit named
+  - {key: controls.refclips_d090, frozen_at: 16bef847f289ba7e0282f686da035f50e74cb017}
