@@ -224,14 +224,55 @@ def test_manifest_records_rate_per_clip():
 def test_spk_span_qc_remeasures_and_matches_selection_within_one_sample():
     from yct.tribe_run import refclips_qc85 as Q  # noqa: N812
 
-    def utter(d):
-        return np.full(int(round(d * SR)), 0.3)
-    ok = Q.spk_span_qc([(1.2, utter(1.2)), (1.05, utter(1.05))], sr=SR, rng=(1.0, 1.5), tol_samples=1)
+    def utter(n):
+        return np.full(int(n), 0.3)
+    ok = Q.spk_span_qc([(57600, utter(57600)), (50400, utter(50400))], sr=SR, rng=(1.0, 1.5), tol_samples=1)
     assert ok["pass"] is True and ok["tol_samples"] == 1
-    off = Q.spk_span_qc([(1.2, utter(1.21))], sr=SR, rng=(1.0, 1.5), tol_samples=1)
+    off = Q.spk_span_qc([(57600, utter(58080))], sr=SR, rng=(1.0, 1.5), tol_samples=1)
     assert off["pass"] is False and off["mismatch"] == [0]
-    out = Q.spk_span_qc([(1.6, utter(1.6))], sr=SR, rng=(1.0, 1.5), tol_samples=1)
+    out = Q.spk_span_qc([(76800, utter(76800))], sr=SR, rng=(1.0, 1.5), tol_samples=1)
     assert out["pass"] is False and out["out_of_range"] == [0]
+
+
+def test_spk_span_qc_compares_integer_samples_not_rounded_seconds():
+    """Council re-sign-off blocker: span_s is rounded to 4 dp (up to 2.4 samples at 48 kHz). The gate compares
+    the integer span_samples stored per selection item; byte-identical audio must always pass."""
+    from yct.tribe_run import refclips_qc85 as Q  # noqa: N812
+
+    rng = np.random.default_rng(0)
+    ns = [57601] + [int(x) for x in rng.integers(48000, 72000, 200)]
+    pairs = [(n, np.full(n, 0.3)) for n in ns]
+    r = Q.spk_span_qc(pairs, sr=SR, rng=(1.0, 1.5), tol_samples=1)
+    assert r["pass"] is True and r["mismatch"] == [] and r["out_of_range"] == []
+    with pytest.raises(TypeError, match="integer"):
+        Q.spk_span_qc([(1.2000, np.full(57600, 0.3))], sr=SR, rng=(1.0, 1.5), tol_samples=1)
+
+
+def test_selection_stores_integer_span_samples_and_sr():
+    spec = dict(S.effective_spec(CFG), counts={"SPK": 3, "BURST": 0, "TALKFACE": 0})
+    d = {0: 57601 / SR, 1: 1.23456789, 2: 1.0000213}
+    synth = _fake(lambda t, r: d[int(t.split()[0][1:-1])])
+    sel = S.select(_queue(3), synth, spec)
+    for it in sel["items"]["SPK"]:
+        assert isinstance(it["span_samples"], int) and it["sr"] == SR
+        assert abs(it["span_s"] - it["span_samples"] / SR) < 5e-5   # span_s: display only
+    assert sel["items"]["SPK"][0]["span_samples"] == 57601
+
+
+def test_build_qc_on_selection_items_passes_for_identical_audio():
+    """End to end: selection record items -> pairs (span_samples, rebuilt utterance) -> gate passes."""
+    from yct.tribe_run import refclips_qc85 as Q  # noqa: N812
+
+    spec = dict(S.effective_spec(CFG), counts={"SPK": 3, "BURST": 0, "TALKFACE": 0})
+    d = {0: 57601 / SR, 1: 1.23456789, 2: 1.4999}
+    synth = _fake(lambda t, r: d[int(t.split()[0][1:-1])])
+    sel = S.select(_queue(3), synth, spec)
+    pairs = []
+    for it in sel["items"]["SPK"]:
+        x, sr = synth(it["text"], rate_wpm=it["rate_wpm"])
+        from yct.tribe_run.refclips58 import trim_to_span
+        pairs.append((it["span_samples"], trim_to_span(x, sr)))
+    assert Q.spk_span_qc(pairs, sr=SR, rng=(1.0, 1.5), tol_samples=1)["pass"] is True
 
 
 def test_qc_tolerance_is_stated_in_config():
