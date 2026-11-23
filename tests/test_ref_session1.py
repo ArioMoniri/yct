@@ -415,3 +415,22 @@ def test_reliability_excludes_differing_constant_arrays(tmp_path):
     fr = feature_reliability(a, b)
     excluded = sum(1 for v in fr["arrays"].values() if v.get("shape_match") and v.get("reliability") is None)
     assert excluded == 1 and fr["reliability_min"] == 1.0
+
+
+def test_committed_nat_tsv_sidecar_matches_the_config_and_adapts_with_the_real_manifest():
+    cfg = load_config()
+    want = cfg["controls"]["refclips_artifacts"]["nat_tsv_manifest_sha256"]
+    assert want, "D-091: the NAT tsv sidecar sha is set"
+    side_text = (ROOT / "data/refstim/nat_tsv_manifest.json").read_text()
+    assert ref.sha256_text(side_text) == want
+    side = json.loads(side_text)
+    assert side["n"] == 15 and side["stop"] == [] and side["runs_bit_identical"] is True
+    assert all(r["tsv_valid"] and r["n_words"] >= 1 for r in side["rows"])
+    text, m = _real()
+    raw = {f"NAT_{c['i']:02d}": c["sha256"] for c in m["clips"] if c["family"] == "NAT"}
+    for r in side["rows"]:
+        s = raw[r["clip_id"]]
+        assert (r["transcript_json_sha256"], r["wav_sha256"], r["mp4_sha256"]) == \
+            (s["transcript"], s["wav"], s["mp4"])
+    jobs = ref.plan_ref_jobs(cfg, ref.load_clip_manifest(text, cfg, side_text))
+    assert [j.id for j in jobs[:3]] == ["GREY_CTRL_00.ref", "SPK_00.ref", "MOT_00.ref"]
