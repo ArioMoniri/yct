@@ -208,7 +208,7 @@ def test_driver_has_no_tribe_job():
 
 def test_type_missing_from_types_is_exit_75_without_launch(env, monkeypatch):
     """BUG-047: lg.types() briefly omitted gpu_1x_a100_sxm4 before NAT session 2 and the driver died with a
-    KeyError (exit 1). A type missing from the list is a capacity miss: exit 75, nothing launched or logged."""
+    KeyError (exit 1). A type missing from the list is a capacity miss: exit 75, nothing launched/logged."""
     monkeypatch.setattr(env.lg.mod, "types", lambda: {})
     before = env.log.read_text()
     rc, res = run(env)

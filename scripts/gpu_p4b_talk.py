@@ -156,7 +156,7 @@ def preflight(a, cfg: dict, lg, store, clock, head: str, pushed: bool, recon: di
         raise Refused("TALKFACE face licence does not permit adaptation: skip licence_not_adaptable")
     check_inputs(inputs, cfg)
     check_not_done(result_path)
-    price = lg.types()[cfg["p4"]["gpu_type"]]["usd_per_hour"]
+    price = nat.gpu_price(lg, cfg["p4"]["gpu_type"])
     nat.check_limits(cfg, a.max_hours, a.usd_limit, price)
     nat.check_terminator(cfg, store, a.external_terminator_at, clock(), a.max_hours)
     nat.check_commit(head, a.ci_green_sha, pushed)
@@ -176,6 +176,9 @@ def run_session(a, cfg: dict, lg, store, box, clock, head: str, pushed: bool, re
     res: dict = {"session": "talk", "git_sha": head, "steps": {}}
     try:
         plan = preflight(a, cfg, lg, store, clock, head, pushed, recon, inputs, face_log, cont, result_path)
+    except nat.NoCapacityError as exc:
+        res.update(status="no_capacity", error=str(exc))
+        return 75, res
     except SystemExit as exc:
         res.update(status="refused", error=str(exc))
         return 1, res

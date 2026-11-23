@@ -71,6 +71,17 @@ PYANNOTE_KEYS = ("pyannote_diarization_sha256", "pyannote_segmentation_sha256", 
 STEPS = ("setup_wx", "push_buffer", "nat0", "asr")     # the only box steps: no TRIBE job
 
 
+class NoCapacityError(Exception):
+    """BUG-047: the GPU type is not in lg.types() right now: a capacity miss (exit 75), not a KeyError."""
+
+
+def gpu_price(lg, itype: str) -> float:
+    avail = lg.types()
+    if itype not in avail:
+        raise NoCapacityError(f"{itype} not in available types")
+    return avail[itype]["usd_per_hour"]
+
+
 class Refused(SystemExit):
     """Exit 1 before any launch: a human decides."""
 
@@ -258,7 +269,7 @@ def preflight(a, cfg: dict, lg, store, clock, head: str, pushed: bool, log: list
               recon: dict | None = None, cpu_state: dict | None = None, log_path: Path | None = None) -> dict:
     """All pre-launch checks, in order; the baseline is written last-but-one (only once every other check
     passed), then the cap guard. Returns the plan."""
-    price = lg.types()[cfg["p4"]["gpu_type"]]["usd_per_hour"]
+    price = gpu_price(lg, cfg["p4"]["gpu_type"])
     k = int(getattr(a, "session", 0) or 0)
     check_frozen(cfg, k)
     check_limits(cfg, a.max_hours, a.usd_limit, price)
@@ -285,6 +296,9 @@ def run_session0(a, cfg: dict, lg, store, box, clock, log_path: Path, head: str,
     res: dict = {"session": session, "k": k, "git_sha": head, "steps": {}}
     try:
         plan = preflight(a, cfg, lg, store, clock, head, pushed, log, recon, cpu_state, log_path)
+    except NoCapacityError as exc:
+        res.update(status="no_capacity", error=str(exc))
+        return 75, res
     except SystemExit as exc:
         res.update(status="refused", error=str(exc))
         return 1, res
