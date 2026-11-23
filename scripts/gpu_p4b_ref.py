@@ -183,15 +183,28 @@ def n_done_full(backend) -> int:
     return len({r["job"] for r in rows if r.get("gate_pass") and r.get("condition", "full") == "full"})
 
 
+def projection_or_refuse(cfg: dict, records: list[dict], price: float, max_hours: float, now: float,
+                         backend) -> dict | None:
+    """Council refcampaign U4 (D-091), fail closed: the main-campaign projection is part of every pre-launch
+    record. controls.refclips_d091 unfrozen -> refusal (exit 1), never a skipped projection. A cfg without
+    the block at all (schema-required in config.yaml, so only a pre-D-091 test fixture) keeps the D-071
+    rule."""
+    if "refclips_d091" not in cfg["controls"]:
+        return None
+    if not rcmp._frozen(cfg, "controls.refclips_d091"):
+        raise rcmp.CampaignCapError("controls.refclips_d091 is not frozen: the D-091 projection cannot be "
+                                    "computed, launch refused (fail closed)")
+    return rcmp.main_projection(cfg, records, price=price, max_hours=max_hours, now=now,
+                                n_done_full=n_done_full(backend))
+
+
 def make_pre_launch(backend, lg, cfg: dict, clock, ack: bool):
     def pre_launch(price: float, max_hours: float) -> dict:
         base = json.loads(backend.s3_get_text(rcmp.BASELINE_KEY))
         lines, records = _ledger(lg)
         guard = rcmp.guard_launch(cfg, records, lines, base, price=price, max_hours=max_hours, now=clock(),
                                   ack=ack)
-        if rcmp._frozen(cfg, "controls.refclips_d091"):    # council refcampaign U4 (D-091), once frozen
-            guard["projection"] = rcmp.main_projection(cfg, records, price=price, max_hours=max_hours,
-                                                       now=clock(), n_done_full=n_done_full(backend))
+        guard["projection"] = projection_or_refuse(cfg, records, price, max_hours, clock(), backend)
         guard["baseline_sha256"] = sha256_text(json.dumps(base, sort_keys=True))
         return guard
     return pre_launch
@@ -251,8 +264,8 @@ def run_ref_session(a, cfg: dict, lg, backend, p4_store, clock, run_dir: Path, m
         if base is not None:
             rcmp.check_baseline(lines, base, cfg["controls"]["refclips"]["ledger_name_prefix"])
         price = gpu_price_or_none(lg, cfg["p4"]["gpu_type"])
-        proj = None if price is None else rcmp.main_projection(
-            cfg, records, price=price, max_hours=a.max_hours, now=clock(), n_done_full=n_done_full(backend))
+        proj = None if price is None else projection_or_refuse(cfg, records, price, a.max_hours, clock(),
+                                                                backend)
         return 0, {"status": "check_only", "n_clips": len(manifest["clips"]), "launch_gate": gate_rec,
                    "baseline": None if base is None else {**base, "sha256_of_record":
                                                           sha256_text(json.dumps(base, sort_keys=True))},
