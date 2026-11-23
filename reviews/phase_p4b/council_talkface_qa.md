@@ -32,3 +32,13 @@ exists, and no face image, sealed data or predictions were read. Checks: `pytest
 ## Owner questions
 - Q1: Do you accept the window-edge crop switch as a disclosed descriptive artefact rather than a reason for redesign?
 - Q2: Do you confirm that a TALKFACE QC fail is a final STOP with no re-run, and that the cap of 5 skips stands?
+
+## Re-sign-off (TALKFACE v2 / D-090 draft, 7d640ab..132bdbe)
+Verdict: **APPROVE**. I re-checked this outcome-blind: I read no face image, sealed data or predictions; the rehearsal record is synthetic only. Tests: `tests/test_talkface_v2.py` + `tests/test_gpu_p4b_talk.py` 71 passed; `make guards` OK.
+- B1/B2 done: `prepare_main`/`finish_main` are wired and refuse to run until `refclips_d090` is frozen; fixture tests use real ffmpeg.
+- B3 done: only `BoxExit(10)` ("Face not detected") skips; `BoxExit(other)`, `EnvMismatch` -> STOP; timeout/ssh/`fetch_frames` -> 75. The vacuous lip_motion gate is replaced by the outside-face-box gate, `w2l_rendered` and `inbox_articulation`.
+- B4 done: rulings 1-7 sit in `controls.refclips_d090` (edge switch disclosed per R1, max_skips 5, on_fail final STOP per R2); the lock sha matches the config.
+- B5 done: attempt 3 passed. Env freeze == lock; fixture box gives 1736 chunks / 213 frames kept; real s3fd ran under torch 2.8; flat grey -> rc 10 s3fd_no_face.
+- Departures: I endorse both. A pip mismatch -> STOP matches my ruling 6 and R2. Mel NaN -> STOP matches ruling 7. Gating articulation in the box is my ruling 5(b): a frozen mouth means the control failed.
+- Non-blocking nit: the box matches the "Face not detected" substring on any exception type. It could be narrowed to the pinned ValueError.
+- Before launch: freeze `refclips_d090` (commit) before running `--prepare`.
