@@ -1044,6 +1044,99 @@ class RefClipsD089(M):                # D-089 v2: per-family speech rate (SPK 12
         return self
 
 
+class RefClipsD090Static(M):
+    recipe: Literal["locimg_patch_no_shine_centered_640x360"]
+    crop_box_source: Literal["v4_face_log_row_crop_box"]
+    png: Literal["three_channel_grey"]
+    shine: Literal[False]
+    luma_vs_loc: Literal["descriptive"]
+
+
+class RefClipsD090Audio(M):
+    source: Literal["rendered_48k_clip_audio"]
+    resampler: Literal["refclips58.resample_bandlimited"]
+    sr: Literal[16000]
+    n_samples: Literal[928000]
+
+
+class RefClipsD090Expected(M):
+    n_frames: Literal[1740]
+    n_mel_chunks: Literal[1736]
+    window_end_max_s: Pos
+
+
+class RefClipsD090QC(M):
+    gating: list[str]
+    w2l_rendered: str
+    inbox_articulation: str
+    decode_identity: Literal["second_encode_same_decoded_sha"]
+    descriptive: list[str]
+    on_fail: Literal["final_stop_owner_control_failed"]
+
+
+class RefClipsD090Env(M):
+    python: Literal["3.11"]
+    requirements: str
+    lock: str
+    lock_sha256: Sha256
+    index_url: Literal["https://pypi.org/simple"]
+    torch: dict[str, str]
+    install: Literal["require_hashes_no_deps"]
+    reference_freeze: str
+    reference_freeze_sha256: Sha256
+    on_freeze_mismatch: Literal["stop"]
+
+
+class RefClipsD090Mirror(M):
+    weights: Literal["Wav2Lip-SD-NOGAN.pt"]
+    s3fd: Literal["s3fd-619a316812.pth"]
+    inputs_prefix: str
+    clip_prefix: str
+    gan_never_fetched: Literal[True]
+
+
+class RefClipsD090Skips(M):
+    skip_on: list[Literal["s3fd_no_face", "licence_not_adaptable"]]
+    box_exit: dict[Literal["ok", "s3fd_no_face", "stop"], int]
+    stop: list[str]
+    infra_rerun: list[str]
+    max_skips: Literal[5]
+
+
+class RefClipsD090(M):                # D-090 draft: TALKFACE build rules (council talkface, owner 2026-11-23)
+    decision: Literal["D-090"]
+    amends: list[Literal["controls.refclips_d085.talkface"]]
+    static_frame: RefClipsD090Static
+    driving_audio: RefClipsD090Audio
+    frame_time: dict[str, str]
+    composition: dict[str, str | bool]
+    frames: dict[str, str]
+    expected: RefClipsD090Expected
+    encode: Literal["refclips58.encode"]
+    qc: RefClipsD090QC
+    env: RefClipsD090Env
+    mirror: RefClipsD090Mirror
+    skips: RefClipsD090Skips
+
+    @model_validator(mode="after")
+    def _talk(self):
+        need = {"n_frames", "n_mel_chunks", "kept_frames", "outside_window_static", "outside_face_box_static",
+                "w2l_rendered", "inbox_articulation", "decode_identity", "speech_gate"}
+        if set(self.qc.gating) != need:
+            raise ValueError(f"refclips_d090.qc.gating must be exactly {sorted(need)}")
+        if "lip_motion" in self.qc.gating:
+            raise ValueError("lip_motion is renamed w2l_rendered (council talkface)")
+        if sorted(self.skips.skip_on) != ["licence_not_adaptable", "s3fd_no_face"]:
+            raise ValueError("refclips_d090: only s3fd_no_face (and the pre-launch licence check) use a face")
+        if self.skips.box_exit != {"ok": 0, "s3fd_no_face": 10, "stop": 30}:
+            raise ValueError("refclips_d090.skips.box_exit must be {ok: 0, s3fd_no_face: 10, stop: 30}")
+        if "mel_nan" not in self.skips.stop:
+            raise ValueError("refclips_d090: a NaN mel is a STOP (an audio fault, never a face skip)")
+        if abs(self.expected.window_end_max_s - (self.expected.n_mel_chunks - 1) / 30) > 1e-3:
+            raise ValueError("refclips_d090.expected.window_end_max_s must be (n_mel_chunks - 1) / 30")
+        return self
+
+
 class RefClipsD081Artifacts(M):       # D-081
     dry_audit_sha256: Sha256 | None
     reaudit_sha256: Sha256 | None
@@ -1226,6 +1319,7 @@ class Controls(M):
     refclips_d087: RefClipsD087
     refclips_d087_artifacts: RefClipsD087Artifacts
     refclips_d089: RefClipsD089
+    refclips_d090: RefClipsD090
     curation_http: CurationHttp
     refclips_auto: RefClipsAuto
     refclips_auto_artifacts: RefClipsAutoArtifacts

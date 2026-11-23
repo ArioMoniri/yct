@@ -56,8 +56,8 @@ class Store:
 
 
 class Box:
-    def __init__(self, fail=None, msg="box died"):
-        self.fail, self.msg, self.calls = fail, msg, []
+    def __init__(self, fail=None, msg="box died", exc=None):
+        self.fail, self.msg, self.exc, self.calls = fail, msg, exc, []
 
     def start(self, iid, deadline):
         self.calls.append("start")
@@ -65,8 +65,8 @@ class Box:
     def step(self, name, inp):
         self.calls.append(name)
         if name == self.fail:
-            raise RuntimeError(self.msg)
-        if name == "wav2lip":
+            raise self.exc or RuntimeError(self.msg)
+        if name == "fetch_frames":          # D-090: the frame copy-back is its own step
             return {"pod_dir": "/x", "record": {"n_frames_total": 1740}}
 
 
@@ -186,7 +186,7 @@ def test_box_failure_before_wav2lip_is_75_and_terminated(env):
 
 
 def test_no_face_is_a_logged_skip(env):
-    rc, res = run(env, box=Box(fail="wav2lip", msg="ValueError: Face not detected! Ensure ..."))
+    rc, res = run(env, box=Box(fail="wav2lip", exc=talk.BoxExit(10, "ValueError: Face not detected! Ensure")))
     assert rc == 1 and res["status"] == "skip" and res["skip_on"] == "s3fd_no_face"
     rec = json.loads((env.tmp / "skips.jsonl").read_text())
     assert rec["skip_on"] == "s3fd_no_face" and rec["rank"] == 499
@@ -220,16 +220,20 @@ def test_setup_script_pins_revision_and_file_shas():
     check = json.loads((ROOT / rec).read_text())
     s = talk.setup_script(c, check, "/b")
     assert c["controls"]["refclips_d085"]["talkface"]["revision"] in s and "sha256sum -c" in s
-    assert check["inference_py_sha256"] in s and "torch==2.8.0" in s
+    assert check["inference_py_sha256"] in s and "--require-hashes" in s and "talkface_lock.txt" in s
 
 
 def test_wav2lip_cmd_uses_frozen_weights_and_fps_30():
     c = load_config()
-    s = talk.wav2lip_cmd(c, "/b", [[1.0, 2.0]])
+    s = talk.wav2lip_cmd(c, "/b", {"windows": [[1.0, 2.0]], "static_png_sha256": "a" * 64,
+                                   "clip16k_wav_sha256": "b" * 64})
     assert "Wav2Lip-SD-NOGAN.pt" in s and "--fps 30" in s and "GAN.pt " not in s.replace("NOGAN.pt", "")
 
 
 # ------------------------------------------------------------------ compose and QC
+BOX = [190, 220, 290, 350]                   # y1, y2, x1, x2 (D-090 QC is relative to the face box)
+
+
 def _frames():
     static = np.full((R.H, R.W), 128, np.uint8)
     win = [(10.0, 11.0), (26.0, 27.0), (42.0, 43.0)]
@@ -241,10 +245,18 @@ def _frames():
     return static, win, w2l
 
 
+def _q(fr, static, win, gate):
+    rec = {"n_mel_chunks": 1736, "n_frames_total": 1736, "n_frames_kept": len(T.window_frames(win)),
+           "face_box": BOX}
+    exp = load_config()["controls"]["refclips_d090"]["expected"]
+    return T.qc(fr, static, win, face_box=BOX, record=rec, expected=exp, speech_gate=gate,
+                decode_identity={"pass": True})
+
+
 def test_compose_keeps_static_outside_windows_and_qc_passes():
     static, win, w2l = _frames()
     fr = T.compose(static, w2l, win)
-    q = T.qc(fr, static, win, {"pass": True})
+    q = _q(fr, static, win, {"pass": True})
     assert len(fr) == 1740 and q["pass"], q
 
 
@@ -260,15 +272,15 @@ def test_qc_fails_on_motion_outside_windows_or_no_motion():
     fr = T.compose(static, w2l, win)
     fr[5] = fr[5].copy()
     fr[5][0, 0] = 1
-    assert not T.qc(fr, static, win, {"pass": True})["checks"]["outside_static"]["pass"]
+    assert not _q(fr, static, win, {"pass": True})["checks"]["outside_window_static"]["pass"]
     still = T.compose(static, {i: static for i in w2l}, win)
-    assert not T.qc(still, static, win, {"pass": True})["checks"]["lip_motion"]["pass"]
-    assert not T.qc(T.compose(static, w2l, win), static, win, {"pass": False})["pass"]
+    assert not _q(still, static, win, {"pass": True})["checks"]["w2l_rendered"]["pass"]  # was lip_motion
+    assert not _q(T.compose(static, w2l, win), static, win, {"pass": False})["pass"]
 
 
 def test_classify_failure_and_skip_record():
-    assert T.classify_failure("Face not detected! Ensure") == "s3fd_no_face"
-    assert T.classify_failure("CUDA error") == "wav2lip_error"
+    assert T.classify_box_exit(10) == "s3fd_no_face"           # D-090: classified by the box exit code
+    assert T.classify_box_exit(30) == "stop"                    # a CUDA / model error is a STOP, not a skip
     with pytest.raises(SystemExit, match="pre-stated"):
         T.skip_record({"source_sha256": "x"}, 499, "looks_odd", "r")
 
