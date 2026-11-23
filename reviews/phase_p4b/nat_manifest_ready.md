@@ -66,3 +66,32 @@ facts only; no transcript text read).
 Remaining for the build after the freeze: add the 15 NAT entries (mp4, wav, transcript shas) to the full
 `refclips_manifest.json` together with the visual and speech families, then set and freeze
 `controls.refclips_artifacts.manifest_sha256` (D-071 (d)), then upload the manifest objects.
+
+## 6. Council non-blocking items (5/5 APPROVE, council_natmanifest_*.md)
+- **CPU rank range:** the 15 selected ids sit at CPU-pass ranks 12, 28, 31, 34, 46, 51, 56, 73, 82, 83, 90,
+  102, 110, 114, 115 (of ranks 0–119): range 12–115.
+- **face_present_crop_w per clip (v1 report):** reported per clip. Sorted: 0.500, 0.500, 0.537, 0.550, 0.562,
+  0.650, 0.688, 0.725, 0.738, 0.750, 0.812, 0.875, 0.938, 0.988, 1.000. Four clips sit at 0.50–0.56, just at
+  the frozen N3 floor of 0.5.
+- **PD-* rows: the recorded licence_template is NOT concrete.** All 8 PD-* rows record
+  `Template:PD-Layout`, the generic layout helper that every PD template transcludes. `refstim.licence_of`
+  takes the first `PD-` template in page order, and PD-Layout sorts first. Admissibility is unaffected: each
+  row's full logged template list carries a concrete PD template, so the selection is unchanged. The concrete
+  template per row (from the committed log's `templates`, excluding PD-Layout and `/`-subpages):
+
+  | Slot | t1_name | Concrete template |
+  |---|---|---|
+  | nat_02 | 564c3eba65354c05 | Template:PD-USGov-VOA |
+  | nat_04 | 567874498d6d1fb5 | Template:PD-USGov-VOA |
+  | nat_06 | e892cafec1353bfb | Template:PD-US-Longines |
+  | nat_07 | 7aefedfb534a235d | Template:PD-USGov-NASA |
+  | nat_08 | 088a2be4f7fa89c6 | Template:PD-USGov-VOA |
+  | nat_10 | 7601fee519651165 | Template:PD-USGov-NASA |
+  | nat_11 | 65956af7c4b852e6 | Template:PD-USGov-HHS-CDC |
+  | nat_12 | ce9f9db3d604cf4f | Template:PD-USGov-VOA |
+
+  The NAT manifest is frozen as-is (editing it would be a post-selection change). The full clip manifest and
+  LICENSES.md carry the concrete template, derived by this fixed rule from the committed log. Logged as
+  BUG-048. The frozen `licence_of` is unchanged. The same label defect is in the frozen image manifests (v1 and
+  v2: 4 of 5 body, 1 of 8 face, 5 of 5 place PD rows record PD-Layout); admissibility is unaffected there too,
+  and the clip manifest / LICENSES.md take the concrete template by the same rule.
