@@ -72,7 +72,8 @@ def test_curation_snapshot_keys():
                         "nat_manifest_sha256", "manifest_sha256",
                         "speech_corpus_sha256",         # D-085 draft (speech corpus, set before its freeze)
                         "speech_selection_sha256",      # D-085 part 2 step 2 (D-089 rates)
-                        "talkface_face_sha256"}         # D-085 part 2 step 3
+                        "talkface_face_sha256",         # D-085 part 2 step 3
+                        "nat_tsv_manifest_sha256"}      # D-091 NAT word-tsv sidecar
     assert "manifest_sha256" not in R                   # later-filled values never sit in the frozen subtree
 
 
