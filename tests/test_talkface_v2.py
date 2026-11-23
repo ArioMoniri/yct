@@ -408,3 +408,9 @@ def test_prepare_and_finish_refuse_until_d090_is_frozen(monkeypatch, argv):
     monkeypatch.setenv("AWS_DEFAULT_REGION", "eu-central-1")
     with pytest.raises(SystemExit, match="refclips_d090 is not frozen"):
         talk.main(argv)
+
+
+def test_bug046_lock_pins_a_setuptools_with_pkg_resources():
+    """librosa 0.9.2 imports pkg_resources (removed from setuptools >= 81): the lock must pin an older one."""
+    pins = T.freeze_pins((ROOT / D90["env"]["lock"]).read_text())
+    assert int(pins["setuptools"].split(".")[0]) < 81

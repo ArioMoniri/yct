@@ -797,12 +797,12 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
       python: "3.11"
       requirements: infra/talkface_requirements.in
       lock: infra/talkface_lock.txt   # uv pip compile --generate-hashes (pypi.org/simple, x86_64-manylinux_2_28)
-      lock_sha256: 14d343024e2b72867c3ad379472dadd5c6de22b32b0de3f0a2c86814d3c481db
+      lock_sha256: 258c44ec336ebdad9b91a89b5050ec603be96e3a56924deaf6bbab51d6ee1c19
       index_url: https://pypi.org/simple
       torch: {version: 2.8.0, local: cu128, cuda: "12.8", wheel_tag: cp311-cp311-manylinux_2_28_x86_64}
       install: require_hashes_no_deps
       reference_freeze: outputs/runs/talkface_rehearsal/w2l_pip_freeze.txt
-      reference_freeze_sha256: 3578d20d4daf81f22c0e5044f1bdb1ffcd75900f7f21d8049beb0be776abca27
+      reference_freeze_sha256: be658920027624f5434160844a5a478b9fc4caa21c540af2342123470cac187f
       on_freeze_mismatch: stop   # box pip freeze != the lock pins -> STOP (exit 1, nothing logged)
     mirror:                      # confirmed on S3 2026-11-23: files at the mirror root (no weights/ prefix)
       weights: Wav2Lip-SD-NOGAN.pt

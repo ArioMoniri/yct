@@ -40,7 +40,7 @@ requests==2.34.2
 resampy==0.4.3
 scikit-learn==1.9.1
 scipy==1.11.4
-setuptools==84.2.1
+setuptools==70.3.0
 soundfile==0.12.1
 sympy==1.14.0
 threadpoolctl==3.8.0

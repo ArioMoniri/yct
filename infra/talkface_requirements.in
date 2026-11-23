@@ -8,3 +8,4 @@ resampy==0.4.3
 soundfile==0.12.1
 opencv-python-headless==4.11.0.86
 tqdm==4.66.5
+setuptools==70.3.0
