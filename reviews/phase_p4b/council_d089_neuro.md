@@ -18,3 +18,14 @@ Read: draft, both diffs, the v1 STOP record (410 SPK `span_s` values and counts 
 8. Optional, owner-approved only: before the freeze, check the real `-s` scaling on the pin's non-corpus determinism string at 175/140/120. It adds no corpus data.
 
 Owner questions: (Q1) keep 140 or take the rule rate (120)? (Q2) is a BURST/TALKFACE exhaustion also final, and does it mean the speech control is reported as absent? (Q3) allow the non-corpus scaling check?
+
+## Re-sign-off (v2: d089_v2.md, 470418d, d8d02b0)
+
+**Verdict: APPROVE.** Owner rulings accepted: SPK = 120 wpm by the stated rule (linear, ≤5% too long, source sha pinned; schema pins 120), and an exhaustion in any family is a final STOP with the control reported as *failed*. I accept "failed" in place of my "absent".
+- Item 1/3: closed. The rule is in config, recomputed by test from the STOP spans, and the 115/120 boundary is tested. The rule's wording differs from mine (slowest step under the too-long cap, not fastest step with median ≥1.05 s), but both give 120 and the linear median is 1.149 s.
+- Item 2: no neural objection to 120 wpm (~2.9–3.0 syl/s).
+- Item 4: closed. `modspec.peak_modulation_hz` is descriptive (gating false), the §7 limitation is written, and T-ENV is untouched.
+- Items 5/6: closed. `final_stop_families`, `on_final_stop`, `queue_used_by_family`, `stopped_at.queue_position` and `check_no_carry_over` are all in place, with tests.
+- Item 7a–d: closed in code and tests (28/28 pass locally).
+- Item 7e: deferred to the freeze commit. It is non-blocking because nothing is frozen, but it is a hard precondition: no selection run until the whole-block `refclips_d089` row is in test_guards_frozen_config.
+- Item 8 (non-corpus `-s` scaling check): not taken up. Optional, non-blocking.

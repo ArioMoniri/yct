@@ -24,3 +24,13 @@ Projections scale the v1 spans by (175/w)^a. a=1 is the draft's linear model. a=
    - (d) The clip manifest records the rate for each clip.
 6. **Schema:** `80 <= SPK < 175` accepts any value. Pin it to the exact rule-derived value at freeze. The draft test file also fixes 184/410; add the rule as a test that recomputes the chosen wpm from the STOP record.
 7. **Q1 (rate mismatch):** add a descriptive SPK-vs-BURST check of span and envelope-rate per family, reported and not inferential. Also disclose that a 120 vs 175 wpm gap is larger than 140 vs 175.
+
+## Re-sign-off (v2, 470418d + d8d02b0): REVISE (one blocking item)
+
+Both owner rulings are applied as stated. The rule (spans × 175/w, ≤5% above 1.5 s, step 5) is recomputed from the sha-pinned STOP file and gives 120. The 115/120 boundary is tested, and the schema pins SPK = 120.
+The final STOP covers all three families and says what follows downstream (control failed, dependent analyses dropped and named, no amendment). The STOP record carries tried/kept/Wilson, `queue_position` and `queue_used_by_family`.
+My earlier 5(a)–(d), 6 and 7 are met (per-item rate, RawSpeech binding test, gating SPK span QC, rate in the manifest, sensitivity disclosure), and restart at 0 is kept. 28/28 D-089 tests pass.
+**Blocking (B1):** `select` stores `span_s` rounded to 4 dp (0.1 ms = 4.8 samples at 48 kHz). `spk_span_qc` then compares the built span with `round(span_s*sr)` at ±1 sample.
+Rounding alone can put the two up to 2.4 samples apart, so a correct, bit-identical rebuild can fail this gate. Under the final-STOP ruling, that false failure would sink the speech control for good.
+Fix: store the span in integer samples (`span_n`) in the selection record and compare at ±1 sample, or set the tolerance to at least 3 samples. Add a test that uses a span which does not land on a 0.1 ms grid (e.g. 1.20003 s).
+Non-blocking: the freeze row and `require_d089` whole-block check go in at freeze, as planned.

@@ -34,3 +34,11 @@ that get re-selected (span only, so no outcome leakage).
 - the freeze adds the expected `controls.refclips_d089` row to `tests/test_guards_frozen_config.py`.
 
 Minor: the "at least about 15%" figure assumes SPK gets the whole queue. State the joint SPK+BURST budget instead.
+
+## Re-sign-off (D-089 v2, commits 470418d, d8d02b0)
+
+Verdict: **REVISE**, with one blocking item. Checks: the 3 test files pass (41 tests); `make guards` exits 0 with no weakening.
+Owner rulings applied: SPK = 120 wpm by the stated rule (pinned in the schema and recomputed in a test); any-family exhaustion = final STOP with the control reported failed. The response matrix covers every QA item. The no-default rate, per-item and per-clip rate, build_rates == effective_spec, and queue_used_by_family are all now code with tests. Deferring the freeze row to the freeze commit is acceptable.
+**Blocking: the SPK span QC fails byte-identical audio.** `select` stores `span_s = round(d, 4)`. At 48 kHz, 1e-4 s is 4.8 samples, so the rounding error alone can reach 2.4 samples. `spk_span_qc` compares against `round(sel_s*sr)` with `tol_samples: 1`. Repro: 60 random integer spans in [1.0, 1.5) s, rounded the same way as `select`, with the identical waveform as the built utterance: 20 of 60 are flagged as mismatches, `pass=False`. This is a guaranteed false STOP at the build.
+The existing test passes only because its spans (1.2, 1.05) are exact sample counts.
+Fix: store an integer `span_samples` per item in the selection record and compare it exactly or within ±1. Keep `span_s` for display. Add a test with non-round spans (e.g. 57601 samples).

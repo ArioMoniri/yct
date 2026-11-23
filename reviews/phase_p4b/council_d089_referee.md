@@ -27,3 +27,14 @@ Verdict: **REVISE**. The mechanics are sound: a layered block, the frozen key le
 - (d) A test for each of (a)–(c) lands before the build ticket.
 
 **Q1:** yes. Disclose the rate mismatch in the SPK/BURST kernel readouts. Add a descriptive-only check that compares SPK and BURST envelopes after time-normalising them by rate, with no inferential use.
+
+## Re-sign-off (d089_v2, commits 470418d and d8d02b0)
+
+Verdict: **REVISE**, one blocking item. Everything else I asked for is closed. The rate is 120 wpm by a stated rule that is recomputed from the sha-pinned v1 spans and pinned in the schema. That is the owner's ruling, and it matches my own rule's answer. An exhaustion in any family is a final STOP, and the control is then reported as failed and its dependent analyses named. The per-family STOP record and guards (a)–(c) are in place. Q1 is disclosed. 28/28 tests pass.
+- **Blocking: `spk_span_qc` fails on correct builds.**
+  - **Cause:** `select` stores `span_s` rounded to 4 decimals. 0.1 ms is 4.8 samples at 48 kHz, so the rounding error alone is up to 2.4 samples. The ±1-sample tolerance is compared against `round(span_s*sr)`.
+  - **Check:** I fed the same 57602-sample utterance back in with its selection span (1.2 s stored). The gate returned `pass=False`.
+  - **Effect:** the gate is gating, so a deterministic, correct build can STOP.
+  - **Fix:** store the span in samples (`span_n`) in the selection record and compare integers within ±1. A rounded-seconds record cannot support the ±1 tolerance.
+  - **Test needed:** add one where the span is not a multiple of 0.1 ms.
+- Non-blocking: §7 should say that the rule's form was written after the 120/115 figures were known.

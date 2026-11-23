@@ -22,3 +22,7 @@ Owner questions:
 - Q1: keep 140, or change to the stated-rule rate (120)?
 - Q2: is an exhaustion in BURST/TALKFACE also final?
 - Q3: allow the non-corpus scaling check before the freeze?
+
+## Re-sign-off (v2: d089_v2.md, 470418d, d8d02b0) - **REVISE (one blocking item)**
+Owner rulings applied as given: SPK 120 wpm by the stated rule (recomputed from the pinned STOP spans; schema pins 120), any-family exhaustion = final STOP, control reported failed, dependents dropped and named. My items 1-4 and 5a-5c are closed; 38 D-089 tests pass. Item 6 (freeze row) is deferred to the freeze commit, which is acceptable.
+1. **Blocking: the ±1-sample build QC (5d) fails identical spans.** `select` stores `span_s = round(d, 4)`, i.e. 0.1 ms = 4.8 samples at 48 kHz, and `spk_span_qc` compares `n` against `round(sel_s*sr)`. Rounding alone gives errors up to 2.4 samples. Over every span n in [1.0, 1.5] s, 9000/24001 (37%) bit-identical re-syntheses would be flagged as mismatch, a false gating STOP (e.g. n=50000 -> 1.0417 s -> off by 2). The test only uses round-millisecond spans. Fix: store `span_n` (int samples, plus sr) per item and compare integers with tol 1 (or store span_s unrounded), and add a test over off-grid n.
