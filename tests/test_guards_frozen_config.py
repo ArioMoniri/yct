@@ -169,6 +169,8 @@ D075_FROZEN += [(k, D085P2_SHA) for k in (
     "controls.refclips_artifacts.speech_corpus_sha256")]   # D-085 part 2 step 1
 D089_SHA = "829246b9107e553795519c482c34abac9c456648"   # D-089 DECISIONS entry
 D075_FROZEN += [("controls.refclips_d089", D089_SHA)]   # whole block (neuro precondition)
+SEL_SHA = "febba467b7c7852b4369c4722a649fff09a2998a"   # D-085 part 2 step 2 selection record
+D075_FROZEN += [("controls.refclips_artifacts.speech_selection_sha256", SEL_SHA)]
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():

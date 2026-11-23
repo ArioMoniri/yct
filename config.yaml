@@ -1019,3 +1019,5 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   - {key: controls.refclips_artifacts.speech_corpus_sha256, frozen_at: 84d741d3d4a5dc3d4e7045ed5e0e4416e0cdc2c2}
   # D-089 (whole block: rates, rule, restart, carry-over, final STOP, build QC): set by the D-089 entry commit
   - {key: controls.refclips_d089, frozen_at: 829246b9107e553795519c482c34abac9c456648}
+  # D-085 part 2 step 2 (D-089 rates): public selection record sha, set in the commit named
+  - {key: controls.refclips_artifacts.speech_selection_sha256, frozen_at: febba467b7c7852b4369c4722a649fff09a2998a}
