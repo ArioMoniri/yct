@@ -641,6 +641,8 @@ class RefClipArtifacts(M):            # D-071 (d): null until set; frozen row pe
     nat_manifest_sha256: Sha256 | None
     manifest_sha256: Sha256 | None
     speech_corpus_sha256: Sha256 | None   # D-085 draft
+    speech_selection_sha256: Sha256 | None   # D-085 part 2 step 2 (D-089): public selection record
+    talkface_face_sha256: Sha256 | None   # D-085 part 2 step 3: the TALKFACE source image
 
 
 class RefClipsD078Artifacts(M):       # D-078
