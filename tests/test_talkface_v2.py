@@ -419,8 +419,8 @@ def test_bug046_lock_pins_a_setuptools_with_pkg_resources():
     assert int(pins["setuptools"].split(".")[0]) < 81
 
 
-def test_bug048_box_resolves_relative_paths_before_chdir(monkeypatch, tmp_path):
-    """BUG-048: the box chdirs into the Wav2Lip repo; relative --weights/--face/--audio/--out paths given by
+def test_bug049_box_resolves_relative_paths_before_chdir(monkeypatch, tmp_path):
+    """BUG-049: the box chdirs into the Wav2Lip repo; relative --weights/--face/--audio/--out paths given by
     wav2lip_cmd (talk/...) must be resolved against the launch cwd first."""
     monkeypatch.chdir(tmp_path)
     a = TB._args(["--repo", "Wav2Lip", "--weights", "talk/mirror/w.pt", "--weights-sha", "0" * 64,
