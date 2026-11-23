@@ -128,6 +128,8 @@ D075_FROZEN += [("controls.refclips_d081", D081_SHA),
                 ("controls.refclips_d081_artifacts.reaudit_sha256", D081_SHA)]   # D-081 step 2
 IMG_MAN_SHA = "376966a7aed15ac7db4aa3fd4d7e7a4cb4d9b665"   # D-081 v4 finalise (image manifests set)
 D075_FROZEN += [("controls.refclips_artifacts.image_manifest_sha256", IMG_MAN_SHA)]
+NAT_MAN_SHA = "a50225347624bcea511ae352551cde31b431fc12"   # NAT manifest sha set (council 5/5)
+D075_FROZEN += [("controls.refclips_artifacts.nat_manifest_sha256", NAT_MAN_SHA)]
 D082_SHA = "0c3057cdb33aeb33a51f187ba2eed5f23f6894fe"   # D-082 DECISIONS entry + pyannote shas set
 D075_FROZEN += [("controls.refclips_d082", D082_SHA)] + [
     (f"controls.refclips_auto_artifacts.pyannote_{k}_sha256", D082_SHA)
