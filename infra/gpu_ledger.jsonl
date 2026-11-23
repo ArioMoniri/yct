@@ -2811,3 +2811,5 @@
 {"event": "terminate", "id": "9f4e306160464d9eb067878de0fa06fc", "t": 1795378910.3421128, "reason": "job_done"}
 {"event": "launch", "id": "ca0c2ffbac1e4a919b43162250df6498", "name": "yct-p4b-ref-nat2-t1795464404-dl1795470704", "type": "gpu_1x_a100_sxm4", "usd_per_hour": 1.99, "t": 1795464404.518545, "deadline": 1795470704.0}
 {"event": "terminate", "id": "ca0c2ffbac1e4a919b43162250df6498", "t": 1795465292.1099796, "reason": "job_done"}
+{"event": "launch", "id": "ab0945da102f425488cf3ac7607af905", "name": "yct-p4b-ref-talk-t1795467946-dl1795474246", "type": "gpu_1x_a100_sxm4", "usd_per_hour": 1.99, "t": 1795467946.8001568, "deadline": 1795474246.0}
+{"event": "terminate", "id": "ab0945da102f425488cf3ac7607af905", "t": 1795468456.571218, "reason": "job_done"}

@@ -417,3 +417,16 @@ def test_bug046_lock_pins_a_setuptools_with_pkg_resources():
     """librosa 0.9.2 imports pkg_resources (removed from setuptools >= 81): the lock must pin an older one."""
     pins = T.freeze_pins((ROOT / D90["env"]["lock"]).read_text())
     assert int(pins["setuptools"].split(".")[0]) < 81
+
+
+def test_bug048_box_resolves_relative_paths_before_chdir(monkeypatch, tmp_path):
+    """BUG-048: the box chdirs into the Wav2Lip repo; relative --weights/--face/--audio/--out paths given by
+    wav2lip_cmd (talk/...) must be resolved against the launch cwd first."""
+    monkeypatch.chdir(tmp_path)
+    a = TB._args(["--repo", "Wav2Lip", "--weights", "talk/mirror/w.pt", "--weights-sha", "0" * 64,
+                  "--face", "talk/inputs/static.png", "--face-sha", "1" * 64, "--audio", "talk/inputs/a.wav",
+                  "--audio-sha", "2" * 64, "--out", "talk/frames.npz", "--record", "talk/r.json",
+                  "--s3fd", "talk/mirror/s.pth", "--windows", "[[1.0, 2.0]]"])
+    for k in ("repo", "weights", "face", "audio", "out", "record", "s3fd"):
+        p = Path(getattr(a, k))
+        assert p.is_absolute() and str(p).startswith(str(tmp_path)), k

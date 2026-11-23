@@ -53,7 +53,11 @@ def _args(argv: list[str] | None):
     ap.add_argument("--s3fd-sha")
     ap.add_argument("--fps", type=float, default=30.0)
     ap.add_argument("--fixture-box", type=int, nargs=4)
-    return ap.parse_args(argv)
+    a = ap.parse_args(argv)
+    for k in ("repo", "weights", "face", "audio", "out", "record", "s3fd"):   # BUG-048: before the chdir
+        if getattr(a, k):
+            setattr(a, k, str(Path(getattr(a, k)).resolve()))
+    return a
 
 
 def _run(a) -> int:
