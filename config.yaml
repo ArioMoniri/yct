@@ -726,6 +726,16 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
   refclips_d087_artifacts:
     image_manifest_v2_sha256: e21d090dacb3092e2a778d48e792b49ffcd694cb64f2c18456f990921ac8b3cc   # concat face,body,place v2
     screen_record_sha256: ba85cbb7fd10c4fd28d53202842318593c13ce2efa8c31c4bed590c36e033f19       # loc_screen_v2.json
+  refclips_d089:               # D-089 draft: amends the frozen D-085 part-2 speech key (owner 2026-11-23 "Slower
+                               # rate for SPK", post hoc after the selection STOP c8fb46c); NOT frozen (council next)
+    decision: D-089
+    amends: [D-085]
+    post_hoc: true               # the rate was chosen after seeing the v1 SPK span distribution (median 0.79 s)
+    trigger: outputs/runs/d085p2_selection/STOP_NOTE.md
+    rate_wpm_by_family: {SPK: 140, BURST: 175, TALKFACE: 175}   # layered over speech.rate_wpm (175, unchanged)
+    restart_queue_at: 0          # selection re-runs from queue position 0 in the same frozen order
+    carry_over_v1_keeps: false   # the 31 v1 SPK keeps are re-measured at 140 wpm, never carried over
+    on_exhausted: final_stop_owner   # queue exhausted again -> final STOP to the owner, no third amendment
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host

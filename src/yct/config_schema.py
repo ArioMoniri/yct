@@ -989,6 +989,28 @@ class RefClipsD087Artifacts(M):
     screen_record_sha256: Sha256 | None
 
 
+class RefClipsD089(M):                # D-089 draft: per-family speech rate (SPK 140 wpm), post hoc
+    decision: Literal["D-089"]
+    amends: list[Literal["D-085"]]
+    post_hoc: Literal[True]
+    trigger: str
+    rate_wpm_by_family: dict[Literal["SPK", "BURST", "TALKFACE"], int]
+    restart_queue_at: Literal[0]
+    carry_over_v1_keeps: Literal[False]
+    on_exhausted: Literal["final_stop_owner"]
+
+    @model_validator(mode="after")
+    def _rates(self):
+        r = self.rate_wpm_by_family
+        if set(r) != {"SPK", "BURST", "TALKFACE"}:
+            raise ValueError("refclips_d089.rate_wpm_by_family must name SPK, BURST and TALKFACE")
+        if r["BURST"] != 175 or r["TALKFACE"] != 175:
+            raise ValueError("D-089 changes SPK only: BURST and TALKFACE stay at the frozen 175 wpm")
+        if not 80 <= r["SPK"] < 175:
+            raise ValueError("D-089 SPK rate must be slower than 175 wpm")
+        return self
+
+
 class RefClipsD081Artifacts(M):       # D-081
     dry_audit_sha256: Sha256 | None
     reaudit_sha256: Sha256 | None
@@ -1170,6 +1192,7 @@ class Controls(M):
     refclips_d085: RefClipsD085
     refclips_d087: RefClipsD087
     refclips_d087_artifacts: RefClipsD087Artifacts
+    refclips_d089: RefClipsD089
     curation_http: CurationHttp
     refclips_auto: RefClipsAuto
     refclips_auto_artifacts: RefClipsAutoArtifacts

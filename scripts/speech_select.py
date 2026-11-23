@@ -60,9 +60,17 @@ def _s3(args: list[str]) -> None:
                    env={**os.environ, "AWS_DEFAULT_REGION": "eu-central-1"})
 
 
+def require_d089(cfg: dict) -> None:
+    """D-089: when the refclips_d089 block exists, selection runs only after it is frozen."""
+    if cfg["controls"].get("refclips_d089") and not any(
+            f.get("key") == "controls.refclips_d089" for f in cfg.get("frozen", [])):
+        raise SystemExit("controls.refclips_d089 is not frozen: no D-089 selection before the freeze (STOP)")
+
+
 def run(cfg: dict, raw: bytes, synth) -> dict:
     S.require_frozen(cfg)
-    spec = cfg["controls"]["refclips_d085"]["speech"]
+    require_d089(cfg)
+    spec = S.effective_spec(cfg)
     doc = json.loads((ROOT / spec["corpus_file"]).read_text())
     queue = S.resolve_texts(doc, raw)
     return S.select(queue, synth, spec)
@@ -75,7 +83,8 @@ def main() -> int:
     out, private_uri = Path(sys.argv[1]), sys.argv[2]
     cfg = load_config()
     S.require_frozen(cfg)
-    spec = cfg["controls"]["refclips_d085"]["speech"]
+    require_d089(cfg)
+    spec = S.effective_spec(cfg)
     with tempfile.TemporaryDirectory() as d:
         dst = Path(d) / "raw.html"
         _s3(["cp", spec["private_raw_s3"], str(dst)])

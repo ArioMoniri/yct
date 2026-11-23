@@ -64,15 +64,16 @@ class EspeakSynth:
         self.paths = {k: Path(v) for k, v in (paths or spec["engine_paths"]).items()}
         self.verified = verify_engine(spec["engine_pin"], self.paths)
 
-    def args(self, text: str) -> list[str]:
+    def args(self, text: str, rate_wpm: int | None = None) -> list[str]:
         s = self.spec
-        return [str(self.paths["binary"]), "-v", s["voice"], "-s", str(s["rate_wpm"]), "-p", str(s["pitch"]),
+        rate = s["rate_wpm"] if rate_wpm is None else int(rate_wpm)   # D-089: per-family rate when given
+        return [str(self.paths["binary"]), "-v", s["voice"], "-s", str(rate), "-p", str(s["pitch"]),
                 "-a", str(s["amplitude"]), "--stdout", text]
 
-    def __call__(self, text: str) -> tuple[np.ndarray, int]:
+    def __call__(self, text: str, rate_wpm: int | None = None) -> tuple[np.ndarray, int]:
         from yct.tribe_run.refclips58 import resample_bandlimited
 
-        r = subprocess.run(self.args(text), check=True, capture_output=True)
+        r = subprocess.run(self.args(text, rate_wpm), check=True, capture_output=True)
         x, sr = _wav_to_float(r.stdout)
         if sr != self.spec["engine_pin"]["native_sr"]:
             raise SystemExit(f"espeak-ng rate {sr} != the pinned native_sr: STOP")

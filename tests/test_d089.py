@@ -40,7 +40,7 @@ def test_d089_block_rates_and_policy():
 
 
 def test_frozen_d085_speech_key_is_not_edited():
-    assert BASE["rate_wpm"] == 175                         # the frozen key keeps its value; D-089 layers over it
+    assert BASE["rate_wpm"] == 175                         # frozen key unchanged; D-089 layers over it
     assert "rate_wpm_by_family" not in BASE
 
 
@@ -52,7 +52,7 @@ def test_effective_spec_layers_rates_and_keeps_everything_else():
     assert eff["rate_wpm"] == 175
 
 
-def test_effective_spec_without_d089_is_the_frozen_key():
+def test_effective_spec_without_d089_is_the_frozen_key():   # pre-D-089 config copies
     c = copy.deepcopy(CFG)
     del c["controls"]["refclips_d089"]
     assert S.effective_spec(c) == BASE
@@ -62,7 +62,7 @@ def test_schema_refuses_a_changed_burst_or_talkface_rate_or_missing_family():
     for bad in ({"SPK": 140, "BURST": 160, "TALKFACE": 175}, {"SPK": 140, "BURST": 175}):
         c = copy.deepcopy(CFG)
         c["controls"]["refclips_d089"]["rate_wpm_by_family"] = bad
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):           # pydantic ValidationError is a ValueError
             validate_config(c)
 
 
@@ -133,7 +133,7 @@ def test_speech_select_refuses_until_d089_frozen():
     import sys
     sys.path.insert(0, sys_path)
     try:
-        import speech_select as SS
+        import speech_select as SS  # noqa: N812
     finally:
         sys.path.remove(sys_path)
     with pytest.raises(SystemExit, match="D-089"):
@@ -145,7 +145,8 @@ def test_speech_select_refuses_until_d089_frozen():
 def test_expected_pass_rate_from_the_v1_stop_record():
     """Numbers only: v1 spans (175 wpm) scaled linearly by 175/140; the draft quotes these values."""
     d = json.loads(STOP_REC.read_text())
-    spans = [x["span_s"] for x in d["items"]["SPK"]] + [r["span_s"] for r in d["rejects"] if r["family"] == "SPK"]
+    spans = [x["span_s"] for x in d["items"]["SPK"]]
+    spans += [r["span_s"] for r in d["rejects"] if r["family"] == "SPK"]
     assert len(spans) == 410
     est = S.expected_spk_at_rate(spans, 175, 140, (1.0, 1.5))
     assert est["n"] == 410 and est["pass"] == 184 and est["too_short"] == 224 and est["too_long"] == 2

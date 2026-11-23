@@ -135,7 +135,29 @@ def speech_span(x: np.ndarray, sr: int, dbfs: float) -> tuple[int, int]:
     return int(idx[0]), int(idx[-1]) + 1
 
 
-Synth = Callable[[str], tuple[np.ndarray, int]]
+Synth = Callable[..., tuple[np.ndarray, int]]   # synth(text) or, under D-089, synth(text, rate_wpm=...)
+
+
+def effective_spec(cfg: dict) -> dict:
+    """The frozen D-085 part-2 speech key with the D-089 per-family rates layered on (the frozen key itself
+    is never edited). Without a refclips_d089 block this is the frozen key unchanged."""
+    base = cfg["controls"]["refclips_d085"]["speech"]
+    d089 = cfg["controls"].get("refclips_d089")
+    if not d089:
+        return base
+    return {**base, "rate_wpm_by_family": dict(d089["rate_wpm_by_family"])}
+
+
+def expected_spk_at_rate(spans: list[float], rate_from: int, rate_to: int, rng: tuple[float, float]) -> dict:
+    """D-089 a-priori estimate, numbers only: scale recorded spans linearly by rate_from / rate_to and count
+    how many fall inside the SPK range (an approximation: espeak pauses do not scale exactly linearly)."""
+    lo, hi = rng
+    sc = [x * rate_from / rate_to for x in spans]
+    n = len(sc)
+    ok = sum(lo <= x <= hi for x in sc)
+    srt = sorted(sc)
+    return {"n": n, "pass": ok, "too_short": sum(x < lo for x in sc), "too_long": sum(x > hi for x in sc),
+            "rate": ok / n, "median_s": srt[n // 2], "min_s": srt[0], "max_s": srt[-1]}
 
 
 def select(queue: list[dict], synth: Synth, spec: dict) -> dict[str, Any]:
@@ -146,6 +168,7 @@ def select(queue: list[dict], synth: Synth, spec: dict) -> dict[str, Any]:
     rejects: list[dict] = []
     rates = {f: {"tried": 0, "kept": 0} for f in spec["fill_order"]}
     n_spk = int(spec.get("spk_words", 3))
+    by_fam = spec.get("rate_wpm_by_family")       # D-089: per-family rate; absent -> synth(text) as frozen
     cur = {"family": None, "slot": None}
 
     def pop(n: int) -> list[dict]:
@@ -176,7 +199,7 @@ def select(queue: list[dict], synth: Synth, spec: dict) -> dict[str, Any]:
                     src = pop(1)
                     nw = None
                     text = src[0]["text"]
-                x, sr = synth(text)
+                x, sr = synth(text, rate_wpm=by_fam[fam]) if by_fam else synth(text)
                 s0, s1 = speech_span(x, sr, spec["span_dbfs"])
                 d = (s1 - s0) / sr
                 rec = {"slot": u, "text": text, "n_words": nw, "span_s": round(d, 4),
@@ -187,7 +210,10 @@ def select(queue: list[dict], synth: Synth, spec: dict) -> dict[str, Any]:
                     rates[fam]["kept"] += 1
                     break
                 rejects.append({**rec, "family": fam, "reason": "duration"})
-    return {"items": items, "rejects": rejects, "queue_used": pos, "pass_rates": rates}
+    out = {"items": items, "rejects": rejects, "queue_used": pos, "pass_rates": rates}
+    if by_fam:
+        out["rate_wpm_by_family"] = dict(by_fam)
+    return out
 
 
 def require_frozen(cfg: dict) -> None:
