@@ -1,0 +1,37 @@
+{
+ "session": "nat2",
+ "k": 2,
+ "git_sha": "0bac6cb575d49b354165d04e464359d6dc0fb3f0",
+ "steps": {
+  "setup_wx": "ok",
+  "push_buffer": "ok",
+  "nat0": "ok",
+  "asr": "ok"
+ },
+ "pre_launch": {
+  "campaign_spend_usd": 0.7334239947107102,
+  "planned_usd": 3.4825,
+  "cap_usd": 75.0,
+  "ack": false,
+  "projection": {
+   "campaign_spend_usd": 0.7334,
+   "main_campaign_plan_usd": 61.0,
+   "talkface_plan_usd": 3.4825,
+   "this_session_planned_usd": 3.4825,
+   "projection_usd": 68.6984,
+   "cap_usd": 75.0
+  }
+ },
+ "n_buffer": 40,
+ "instance_id": "ca0c2ffbac1e4a919b43162250df6498",
+ "terminator": {
+  "kind": "external_scheduled_session",
+  "fire_at": 1795472400.0
+ },
+ "alive_after": [],
+ "n_rows": 40,
+ "n_pass": 7,
+ "n_pass_total": 15,
+ "n_selected": 15,
+ "status": "selected"
+}
