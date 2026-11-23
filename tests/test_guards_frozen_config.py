@@ -179,6 +179,8 @@ FACE_SHA = "28acddd5aaf5afe3b6a1b9b96cb61a61f3aa36d3"   # D-085 part 2 step 3 TA
 D075_FROZEN += [("controls.refclips_artifacts.talkface_face_sha256", FACE_SHA)]
 D090_SHA = "16bef847f289ba7e0282f686da035f50e74cb017"   # D-090 DECISIONS entry (TALKFACE build rules)
 D075_FROZEN += [("controls.refclips_d090", D090_SHA)]   # whole block
+NATTSV_SHA = "556f63798500a6947d8d1885ed55222b75fb1a70"   # D-091 U2: NAT word-tsv sidecar sha set
+D075_FROZEN += [("controls.refclips_artifacts.nat_tsv_manifest_sha256", NATTSV_SHA)]
 
 
 def test_repo_config_has_v22_defaults_and_only_the_d063_freeze():
