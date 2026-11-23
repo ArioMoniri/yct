@@ -17,3 +17,9 @@ Other items before session 1:
 - **B2.** State in the record that v2 (D-087) stores under the frozen `s3_root .../p4b_ref/v1/` and the manifest `version: p4b_ref/v1`. Show that no v1 prediction exists there.
 - **B3.** Add a dry-run test of `run_ref_session` against the adapted real v1.1 manifest with the fake backend, and confirm the `--limit 3` plan = [GREY_CTRL_00, SPK_00, MOT_00].
 - Re-run this review on the commit that closes U1–U5 and B1–B3, before launch.
+
+## Re-sign-off (QA, at bfbb90a). Verdict: APPROVE, conditional
+- Checked: `pytest tests/test_ref_session1.py tests/test_gpu_p4b_ref.py` 53 passed; `make guards` 7/7 OK (95 frozen keys). Clip manifest sha d1141cf1…37ea unchanged; sidecar 43db439a…5dde == `nat_tsv_manifest_sha256`, frozen_at 556f637; 15/15 tsv_valid, n_words ≥ 99, `stop: []`, 2 runs bit-identical, wave-1 manifest sha recorded. Upload record c26fcf3c…: 120 clips / 360 files, 0 pod and 0 S3 mismatches, `ok: true`.
+- U1–U5 + B1–B3 closed. `--check-only` at 7ab9da6: rc 0. Plan GREY_CTRL_00/SPK_00/MOT_00, baseline n_lines 2807 / 4261f62b…, L4 matched, projection $66.33 ≤ $75. My option of a v1.1 re-freeze is superseded by the sidecar route (c). I accept it: the v1 bytes and row stay identical and provenance is checked per row.
+- Conditions before launch: (1) freeze `controls.refclips_d091` (set + frozen row, two commits), then CI green on that HEAD and pass it as `--ci-green-sha`; (2) re-run `--reconcile-only` and `--check-only` on that HEAD.
+- Watch item: `make_pre_launch` adds the U4 projection only `if _frozen(cfg, "controls.refclips_d091")`. If the freeze is skipped, the launch silently skips the projection (fail-open). After the freeze, confirm the pre-launch record contains `projection`, otherwise abort. A later hardening: make a non-frozen d091 a refusal.

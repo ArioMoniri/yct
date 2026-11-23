@@ -13,3 +13,12 @@ Other items before session 1:
 2. Cite the D-071 (k) preconditions missing from the record: ENH-002 K-run (0b75d65, precedes launch: OK) and `budget_cap()` + spend recorded.
 3. Disclose the labelling: v2 (D-087) clips go to `version: v1`, `s3_root .../p4b_ref/v1/`, manifest `"version": "p4b_ref/v1"`. Acceptable because no v1 clip was ever uploaded, but the v1 report and the run record must say so.
 4. A no-GPU `--check-only` run of every precondition against the real pod/S3 (as in NAT0) before the watched launch; then `--limit 3` as written.
+
+## Re-sign-off (D-091, 89d828b..bfbb90a). Verdict: APPROVE (launch session 1 after the d091 freeze + CI green)
+Read: refcampaign_ready.md, D-091, ce81856 3e3c697 556f637 24440be 7ab9da6 bfbb90a, nat_tsv_manifest.json (shas/counts), refclips_upload_record.json, outputs/runs/ref_checkonly_d091/.
+- U1 met: adapter checks raw sha first; d1141cf1 recomputed here, file unchanged; ffprobe duration, nothing invented; plan on the real file = GREY_CTRL_00, SPK_00, MOT_00.
+- U2 met: sidecar sha 43db439a recomputed == frozen key (24440be); 15/15 tsv_valid, 0 zero-word clips (99-215 words), 2 runs bit-identical, stop [], wave-1 manifest aa93a8c8 unchanged. My additive-sidecar condition is satisfied.
+- U3 met: 120 clips / 360 files, ok true, copy-only, every copy re-hashed; check_inputs matched all 120 on the pod.
+- U4 met: projection 1.85 + 1.99×1.75 (3.48) + 61 − 0×0.45 = 66.33 ≤ 75. It is enforced only once `controls.refclips_d091` is frozen (gpu_p4b_ref.py:192).
+- U5 met: shared check_commit + L4 record (2817 lines, no open/live). The check-only used HEAD 7ab9da6 as the CI sha. Acceptable as a dry run only.
+- Conditions for launch (procedural, not REVISE): (i) the freeze commits change only `frozen` rows plus the guard row, with the refclips_d091 bytes as reviewed (61.0, 0.45, pod_dir); (ii) at the frozen, pushed, CI-green HEAD, re-run `--reconcile-only` (commit it) and `--check-only`, and the record must show `projection` from the enforced path; (iii) U6 stays in force: gate fields and shas only until the readout script is reviewed.

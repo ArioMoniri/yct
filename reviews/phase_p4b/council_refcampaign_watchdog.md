@@ -23,3 +23,11 @@ Binding for any route, because TRIBE reads this tsv as its text input (it is a m
 - Session 1 is watched, with `--limit 3`, a new terminator, and the reap task deleted only after nothing is live.
 
 Owner questions: none (every item is outcome-blind engineering or a council-level D- entry).
+
+## Re-sign-off (D-091, 89d828b..bfbb90a) | verdict APPROVE: launch session 1 after the d091 freeze and green CI
+Read: refcampaign_ready.md v2, D-091, ce81856..bfbb90a stats/config, nat_tsv_manifest.json (shas and counts only), refclips_upload_record.json, ledger_reconcile_ref.json, outputs/runs/ref_checkonly_d091/. No tsv text, sealed data, labels or predictions were read.
+- U1: the adapter is pure. The raw-text sha matches (d1141cf1…37ea, recomputed) and the frozen file is unchanged. ffprobe duration replaces 58.0. Closed.
+- U2 route (c): the sidecar sha 43db439a…5dde (recomputed) equals the key frozen in 24440be (guard row at 556f637). 15/15 tsvs valid, `stop: []`, 2 builds bit-identical, the frozen P2b functions were used, the wave-1 manifest sha was recorded and is unchanged. n_words 99–215, with none equal to 0. Closed.
+- U3: 120 clips, 360 files, `ok: true`, pod and S3 mismatches both empty. The record sha c26fcf3c… matches. Closed. U4/U5: check-only rc 0, plan GREY_CTRL_00, SPK_00, MOT_00, projection $66.33 ≤ $75, L4 record shows no live instance and no open launch. Closed.
+- Condition, not new work: `make_pre_launch` skips the projection silently while `controls.refclips_d091` is unfrozen. So freeze d091 (set, then freeze row) before launch, and run the launch-command `--reconcile-only` + `--check-only` at the frozen, CI-green HEAD. Confirm that the pre-launch record carries `projection`. Non-blocking follow-up: make that branch fail closed (refuse when d091 is unfrozen) instead of skipping.
+- The pre-stated STOP rules still hold: a D-038 crash or Gate-2 failure means exit 1 with no swap, a changed P4 manifest sha means exit 1, and U6 deferral stands. Session 1 is watched, `--limit 3`, with a new terminator.

@@ -22,3 +22,13 @@
 - Disclose: Gate 2 on GREY_CTRL_00 and MOT_00 (static or near-static video, no text) is a weak drift test. `reliability` pools between-feature variance, so near-constant inputs pass easily. The only text-extractor Gate 2 in session 1 is SPK_00. Report the per-extractor values.
 - Disclose: the D-087 v2 campaign runs under the `.../p4b_ref/v1/` root with manifest `version: p4b_ref/v1`. Confirm that no prediction objects exist there.
 - Otherwise session 1 is adequately scoped: `--limit 3`, the D-038 clips, Gate 1/2, watched, the terminator re-armed, a $3.48 worst case, and a $66.3 projection.
+
+## Re-sign-off (D-091, 89d828b..bfbb90a): APPROVE
+- I checked the ready record, D-091, the six commits, the sidecar and upload record (shas and counts only) and `outputs/runs/ref_checkonly_d091/`. `tests/test_ref_session1.py` and `tests/test_gpu_p4b_ref.py` pass (53).
+- N-B1 (U1) closed. The adapter asserts `name.upper() == clip_id`, takes shas only from `sha256{}` (never `transcript`/`wav`) and passes control, twin_of, onsets and shift through. The plan on the real manifest is GREY_CTRL_00, SPK_00, MOT_00.
+- N-B2 (U2) closed. It used the frozen P2b core into a NAT-only store, and the wave-1 manifest sha did not change. The json, wav and mp4 provenance equals the clip manifest for all 15 clips. All 15 are valid with 99–215 words, the two builds are bit-identical, and `stop` is empty. File sha 43db439a… == frozen key (24440be).
+- N-B3 (U3) closed. 120 clips / 360 files were copied, not built. Pod and S3 read-back mismatches are 0 and 0. The record sha is c26fcf3c…. `check_inputs` in `--check-only` matched all 120 clips (mp4 + tsv sha, ffprobe duration).
+- N-B4 (U4/U5) closed. The projection is $66.33 ≤ $75. The L4 record and the CI-green gate are shared with nat0/talk, and ENH-002 is cited (P15).
+- N-B5 closed at CPU level. A header-only tsv gives 0 absolute word events, `check_word_events` returns ok, and `clip_gate` passes, as for a silent clip. Text-feature determinism for 0 words is checked on the GPU by the GREY_CTRL_00 Gate-1 rerun, and a difference there is a STOP.
+- The disclosures are in place: GREY/MOT give a weak Gate 2 (per-extractor values go in the drift record), the v2 campaign runs under the v1 root with no prediction objects, and U6 keeps the firewall on `full/`.
+- Conditions for launch, not new items: (1) freeze `controls.refclips_d091` in two commits. (2) Re-run `--reconcile-only` and `--check-only` at the frozen HEAD, because the d091 check-only ran at 7ab9da6 and the U4 projection only takes effect after the freeze. (3) Launch only with `--ci-green-sha` == that pushed, CI-green HEAD.
