@@ -106,3 +106,17 @@ def test_concrete_pd_template_rule():
     assert cm.concrete_pd_template(t) == "Template:PD-USGov-VOA"
     assert cm.concrete_pd_template(["Template:PD-Layout"]) is None
     assert cm.concrete_pd_template(["Template:Cc-zero"]) is None
+
+
+def test_committed_talkface_record_and_manifest_file():
+    """Once committed: the TALKFACE finish record passed QC, and data/refstim/refclips_manifest.json is
+    exactly what the assembler gives from the committed parts (its sha is the configured one once set)."""
+    rec = ROOT / "data" / "refstim" / "talkface_finish_record.json"
+    out = ROOT / "data" / "refstim" / "refclips_manifest.json"
+    talk = json.loads(rec.read_text())
+    assert talk["qc"]["pass"] is True and talk["n_frames"] == 1740
+    text = cm.manifest_text(cm.assemble(cm.load_parts(ROOT, CFG), talk, CFG))
+    if out.exists():
+        assert out.read_text() == text
+        want = CFG["controls"]["refclips_artifacts"]["manifest_sha256"]
+        assert want in (None, hashlib.sha256(text.encode()).hexdigest())
