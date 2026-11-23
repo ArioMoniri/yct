@@ -44,7 +44,8 @@ def _sel(q: list[dict]) -> dict:
                                "sr": 48000, "rate_wpm": 120},
                               {"slot": 1, "n_words": 3, "source_sha256": [q[2]["sha256"]], "span_samples": 1,
                                "sr": 48000, "rate_wpm": 120}],
-                      "BURST": [{"slot": 0, "n_words": None, "source_sha256": [q[3]["sha256"], q[4]["sha256"]],
+                      "BURST": [{"slot": 0, "n_words": None,
+                                 "source_sha256": [q[3]["sha256"], q[4]["sha256"]],
                                  "span_samples": 1, "sr": 48000, "rate_wpm": 175}],
                       "TALKFACE": [{"slot": 0, "n_words": None, "source_sha256": [q[5]["sha256"]],
                                     "span_samples": 1, "sr": 48000, "rate_wpm": 175}]}}
@@ -155,8 +156,9 @@ class FakeSynth:
 def _spk_setup():
     cfg = copy.deepcopy(CFG)
     q = _queue(12)
-    clip = R.Clip("SPK", 0, 0, [10.0, 26.0, 42.0], [{"k": k, "onset": o, "utterance": k}
-                                                     for k, o in enumerate([10.0, 26.0, 42.0])], "grey_ctrl_00")
+    ons = [10.0, 26.0, 42.0]
+    clip = R.Clip("SPK", 0, 0, ons, [{"k": k, "onset": o, "utterance": k} for k, o in enumerate(ons)],
+                  "grey_ctrl_00")
     synth = FakeSynth()
     items = []
     for k in range(3):
@@ -213,6 +215,51 @@ def test_public_outputs_carry_no_text():
     B.assert_no_text(rows, sel)
     with pytest.raises(SystemExit, match="text"):
         B.assert_no_text({"x": sel["items"]["SPK"][0]["text"]}, sel)
+
+
+# ------------------------------------------------------------------ end to end (real encode + real QC)
+def _script():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("speech_build_script", ROOT / "scripts" / "speech_build.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_preconditions_pass_on_the_committed_frozen_state():
+    sel = _script().preconditions(CFG)
+    assert len(sel["items"]["SPK"]) == 60
+
+
+def test_build_and_qc_end_to_end_with_a_fake_engine(tmp_path):
+    sb = _script()
+    cfg, _clip, sel, prov, _rendered = _spk_setup()
+    plan = {c.name: c for c in R.plan(cfg)}
+    clips = [plan["grey_ctrl_00"], plan["spk_00"]]
+    rc, res = sb.build_and_qc(cfg, S.public_record(sel), sel, prov, tmp_path, clips, {"fake": True},
+                              check_build1=False)
+    assert rc == 0, res
+    assert {r["name"] for r in res["speech_rows"]} == {"spk_00"}
+    man = json.loads((tmp_path / "speech_partial_manifest.json").read_text())
+    spk = next(c for c in man["clips"] if c["name"] == "spk_00")
+    assert spk["speech"]["rate_wpm"] == 120
+    for p in (tmp_path / "qc.json", tmp_path / "speech_partial_manifest.json"):
+        for it in sel["items"]["SPK"]:
+            assert it["text"] not in p.read_text()
+
+
+def test_build_and_qc_stops_finally_on_a_qc_failure(tmp_path):
+    sb = _script()
+    cfg, _clip, sel, prov, _rendered = _spk_setup()
+    plan = {c.name: c for c in R.plan(cfg)}
+    bad = copy.deepcopy(sel)
+    bad["items"]["SPK"][0]["span_samples"] += 10
+    rc, _res = sb.build_and_qc(cfg, S.public_record(bad), bad, prov, tmp_path,
+                               [plan["grey_ctrl_00"], plan["spk_00"]], {"fake": True}, check_build1=False)
+    assert rc == 1
+    note = (tmp_path / "STOP_NOTE.md").read_text()
+    assert "final STOP" in note and "FAILED" in note
+    assert not (tmp_path / "speech_partial_manifest.json").exists()
 
 
 def test_selection_sha_helper_matches_config():
