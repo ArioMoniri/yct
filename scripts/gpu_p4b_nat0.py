@@ -50,6 +50,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 from yct.config import load_config  # noqa: E402
 from yct.curate import natstim as ns  # noqa: E402
 from yct.curate import refstim_auto as ra  # noqa: E402
+from yct.tribe_run import launch_checks as lc  # noqa: E402
 
 
 def _ref():
@@ -82,8 +83,7 @@ def gpu_price(lg, itype: str) -> float:
     return avail[itype]["usd_per_hour"]
 
 
-class Refused(SystemExit):
-    """Exit 1 before any launch: a human decides."""
+Refused = lc.Refused   # shared (council refcampaign U5): one class for every P4b driver
 
 
 def check_frozen(cfg: dict, k: int = 0) -> None:
@@ -122,11 +122,7 @@ def check_terminator(cfg: dict, store, ext: float | None, now: float, max_hours:
         raise Refused(str(exc)) from None
 
 
-def check_commit(head: str, ci_green_sha: str | None, pushed: bool) -> None:
-    if not ci_green_sha or head != ci_green_sha:
-        raise Refused(f"HEAD {head[:12]} is not the CI-green commit {str(ci_green_sha)[:12]} (D-071 k)")
-    if not pushed:
-        raise Refused(f"HEAD {head[:12]} is not on the remote branch (launch only from a pushed commit)")
+check_commit = lc.check_commit
 
 
 def check_session_k(cfg: dict, log: list[dict], k: int) -> list[str]:
@@ -226,43 +222,9 @@ def check_cpu_stage(state: dict | None, log_path: Path) -> None:
 
 
 # ---------------------------------------------------------------- L4 ledger reconciliation (D-071 k)
-def _ledger_lines(lg) -> list[str]:
-    path = Path(lg.LEDGER)
-    return [x for x in (path.read_text().splitlines() if path.exists() else []) if x.strip()]
-
-
-def _lines_sha(lines: list[str]) -> str:
-    return hashlib.sha256("\n".join(lines).encode()).hexdigest()
-
-
-def reconcile(lg, cfg: dict, clock) -> dict:
-    """L4: every ledger launch has a terminate record, no yct-* instance is alive on the Lambda API, and the
-    spend figures (global, budget cap, campaign by prefix) are recorded against the ledger's line count and
-    sha. Refuses (exit 1) on an open launch or a live instance. The committed record must match the ledger
-    at launch time (check_reconcile). The D-071 (k) $ tolerance needs an external invoice, which no API in
-    this project exposes: disclosed in t_nat0_ready.md."""
-    lines = _ledger_lines(lg)
-    recs = [json.loads(x) for x in lines]
-    ended = {r["id"] for r in recs if r.get("event") == "terminate"}
-    open_ = [r["id"] for r in recs if r.get("event") == "launch" and r["id"] not in ended]
-    live = [i.get("id") for i in lg._live(lg.list_ours())]
-    if open_ or live:
-        raise Refused(f"ledger not reconciled: open launches {open_}, live yct-* instances {live}")
-    prefix = cfg["controls"]["refclips"]["ledger_name_prefix"]
-    return {"ledger_n_lines": len(lines), "ledger_sha256": _lines_sha(lines), "open_launches": open_,
-            "live": live, "spent_usd": round(lg.spent_usd(), 4), "budget_cap_usd": lg.budget_cap(),
-            "campaign_spend_usd": round(ref.rcmp.campaign_spend(recs, prefix, clock()), 4), "t": clock()}
-
-
-def check_reconcile(rec: dict | None, lg) -> None:
-    if rec is None:
-        raise Refused("no L4 ledger reconciliation record: run --reconcile-only and commit it")
-    lines = _ledger_lines(lg)
-    if rec.get("ledger_n_lines") != len(lines) or rec.get("ledger_sha256") != _lines_sha(lines):
-        raise Refused(f"the ledger reconciliation record is stale ({rec.get('ledger_n_lines')} lines vs "
-                      f"{len(lines)} now): re-run --reconcile-only")
-    if rec.get("open_launches") or rec.get("live"):
-        raise Refused("the ledger reconciliation record shows open launches or live instances")
+# shared with gpu_p4b_ref / gpu_p4b_talk (src/yct/tribe_run/launch_checks.py)
+_ledger_lines, _lines_sha = lc.ledger_lines, lc.lines_sha
+reconcile, check_reconcile = lc.reconcile, lc.check_reconcile
 
 
 def preflight(a, cfg: dict, lg, store, clock, head: str, pushed: bool, log: list[dict],

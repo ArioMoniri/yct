@@ -87,3 +87,26 @@ def guard_launch(cfg: dict, records: list[dict], ledger_lines: list[str], baseli
     if spend >= warn and not ack:
         raise CampaignCapError(f"campaign spend {spend:.2f} >= ${warn:g}: relaunch with --ack-cap-80")
     return {"campaign_spend_usd": spend, "planned_usd": planned, "cap_usd": cap, "ack": bool(ack)}
+
+
+def main_projection(cfg: dict, records: list[dict], *, price: float, max_hours: float, now: float,
+                    n_done_full: int) -> dict:
+    """Council refcampaign U4 (D-091): the main-campaign D-071 (k) projection, stated in advance and never
+    re-estimated from observed costs: prefixed spend + this session's price x max_hours + remaining plan
+    <= the campaign cap, where remaining plan =
+    max(0, main_plan_usd - completed full jobs x per_full_job_usd).
+    Over the cap -> refusal (exit 1, STOP to the owner)."""
+    d = cfg["controls"]["refclips_d091"]["projection"]
+    prefix = cfg["controls"]["refclips"]["ledger_name_prefix"]
+    cap = campaign_cap(cfg)
+    spend = campaign_spend(records, prefix, now)
+    remaining = max(0.0, float(d["main_plan_usd"]) - int(n_done_full) * float(d["per_full_job_usd"]))
+    this = price * max_hours
+    proj = spend + this + remaining
+    out = {"campaign_spend_usd": round(spend, 4), "this_session_planned_usd": this,
+           "remaining_plan_usd": round(remaining, 4), "n_done_full": int(n_done_full),
+           "projection_usd": round(proj, 4), "cap_usd": cap}
+    if proj > cap + 1e-9:
+        raise CampaignCapError(f"D-071 (k) projection {proj:.2f} = spend {spend:.2f} + session {this:.2f} + "
+                               f"remaining plan {remaining:.2f} > ${cap:g}: STOP to the owner (D-091)")
+    return out

@@ -440,6 +440,7 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
     speech_corpus_sha256: 252c83acb85f2203c51aea62cd9f2f4b88860833d79e6b2b3575e50305db40c3 # D-085 v2: sha256 of refclips_d085.speech.corpus_file (hash-only, 3-word SPK; set, NOT frozen)
     speech_selection_sha256: 05a44f5f25b7f764462e906982ebf6ae3d57c5e6c1d6db986568c9bcd8e8dc43   # D-085 part 2 step 2 (D-089 rates; pod run at 55ac7ea): outputs/runs/d089_selection/speech_selection_d089.json
     talkface_face_sha256: fe734910824e0bb1247cd1f78c5416dbe6c8ba05939bfead95c671199728f2eb   # D-085 part 2 step 3: v4 face rank 499 (21st face pass), source image sha256
+    nat_tsv_manifest_sha256: null   # D-091: sha256 of data/refstim/nat_tsv_manifest.json (15 NAT word tsvs, sidecar; set, then frozen)
   refclips_d074:              # D-074 (owner-approved 2026-11-19): image candidate source; replaces refclips.image_queries for images
     decision: D-074
     image_sources:
@@ -816,6 +817,30 @@ controls:                      # P4b positive controls (v2.md §5 P4b; v2.5 C3, 
       stop: [loader_or_sha, mel_nan, import, oom, traceback, freeze_mismatch, input_sha]   # exit 1, nothing logged
       infra_rerun: [timeout, ssh, transfer, no_capacity]   # exit 75, nothing logged
       max_skips: 5
+  refclips_d091:               # D-091 draft (council refcampaign wf_06444af7-0cf REVISE x5): session-1 inputs
+    decision: D-091
+    amends: [D-071]
+    post_hoc: false              # outcome-blind: no reference prediction exists; the NAT selection is closed
+    nat_tsv:                     # U2 route (c): sidecar under its own frozen key; the frozen clip manifest unchanged
+      route: sidecar_frozen_key
+      manifest_file: data/refstim/nat_tsv_manifest.json
+      sha_key: controls.refclips_artifacts.nat_tsv_manifest_sha256
+      json_dir: /work/yct/nat_asr/asr        # pinned WhisperX json of the T1-trimmed 16 kHz wav (NAT sessions 0-2)
+      t1_dir: /work/yct/nat_scratch/t1       # <t1>.mp4 (ffprobe duration) + audio16k/<t1>.wav (sha == manifest)
+      out_dir: /work/yct/p4b_ref/v1/nat_tsv  # NAT-only store; never the wave-1 /work/yct/transcripts manifest
+      functions: [whisperx_segments_to_words, store_transcript, validate_tsv]   # frozen P2b core, wave-1 identical
+      media_duration: ffprobe_mp4             # validate_tsv end bound; the D-067/BUG-029 word clamp runs on the box
+      runs: 2                                 # built twice; bit-identical or STOP
+      on_invalid_or_empty: stop_to_owner_no_substitution
+    upload:                      # U3: copy, never build; every sha re-verified after the copy
+      pod_dir: /work/yct/p4b_ref/v1/clips
+      s3_subdir: clips/          # under controls.refclips.s3_root (private bucket)
+      record_file: data/refstim/refclips_upload_record.json
+      talkface_source: controls.refclips_d085.talkface.mirror_s3   # private mirror only
+    projection:                  # U4: main-campaign D-071 (k) projection, stated in advance, never re-estimated
+      main_plan_usd: 61.0        # = refclips_d084.main_campaign_plan_usd (d071_v3 §k estimate, main campaign)
+      per_full_job_usd: 0.45     # remaining plan = max(0, main_plan_usd - completed full jobs x this)
+      reconcile_file: data/refstim/ledger_reconcile_ref.json
   curation_http:               # owner decision 2026-11-20: Commons / upload.wikimedia.org client (not frozen)
     user_agent: "yct-research/0.1 (https://github.com/ArioMoniri/yct)"   # repo URL only, no email
     min_interval_s: 1.0        # >= 1 s between requests to the same host

@@ -643,6 +643,7 @@ class RefClipArtifacts(M):            # D-071 (d): null until set; frozen row pe
     speech_corpus_sha256: Sha256 | None   # D-085 draft
     speech_selection_sha256: Sha256 | None   # D-085 part 2 step 2 (D-089): public selection record
     talkface_face_sha256: Sha256 | None   # D-085 part 2 step 3: the TALKFACE source image
+    nat_tsv_manifest_sha256: Sha256 | None   # D-091: the NAT word-tsv sidecar
 
 
 class RefClipsD078Artifacts(M):       # D-078
@@ -1044,6 +1045,47 @@ class RefClipsD089(M):                # D-089 v2: per-family speech rate (SPK 12
         return self
 
 
+class RefClipsD091NatTsv(M):
+    route: Literal["sidecar_frozen_key"]
+    manifest_file: Literal["data/refstim/nat_tsv_manifest.json"]
+    sha_key: Literal["controls.refclips_artifacts.nat_tsv_manifest_sha256"]
+    json_dir: Annotated[str, Field(pattern=r"^/work/yct/")]
+    t1_dir: Annotated[str, Field(pattern=r"^/work/yct/")]
+    out_dir: Annotated[str, Field(pattern=r"^/work/yct/p4b_ref/")]   # never the wave-1 transcripts store
+    functions: list[Literal["whisperx_segments_to_words", "store_transcript", "validate_tsv"]]
+    media_duration: Literal["ffprobe_mp4"]
+    runs: Literal[2]
+    on_invalid_or_empty: Literal["stop_to_owner_no_substitution"]
+
+
+class RefClipsD091Upload(M):
+    pod_dir: Annotated[str, Field(pattern=r"^/work/yct/p4b_ref/")]
+    s3_subdir: Literal["clips/"]
+    record_file: Literal["data/refstim/refclips_upload_record.json"]
+    talkface_source: Literal["controls.refclips_d085.talkface.mirror_s3"]
+
+
+class RefClipsD091Projection(M):
+    main_plan_usd: Annotated[float, Field(ge=0, le=75)]
+    per_full_job_usd: Annotated[float, Field(gt=0, le=5)]
+    reconcile_file: Literal["data/refstim/ledger_reconcile_ref.json"]
+
+
+class RefClipsD091(M):                # D-091: reference session 1 inputs (council refcampaign U1-U5)
+    decision: Literal["D-091"]
+    amends: list[Literal["D-071"]]
+    post_hoc: Literal[False]
+    nat_tsv: RefClipsD091NatTsv
+    upload: RefClipsD091Upload
+    projection: RefClipsD091Projection
+
+    @model_validator(mode="after")
+    def _store(self):
+        if self.nat_tsv.out_dir.rstrip("/").startswith("/work/yct/transcripts"):
+            raise ValueError("refclips_d091.nat_tsv.out_dir must not be the wave-1 transcripts store")
+        return self
+
+
 class RefClipsD090Static(M):
     recipe: Literal["locimg_patch_no_shine_centered_640x360"]
     crop_box_source: Literal["v4_face_log_row_crop_box"]
@@ -1320,6 +1362,7 @@ class Controls(M):
     refclips_d087_artifacts: RefClipsD087Artifacts
     refclips_d089: RefClipsD089
     refclips_d090: RefClipsD090
+    refclips_d091: RefClipsD091
     curation_http: CurationHttp
     refclips_auto: RefClipsAuto
     refclips_auto_artifacts: RefClipsAutoArtifacts
