@@ -1,0 +1,1201 @@
+{
+ "builder_blob_sha1": {
+  "refclips58.py": "49133108aaf9562418dfa12c47dcec08463fc25a",
+  "speech_build.py": "e038203147846e04a5d1d4c2e8f6c00f7d8e7f4d",
+  "speech_corpus.py": "4a97fbbb6145214cdf0168b80e7da1f260f5211b"
+ },
+ "clips": [
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "8fa5732a2aa9b5217d729b5319645482309c9eb129a3003114e67815be22f5d9",
+   "events": [
+    {
+     "k": 0,
+     "onset": 9.0,
+     "utterance": 0,
+     "utterance_s": 4.373208333333333
+    },
+    {
+     "k": 1,
+     "onset": 29.0,
+     "utterance": 1,
+     "utterance_s": 4.250270833333333
+    },
+    {
+     "k": 2,
+     "onset": 49.0,
+     "utterance": 2,
+     "utterance_s": 4.255645833333333
+    }
+   ],
+   "extra": {},
+   "family": "BURST",
+   "i": 0,
+   "name": "burst_00",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "ec457fa4c3da30515048da70def413b055c1cbb3a2a205265506ca1f74f31b8d",
+    "tsv": "6004c60fe1d42b89cedea7b1980d196d75c7050f0f2a59b1e59806855ef038c5",
+    "wav": "bbf571ca47ea1a7a982799168f0afe04d710215eb818c41c7bc743b86bfcf9ca"
+   },
+   "shift": 0,
+   "speech": {
+    "clip": "burst_00",
+    "family": "BURST",
+    "rate_wpm": 175,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "05f92c76fb386cb5d192962055fb67c6f532779292a069ac95efcf4d963224ef",
+   "events": [
+    {
+     "k": 0,
+     "onset": 9.0,
+     "utterance": 3,
+     "utterance_s": 4.7296458333333335
+    },
+    {
+     "k": 1,
+     "onset": 29.0,
+     "utterance": 4,
+     "utterance_s": 4.628645833333334
+    },
+    {
+     "k": 2,
+     "onset": 49.0,
+     "utterance": 5,
+     "utterance_s": 4.9002083333333335
+    }
+   ],
+   "extra": {},
+   "family": "BURST",
+   "i": 1,
+   "name": "burst_01",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "13c270d5ed51e4624b65c9008cb6bdbcf90f9e0559823d6c6b02b8ec944386ae",
+    "tsv": "372a3ccacf944ae4f7b00df3935a4c06ef7c61aa4151608ee2f16f2e05bf32e5",
+    "wav": "25bbc298af8e5f8e50d981bb01104d6870bc9d270f4d0a051e5b3028f3dce451"
+   },
+   "shift": 0,
+   "speech": {
+    "clip": "burst_01",
+    "family": "BURST",
+    "rate_wpm": 175,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "56f2ce03ab1777470a4f5a2ec9e038ff4097b745df855711b6802fdd0bdf565d",
+   "events": [
+    {
+     "k": 0,
+     "onset": 8.0,
+     "utterance": 6,
+     "utterance_s": 4.273270833333333
+    },
+    {
+     "k": 1,
+     "onset": 28.0,
+     "utterance": 7,
+     "utterance_s": 4.4378125
+    },
+    {
+     "k": 2,
+     "onset": 48.0,
+     "utterance": 8,
+     "utterance_s": 4.6202708333333335
+    }
+   ],
+   "extra": {},
+   "family": "BURST",
+   "i": 2,
+   "name": "burst_02",
+   "onsets": [
+    8.0,
+    28.0,
+    48.0
+   ],
+   "sha256": {
+    "mp4": "11f380e05384a6caa1b21a54db4d32e59e8792f54d32912e2fb9b90369546fb2",
+    "tsv": "38bd449b9e2d925e2257faa9ec1c7b8f3e6f8239c7e3708432520f3ccb51d310",
+    "wav": "ac2d7abc6e6c08aac637f422aaa8a59e7d1c8b56e164da969e7a55d50c2fbcc9"
+   },
+   "shift": -1,
+   "speech": {
+    "clip": "burst_02",
+    "family": "BURST",
+    "rate_wpm": 175,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "64cb9dd41fab2bffcf78332c06718c437ba66a244e908c8220e3a9ca32884613",
+   "events": [
+    {
+     "k": 0,
+     "onset": 8.0,
+     "utterance": 9,
+     "utterance_s": 4.2593125
+    },
+    {
+     "k": 1,
+     "onset": 28.0,
+     "utterance": 10,
+     "utterance_s": 5.191833333333333
+    },
+    {
+     "k": 2,
+     "onset": 48.0,
+     "utterance": 11,
+     "utterance_s": 5.007416666666667
+    }
+   ],
+   "extra": {},
+   "family": "BURST",
+   "i": 3,
+   "name": "burst_03",
+   "onsets": [
+    8.0,
+    28.0,
+    48.0
+   ],
+   "sha256": {
+    "mp4": "dcce47dc942635f7d040fe555bf5c107a01355884022fa24b92ee553a66da765",
+    "tsv": "b8310a80f91e8cc79fdfb6874dc0bef5227d2d97c0536b59248bb78b0b1102bc",
+    "wav": "5a3dc1889c243e8d18ea6fee0c840658adfee866bc13f77f88d056877d2c3f49"
+   },
+   "shift": -1,
+   "speech": {
+    "clip": "burst_03",
+    "family": "BURST",
+    "rate_wpm": 175,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "77379299f3ab20632c51f4133dce2b8ff964b2a1b16200477896ae1e946448a2",
+   "events": [
+    {
+     "k": 0,
+     "onset": 9.0,
+     "utterance": 12,
+     "utterance_s": 4.530708333333333
+    },
+    {
+     "k": 1,
+     "onset": 29.0,
+     "utterance": 13,
+     "utterance_s": 5.0221875
+    },
+    {
+     "k": 2,
+     "onset": 49.0,
+     "utterance": 14,
+     "utterance_s": 4.093708333333334
+    }
+   ],
+   "extra": {},
+   "family": "BURST",
+   "i": 4,
+   "name": "burst_04",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "3804860355af48084158222602ba024bf3d0d9e051c69881c95d6c635a7817ea",
+    "tsv": "58480d9d264b302cc0eea32bdffb9dcc0cd55eecb1300b94f7af169b8ea711fb",
+    "wav": "9677868cff4437f8349f971b1ed040845cb8ee3fcaae77ab0db4bc3ddd3d899b"
+   },
+   "shift": 0,
+   "speech": {
+    "clip": "burst_04",
+    "family": "BURST",
+    "rate_wpm": 175,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": null,
+   "decoded_sha256": "a6d7b5f590b3fc2a81e2ca8d0dab0612e97a763ed04bd727ae62f43fee5398e9",
+   "events": [],
+   "extra": {},
+   "family": "GREY_CTRL",
+   "i": 0,
+   "name": "grey_ctrl_00",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "bd083ccef88c5ee5191a70212b20a19a0e5fee427333773f829c127e69fac19d",
+    "tsv": "e24a6eea2dd10288524a12ed10c5ffd3fb32286f4f04a2c7fa0db5dba0782b4a",
+    "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1"
+   },
+   "shift": 0
+  },
+  {
+   "control": null,
+   "decoded_sha256": "a6d7b5f590b3fc2a81e2ca8d0dab0612e97a763ed04bd727ae62f43fee5398e9",
+   "events": [],
+   "extra": {},
+   "family": "GREY_CTRL",
+   "i": 1,
+   "name": "grey_ctrl_01",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "bd083ccef88c5ee5191a70212b20a19a0e5fee427333773f829c127e69fac19d",
+    "tsv": "e24a6eea2dd10288524a12ed10c5ffd3fb32286f4f04a2c7fa0db5dba0782b4a",
+    "wav": "13a3bc7a80720c88e5c5ff605720c4c9ad454423902d7c498ebec44d69c7ffe1"
+   },
+   "shift": 0
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "4d21b7e2c1b5698c873d1da68a5313be8d19d68f142c26e52f1ee9450d81cb4c",
+   "events": [
+    {
+     "k": 0,
+     "onset": 9.0,
+     "utterance": 0,
+     "utterance_s": 1.0368958333333333
+    },
+    {
+     "k": 1,
+     "onset": 29.0,
+     "utterance": 1,
+     "utterance_s": 1.2258333333333333
+    },
+    {
+     "k": 2,
+     "onset": 49.0,
+     "utterance": 2,
+     "utterance_s": 1.2290625
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 0,
+   "name": "spk_00",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "4c2b89b4d8e0dcee71d48261aef34ed00a9356c17011f2d3347f4e65db4afc4c",
+    "tsv": "c63c6cb72e8909cfcf3aba0cb756add635339be13f0cd93ef91676f3366db645",
+    "wav": "7262984a8f3c6d62be319c4d6215db41c583c2a7d80bc663cf4ab1eb92711db1"
+   },
+   "shift": 0,
+   "speech": {
+    "clip": "spk_00",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "436500b2256949fb7652f7454ec6ba52ccfb6897cd745bc14c70154edec138e2",
+   "events": [
+    {
+     "k": 0,
+     "onset": 9.0,
+     "utterance": 3,
+     "utterance_s": 1.2085
+    },
+    {
+     "k": 1,
+     "onset": 29.0,
+     "utterance": 4,
+     "utterance_s": 1.1944791666666668
+    },
+    {
+     "k": 2,
+     "onset": 49.0,
+     "utterance": 5,
+     "utterance_s": 1.2799583333333333
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 1,
+   "name": "spk_01",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "8543826a412244880995b6c612b5d1742f83012becfffee945da91a7b0cb9f52",
+    "tsv": "ce6123b0f893bfb55ce1d017202fe913f8c644779729da258a787975826b4704",
+    "wav": "fc661fc333eeeba55c4f0969f01a3b35328d834764723b89bb8e7de6eecddc61"
+   },
+   "shift": 0,
+   "speech": {
+    "clip": "spk_01",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "df1ff7fe6549b6f2286b9cf9282ce840b395574a6cee1af5357f8ae583927297",
+   "events": [
+    {
+     "k": 0,
+     "onset": 8.0,
+     "utterance": 6,
+     "utterance_s": 1.4242083333333333
+    },
+    {
+     "k": 1,
+     "onset": 28.0,
+     "utterance": 7,
+     "utterance_s": 1.3307083333333334
+    },
+    {
+     "k": 2,
+     "onset": 48.0,
+     "utterance": 8,
+     "utterance_s": 1.1910833333333333
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 2,
+   "name": "spk_02",
+   "onsets": [
+    8.0,
+    28.0,
+    48.0
+   ],
+   "sha256": {
+    "mp4": "fefcfd5ce4aa2b9cf992518a681d18c6832c221d25682e21439dc830e7490ca4",
+    "tsv": "3a63173d0e98dfd17e42dd807fbdd138eb9c09d9674d2fa9d1bb220d16ed1be9",
+    "wav": "d8f23420420ed00c884e4fde514289c27088177b9e84a873e6beb685c8cf2c1c"
+   },
+   "shift": -1,
+   "speech": {
+    "clip": "spk_02",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "6754469b5117f465c442229904d77689489b1ca1a24fc5bab119ed0ca7d4a57d",
+   "events": [
+    {
+     "k": 0,
+     "onset": 8.0,
+     "utterance": 9,
+     "utterance_s": 1.4618958333333334
+    },
+    {
+     "k": 1,
+     "onset": 28.0,
+     "utterance": 10,
+     "utterance_s": 1.126875
+    },
+    {
+     "k": 2,
+     "onset": 48.0,
+     "utterance": 11,
+     "utterance_s": 1.2367083333333333
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 3,
+   "name": "spk_03",
+   "onsets": [
+    8.0,
+    28.0,
+    48.0
+   ],
+   "sha256": {
+    "mp4": "5755d09f3c515d3c9a4ede68cf004bea124206c56363e121e0d9d076d4b00568",
+    "tsv": "87d8c1f17409eb6df0522422896dd216054e8ff31be798a99409745c46728204",
+    "wav": "31067110ac01b0f54c3148e77317ae9d2818cb4e37691bc138481ac18ff39ef5"
+   },
+   "shift": -1,
+   "speech": {
+    "clip": "spk_03",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "048a9db1f8ee9bb092052b48fe58284487877d499af727e9e7b2ca49c5bbe1ed",
+   "events": [
+    {
+     "k": 0,
+     "onset": 9.0,
+     "utterance": 12,
+     "utterance_s": 1.3780416666666666
+    },
+    {
+     "k": 1,
+     "onset": 29.0,
+     "utterance": 13,
+     "utterance_s": 1.128125
+    },
+    {
+     "k": 2,
+     "onset": 49.0,
+     "utterance": 14,
+     "utterance_s": 1.0240416666666667
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 4,
+   "name": "spk_04",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "40c786c1fbe1e58106c5f201407c0fd07342014c070a22f9a2715030be4730bd",
+    "tsv": "6ecc605c14a4c362fc7aa35dfe8d8519fbf6ebdbd3f4b3b358af17310eeb9199",
+    "wav": "6128ab6e1d6dbddf72a152ff1b804c04a49b2d43f6419548b35f514289c7e57b"
+   },
+   "shift": 0,
+   "speech": {
+    "clip": "spk_04",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "2bd9c4638670af5edf175db91efadcac2c6aca1da625fe705dd66c0184e83466",
+   "events": [
+    {
+     "k": 0,
+     "onset": 9.0,
+     "utterance": 15,
+     "utterance_s": 1.1307291666666666
+    },
+    {
+     "k": 1,
+     "onset": 29.0,
+     "utterance": 16,
+     "utterance_s": 1.3841458333333334
+    },
+    {
+     "k": 2,
+     "onset": 49.0,
+     "utterance": 17,
+     "utterance_s": 1.4782708333333334
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 5,
+   "name": "spk_05",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "0ea862339eb334c053db7df0e828e9e583b6662403f58b7378e68c76cd4e6f6d",
+    "tsv": "1c4e74fcaf12a8ebcb54a68abb5aec5e5c94ac5f15b2ef2183c8ec9aa4031c36",
+    "wav": "39b9456b03ceb499ae8769fd1916b98a5f380b87557ce640bbc69507a1029c9a"
+   },
+   "shift": 0,
+   "speech": {
+    "clip": "spk_05",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "33068be89f5a9d03702ee0fd154b28875a843f64f7bf6ef63b4e3da45fcdc391",
+   "events": [
+    {
+     "k": 0,
+     "onset": 8.0,
+     "utterance": 18,
+     "utterance_s": 1.308625
+    },
+    {
+     "k": 1,
+     "onset": 28.0,
+     "utterance": 19,
+     "utterance_s": 1.4130833333333332
+    },
+    {
+     "k": 2,
+     "onset": 48.0,
+     "utterance": 20,
+     "utterance_s": 1.3785416666666668
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 6,
+   "name": "spk_06",
+   "onsets": [
+    8.0,
+    28.0,
+    48.0
+   ],
+   "sha256": {
+    "mp4": "fd8d44f184368fa84d0068c2f4375e52e59666a66e4ea7f1e3968e53070f093c",
+    "tsv": "60e53ef9c27ef05f2333d976704efb693c90da9712fe808a23a779671961a553",
+    "wav": "97168e3554b9e0d3dc5da572e8bfb2cdb0352215581a9626e846982f8bd8d44c"
+   },
+   "shift": -1,
+   "speech": {
+    "clip": "spk_06",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "80cbca0bb9f255949a5d7b8487d137e6c2ccc183413bde7831156852d53e476e",
+   "events": [
+    {
+     "k": 0,
+     "onset": 8.0,
+     "utterance": 21,
+     "utterance_s": 1.2895208333333332
+    },
+    {
+     "k": 1,
+     "onset": 28.0,
+     "utterance": 22,
+     "utterance_s": 1.1294583333333332
+    },
+    {
+     "k": 2,
+     "onset": 48.0,
+     "utterance": 23,
+     "utterance_s": 1.176875
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 7,
+   "name": "spk_07",
+   "onsets": [
+    8.0,
+    28.0,
+    48.0
+   ],
+   "sha256": {
+    "mp4": "7a64b5e9bc814a29a7216f069cb73271754fff60b7299fcd9dccfb46ef3a1550",
+    "tsv": "2ad8f14db5d4538466f96a6c22cca56c1b44b5476dd21b12abc68ec46fafdf32",
+    "wav": "9cecab941fd108909cd39cebf1f6e3c5355fac7bdcf21bf61df83169f7a3743c"
+   },
+   "shift": -1,
+   "speech": {
+    "clip": "spk_07",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "2bd4289db65955bdcb8a50001807ff2b5c0b7c07cb3011d1cbb899745ea96458",
+   "events": [
+    {
+     "k": 0,
+     "onset": 9.0,
+     "utterance": 24,
+     "utterance_s": 1.2631666666666668
+    },
+    {
+     "k": 1,
+     "onset": 29.0,
+     "utterance": 25,
+     "utterance_s": 1.1533958333333334
+    },
+    {
+     "k": 2,
+     "onset": 49.0,
+     "utterance": 26,
+     "utterance_s": 1.2431041666666667
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 8,
+   "name": "spk_08",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "c15f488db3de4c04c97198c3da384a7211366de8d1d67d9083cab3c615d55cde",
+    "tsv": "961c6a037027fd1f927e7616d37825a6a6c2b634078c88a6cc5c3a12f6757783",
+    "wav": "0e1d4f908de9026a4f02d00cbf12781241f304b33a65fb00c7c754021d28082c"
+   },
+   "shift": 0,
+   "speech": {
+    "clip": "spk_08",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "b7d63c2ef97dd94b45b9997de35dd0e3860adb4d98633ca755335a3f55138269",
+   "events": [
+    {
+     "k": 0,
+     "onset": 9.0,
+     "utterance": 27,
+     "utterance_s": 1.3298125
+    },
+    {
+     "k": 1,
+     "onset": 29.0,
+     "utterance": 28,
+     "utterance_s": 1.1850625
+    },
+    {
+     "k": 2,
+     "onset": 49.0,
+     "utterance": 29,
+     "utterance_s": 1.3453958333333333
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 9,
+   "name": "spk_09",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "6f698060a64245336b5449f75e1f30baaefddd1191578590a88c042a2c6fbb67",
+    "tsv": "533c2b77f509be0c9763554d14c44e853ebe8773b4e2b9a0e1273518e56838c4",
+    "wav": "b2fe3f386460ab632be42ececd160eb570eca3ce86633f3890d1b58cca13920f"
+   },
+   "shift": 0,
+   "speech": {
+    "clip": "spk_09",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "0d4cfea97e3cc82ab63de6364c64111a0fd3218090b7487f463d9f48fb5dc79c",
+   "events": [
+    {
+     "k": 0,
+     "onset": 8.0,
+     "utterance": 30,
+     "utterance_s": 1.1224791666666667
+    },
+    {
+     "k": 1,
+     "onset": 28.0,
+     "utterance": 31,
+     "utterance_s": 1.363875
+    },
+    {
+     "k": 2,
+     "onset": 48.0,
+     "utterance": 32,
+     "utterance_s": 1.4336041666666666
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 10,
+   "name": "spk_10",
+   "onsets": [
+    8.0,
+    28.0,
+    48.0
+   ],
+   "sha256": {
+    "mp4": "aaa9e1d7bc23315da72348c3d089f566b5d5a6a82f64727023b66a53bc15f7ee",
+    "tsv": "03526cab40851196d7e031d1f71f7525843cfc9848848053336b29f4253645e6",
+    "wav": "ddd03e0d7c1fad530b3da8c3b5e4c2edc88e866047f7182bc4625f2891dcbc6b"
+   },
+   "shift": -1,
+   "speech": {
+    "clip": "spk_10",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "f3961fdb89dd80efba4b65be492c370980901bda4685c7b4ccd36facfe95f0d4",
+   "events": [
+    {
+     "k": 0,
+     "onset": 8.0,
+     "utterance": 33,
+     "utterance_s": 1.1326041666666666
+    },
+    {
+     "k": 1,
+     "onset": 28.0,
+     "utterance": 34,
+     "utterance_s": 1.3804791666666667
+    },
+    {
+     "k": 2,
+     "onset": 48.0,
+     "utterance": 35,
+     "utterance_s": 1.2165
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 11,
+   "name": "spk_11",
+   "onsets": [
+    8.0,
+    28.0,
+    48.0
+   ],
+   "sha256": {
+    "mp4": "a92731a01ce5f6e0f692d75192e69ad45881eb7038edf59128c4d895b344d6db",
+    "tsv": "86da6f0c13e9a8b6f650f10b53fe02cb90ce9f179ac091e6bdd287e413f5851f",
+    "wav": "ab11a6329a13faf7379535860dc1c72c6f6468baa8bae47594bb68d356cc2726"
+   },
+   "shift": -1,
+   "speech": {
+    "clip": "spk_11",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "ec7427ac7a2113b901de877d6df5692a2475cd84c7b909c728b570081ec304dc",
+   "events": [
+    {
+     "k": 0,
+     "onset": 9.0,
+     "utterance": 36,
+     "utterance_s": 1.0316041666666667
+    },
+    {
+     "k": 1,
+     "onset": 29.0,
+     "utterance": 37,
+     "utterance_s": 1.2129375
+    },
+    {
+     "k": 2,
+     "onset": 49.0,
+     "utterance": 38,
+     "utterance_s": 1.2343125
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 12,
+   "name": "spk_12",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "8ae29975bf4b1dfeb5e5db14d78948e4d139f8fa7a04f9bc0893bd2e7bdf1903",
+    "tsv": "ad8d3f39198f2ed927d75570e7b56b079d5e2c7b720462c8fc3a5febbf9464c5",
+    "wav": "06d87ebe9c62cdbba8328b552253482c7f57f95295a51fa117a2f8ced7728fc0"
+   },
+   "shift": 0,
+   "speech": {
+    "clip": "spk_12",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "833d5087fd6fb573ccc2bb98f8dfe2cd5ef3fc3556bce6d50708a0e263e462e2",
+   "events": [
+    {
+     "k": 0,
+     "onset": 9.0,
+     "utterance": 39,
+     "utterance_s": 1.4182916666666667
+    },
+    {
+     "k": 1,
+     "onset": 29.0,
+     "utterance": 40,
+     "utterance_s": 1.1252916666666666
+    },
+    {
+     "k": 2,
+     "onset": 49.0,
+     "utterance": 41,
+     "utterance_s": 1.1585625
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 13,
+   "name": "spk_13",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "e2ffa15c68ceb7506d02b00a30b5c875fa38f6c39bc9199534d75d9447cfe29a",
+    "tsv": "4179bb750c545ca4cd16f9efd366db131b609e50c25d3173157a4908748f20aa",
+    "wav": "1721c88e0e013df083aae1a99cb0ec7d308501aa87c4bc0a11a48289f3064725"
+   },
+   "shift": 0,
+   "speech": {
+    "clip": "spk_13",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "2a0769cf0dabb555eec699639ff08540e4ba1e48466472f3126fa34108138eaf",
+   "events": [
+    {
+     "k": 0,
+     "onset": 8.0,
+     "utterance": 42,
+     "utterance_s": 1.1585208333333334
+    },
+    {
+     "k": 1,
+     "onset": 28.0,
+     "utterance": 43,
+     "utterance_s": 1.0024791666666666
+    },
+    {
+     "k": 2,
+     "onset": 48.0,
+     "utterance": 44,
+     "utterance_s": 1.0481666666666667
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 14,
+   "name": "spk_14",
+   "onsets": [
+    8.0,
+    28.0,
+    48.0
+   ],
+   "sha256": {
+    "mp4": "4c971c63c58b604837ee71bffb091499b85dcf437735b9082cab90950c2fea1c",
+    "tsv": "c04bacee76d3039cb032774fd91da60573c0abd3bc0b08037d4e494d1b9dc3f0",
+    "wav": "45957742d6e1c6cd2d03675ed553d4a55c7154b7a92843a94bde323546a61980"
+   },
+   "shift": -1,
+   "speech": {
+    "clip": "spk_14",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "84bedba9fd7f3adddaa57bba1780920b5da74ede0af791065405eca0ded9b7dd",
+   "events": [
+    {
+     "k": 0,
+     "onset": 8.0,
+     "utterance": 45,
+     "utterance_s": 1.1234791666666666
+    },
+    {
+     "k": 1,
+     "onset": 28.0,
+     "utterance": 46,
+     "utterance_s": 1.1875208333333334
+    },
+    {
+     "k": 2,
+     "onset": 48.0,
+     "utterance": 47,
+     "utterance_s": 1.1898333333333333
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 15,
+   "name": "spk_15",
+   "onsets": [
+    8.0,
+    28.0,
+    48.0
+   ],
+   "sha256": {
+    "mp4": "cb9c9bd75068727c15c7a2b197be50e192699730989919fcb5477670eceda48f",
+    "tsv": "195b8313482fd4c99eb2dea505926ad04e2f18ec967348371abc0f633aa38ced",
+    "wav": "7e28679f5c4a1cefa9128d7954a5ac5a4d1df9175688a173177d276d5b4278d2"
+   },
+   "shift": -1,
+   "speech": {
+    "clip": "spk_15",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "2fca61738f681ac9d348e739bf205bfe2d8ef4d47e0d066c6e6e692a2469dd46",
+   "events": [
+    {
+     "k": 0,
+     "onset": 9.0,
+     "utterance": 48,
+     "utterance_s": 1.0579375
+    },
+    {
+     "k": 1,
+     "onset": 29.0,
+     "utterance": 49,
+     "utterance_s": 1.1922291666666667
+    },
+    {
+     "k": 2,
+     "onset": 49.0,
+     "utterance": 50,
+     "utterance_s": 1.3227708333333332
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 16,
+   "name": "spk_16",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "59ab5e9c31ad48dc1e5b921080bf1108290df95837564a071848acb2ed42fe3c",
+    "tsv": "25619fda24a804d874273584c814acff5481ba256370627a1009ba7a4c42e093",
+    "wav": "b5eeb6812cfb45aa26c199f71073d7dd9994bbac28700d1fd249007c455d7160"
+   },
+   "shift": 0,
+   "speech": {
+    "clip": "spk_16",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "cc4feb28f0ee9b301a68a0a8470f1bb269186945c7811740f3c517b904e64a08",
+   "events": [
+    {
+     "k": 0,
+     "onset": 9.0,
+     "utterance": 51,
+     "utterance_s": 1.2548958333333333
+    },
+    {
+     "k": 1,
+     "onset": 29.0,
+     "utterance": 52,
+     "utterance_s": 1.0419375
+    },
+    {
+     "k": 2,
+     "onset": 49.0,
+     "utterance": 53,
+     "utterance_s": 1.1277291666666667
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 17,
+   "name": "spk_17",
+   "onsets": [
+    9.0,
+    29.0,
+    49.0
+   ],
+   "sha256": {
+    "mp4": "1c7e642d88008fb2ca6b44079ed86291f1e737853bfc4e90a47e38abd0e65355",
+    "tsv": "9b4a6401576a24d79c57dff053f4bde251bd1cf60ebd833176180b4befb2c6f6",
+    "wav": "07e9228dd6995b88051a885fcdc10011fc99f0b77a08df61ffc9e9cae06c7a1b"
+   },
+   "shift": 0,
+   "speech": {
+    "clip": "spk_17",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "594f3d5f0bbd8300cfed8a25843743ff48e824afd520f8106d6ef68f155dbbdd",
+   "events": [
+    {
+     "k": 0,
+     "onset": 8.0,
+     "utterance": 54,
+     "utterance_s": 1.1513541666666667
+    },
+    {
+     "k": 1,
+     "onset": 28.0,
+     "utterance": 55,
+     "utterance_s": 1.163375
+    },
+    {
+     "k": 2,
+     "onset": 48.0,
+     "utterance": 56,
+     "utterance_s": 1.1435833333333334
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 18,
+   "name": "spk_18",
+   "onsets": [
+    8.0,
+    28.0,
+    48.0
+   ],
+   "sha256": {
+    "mp4": "b47b7677d9c3714c73de3c6edf19e9c7a390446ff4292e9f7612ba69bd6cced3",
+    "tsv": "1a8e163a6c3d65df6076e414d67178345e08297cf99587176d7baf61b91d1e51",
+    "wav": "58dbda892e10343ccfab0f7e14ef37387e0c4698806bcdb7c6a6baac0733e482"
+   },
+   "shift": -1,
+   "speech": {
+    "clip": "spk_18",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  },
+  {
+   "control": "grey_ctrl_00",
+   "decoded_sha256": "bf81a3eb5a26d77a9eb6408808aa9102fff32c3d952c516f6c571acc0dfedbf7",
+   "events": [
+    {
+     "k": 0,
+     "onset": 8.0,
+     "utterance": 57,
+     "utterance_s": 1.1374375
+    },
+    {
+     "k": 1,
+     "onset": 28.0,
+     "utterance": 58,
+     "utterance_s": 1.297875
+    },
+    {
+     "k": 2,
+     "onset": 48.0,
+     "utterance": 59,
+     "utterance_s": 1.1818958333333334
+    }
+   ],
+   "extra": {},
+   "family": "SPK",
+   "i": 19,
+   "name": "spk_19",
+   "onsets": [
+    8.0,
+    28.0,
+    48.0
+   ],
+   "sha256": {
+    "mp4": "f8e5bc41857dec14d1129c60ee7d8a16ddcb0fe577c4f7b1dd1671555dc7b829",
+    "tsv": "00e2c045b596125b9eaf89e4a379747b3f43f8ac951b154d0db644af05bf3452",
+    "wav": "2136b04ee46b3349cc573960301062cb249ecfdf1dcf4477937cc5f90a9e26ab"
+   },
+   "shift": -1,
+   "speech": {
+    "clip": "spk_19",
+    "family": "SPK",
+    "rate_wpm": 120,
+    "rule": "D-089"
+   }
+  }
+ ],
+ "families_built": [
+  "BURST",
+  "GREY_CTRL",
+  "SPK"
+ ],
+ "partial": true,
+ "qc_sha256": "3a9b9f0dcedc4f7aa5bde406174fb48146c13cae0c025b761582f44e74c47f57",
+ "sources": {
+  "engine_verified": {
+   "binary": "34191438b1e0f8f5aac5d4fdc5df574762b6fbb3c7a219a8c6f14feceb1bd076",
+   "data_tree": "f35962c893b17b538552fc4e0328af726c0b19ed1b388d8011323e265531a439",
+   "lib": "a18be542512749ea11dcbb5799f0de86a4bcacc75b3a625198160f67bfd37508"
+  },
+  "rate_wpm_by_family": {
+   "BURST": 175,
+   "SPK": 120,
+   "TALKFACE": 175
+  },
+  "speech_corpus_sha256": "252c83acb85f2203c51aea62cd9f2f4b88860833d79e6b2b3575e50305db40c3",
+  "speech_selection_sha256": "05a44f5f25b7f764462e906982ebf6ae3d57c5e6c1d6db986568c9bcd8e8dc43"
+ },
+ "toolchain": {
+  "ffmpeg": "ffmpeg version 6.1.1-3ubuntu5 Copyright (c) 2000-2023 the FFmpeg developers",
+  "ffmpeg_libs": "libavutil      58. 29.100 / 58. 29.100 | libavcodec     60. 31.102 / 60. 31.102 | libavformat    60. 16.100 / 60. 16.100 | libavdevice    60.  3.100 / 60.  3.100 | libavfilter     9. 12.100 /  9. 12.100 | libswscale      7.  5.100 /  7.  5.100 | libswresample   4. 12.100 /  4. 12.100 | libpostproc    57.  3.100 / 57.  3.100",
+  "libx264": "libx264-164 2:0.164.3108+git31e19f9-1"
+ },
+ "version": "p4b_ref/v1"
+}

@@ -1,0 +1,1232 @@
+{
+ "rule": "D-085",
+ "rows": [
+  {
+   "name": "grey_ctrl_00",
+   "family": "GREY_CTRL",
+   "checks": {},
+   "pass": true
+  },
+  {
+   "name": "grey_ctrl_01",
+   "family": "GREY_CTRL",
+   "checks": {},
+   "pass": true
+  },
+  {
+   "name": "spk_00",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_01",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_02",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_03",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_04",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_05",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_06",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_07",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_08",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_09",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_10",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_11",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_12",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_13",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_14",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_15",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_16",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_17",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_18",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_19",
+   "family": "SPK",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "burst_00",
+   "family": "BURST",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "burst_01",
+   "family": "BURST",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "burst_02",
+   "family": "BURST",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "burst_03",
+   "family": "BURST",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "burst_04",
+   "family": "BURST",
+   "checks": {
+    "video_identity": {
+     "differs": [],
+     "pass": true
+    }
+   },
+   "pass": true
+  }
+ ],
+ "face_hit_family": null,
+ "pass": true,
+ "speech_rows": [
+  {
+   "name": "spk_00",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.000976229374718,
+      1.0005072781560893,
+      1.0023159563386443
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.0368958333333333,
+      1.2258333333333333,
+      1.2290625
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1623961740944417,
+     "point_biserial_r": 0.6335230843989453,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_01",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0012622853828146,
+      1.0016283466199465,
+      1.0011293176786138
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.2085,
+      1.1944791666666668,
+      1.2799583333333333
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1656380387801704,
+     "point_biserial_r": 0.6401885275635615,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_02",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.002203823711059,
+      1.0024325578727282,
+      0.9999346070375782
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.4242083333333333,
+      1.3307083333333334,
+      1.1910833333333333
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1545588940885816,
+     "point_biserial_r": 0.5283538080856246,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_03",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0010303257936608,
+      1.0024197841015379,
+      1.0021656847892226
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.4618958333333334,
+      1.126875,
+      1.2367083333333333
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1484107098953023,
+     "point_biserial_r": 0.6066203290719311,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_04",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0019932461776568,
+      1.002976269719987,
+      1.003077631044696
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.3780416666666666,
+      1.128125,
+      1.0240416666666667
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1161374737593708,
+     "point_biserial_r": 0.6554355414236183,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_05",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0018168224196624,
+      1.0023871145130487,
+      1.0008434185395072
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.1307291666666666,
+      1.3841458333333334,
+      1.4782708333333334
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.172112802473982,
+     "point_biserial_r": 0.6328642500187044,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_06",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0022689374363314,
+      1.0016994322643265,
+      1.002284195684314
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.308625,
+      1.4130833333333332,
+      1.3785416666666668
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1392321271312966,
+     "point_biserial_r": 0.5752801591668851,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_07",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0026585910588066,
+      1.0020468051334377,
+      1.0025027357025196
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.2895208333333332,
+      1.1294583333333332,
+      1.176875
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.112142849683174,
+     "point_biserial_r": 0.47697598218435594,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_08",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0024752305429945,
+      0.9990485609657316,
+      1.000721904243556
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.2631666666666668,
+      1.1533958333333334,
+      1.2431041666666667
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1286681632792712,
+     "point_biserial_r": 0.6455267076253887,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_09",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.002032388084783,
+      1.0023474679402513,
+      1.0020418065308074
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.3298125,
+      1.1850625,
+      1.3453958333333333
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1587469719059396,
+     "point_biserial_r": 0.6073720268071213,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_10",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0029399916156936,
+      1.0000615218505542,
+      1.0007889723139756
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.1224791666666667,
+      1.363875,
+      1.4336041666666666
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1461133835946946,
+     "point_biserial_r": 0.6213516589823385,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_11",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.003150800517947,
+      1.0014254520538517,
+      0.999408956875945
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.1326041666666666,
+      1.3804791666666667,
+      1.2165
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1544414546438961,
+     "point_biserial_r": 0.6822666366117922,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_12",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0024176273511174,
+      1.002894379634905,
+      1.001263101799762
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.0316041666666667,
+      1.2129375,
+      1.2343125
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1387072858601717,
+     "point_biserial_r": 0.6869659856822661,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_13",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0016980156955542,
+      1.0018676621763782,
+      1.0027133616599417
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.4182916666666667,
+      1.1252916666666666,
+      1.1585625
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1701245662535813,
+     "point_biserial_r": 0.6449266158725361,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_14",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0019568532548706,
+      1.0031040968158664,
+      1.0013913983248015
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.1585208333333334,
+      1.0024791666666666,
+      1.0481666666666667
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.129485971384801,
+     "point_biserial_r": 0.6025015898171262,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_15",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.002825156129083,
+      1.002614690253771,
+      1.000707210472793
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.1234791666666666,
+      1.1875208333333334,
+      1.1898333333333333
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1328938046715027,
+     "point_biserial_r": 0.5204453295622359,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_16",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0026769004246112,
+      1.0011507485433566,
+      1.0018214275507848
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.0579375,
+      1.1922291666666667,
+      1.3227708333333332
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1490480795037559,
+     "point_biserial_r": 0.555060989344467,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_17",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0021380980486048,
+      1.0011635178813894,
+      1.001270823548023
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.2548958333333333,
+      1.0419375,
+      1.1277291666666667
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.126820366958769,
+     "point_biserial_r": 0.6236697761505899,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_18",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.002517014456057,
+      1.0018074942402633,
+      1.0018439056614914
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.1513541666666667,
+      1.163375,
+      1.1435833333333334
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.084330507397389,
+     "point_biserial_r": 0.442305000363465,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "spk_19",
+   "family": "SPK",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0024628876887016,
+      1.002400187641089,
+      1.0010617442963359
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "spk_span": {
+     "pass": true,
+     "n": 3,
+     "built_span_s": [
+      1.1374375,
+      1.297875,
+      1.1818958333333334
+     ],
+     "out_of_range": [],
+     "mismatch": [],
+     "tol_samples": 1,
+     "gating": true
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1581992889705766,
+     "point_biserial_r": 0.6597619535949062,
+     "n_event_trs": 6,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "burst_00",
+   "family": "BURST",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0003422794203718,
+      1.0007969633089513,
+      0.9999915578573516
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1133629834438616,
+     "point_biserial_r": 0.5433329230081558,
+     "n_event_trs": 15,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "burst_01",
+   "family": "BURST",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.000566119747015,
+      1.0006752800613175,
+      1.0002116683624007
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.140026818880678,
+     "point_biserial_r": 0.4640235846955897,
+     "n_event_trs": 15,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "burst_02",
+   "family": "BURST",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0007755867999968,
+      1.0003326105793344,
+      1.0004664800865601
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.1259096793902204,
+     "point_biserial_r": 0.5062347096454496,
+     "n_event_trs": 15,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "burst_03",
+   "family": "BURST",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0003770567056602,
+      1.0005063447192064,
+      1.0005546744656182
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.093243883449037,
+     "point_biserial_r": 0.38010551968256745,
+     "n_event_trs": 17,
+     "gating": false
+    }
+   },
+   "pass": true
+  },
+  {
+   "name": "burst_04",
+   "family": "BURST",
+   "checks": {
+    "speech_gate": {
+     "pass": true,
+     "outside_identical": true,
+     "reconstructed": true,
+     "window_rms_ratio": [
+      1.0005707475746275,
+      0.9998665551481843,
+      1.0002272148837856
+     ],
+     "gating": [
+      "outside_identical",
+      "reconstructed"
+     ]
+    },
+    "envelope": {
+     "event_nonevent_ratio": 1.0925670992927838,
+     "point_biserial_r": 0.4145649476862311,
+     "n_event_trs": 16,
+     "gating": false
+    }
+   },
+   "pass": true
+  }
+ ],
+ "code_commit": "070c66333633476c4b9fe63005dbcd79b6830f32"
+}
