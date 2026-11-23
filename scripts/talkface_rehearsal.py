@@ -12,9 +12,9 @@ the Wav2Lip checkout is the pinned revision with the loader-check file shas. (1)
 640x360 image (3-channel png, no face) and a 58 s noise-bed clip (no speech) -> 16 kHz driving audio;
 windows at the TALKFACE onsets. (2) talkface_box --fixture-box on CPU (strict NOGAN load): exit 0,
 n_mel_chunks == n_frames_total == 1736, kept == window frames, outside the face box == the static grey
-(box_grey identity). (3) talkface_box with the real mirrored s3fd on the same synthetic image: s3fd must load
-under torch 2.8 (weights_only) and the run must end in the pinned 'Face not detected' -> exit 10 ->
-s3fd_no_face. (4) talkface.finish_local end to end on the fixture frames (compose, frozen encode twice, QC).
+(box_grey identity). (3) talkface_box with the real mirrored s3fd: s3fd must load and run under torch 2.8 (weights_only) on the
+textured synthetic image, and on a flat mid-grey image the run must end in the pinned 'Face not detected' ->
+exit 10 -> s3fd_no_face. (4) talkface.finish_local end to end on the fixture frames (compose, frozen encode twice, QC).
 """
 from __future__ import annotations
 
@@ -65,13 +65,14 @@ def fixture(d: Path, cfg: dict) -> dict:
     return rec
 
 
-def box(a, d: Path, rec: dict, cfg: dict, tag: str, fixture_box: bool) -> dict:
+def box(a, d: Path, rec: dict, cfg: dict, tag: str, fixture_box: bool, face: Path | None = None) -> dict:
     tk = cfg["controls"]["refclips_d085"]["talkface"]
     out = d / tag
     out.mkdir(exist_ok=True)
+    face = face or d / "static.png"
     cmd = [a.w2l_python, "-m", "yct.tribe_run.talkface_box", "--repo", a.repo,
            "--weights", str(d / "w" / "Wav2Lip-SD-NOGAN.pt"), "--weights-sha", tk["weights_sha256"],
-           "--face", str(d / "static.png"), "--face-sha", rec["static_png_sha256"],
+           "--face", str(face), "--face-sha", _sha(face),
            "--audio", str(d / "clip16k.wav"), "--audio-sha", rec["clip16k_wav_sha256"], "--fps", str(tk["fps"]),
            "--windows", json.dumps(rec["windows"]), "--out", str(out / "frames.npz"),
            "--record", str(out / "w2l_record.json")]
@@ -153,11 +154,23 @@ def main() -> int:
                                    if v.get("gating", True) is not False},
                          "descriptive": {k: v for k, v in q["checks"].items() if v.get("gating") is False},
                          "decoded_sha256": fin["decoded_sha256"], "n_frames": fin["n_frames"]}
+    # (3) the real s3fd: (a) on the textured synthetic image (attempt 2: s3fd returned a box there, i.e. it
+    # loaded and ran under torch 2.8); (b) on a flat mid-grey 640x360 image, which must end in the pinned
+    # 'Face not detected' -> exit 10 -> s3fd_no_face
     res["box_s3fd"] = box(a, d, rec, cfg, "s3fd", False)
-    res["box_s3fd"]["checks"] = {"classified_s3fd_no_face": res["box_s3fd"]["class"] == "s3fd_no_face"}
+    res["box_s3fd"]["checks"] = {"s3fd_loaded_and_ran": res["box_s3fd"]["rc"] in (0, 10)}
+    import cv2
+
+    flat = d / "flat"
+    flat.mkdir(exist_ok=True)
+    cv2.imwrite(str(flat / "flat.png"), np.full((R.H, R.W, 3), 128, np.uint8))
+    res["box_s3fd_flat"] = box(a, d, rec, cfg, "s3fd_flat", False, face=flat / "flat.png")
+    res["box_s3fd_flat"]["checks"] = {"classified_s3fd_no_face": res["box_s3fd_flat"]["class"] == "s3fd_no_face",
+                                      "rc": res["box_s3fd_flat"]["rc"]}
     Path(a.out).write_text(T.public_numbers(res) + "\n")
     print(T.public_numbers({"env_ok": ok, "fixture": res["box_fixture"]["checks"],
-                            "s3fd": res["box_s3fd"]["checks"], "finish_pass": res.get("finish", {}).get("qc_pass")}))
+                            "s3fd": res["box_s3fd"]["checks"], "s3fd_flat": res["box_s3fd_flat"]["checks"],
+                            "finish_pass": res.get("finish", {}).get("qc_pass")}))
     return 0
 
 
