@@ -1,0 +1,154 @@
+{
+ "decoded_sha256": "5f6a3acdebe9d8a6906c995d8ae5766ff014a6a8fe820d7117be2ded5b76eab7",
+ "frames_sha256": "cd9f5c7c3e15d2c8f95e4b6f8015b44d1fb98bebfddcb82ae3305c42049b4f51",
+ "n_frames": 1740,
+ "qc": {
+  "checks": {
+   "decode_identity": {
+    "decoded_sha256": [
+     "5f6a3acdebe9d8a6906c995d8ae5766ff014a6a8fe820d7117be2ded5b76eab7",
+     "5f6a3acdebe9d8a6906c995d8ae5766ff014a6a8fe820d7117be2ded5b76eab7"
+    ],
+    "mp4_sha256": [
+     "bbee7cd3e8fccdcb883e5bc85dbf99482fb18c0839ed904ff7303f8b9e2d9763",
+     "bbee7cd3e8fccdcb883e5bc85dbf99482fb18c0839ed904ff7303f8b9e2d9763"
+    ],
+    "pass": true
+   },
+   "decoded_vs_composed": {
+    "frames": [
+     {
+      "frame": 285,
+      "max_abs_diff": 20,
+      "mean_abs_diff": 0.30621961805555553
+     },
+     {
+      "frame": 885,
+      "max_abs_diff": 20,
+      "mean_abs_diff": 0.30932291666666667
+     },
+     {
+      "frame": 1485,
+      "max_abs_diff": 20,
+      "mean_abs_diff": 0.3064453125
+     }
+    ],
+    "gating": false
+   },
+   "edge_step": {
+    "gating": false,
+    "values": [
+     {
+      "offset": 5.234710906056739,
+      "onset": 6.35515853538824
+     },
+     {
+      "offset": 5.213605575733778,
+      "onset": 5.1411112201825855
+     },
+     {
+      "offset": 5.275890841268283,
+      "onset": 6.122018258564838
+     }
+    ]
+   },
+   "inbox_articulation": {
+    "pass": true,
+    "per_window": [
+     true,
+     true,
+     true
+    ]
+   },
+   "kept_frames": {
+    "expected": 184,
+    "n": 184,
+    "pass": true
+   },
+   "mouth_vs_upper_mad": {
+    "gating": false,
+    "values": [
+     {
+      "mouth": 7.750403551251009,
+      "upper": 4.268821325870305
+     },
+     {
+      "mouth": 7.28066082369361,
+      "upper": 4.26956260212235
+     },
+     {
+      "mouth": 7.345841768216038,
+      "upper": 4.269895921557863
+     }
+    ]
+   },
+   "n_frames": {
+    "n": 1740,
+    "pass": true
+   },
+   "n_mel_chunks": {
+    "expected": 1736,
+    "n_frames_total": 1736,
+    "n_mel_chunks": 1736,
+    "pass": true
+   },
+   "outside_face_box_static": {
+    "first_bad": [],
+    "n_bad": 0,
+    "pass": true
+   },
+   "outside_window_static": {
+    "first_bad": [],
+    "n_bad": 0,
+    "pass": true
+   },
+   "speech_gate": {
+    "gating": [
+     "outside_identical",
+     "reconstructed"
+    ],
+    "outside_identical": true,
+    "pass": true,
+    "reconstructed": true,
+    "window_rms_ratio": [
+     1.0012703442606308,
+     1.0014533660263525,
+     1.0014166312000274
+    ]
+   },
+   "w2l_rendered": {
+    "pass": true,
+    "per_window": [
+     true,
+     true,
+     true
+    ]
+   },
+   "window_mean_abs_diff": {
+    "gating": false,
+    "values": [
+     6.020036337439044,
+     5.78412697704442,
+     5.81707826358952
+    ]
+   }
+  },
+  "family": "TALKFACE",
+  "name": "talkface_00",
+  "pass": true
+ },
+ "run_id": "p4btalk_1795471461",
+ "sha256": {
+  "mp4": "bbee7cd3e8fccdcb883e5bc85dbf99482fb18c0839ed904ff7303f8b9e2d9763",
+  "tsv": "6758d57b6dfeab1a12ff722f6178178c0e8909caef2846060960a7cf237ebaa3",
+  "wav": "6c7a5fbf8c3936e4b1624a498a0c74f9455985601e1ae3382e005f73071b79de"
+ },
+ "source": "/work/yct/runs/p4btalk_1795471461/talk/finish.json (pod); mp4/wav/tsv shas re-verified against the private mirror",
+ "static_luma_vs_loc": {
+  "gating": false,
+  "loc_mean": 128.0,
+  "loc_rms": 32.0,
+  "mean": 121.30060286813011,
+  "rms": 57.1988872648001
+ }
+}
