@@ -3103,3 +3103,15 @@
 {"event": "heartbeat", "id": "5fbda04cc855427ebbf2536ef1f9bf7a", "t": 1795507317.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
 {"event": "heartbeat", "id": "5fbda04cc855427ebbf2536ef1f9bf7a", "t": 1795507347.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
 {"event": "terminate", "id": "5fbda04cc855427ebbf2536ef1f9bf7a", "t": 1795507377.6335413, "reason": "job_done"}
+{"event": "launch", "id": "4f7e48fa89ec40de90a903030955cf8b", "name": "yct-p4b-ref-t1795511375-dl1795517675", "type": "gpu_1x_a100_sxm4", "usd_per_hour": 1.99, "t": 1795511375.2029421, "deadline": 1795517675.0}
+{"event": "heartbeat", "id": "4f7e48fa89ec40de90a903030955cf8b", "t": 1795511742.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "4f7e48fa89ec40de90a903030955cf8b", "t": 1795511772.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "4f7e48fa89ec40de90a903030955cf8b", "t": 1795511802.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "4f7e48fa89ec40de90a903030955cf8b", "t": 1795511832.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "4f7e48fa89ec40de90a903030955cf8b", "t": 1795511862.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "4f7e48fa89ec40de90a903030955cf8b", "t": 1795511893.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "4f7e48fa89ec40de90a903030955cf8b", "t": 1795511923.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "4f7e48fa89ec40de90a903030955cf8b", "t": 1795511953.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "4f7e48fa89ec40de90a903030955cf8b", "t": 1795511983.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "heartbeat", "id": "4f7e48fa89ec40de90a903030955cf8b", "t": 1795512013.0, "gpu_util": 0.0, "mem_mib": 0.0, "source": "instance"}
+{"event": "terminate", "id": "4f7e48fa89ec40de90a903030955cf8b", "t": 1795512083.6656175, "reason": "job_done"}
