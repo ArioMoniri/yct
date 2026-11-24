@@ -2,15 +2,22 @@
 conditions). A restored cache entry (by content key or by job id, incl. a non-full condition restoring its
 base entry) is judged by its FILES_SHA256SUMS, anchored to the recorded entry sums_sha256:
 (a) staging fails closed when the downloaded sums object's sha256 != the recorded sums_sha256;
-(b) after the run the re-archived sums sha256 must equal the recorded sums_sha256, else STOP, nothing uploaded;
-(c) both restore kinds; (d) restored jobs never re-upload the tar/sums, and their row carries the stored shas
+(b) after the run the re-archived sums sha256 must equal the recorded sums_sha256, else STOP (no upload);
+(c) both restore kinds; (d) restored jobs never re-upload the tar/sums; their row carries the stored shas
 (rearchive_tar_sha256 descriptive only); (f) no umask change / mode normalisation. Dry run only."""
 from __future__ import annotations
 
 import json
 import os
 
-from test_bug050_cache_collision import _rows, _run, env, p4  # noqa: F401  (env is a fixture)
+import pytest
+from test_bug050_cache_collision import _rows, _run, p4
+from test_bug050_cache_collision import env as _b50_env  # noqa: F401  (pytest fixture, used by name)
+
+
+@pytest.fixture
+def env(_b50_env):  # noqa: F811
+    return _b50_env
 
 
 def _umask0_run(env, run_id, **kw):
@@ -57,22 +64,27 @@ def test_post_run_sums_mismatch_is_a_stop_and_uploads_nothing(env):
 
 
 def test_crash_recovery_restore_of_a_group_writable_entry_neither_reuploads_nor_refuses(env):
+    from test_bug050_cache_collision import ref
     b = env["backend"]
+    jobs = [j.id for j in ref.plan_ref_jobs(env["cfg"], ref.load_clip_manifest(env["text"], env["cfg"]))]
     _run(env, "s1", limit=3)
-    b.faults["LOC_00.ref"] = "crash_after_entry"
-    rc1, res1 = _umask0_run(env, "s2", limit=1)            # LOC_00: entry synced 0o666/0o777, then crash
-    assert rc1 == p4.EXIT_FAIL and "LOC_00.ref" in str(res1.get("error"))
+    _run(env, "s2", limit=1)                                 # GREY_CTRL_01 (content-key restore)
+    jid = jobs[4]                                            # the next unique full clip
+    assert not jid.startswith("GREY_CTRL") and jid.count(".") == 1
+    b.faults[jid] = "crash_after_entry"
+    rc1, res1 = _umask0_run(env, "s3", limit=1)             # entry synced 0o666/0o777, then crash
+    assert rc1 == p4.EXIT_FAIL and jid in str(res1.get("error"))
     b.faults.clear()
     before = _cache_sha_objects(env)
-    stored = json.loads(b.s3_get_text("entries_ref/LOC_00.ref.json"))
-    rc2, res2 = _run(env, "s3", limit=1)
+    stored = json.loads(b.s3_get_text(f"entries_ref/{jid}.json"))
+    rc2, res2 = _run(env, "s4", limit=1)
     assert rc2 in (0, p4.EXIT_INCOMPLETE), {k: res2.get(k) for k in ("error", "errors", "gate_failures")}
-    assert "LOC_00.ref" in res2["restored"]
+    assert jid in res2["restored"]
     assert _cache_sha_objects(env) == before                                     # no re-upload
-    row = {r["job"]: r for r in _rows(env) if r.get("gate_pass")}["LOC_00.ref"]
+    row = {r["job"]: r for r in _rows(env) if r.get("gate_pass")}[jid]
     assert row["tar_sha256"] == stored["tar_sha256"] and row["sums_sha256"] == stored["sums_sha256"]
     assert row["rearchive_tar_sha256"] != stored["tar_sha256"]                   # descriptive only
-    assert b.extractions_per_job().get("LOC_00.ref", 0) == 1
+    assert b.extractions_per_job().get(jid, 0) == 1
 
 
 def test_non_full_condition_restoring_a_group_writable_base_entry(env):

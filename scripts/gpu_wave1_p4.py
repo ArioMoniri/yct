@@ -115,6 +115,13 @@ class CacheKeyConflictError(RuntimeError):
     non-passing rows): a STOP, never a restore or a re-extraction."""
 
 
+class RestoreIntegrityError(RuntimeError):
+    """BUG-050b (council wf_f85f8bc4-847): a restored cache entry whose FILES_SHA256SUMS does not match the
+    recorded entry sums_sha256, at staging (downloaded object) or after the run (re-archived sums): a STOP,
+    nothing is uploaded. Tar sha256s of a restored entry are not compared (restore clears group/other write
+    bits, so re-archived tar headers may differ while every member's content is identical)."""
+
+
 class S3ReadError(RuntimeError):
     """An S3 read failed for any reason other than "object not found" (fail closed, QA c2 N2)."""
 
@@ -481,17 +488,26 @@ def do_job(job: Job, ctx: dict) -> str:
         raise RuntimeError(f"pod copy of the predictions differs from the box sha256 for {job.id}")
     key = rec["cache_key"]
     tar_key, sums_key = f"feature_cache/{key}.tar", f"feature_cache/{key}.FILES_SHA256SUMS"
-    if restore and "restored_from_job" in restore and (key != restore["cache_key"]
-                                                       or files["entry_tar"][1] != restore["tar_sha256"]):
-        raise CacheKeyConflictError(f"{job.id}: restored entry of {restore['restored_from_job']} came back as "
-                                    f"key {key[:12]} / tar {files['entry_tar'][1][:12]} (BUG-050)")
-    store.put_file(files["entry_tar"][0], tar_key, files["entry_tar"][1])
-    store.put_file(files["entry_sums"][0], sums_key, files["entry_sums"][1])
+    if restore:
+        # BUG-050b: a restored entry (content key or job id / base_id) is identified by its FILES_SHA256SUMS,
+        # anchored to the recorded entry sums_sha256 (checked again at staging). The stored tar stays the record:
+        # no re-upload; the re-archived tar sha is descriptive only.
+        src = restore.get("restored_from_job") or restore.get("job")
+        want_sums = restore.get("sums_sha256")
+        if key != restore["cache_key"] or not want_sums or files["entry_sums"][1] != want_sums:
+            raise RestoreIntegrityError(f"{job.id}: restored entry of {src} came back as key {key[:12]} / "
+                                        f"FILES_SHA256SUMS {files['entry_sums'][1][:12]} != recorded "
+                                        f"{str(want_sums)[:12]} (BUG-050b)")
+        tar_sha, sums_sha = restore["tar_sha256"], want_sums
+    else:
+        store.put_file(files["entry_tar"][0], tar_key, files["entry_tar"][1])
+        store.put_file(files["entry_sums"][0], sums_key, files["entry_sums"][1])
+        tar_sha, sums_sha = files["entry_tar"][1], files["entry_sums"][1]
     by_content = bool(restore and "restored_from_job" in restore)
     if (restore is None or by_content) and job.condition == "full":
         store.put_text(f"{camp.entry_prefix}/{job.id}.json", json.dumps(
             {"job": job.id, "cache_key": key, "tar_key": tar_key, "sums_key": sums_key,
-             "tar_sha256": files["entry_tar"][1], "sums_sha256": files["entry_sums"][1], "run_id": a.run_id,
+             "tar_sha256": tar_sha, "sums_sha256": sums_sha, "run_id": a.run_id,
              "instance_id": ctx["iid"], "revisions_sha256": rec.get("revisions_sha256"), "t": ctx["clock"](),
              **({"restored_from_job": restore["restored_from_job"], "cache_reused": True} if by_content else {})},
             sort_keys=True, indent=1))
@@ -504,7 +520,8 @@ def do_job(job: Job, ctx: dict) -> str:
         store.put_file(files["fresh_feat"][0], f"{camp.d038_prefix}/{job.video_id}.fresh_feat.tar", files["fresh_feat"][1])
         if files["fresh_pred"][1] != d038["fresh_pred_sha256"]:
             raise RuntimeError(f"fresh prediction sha256 mismatch for {job.id}")
-    row.update({"pred_key": pred_key, "tar_sha256": files["entry_tar"][1], "sums_sha256": files["entry_sums"][1]})
+    row.update({"pred_key": pred_key, "tar_sha256": tar_sha, "sums_sha256": sums_sha,
+                **({"rearchive_tar_sha256": files["entry_tar"][1]} if restore else {})})
     store.append_rows([row], a.run_id)
     if ctx["rev_sha"] is None:
         ctx["rev_sha"] = rec.get("revisions_sha256")
@@ -941,6 +958,10 @@ class DryRunBackend:
         shutil.copy2(Path(inp["path"]).with_suffix(".tsv"), clip.with_suffix(".tsv"))
         box["staged"][job.id] = clip
         if restore:
+            got = _sha_file(self.s3 / restore["sums_key"])
+            if not restore.get("sums_sha256") or got != restore["sums_sha256"]:     # BUG-050b (a)
+                raise RestoreIntegrityError(f"{job.id}: staged FILES_SHA256SUMS {got[:12]} != recorded entry "
+                                            f"sums_sha256 {str(restore.get('sums_sha256'))[:12]} (BUG-050b)")
             media = sorted((self.pod / "cache_media").glob("*"))
             ca.restore_entry(self.s3 / restore["tar_key"], (self.s3 / restore["sums_key"]).read_text(),
                              [*media, clip], box["dir"] / "fc")
@@ -1003,7 +1024,9 @@ class DryRunBackend:
         d.mkdir(parents=True, exist_ok=True)
         res = box["dir"] / "res"
         info = ca.archive_entry(box["dir"] / "fc", rec["cache_key"], d / "entry.tar")
-        (d / "entry.FILES_SHA256SUMS").write_text(info["files_sha256sums"])
+        (d / "entry.FILES_SHA256SUMS").write_text(info["files_sha256sums"]
+                                                  + ("0" * 64 + "  injected\n" if self.faults.get(job.id)
+                                                     == "sums_differ" else ""))
         ca.save_media(box["dir"] / "fc", rec["cache_key"], self.pod / "cache_media")
         shutil.copy2(res / f"{job.id}.npy", d / "pred.npy")
         (d / "segments.csv").write_text("tr_index,segment_start_s,segment_duration_s\n")
@@ -1214,6 +1237,7 @@ mkdir -p {st}/media
 aws s3 cp --region eu-central-1 --quiet {self.s3root}/{restore['tar_key']} {st}/entry.tar
 aws s3 cp --region eu-central-1 --quiet {self.s3root}/{restore['sums_key']} {st}/entry.sums
 [ "$(sha256sum {st}/entry.tar | cut -d' ' -f1)" = {restore['tar_sha256']} ]
+[ "$(sha256sum {st}/entry.sums | cut -d' ' -f1)" = {restore['sums_sha256']} ] || {{ echo "BUG-050b: staged FILES_SHA256SUMS != recorded sums_sha256" >&2; exit 1; }}
 for h in $(grep -E '\\.(mp4|wav|mkv|mov)$' {st}/entry.sums | cut -d' ' -f1); do cp {POD_P4}/cache_media/$h.* {st}/media/ 2>/dev/null || true; done
 tar cf - -C {st} . | {box.ssh} 'mkdir -p {bdir}/stage/{restore['cache_key']} && tar xf - -C {bdir}/stage/{restore['cache_key']}'
 """, 1800)
