@@ -11,6 +11,7 @@ the existing entry by its content key and must not re-extract. Dry run only; no 
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import pytest
@@ -201,3 +202,21 @@ def test_p4_campaign_is_unaffected(env):
     st = p4.load_state(env["p4"])
     job = p4.plan_jobs(env["cfg"])[0]
     assert p4.restorable(job, st, {"sha256": "x", "tsv_sha256": "y"}, p4.P4_CAMPAIGN) is None
+
+
+def test_bug050b_restored_entry_with_group_writable_files_is_not_a_false_conflict(env):
+    """BUG-050b: the GPU box writes cache files 0o777/0o664; restore_entry (tarfile filter="data") clears
+    group/other write bits, so the re-archived tar of a content-key-restored entry differs in its headers
+    only. Its FILES_SHA256SUMS are identical, so this is not a conflict and must not STOP the campaign."""
+    old = os.umask(0)                                   # files written 0o666/0o777, as on the box
+    try:
+        rc1, res1 = _run(env, "ref_s1", limit=3)
+    finally:
+        os.umask(old)
+    assert rc1 == p4.EXIT_INCOMPLETE, res1
+    rc2, res2 = _run(env, "ref_s2")
+    assert "CacheKeyConflictError" not in str(res2.get("error")), res2.get("error")
+    assert rc2 == 0, {k: res2.get(k) for k in ("error", "errors", "gate_failures")}
+    rows = {r["job"]: r for r in _rows(env)}
+    g0, g1 = rows["GREY_CTRL_00.ref"], rows["GREY_CTRL_01.ref"]
+    assert g1["cache_reused"] is True and g1["tar_sha256"] == g0["tar_sha256"]
