@@ -1,0 +1,1 @@
+["/tmp/claude-0/-home-user-yct/796b470d-2b75-56cd-a9e3-264336bb7bb3/scratchpad/venv/bin/python", "scripts/gpu_p4b_ref.py", "--clip-manifest", "data/refstim/refclips_manifest.json", "--ci-green-sha", "1abf218ff98b87c182e4182c99372b8cb05ca3f9", "--external-terminator-at", "2026-11-24T02:36:00Z", "--max-hours", "1.75", "--usd-limit", "8", "--limit", "3"]
