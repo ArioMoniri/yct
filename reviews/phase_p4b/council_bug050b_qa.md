@@ -1,0 +1,14 @@
+# Council BUG-050b — QA (verdict: APPROVE, with implementation conditions)
+
+Reviewed: bug050b_diagnosis.md, BUGS.md BUG-050b, cc95d90, d8d725c, tests/test_bug050b_restore_modes.py, 506fe32, cache_archive.py, gpu_wave1_p4.py do_job/restorable/stage. No sealed data, labels, transcripts or feature/prediction values read.
+Runs: `pytest tests/test_bug050b_restore_modes.py tests/test_bug050_cache_collision.py` 10 passed. The 506fe32 driver test, run from a temp copy, fails with the exact session-3 `CacheKeyConflictError`, so it reproduces. `make guards` rc=0.
+
+**Correct?** Yes. The fault is in the headers only: `filter="data"` changes the mode bits and `gettarinfo` records them. The FILES_SHA256SUMS text covers every member, media included. `restore_entry` already proves that the extracted files equal the sums, and the stored tar sha is checked on the pod at staging. So "re-archived sums == stored sums" is the right identity test for a restored entry. **Outcome-blind?** Yes. Only sha256 values of files and paths are compared, and no value is read.
+**Umask / normalising perms:** not instead, and not in this fix. Chmod after restore re-creates world-writable files. Forcing umask 022 on the box changes the fresh-extraction environment that P4 and ref sessions 1–2 ran under, and it does not fix the 16 stored tars. Mode is not part of the identity. Optional later: a separate, logged decision.
+**Frozen P4 / D-038:** no risk if the conditions below are met. 0 restored rows exist in either manifest. D-038 fresh_feat/fresh_pred come from same-box runs that are never restored. No stored object is rewritten.
+
+Conditions the fix commit must meet (blocking for the implementation, not the design):
+1. Compare `sha256(re-archived sums)` with the RECORDED `restore["sums_sha256"]` (entry record), not with the staged `entry.sums` file. Staging verifies only the tar sha (gpu_wave1_p4.py ~L1216). Keep the existing `key == restore["cache_key"]` check.
+2. Apply the check to both restore branches: content-key restores, and crash-recovery restores (no `restored_from_job`). Crash recovery has no post-run identity check today.
+3. For restored jobs, skip `put_file` for the tar and sums. The row's `tar_sha256`/`sums_sha256` (L507) and any entry record (L494) must carry the STORED shas. If the re-archived sha leaks into a row, `restorable_by_content` sees 2 tar shas and STOPs later (L365), and the 506fe32 assertion `g1.tar_sha256 == g0.tar_sha256` fails. `rearchive_tar_sha256` stays descriptive only.
+4. Add the 2 promised tests: a post-run sums mismatch is a STOP with nothing uploaded, and a crash-recovery restore of a 0o777/0o664 entry neither re-uploads nor hits OverwriteRefusedError. Bring 506fe32's test onto the campaign branch green. Leave fresh-extraction behaviour and P4 state untouched, and confirm `test_p4_campaign_is_unaffected` still passes.
