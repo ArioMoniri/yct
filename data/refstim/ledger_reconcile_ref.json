@@ -1,10 +1,10 @@
 {
  "budget_cap_usd": 200.0,
- "campaign_spend_usd": 3.3747,
- "ledger_n_lines": 2894,
- "ledger_sha256": "6414424a4298eba613646fa17b08d594e0bf506f4ac0840d10b7470e5bf9dbcb",
+ "campaign_spend_usd": 4.2651,
+ "ledger_n_lines": 2934,
+ "ledger_sha256": "09b2cd23ac667c5cd0c10488880379fcb0730d6b2177e4618d0c112c6fbf215f",
  "live": [],
  "open_launches": [],
- "spent_usd": 55.2303,
- "t": 1795482583.954609
+ "spent_usd": 56.1207,
+ "t": 1795501075.1917212
 }
