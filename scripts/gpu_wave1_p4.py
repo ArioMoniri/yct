@@ -78,6 +78,7 @@ from typing import Any
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "src"))
+from yct.tribe_run.feature_cache import content_key  # noqa: E402
 from yct.tribe_run.qc import GPU_NAME, WORD_END_CLAMP, clip_gate, sanitize_metrics  # noqa: E402
 
 # BUG-029 (FIX-P4G, D-067): predictions of the clamped stack go to their own prefix, so a job re-run after the
@@ -107,6 +108,11 @@ class ManifestConflictError(RuntimeError):
 
 class OverwriteRefusedError(RuntimeError):
     """An immutable S3 object already exists with different content."""
+
+
+class CacheKeyConflictError(RuntimeError):
+    """BUG-050: a content key whose store state is not a single passing entry (more than one tar sha, or only
+    non-passing rows): a STOP, never a restore or a re-extraction."""
 
 
 class S3ReadError(RuntimeError):
@@ -168,6 +174,7 @@ class Campaign:
     expected: Any = None
     seed_rev_sha: str | None = None
     pre_launch: Any = None
+    restore_by_content_key: bool = False   # BUG-050: the P4b ref campaign only; P4 (D-063) keeps job-id restore
 
     @property
     def pred_prefix(self) -> str:
@@ -332,11 +339,44 @@ def is_done(job: Job, st: State) -> bool:
     return bool(r and r.get("pred_key") in st.keys and f"feature_cache/{r['cache_key']}.tar" in st.keys)
 
 
-def restorable(job: Job, st: State) -> dict | None:
+def restorable(job: Job, st: State, inp: dict | None = None, camp: Campaign | None = None) -> dict | None:
     e = st.entries.get(job.id) or (st.entries.get(job.base_id) if job.condition != "full" else None)
     if e and e.get("tar_key") in st.keys and e.get("sums_key") in st.keys and not is_done(job, st):
         return e
+    if camp is not None and camp.restore_by_content_key and job.condition == "full" and inp is not None \
+            and not is_done(job, st):
+        return restorable_by_content(job, st, inp, camp)
     return None
+
+
+def restorable_by_content(job: Job, st: State, inp: dict, camp: Campaign) -> dict | None:
+    """BUG-050 (council APPROVE 5/5, council_bug050_*.md): a clip whose inputs are byte-identical to an already
+    synced clip restores that entry by its content key (computed BEFORE staging from the measured mp4/tsv
+    sha256 and the campaign's single revisions sha256) instead of re-extracting on a new box. Only this
+    campaign's own store (st) is searched. A key with more than one tar sha, or whose only rows did not pass
+    the gate, is a STOP (CacheKeyConflictError). No matching entry: None (first extraction)."""
+    rsha = st.revisions_sha256() or camp.seed_rev_sha
+    if not rsha or not inp.get("sha256"):
+        return None
+    key = content_key(inp["sha256"], inp.get("tsv_sha256"), rsha)
+    rows = [r for r in st.rows if r.get("cache_key") == key]
+    tars = {r["tar_sha256"] for r in rows if r.get("tar_sha256")}
+    tars |= {en["tar_sha256"] for en in st.entries.values() if en.get("cache_key") == key and en.get("tar_sha256")}
+    if len(tars) > 1:
+        raise CacheKeyConflictError(f"{job.id}: content key {key[:12]} maps to {len(tars)} tar sha256s")
+    ents = sorted((en for en in st.entries.values() if en.get("cache_key") == key), key=lambda en: en["job"])
+    passing = [r for r in rows if r.get("gate_pass") is True and r.get("tar_sha256")]
+    if not ents and not rows:
+        return None
+    if not passing:
+        raise CacheKeyConflictError(f"{job.id}: content key {key[:12]} has store rows/entries but no passing row")
+    src = next((en for en in ents if any(r["job"] == en["job"] for r in passing)), None)
+    if src is None or src.get("tar_key") not in st.keys or src.get("sums_key") not in st.keys:
+        raise CacheKeyConflictError(f"{job.id}: content key {key[:12]} has a passing row but no complete entry")
+    (tar,) = tars
+    if src["cache_key"] != key or src.get("tar_sha256") != tar:
+        raise CacheKeyConflictError(f"{job.id}: entry {src['job']} does not match content key {key[:12]}")
+    return {**src, "restored_from_job": src["job"]}
 
 
 def _parse_when(v: str | None) -> float | None:
@@ -366,7 +406,7 @@ def do_job(job: Job, ctx: dict) -> str:
     camp: Campaign = ctx.get("campaign") or P4_CAMPAIGN
     gtrack = camp.track_for_gate(job)
     inp = ctx["inputs"][job.video_id][job.track]
-    restore = restorable(job, st)
+    restore = restorable(job, st, inp, camp)
     b.stage(ctx["box"], job, inp, restore)
     if restore:
         res["restored"].append(job.id)
@@ -418,6 +458,8 @@ def do_job(job: Job, ctx: dict) -> str:
            "pred_sha256": rec.get("pred_sha256"), "pred_shape": rec.get("pred_shape"),
            "gate_pass": gate["pass"] and (d038 is None or d038["pass"]), "gate_failures": gate["failures"],
            "restored_from_s3": bool(restore), "d038": d038,
+           **({"restored_from_job": restore["restored_from_job"]} if restore and "restored_from_job" in restore
+              else {}),
            **({"condition": job.condition, "gate1": gate1} if job.condition != "full" or gate1 else {})}
     cond_sfx = "" if job.condition == "full" else f".{job.condition}"
     store.put_text(f"records/{job.track}/{job.video_id}{cond_sfx}.{a.run_id}.json",
@@ -439,13 +481,19 @@ def do_job(job: Job, ctx: dict) -> str:
         raise RuntimeError(f"pod copy of the predictions differs from the box sha256 for {job.id}")
     key = rec["cache_key"]
     tar_key, sums_key = f"feature_cache/{key}.tar", f"feature_cache/{key}.FILES_SHA256SUMS"
+    if restore and "restored_from_job" in restore and (key != restore["cache_key"]
+                                                       or files["entry_tar"][1] != restore["tar_sha256"]):
+        raise CacheKeyConflictError(f"{job.id}: restored entry of {restore['restored_from_job']} came back as "
+                                    f"key {key[:12]} / tar {files['entry_tar'][1][:12]} (BUG-050)")
     store.put_file(files["entry_tar"][0], tar_key, files["entry_tar"][1])
     store.put_file(files["entry_sums"][0], sums_key, files["entry_sums"][1])
-    if restore is None and job.condition == "full":
+    by_content = bool(restore and "restored_from_job" in restore)
+    if (restore is None or by_content) and job.condition == "full":
         store.put_text(f"{camp.entry_prefix}/{job.id}.json", json.dumps(
             {"job": job.id, "cache_key": key, "tar_key": tar_key, "sums_key": sums_key,
              "tar_sha256": files["entry_tar"][1], "sums_sha256": files["entry_sums"][1], "run_id": a.run_id,
-             "instance_id": ctx["iid"], "revisions_sha256": rec.get("revisions_sha256"), "t": ctx["clock"]()},
+             "instance_id": ctx["iid"], "revisions_sha256": rec.get("revisions_sha256"), "t": ctx["clock"](),
+             **({"restored_from_job": restore["restored_from_job"], "cache_reused": True} if by_content else {})},
             sort_keys=True, indent=1))
     b.after_entry_sync(job)          # dry-run fault injection point (crash between entry and predictions)
     pred_key = f"{camp.pred_prefix_for(job)}/{job.track}/{job.video_id}.npy"

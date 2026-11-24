@@ -238,7 +238,8 @@ def build_campaign(cfg: dict, manifest: dict, rev: str, backend, lg, clock, ack:
         plan=lambda _cfg: jobs,
         expected=lambda job, inp: {"input_sha256": clips[job.video_id]["mp4_sha256"],
                                    "transcript_sha256": clips[job.video_id]["tsv_sha256"]},
-        seed_rev_sha=rev, pre_launch=make_pre_launch(backend, lg, cfg, clock, ack))
+        seed_rev_sha=rev, pre_launch=make_pre_launch(backend, lg, cfg, clock, ack),
+        restore_by_content_key=True)     # BUG-050
 
 
 def _p4_manifest_sha(p4_store) -> str | None:

@@ -106,10 +106,15 @@ def cache_key(video: str | Path, video_sha256: str | None = None, *, revisions: 
     revisions sha256 (backbone revisions + GPU model + stack; FIX-P4E, D-063). v3: v2 keys (video +
     transcript only, D-062 archive) never collide with v3 keys."""
     vsha = video_sha256 or sha256_file(video)
-    tsha = transcript_sha256(video) or "none"
-    rsha = revisions_sha256(revisions)
-    return hashlib.sha256(f"yct-feature-cache-v3\nvideo:{vsha}\ntranscript:{tsha}\nrevisions:{rsha}\n"
-                          .encode()).hexdigest()
+    return content_key(vsha, transcript_sha256(video), revisions_sha256(revisions))
+
+
+def content_key(video_sha256: str, transcript_sha: str | None, revisions_sha: str) -> str:
+    """The v3 cache key from the three shas alone (BUG-050: computable before staging, from the measured
+    mp4/tsv shas and the campaign's single revisions sha256). cache_key() is this over the files."""
+    tsha = transcript_sha or "none"
+    return hashlib.sha256(f"yct-feature-cache-v3\nvideo:{video_sha256}\ntranscript:{tsha}\n"
+                          f"revisions:{revisions_sha}\n".encode()).hexdigest()
 
 
 def _net(offline: bool):
