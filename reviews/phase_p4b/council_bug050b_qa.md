@@ -12,3 +12,9 @@ Conditions the fix commit must meet (blocking for the implementation, not the de
 2. Apply the check to both restore branches: content-key restores, and crash-recovery restores (no `restored_from_job`). Crash recovery has no post-run identity check today.
 3. For restored jobs, skip `put_file` for the tar and sums. The row's `tar_sha256`/`sums_sha256` (L507) and any entry record (L494) must carry the STORED shas. If the re-archived sha leaks into a row, `restorable_by_content` sees 2 tar shas and STOPs later (L365), and the 506fe32 assertion `g1.tar_sha256 == g0.tar_sha256` fails. `rearchive_tar_sha256` stays descriptive only.
 4. Add the 2 promised tests: a post-run sums mismatch is a STOP with nothing uploaded, and a crash-recovery restore of a 0o777/0o664 entry neither re-uploads nor hits OverwriteRefusedError. Bring 506fe32's test onto the campaign branch green. Leave fresh-extraction behaviour and P4 state untouched, and confirm `test_p4_campaign_is_unaffected` still passes.
+
+## Re-sign-off (fc3c27b tests, ae80106 fix): APPROVE
+- C1: post-run check compares the re-archived sums sha with the RECORDED `restore["sums_sha256"]` (missing value fails closed); the `key == cache_key` check stays. Staging now also checks the sums sha, both live (`sha256sum` vs the recorded sums, exit 1) and dry-run (`RestoreIntegrityError`).
+- C2: the check runs under `if restore:`, so it covers content-key, job-id crash-recovery and base_id restores of non-full conditions.
+- C3: restored jobs skip both `put_file` calls. The row and entry record carry the stored tar/sums shas, and `rearchive_tar_sha256` is descriptive only. The fresh path is unchanged.
+- C4: tests cover a staging sums mismatch, a post-run mismatch (no upload, no row or entry), a crash-recovery restore at umask 0, and a non-full base restore; the 506fe32 driver test and `test_p4_campaign_is_unaffected` pass. Runs: 15 passed; `make guards` rc=0. No sealed data, labels or values were read.

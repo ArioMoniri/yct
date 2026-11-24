@@ -14,3 +14,9 @@ Read: bug050b_diagnosis.md, BUGS.md BUG-050b, cc95d90, d8d725c, tests/test_bug05
 - **Non-blocking:**
   - If a later extractor version opens `inflight.db` read-write during prediction, sqlite page writes could change its bytes. The sums check would then STOP, which is the correct, conservative outcome. Session 3 shows it does not happen today.
   - A restored GREY_CTRL_01 reuses GREY_CTRL_00's features. Keep the n_eff = 1 disclosure.
+
+## Re-sign-off (fc3c27b, ae80106): APPROVE, BLOCKING 1 is resolved
+- (a) Staging fails closed when sha256(sums) != the recorded `sums_sha256`, in the dry-run `stage()` (RestoreIntegrityError) and in the live `stage()` (`set -euo pipefail` with an explicit exit, or a KeyError when the field is missing). (b) The post-run check in `do_job` compares the re-archived sums sha with the recorded value and raises before any `put_file`, row or entry write.
+- (c) A single `if restore:` branch covers content-key and job-id/`base_id` restores. (d) Restored jobs skip both `put_file` calls. Rows and entries carry the stored tar/sums shas, and `rearchive_tar_sha256` is descriptive only. There is no umask or mode change.
+- Tests: `tests/test_bug050b_fix.py` (4) and the 506fe32 driver test cover each point, and 13/13 pass locally, `test_p4_campaign_is_unaffected` included.
+- Non-blocking: no test covers a post-run sums mismatch on a job-id restore, or the live staging script (dry-run only). Rows from earlier gate checks (gate_fail, D-038 stop) can still be appended before the sums check for a restored job. That is pre-existing behaviour.

@@ -18,3 +18,10 @@ Read: bug050b_diagnosis.md, BUGS.md BUG-050b, cc95d90, d8d725c, tests/test_bug05
   - P4 changes only in the never-exercised crash-recovery branch (0 `restored_from_s3` rows in 138 + 13). Existing tests already pin the fresh-path upload and row as unchanged.
   - D-038 Gate 1/2 compare `pred_sha256` reruns on the same box, and `fresh_feat.tar` is untouched. GREY_CTRL_00, SPK_00 and MOT_00 were extracted fresh, so their claims stand.
   - Record `rearchive_tar_sha256` as descriptive only, and never use it as an identity.
+
+## Re-sign-off (fc3c27b, ae80106): APPROVE
+- (a) Staging is anchored: live `stage()` now fails closed on sha256(entry.sums) != recorded `sums_sha256` (an empty or missing value also fails), and so does the dry-run `stage()`. The tar check is unchanged.
+- (b) In `do_job`, the post-run re-archived sums sha must equal `restore['sums_sha256']` (the recorded value, not the staged file) and the key must match, else `RestoreIntegrityError`. The check runs before any upload or row append.
+- (c) Both restore kinds go through the same `if restore:` branch: content key, and job id including non-full conditions restoring `base_id`. Both get their dict from the stored entry JSON, which carries `sums_sha256`.
+- (d) Restored jobs skip both `put_file` calls. The row and entry carry the stored tar and sums shas, and `rearchive_tar_sha256` is descriptive only. No umask or mode change.
+- Tests: staging mismatch, post-run mismatch with no upload, crash restore of a umask-0 entry, non-full base restore, and the 506fe32 driver test. All 15 BUG-050/050b tests pass locally. No blocking items.
