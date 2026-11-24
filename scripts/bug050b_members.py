@@ -26,7 +26,7 @@ def members(path: str) -> tuple[str, dict]:
             if m.isfile():
                 fh = hashlib.sha256()
                 f = tf.extractfile(m)
-                for b in iter(lambda: f.read(1 << 20), b""):
+                while b := f.read(1 << 20):
                     fh.update(b)
                 d["sha256"] = fh.hexdigest()
             out[m.name.split("/", 1)[1] if "/" in m.name else m.name] = d
