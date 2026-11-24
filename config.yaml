@@ -1113,3 +1113,5 @@ frozen:                        # D-063 (Gate P4-entry) label-blind rulings, froz
   - {key: controls.refclips_d090, frozen_at: 16bef847f289ba7e0282f686da035f50e74cb017}
   # D-091 U2: NAT word-tsv sidecar sha (council refcampaign route (c)), set in the commit named
   - {key: controls.refclips_artifacts.nat_tsv_manifest_sha256, frozen_at: 556f63798500a6947d8d1885ed55222b75fb1a70}
+  # D-091 whole block (council refcampaign re-sign-off 5/5): projection rule, NAT tsv route, upload paths
+  - {key: controls.refclips_d091, frozen_at: c4aed11202b109cded1fe2c635b18888cabc805d}

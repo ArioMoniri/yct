@@ -267,6 +267,7 @@ def test_upload_script_copies_and_never_builds():
 
 # ---------------------------------------------------------------- U4: main-campaign projection
 def _d091_frozen(cfg: dict) -> dict:
+    cfg["controls"]["refclips_d091"] = copy.deepcopy(load_config()["controls"]["refclips_d091"])
     cfg["frozen"] = [*cfg["frozen"], {"key": "controls.refclips_d091", "frozen_at": "test"}]
     return cfg
 
@@ -354,6 +355,15 @@ def test_check_only_runs_every_precondition_and_launches_nothing(renv):
     assert res["projection"]["remaining_plan_usd"] == 61.0 and res["p4_manifest_sha256"]
 
 
+def test_check_only_without_capacity_is_not_a_pass(renv, monkeypatch):
+    monkeypatch.setattr(ref, "gpu_price_or_none", lambda lg, itype: None)
+    rc, res = ref.run_ref_session(p4.SessionArgs(1.75, 8.0, None, "chk"), _d091_frozen(renv["cfg"]),
+                                  renv["lg"], renv["backend"], renv["p4"], renv["clock"],
+                                  renv["tmp"] / "runs" / "chk", renv["text"], check_only=True)
+    assert rc == p4.EXIT_INCOMPLETE and res["status"] == "check_only_no_capacity"
+    assert res["projection"] is None
+
+
 # ---------------------------------------------------------------- non-blocking
 def test_d038_gate_failure_on_grey_ctrl_is_exit_1_and_a_latched_stop(renv):
     renv["backend"].faults["GREY_CTRL_00.ref"] = "rerun_differs"
@@ -434,3 +444,46 @@ def test_committed_nat_tsv_sidecar_matches_the_config_and_adapts_with_the_real_m
             (s["transcript"], s["wav"], s["mp4"])
     jobs = ref.plan_ref_jobs(cfg, ref.load_clip_manifest(text, cfg, side_text))
     assert [j.id for j in jobs[:3]] == ["GREY_CTRL_00.ref", "SPK_00.ref", "MOT_00.ref"]
+
+
+# ---------------------------------------------------------------- council re-sign-off conditions
+def _unfrozen_d091(renv):
+    renv["cfg"]["controls"]["refclips_d091"] = copy.deepcopy(load_config()["controls"]["refclips_d091"])
+    renv["cfg"]["frozen"] = [r for r in renv["cfg"]["frozen"]
+                             if not r["key"].startswith("controls.refclips_d091")]
+
+
+def test_unfrozen_d091_refuses_the_launch_instead_of_skipping_the_projection(renv):
+    _unfrozen_d091(renv)
+    with pytest.raises(SystemExit, match="not frozen"):
+        t._run(renv, limit=3)
+    assert t._no_new_launch(renv)
+    with pytest.raises(SystemExit, match="not frozen"):
+        ref.run_ref_session(p4.SessionArgs(1.75, 8.0, None, "chk"), renv["cfg"], renv["lg"], renv["backend"],
+                            renv["p4"], renv["clock"], renv["tmp"] / "runs" / "chk", renv["text"],
+                            check_only=True)
+
+
+def test_the_real_config_requires_the_d091_block():
+    from yct.config_schema import Controls
+
+    assert Controls.model_fields["refclips_d091"].is_required()
+
+
+def test_reference_driver_output_firewall():
+    """D-063 B2 / U6: the reference driver imports no analysis code and never loads a prediction array."""
+    import ast
+
+    src = (ROOT / "scripts/gpu_p4b_ref.py").read_text()
+    mods = set()
+    for node in ast.walk(ast.parse(src)):
+        if isinstance(node, ast.Import):
+            mods |= {a.name for a in node.names}
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            mods.add(node.module)
+            mods |= {f"{node.module}.{a.name}" for a in node.names}
+    banned = ("yct.features", "yct.interpret", "yct.stats", "yct.report", "yct.confounds", "yct.analysis",
+              "numpy", "nibabel")
+    assert not [m for m in mods if m.startswith(banned)], sorted(mods)
+    for word in ("np.load", "load_pred", "pred_key", "full/ref/"):
+        assert word not in src, word
